@@ -5,6 +5,7 @@
 TabMaster Pro is a Chrome extension for advanced tab management, built with vanilla JavaScript (no frameworks). The extension helps users manage 200+ tabs efficiently with features like snoozing, grouping, bulk operations, and analytics.
 
 **PRD Location**: `/plans/tabmaster-pro-prd-v2.md` - Contains full product requirements and specifications
+**TODO Location**: `/TODO.md` - Contains implementation status and remaining tasks with completion markers
 
 ## Tech Stack & Constraints
 
@@ -31,56 +32,37 @@ TabMaster Pro is a Chrome extension for advanced tab management, built with vani
 - ✅ Export functionality (JSON format)
 - ✅ Dashboard with charts (Chart.js integration fixed)
 - ✅ Real memory monitoring
+- ✅ Quick Actions (Close Duplicates, Group by Domain, Snooze Current, Suspend Inactive)
 - ⏳ Import functionality (partial)
+- ⏳ Snooze UI (basic implementation, needs enhancement)
 - ❌ Command Palette
-- ❌ Enhanced Snooze UI
-- ❌ Quick Actions
+- ❌ Enhanced Quick Actions (preview counts, undo, floating action button)
 - ❌ Bulk Operations
 
-## Implementation Phases
+## Implementation Instructions
 
-### Phase 1: Core UI Actions (Current Focus)
+### Working with this Project
 
-1. **Command Palette** (Priority 1)
-   - Location: popup.js and new file command-palette.js
-   - Features: Fuzzy search, keyboard navigation, recent commands
-   - Implementation: Modal overlay, event delegation, keyboard shortcuts
+1. **Always check TODO.md first** - This is the single source of truth for what needs to be implemented
+   - Look for status markers: ✅ Complete | ⚠️ Partial | ❌ Not Started
+   - Update TODO.md as you complete tasks
+   - Add [x] checkmarks as you complete individual items
 
-2. **Enhanced Snooze Interface**
-   - Location: Enhance existing snooze.js
-   - Features: Natural language presets, bulk snooze, visual queue
-   - Implementation: Modal dialog, relative time calculations
+2. **Follow the implementation order in TODO.md**
+   - Priority 1: Core UI Actions
+   - Priority 2: Visual Enhancements  
+   - Priority 3: Advanced Features
+   - And so on...
 
-3. **Quick Action Wheel/Grid**
-   - Location: popup.js with new quick-actions.js
-   - Features: FAB, expandable grid, preview counts, undo
-   - Implementation: CSS animations, action preview system
+3. **Before starting any feature**:
+   - Check if it already exists (marked with ⚠️ or ✅)
+   - Read the "Current Status" notes
+   - Don't recreate existing functionality
 
-4. **Tab Selection & Bulk Operations**
-   - Location: popup.js enhancements
-   - Features: Checkboxes, bulk toolbar, multi-select
-   - Implementation: Selection state management, batch Chrome API calls
-
-### Phase 2: Visual Enhancements
-
-- Tab preview cards with hover
-- Toast notification system
-- Animated statistics
-- Mini charts in popup
-
-### Phase 3: Advanced Features
-
-- Smart suggestions engine
-- Advanced search & filters
-- Workspace templates
-- Import functionality completion
-
-### Phase 4: Professional Features
-
-- Project detection & auto-grouping
-- Time tracking & analytics
-- Emergency recovery system
-- Team collaboration features
+4. **Update documentation as you work**:
+   - Mark completed items in TODO.md
+   - Update this file if architecture changes
+   - Document any new patterns or decisions
 
 ## Code Patterns & Best Practices
 
@@ -176,11 +158,7 @@ npm test
 
 ## Next Steps
 
-1. Implement Command Palette (popup.js, command-palette.js)
-2. Enhance Snooze Interface (snooze.js)
-3. Add Quick Actions (quick-actions.js)
-4. Implement Bulk Operations (popup.js)
-5. Complete Import functionality (import.js)
+See TODO.md for the prioritized list of features to implement. Start with Priority 1 items marked with ❌ or ⚠️.
 
 ## Important Notes
 
