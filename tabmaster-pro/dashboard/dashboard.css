@@ -311,6 +311,11 @@ body {
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
+  min-height: 300px;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
 }
 
 .chart-card h3 {
@@ -318,6 +323,20 @@ body {
   font-weight: 600;
   margin-bottom: 20px;
   color: #495057;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 250px;
+  width: 100%;
+}
+
+.chart-card canvas {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .chart-card.large {

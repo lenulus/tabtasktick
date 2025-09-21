@@ -59,6 +59,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize snooze modal
   snoozeModal = new SnoozeModal();
   
+  // Initialize Floating Action Button
+  const fab = new FloatingActionButton(document.body);
+  
   // Refresh data every 5 seconds
   setInterval(async () => {
     await loadStatistics();
@@ -654,6 +657,9 @@ function showNotification(message, type = 'info') {
     notification.remove();
   }, 3000);
 }
+
+// Expose globally for FAB component
+window.showNotification = showNotification;
 
 // ============================================================================
 // Error Handling

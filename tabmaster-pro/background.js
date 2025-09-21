@@ -854,6 +854,18 @@ async function handleMessage(request, sender) {
     case 'importData':
       return await importData(request.data);
     
+    case 'getDuplicateCount':
+      return await getDuplicateCount();
+    
+    case 'archiveOldTabs':
+      return await archiveOldTabs();
+    
+    case 'getOrganizeSuggestions':
+      return await getOrganizeSuggestions();
+    
+    case 'undo':
+      return await executeUndo(request.actionId, request.undoData);
+    
     default:
       throw new Error(`Unknown action: ${request.action}`);
   }
@@ -1175,6 +1187,199 @@ async function addSnoozedTab(tab) {
   chrome.alarms.create('checkSnoozedTabs', { delayInMinutes: 1, periodInMinutes: 1 });
   
   return true;
+}
+
+// ============================================================================
+// FAB Action Implementations
+// ============================================================================
+
+async function getDuplicateCount() {
+  const tabs = await chrome.tabs.query({});
+  const urlMap = new Map();
+  let duplicates = 0;
+
+  tabs.forEach(tab => {
+    if (!tab.pinned) {
+      const normalizedUrl = tab.url;
+      if (urlMap.has(normalizedUrl)) {
+        duplicates++;
+      } else {
+        urlMap.set(normalizedUrl, tab);
+      }
+    }
+  });
+
+  return duplicates;
+}
+
+async function archiveOldTabs() {
+  const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+  const tabs = await chrome.tabs.query({});
+  const now = Date.now();
+  
+  const oldTabs = tabs.filter(tab => {
+    return !tab.pinned && 
+           !tab.active && 
+           tab.lastAccessed && 
+           (now - tab.lastAccessed) > ONE_WEEK;
+  });
+
+  if (oldTabs.length === 0) {
+    return { count: 0 };
+  }
+
+  // Create archive entry
+  const archive = {
+    id: Date.now().toString(),
+    timestamp: now,
+    tabs: oldTabs.map(tab => ({
+      url: tab.url,
+      title: tab.title,
+      favicon: tab.favIconUrl,
+      lastAccessed: tab.lastAccessed
+    }))
+  };
+
+  // Save to storage
+  const { archives = [] } = await chrome.storage.local.get('archives');
+  archives.push(archive);
+  await chrome.storage.local.set({ archives });
+
+  // Close the tabs
+  const tabIds = oldTabs.map(tab => tab.id);
+  await chrome.tabs.remove(tabIds);
+
+  return {
+    count: oldTabs.length,
+    undoData: { archiveId: archive.id, tabCount: oldTabs.length }
+  };
+}
+
+async function getOrganizeSuggestions() {
+  const tabs = await chrome.tabs.query({});
+  const suggestions = [];
+
+  // Analyze tab patterns
+  const domains = new Map();
+  const ungroupedDomains = new Set();
+  
+  tabs.forEach(tab => {
+    try {
+      const domain = new URL(tab.url).hostname;
+      domains.set(domain, (domains.get(domain) || 0) + 1);
+      
+      if (!tab.groupId || tab.groupId === -1) {
+        ungroupedDomains.add(domain);
+      }
+    } catch (e) {}
+  });
+
+  // Generate suggestions
+  if (ungroupedDomains.size > 5) {
+    suggestions.push({
+      type: 'group',
+      action: 'Group similar domains',
+      impact: `Create ${Math.floor(ungroupedDomains.size / 2)} groups`,
+      execute: 'groupByDomain'
+    });
+  }
+
+  const duplicateCount = await getDuplicateCount();
+  if (duplicateCount > 3) {
+    suggestions.push({
+      type: 'clean',
+      action: 'Clean up duplicates',
+      impact: `Close ${duplicateCount} duplicate tabs`,
+      execute: 'closeDuplicates'
+    });
+  }
+
+  const inactiveTabs = tabs.filter(tab => 
+    !tab.pinned && 
+    !tab.active &&
+    tab.lastAccessed < Date.now() - 30 * 60 * 1000
+  );
+  
+  if (inactiveTabs.length > 10) {
+    const memoryEstimate = Math.round(inactiveTabs.length * 50 / 1024); // GB
+    suggestions.push({
+      type: 'suspend',
+      action: 'Suspend inactive tabs',
+      impact: `Free up ~${memoryEstimate}MB memory`,
+      execute: 'suspendInactive'
+    });
+  }
+
+  const oldTabsResult = await getOldTabsCount();
+  if (oldTabsResult > 5) {
+    suggestions.push({
+      type: 'archive',
+      action: 'Archive old tabs',
+      impact: `Archive ${oldTabsResult} tabs not used in 7+ days`,
+      execute: 'archiveOld'
+    });
+  }
+
+  return suggestions;
+}
+
+async function getOldTabsCount() {
+  const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+  const tabs = await chrome.tabs.query({});
+  const oldTabs = tabs.filter(tab => 
+    !tab.pinned && 
+    !tab.active && 
+    tab.lastAccessed &&
+    (Date.now() - tab.lastAccessed) > ONE_WEEK
+  );
+  return oldTabs.length;
+}
+
+async function executeUndo(actionId, undoData) {
+  try {
+    switch (actionId) {
+      case 'archiveOld':
+        return await undoArchiveOldTabs(undoData);
+      
+      case 'closeDuplicates':
+      case 'groupByDomain':
+      case 'suspendInactive':
+        // These actions don't have undo implemented yet
+        return { success: false, message: 'Undo not available for this action' };
+      
+      default:
+        return { success: false, message: 'Unknown action' };
+    }
+  } catch (error) {
+    console.error('Undo failed:', error);
+    return { success: false, message: error.message };
+  }
+}
+
+async function undoArchiveOldTabs(undoData) {
+  // Get archives
+  const { archives = [] } = await chrome.storage.local.get('archives');
+  const archiveIndex = archives.findIndex(a => a.id === undoData.archiveId);
+  
+  if (archiveIndex === -1) {
+    throw new Error('Archive not found');
+  }
+
+  const archive = archives[archiveIndex];
+  
+  // Restore tabs
+  for (const tab of archive.tabs) {
+    await chrome.tabs.create({ 
+      url: tab.url, 
+      active: false 
+    });
+  }
+
+  // Remove from archives
+  archives.splice(archiveIndex, 1);
+  await chrome.storage.local.set({ archives });
+
+  return { success: true, restoredCount: archive.tabs.length };
 }
 
 // Initialize monitoring on startup

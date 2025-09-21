@@ -6,6 +6,7 @@
   <title>TabMaster Pro - Dashboard</title>
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="../components/snooze-modal.css">
+  <link rel="stylesheet" href="../components/fab.css">
 </head>
 <body>
   <div class="dashboard">
@@ -166,12 +167,16 @@
         <div class="charts-container">
           <div class="chart-card">
             <h3>Tab Activity (Last 7 Days)</h3>
-            <canvas id="activityChart"></canvas>
+            <div class="chart-wrapper">
+              <canvas id="activityChart"></canvas>
+            </div>
           </div>
           
           <div class="chart-card">
             <h3>Top Domains</h3>
-            <canvas id="domainsChart"></canvas>
+            <div class="chart-wrapper">
+              <canvas id="domainsChart"></canvas>
+            </div>
           </div>
         </div>
 
@@ -460,8 +465,9 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../lib/chart.min.js"></script>
   <script src="../components/snooze-modal.js"></script>
+  <script src="../components/fab.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>

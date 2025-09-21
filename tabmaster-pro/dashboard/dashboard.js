@@ -31,13 +31,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize snooze modal
   snoozeModal = new SnoozeModal();
   
+  // Initialize Floating Action Button
+  const fab = new FloatingActionButton(document.body);
+  
   // Refresh data periodically
   setInterval(refreshData, 30000); // Every 30 seconds
+  
+  // Handle window resize with debouncing
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      // Resize charts if they exist
+      if (charts.activity) charts.activity.resize();
+      if (charts.domains) charts.domains.resize();
+    }, 250);
+  });
 });
 
 async function initializeDashboard() {
-  await loadOverviewData();
+  // Wait for Chart.js to be available
+  await waitForChartJS();
   initializeCharts();
+  await loadOverviewData();
+}
+
+async function waitForChartJS(maxAttempts = 10) {
+  for (let i = 0; i < maxAttempts; i++) {
+    if (typeof Chart !== 'undefined') {
+      console.log('Chart.js loaded');
+      return;
+    }
+    console.log(`Waiting for Chart.js... attempt ${i + 1}`);
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  console.warn('Chart.js failed to load after maximum attempts');
 }
 
 // ============================================================================
@@ -105,9 +133,12 @@ function switchView(view) {
 // ============================================================================
 
 async function loadOverviewData() {
+  console.log('Loading overview data...');
   try {
+    const startTime = Date.now();
     const stats = await sendMessage({ action: 'getStatistics' });
     const tabInfo = await sendMessage({ action: 'getTabInfo' });
+    console.log(`Data fetched in ${Date.now() - startTime}ms`);
     
     // Update stat cards
     document.getElementById('statTotalTabs').textContent = stats.totalTabs;
@@ -123,8 +154,10 @@ async function loadOverviewData() {
     document.getElementById('statMemoryPercent').textContent = `${Math.round(stats.memoryEstimate.percentage)}% of limit`;
     
     // Update charts with sample data
+    console.log('Calling chart updates...');
     updateActivityChart();
     updateDomainsChart(stats.topDomains);
+    console.log('Chart updates called');
     
     // Update recent activity
     updateRecentActivity();
@@ -622,6 +655,12 @@ function initializeCharts() {
     return;
   }
   
+  // Only initialize if charts don't exist
+  if (charts.activity || charts.domains) {
+    console.log('Charts already initialized, skipping');
+    return;
+  }
+  
   // Initialize Chart.js charts
   const activityCtx = document.getElementById('activityChart');
   if (activityCtx) {
@@ -635,6 +674,7 @@ function initializeCharts() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        aspectRatio: 2,
         plugins: {
           legend: {
             display: false
@@ -643,6 +683,12 @@ function initializeCharts() {
         scales: {
           y: {
             beginAtZero: true
+          }
+        },
+        layout: {
+          padding: {
+            top: 10,
+            bottom: 10
           }
         }
       }
@@ -664,9 +710,22 @@ function initializeCharts() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        aspectRatio: 1.5,
         plugins: {
           legend: {
-            position: 'bottom'
+            position: 'bottom',
+            labels: {
+              padding: 10,
+              font: {
+                size: 12
+              }
+            }
+          }
+        },
+        layout: {
+          padding: {
+            top: 10,
+            bottom: 10
           }
         }
       }
@@ -678,6 +737,7 @@ function initializeCharts() {
 }
 
 function updateActivityChart() {
+  console.log('Updating activity chart...', { chart: !!charts.activity, chartJS: typeof Chart !== 'undefined' });
   if (!charts.activity || typeof Chart === 'undefined') return;
   
   try {
@@ -697,13 +757,21 @@ function updateActivityChart() {
     };
     
     charts.activity.update();
+    console.log('Activity chart updated successfully');
   } catch (error) {
     console.error('Failed to update activity chart:', error);
   }
 }
 
 function updateDomainsChart(domains) {
-  if (!charts.domains || !domains || typeof Chart === 'undefined') return;
+  console.log('Updating domains chart...', { chart: !!charts.domains, domains: domains?.length || 0 });
+  if (!charts.domains || typeof Chart === 'undefined') return;
+  
+  // Handle empty or missing data
+  if (!domains || domains.length === 0) {
+    console.log('No domain data available');
+    domains = [{ domain: 'No data', count: 1 }];
+  }
   
   try {
     const labels = domains.map(d => d.domain);
@@ -726,6 +794,7 @@ function updateDomainsChart(domains) {
     };
     
     charts.domains.update();
+    console.log('Domains chart updated successfully');
   } catch (error) {
     console.error('Failed to update domains chart:', error);
   }

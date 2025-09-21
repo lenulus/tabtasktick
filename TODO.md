@@ -32,19 +32,19 @@
 - [ ] Use CSS animations for smooth transitions
 - [ ] Calculate and show relative times ("in 2 hours")
 
-### Quick Action Wheel/Grid ⚠️
-**Current Status**: 4 quick action buttons exist and work (no FAB/grid design)
+### Quick Action Wheel/Grid ✅ [Spec: SPEC-004]
+**Current Status**: Fully implemented with FAB, expandable grid, preview counts, and undo system
 - [x] Close Duplicates button (with count preview)
 - [x] Group by Domain button
 - [x] Suspend Inactive button  
 - [x] Snooze Current button
 - [x] Action implementations in background.js
-- [ ] Design floating action button (FAB) component
-- [ ] Implement expandable action grid design
-- [ ] Add preview counts/impact for all actions (only duplicates has count)
-- [ ] Archive Old Tabs action
-- [ ] Quick Organize (AI-powered suggestion)
-- [ ] Implement 5-second undo option after actions
+- [x] Design floating action button (FAB) component
+- [x] Implement expandable action grid design
+- [x] Add preview counts/impact for all actions (only duplicates has count)
+- [x] Archive Old Tabs action
+- [x] Quick Organize (AI-powered suggestion)
+- [x] Implement 5-second undo option after actions
 
 ### Tab Selection & Bulk Operations (Vanilla JS) ✅ [Spec: SPEC-002]
 **Current Status**: Fully implemented with bulk toolbar, selection system, and all actions
