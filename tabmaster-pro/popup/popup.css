@@ -1,3 +1,20 @@
+/* CSS Variables */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-hover: #e9ecef;
+  --bg-active: #dee2e6;
+  --bg-card: #f8f9fa;
+  --text-primary: #2c3e50;
+  --text-secondary: #6c757d;
+  --accent-color: #667eea;
+  --accent-light: #e0e7ff;
+  --accent-dark: #5a67d8;
+  --border-color: #dee2e6;
+  --error-color: #dc3545;
+  --info-bg: #e7f3ff;
+}
+
 /* Reset and Base Styles */
 * {
   margin: 0;
@@ -362,22 +379,63 @@ section h3 {
   font-weight: 600;
 }
 
-/* Snoozed Tabs */
-.snoozed-preview h2 .count {
+/* Snoozed Tabs Section */
+.snoozed-tabs {
+  margin-top: 24px;
+}
+
+.snoozed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.snoozed-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.snoozed-count {
   background: #6c757d;
-  color: white;
   padding: 2px 8px;
   border-radius: 12px;
-  font-size: 11px;
-  font-weight: normal;
+  font-size: 12px;
+  color: white;
 }
 
 .snoozed-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 200px;
+  gap: 4px;
+  max-height: 300px;
   overflow-y: auto;
+}
+
+.snoozed-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 4px 4px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.snoozed-group-header:first-child {
+  margin-top: 0;
+}
+
+.group-count {
+  opacity: 0.7;
+  font-weight: normal;
 }
 
 .snoozed-tab {
@@ -387,13 +445,17 @@ section h3 {
   padding: 10px 12px;
   background: #f8f9fa;
   border-radius: 6px;
-  cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .snoozed-tab:hover {
   background: #e9ecef;
-  transform: translateX(4px);
+}
+
+.snoozed-tab:hover .snoozed-actions {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .snoozed-favicon {
@@ -419,6 +481,39 @@ section h3 {
   font-size: 10px;
   color: #6c757d;
   margin-top: 2px;
+}
+
+.snoozed-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.snoozed-action {
+  padding: 4px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.snoozed-action:hover {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.snoozed-action svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
 }
 
 /* Footer */

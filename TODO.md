@@ -17,7 +17,7 @@
 - [x] Style with CSS Grid/Flexbox for responsive layout
 - [x] Implement keyboard shortcut hints
 
-### Enhanced Snooze Interface (Vanilla JS) ⚠️
+### Enhanced Snooze Interface (Vanilla JS) ⚠️ [Spec: SPEC-003]
 **Current Status**: Basic snooze works (2h, 4h, 8h, Tomorrow, Next Week presets)
 - [x] Basic snooze time options in popup
 - [x] Snooze tracking and wake-up system

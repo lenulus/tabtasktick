@@ -347,16 +347,20 @@ async function groupTabsAction(tabs, action) {
 
 async function snoozeTabsAction(tabs, action) {
   const snoozeUntil = Date.now() + (action.snoozeMinutes * 60 * 1000);
+  const groupId = action.groupId || `group_${Date.now()}`;
   
   for (const tab of tabs) {
-    // Store tab info
+    // Store tab info with enhanced metadata
     const snoozedTab = {
       id: `snoozed_${Date.now()}_${tab.id}`,
       url: tab.url,
       title: tab.title,
       favicon: tab.favIconUrl,
       snoozeUntil: snoozeUntil,
-      originalTabId: tab.id
+      snoozeReason: action.snoozeReason || 'manual',
+      originalTabId: tab.id,
+      groupId: tabs.length > 1 ? groupId : null,
+      createdAt: Date.now()
     };
     
     state.snoozedTabs.push(snoozedTab);
@@ -372,7 +376,34 @@ async function snoozeTabsAction(tabs, action) {
   // Set alarm to restore tabs
   chrome.alarms.create('checkSnoozedTabs', { delayInMinutes: 1, periodInMinutes: 1 });
   
+  // Show notification with smart message
+  if (tabs.length > 0) {
+    const notificationMessage = tabs.length === 1 
+      ? `Tab will reopen ${getReadableTimeFromNow(snoozeUntil)}`
+      : `${tabs.length} tabs will reopen ${getReadableTimeFromNow(snoozeUntil)}`;
+    
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'icons/icon-128.png',
+      title: 'Tabs Snoozed',
+      message: notificationMessage,
+      buttons: [{ title: 'Undo' }]
+    });
+  }
+  
   await updateStatistics();
+}
+
+function getReadableTimeFromNow(timestamp) {
+  const now = Date.now();
+  const diff = timestamp - now;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  
+  if (days > 0) return `in ${days} day${days > 1 ? 's' : ''}`;
+  if (hours > 0) return `in ${hours} hour${hours > 1 ? 's' : ''}`;
+  return `in ${minutes} minute${minutes > 1 ? 's' : ''}`;
 }
 
 async function suspendTabsAction(tabs, action) {
@@ -399,6 +430,40 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     await checkSnoozedTabs();
   } else if (alarm.name === 'evaluateRules') {
     await evaluateRules();
+  }
+});
+
+// Handle notification interactions
+chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+  if (buttonIndex === 0) { // Undo button
+    // Check if this is a snooze notification
+    const recentlySnoozed = state.snoozedTabs.slice(-5); // Check last 5 snoozed tabs
+    if (recentlySnoozed.length > 0) {
+      // Restore the most recently snoozed tabs
+      for (const tab of recentlySnoozed) {
+        await chrome.tabs.create({
+          url: tab.url,
+          active: false
+        });
+      }
+      
+      // Remove them from snoozed tabs
+      state.snoozedTabs = state.snoozedTabs.filter(
+        t => !recentlySnoozed.some(r => r.id === t.id)
+      );
+      await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+      
+      // Clear the notification
+      chrome.notifications.clear(notificationId);
+      
+      // Show success notification
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/icon-128.png',
+        title: 'Undo Successful',
+        message: `Restored ${recentlySnoozed.length} tab${recentlySnoozed.length > 1 ? 's' : ''}`
+      });
+    }
   }
 });
 
@@ -553,29 +618,21 @@ async function quickSnoozeCurrent(minutes = null) {
   if (!activeTab) return;
   
   const snoozeMinutes = minutes || state.settings.defaultSnoozeMinutes;
-  await snoozeTabsAction([activeTab], { snoozeMinutes });
-  
-  chrome.notifications.create({
-    type: 'basic',
-    iconUrl: 'icons/icon-128.png',
-    title: 'Tab Snoozed',
-    message: `Tab will reopen in ${snoozeMinutes} minutes`
+  await snoozeTabsAction([activeTab], { 
+    snoozeMinutes,
+    snoozeReason: 'quick_action'
   });
 }
 
-async function snoozeTabs(tabIds, minutes) {
+async function snoozeTabs(tabIds, minutes, reason = 'manual') {
   const tabs = await chrome.tabs.query({});
   const tabsToSnooze = tabs.filter(tab => tabIds.includes(tab.id));
   
   if (tabsToSnooze.length === 0) return;
   
-  await snoozeTabsAction(tabsToSnooze, { snoozeMinutes: minutes });
-  
-  chrome.notifications.create({
-    type: 'basic',
-    iconUrl: 'icons/icon-128.png',
-    title: 'Tabs Snoozed',
-    message: `${tabsToSnooze.length} tabs will reopen in ${minutes} minutes`
+  await snoozeTabsAction(tabsToSnooze, { 
+    snoozeMinutes: minutes,
+    snoozeReason: reason
   });
   
   return true;
@@ -784,6 +841,12 @@ async function handleMessage(request, sender) {
     
     case 'restoreSnoozedTab':
       return await restoreSnoozedTab(request.tabId);
+    
+    case 'removeSnoozedTab':
+      return await removeSnoozedTab(request.tabId);
+    
+    case 'addSnoozedTab':
+      return await addSnoozedTab(request.tab);
     
     case 'exportData':
       return await exportData();
@@ -1092,6 +1155,26 @@ async function restoreSnoozedTab(tabId) {
   }
   
   return snoozedTab;
+}
+
+async function removeSnoozedTab(tabId) {
+  const snoozedTab = state.snoozedTabs.find(t => t.id === tabId);
+  if (snoozedTab) {
+    state.snoozedTabs = state.snoozedTabs.filter(t => t.id !== tabId);
+    await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+    return true;
+  }
+  return false;
+}
+
+async function addSnoozedTab(tab) {
+  state.snoozedTabs.push(tab);
+  await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+  
+  // Ensure alarm is set
+  chrome.alarms.create('checkSnoozedTabs', { delayInMinutes: 1, periodInMinutes: 1 });
+  
+  return true;
 }
 
 // Initialize monitoring on startup

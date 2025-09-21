@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TabMaster Pro</title>
   <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="../components/snooze-modal.css">
 </head>
 <body>
   <div class="container">
@@ -94,17 +95,6 @@
       </div>
     </section>
 
-    <!-- Snooze Options (Hidden by default) -->
-    <section class="snooze-options hidden" id="snoozeOptions">
-      <h3>Snooze for:</h3>
-      <div class="snooze-buttons">
-        <button class="snooze-btn" data-minutes="120">2 Hours</button>
-        <button class="snooze-btn" data-minutes="240">4 Hours</button>
-        <button class="snooze-btn" data-minutes="480">8 Hours</button>
-        <button class="snooze-btn" data-minutes="1440">Tomorrow</button>
-        <button class="snooze-btn" data-minutes="10080">Next Week</button>
-      </div>
-    </section>
 
     <!-- Active Rules -->
     <section class="active-rules">
@@ -168,6 +158,7 @@
     </footer>
   </div>
   
+  <script src="../components/snooze-modal.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

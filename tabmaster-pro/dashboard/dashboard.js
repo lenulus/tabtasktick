@@ -10,6 +10,7 @@ let tabsData = [];
 let groupsData = [];
 let snoozedData = [];
 let charts = {};
+let snoozeModal = null;
 
 // Selection state
 const selectionState = {
@@ -26,6 +27,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initializeDashboard();
   setupEventListeners();
   setupNavigation();
+  
+  // Initialize snooze modal
+  snoozeModal = new SnoozeModal();
   
   // Refresh data periodically
   setInterval(refreshData, 30000); // Every 30 seconds
@@ -1092,19 +1096,49 @@ async function moveToWindow(tabIds) {
 }
 
 async function showSnoozeDialog(tabIds) {
-  // For now, use a simple prompt. In a real implementation, create a proper dialog
-  const snoozeTime = prompt('Snooze for how many hours?', '2');
-  if (snoozeTime) {
-    const hours = parseFloat(snoozeTime);
-    if (!isNaN(hours)) {
+  // Get tab details for the selected tabs
+  const tabs = await chrome.tabs.query({});
+  const selectedTabsData = tabs.filter(tab => tabIds.includes(tab.id));
+  
+  // Show enhanced snooze modal
+  snoozeModal.show(selectedTabsData);
+  
+  // Set up modal callbacks
+  snoozeModal.onSnooze = async (snoozeData) => {
+    try {
+      const { timestamp, presetId, tabIds: snoozeTabIds, tabCount } = snoozeData;
+      const minutes = Math.floor((timestamp - Date.now()) / 60000);
+      
       await sendMessage({
         action: 'snoozeTabs',
         tabIds: tabIds,
-        minutes: hours * 60
+        minutes: minutes
       });
-      showNotification(`Snoozed ${tabIds.length} tabs for ${hours} hours`, 'success');
+      
+      const tabText = tabCount === 1 ? 'tab' : `${tabCount} tabs`;
+      showNotification(`Snoozed ${tabText} for ${getReadableDuration(minutes)}`, 'success');
+      
+      // Clear selection and reload data
+      clearSelection();
+      await refreshData();
+    } catch (error) {
+      console.error('Failed to snooze tabs:', error);
+      showNotification('Failed to snooze tabs', 'error');
     }
-  }
+  };
+  
+  snoozeModal.onCancel = () => {
+    // Modal handles its own cleanup
+  };
+}
+
+function getReadableDuration(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  
+  if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
+  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+  return `${minutes} minute${minutes > 1 ? 's' : ''}`;
 }
 
 // ============================================================================

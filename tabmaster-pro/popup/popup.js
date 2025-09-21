@@ -39,6 +39,13 @@ const elements = {
 };
 
 // ============================================================================
+// Global Variables
+// ============================================================================
+
+let snoozeModal = null;
+let currentTab = null;
+
+// ============================================================================
 // Initialization
 // ============================================================================
 
@@ -46,7 +53,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadStatistics();
   await loadRules();
   await loadSnoozedTabs();
+  await loadCurrentTab();
   setupEventListeners();
+  
+  // Initialize snooze modal
+  snoozeModal = new SnoozeModal();
   
   // Refresh data every 5 seconds
   setInterval(async () => {
@@ -58,6 +69,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ============================================================================
 // Data Loading Functions
 // ============================================================================
+
+async function loadCurrentTab() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentTab = tab;
+  } catch (error) {
+    console.error('Failed to load current tab:', error);
+  }
+}
 
 async function loadStatistics() {
   try {
@@ -208,26 +228,94 @@ function updateSnoozedList(snoozedTabs) {
   // Sort by snooze time
   snoozedTabs.sort((a, b) => a.snoozeUntil - b.snoozeUntil);
   
-  snoozedTabs.forEach(tab => {
-    const tabEl = document.createElement('div');
-    tabEl.className = 'snoozed-tab';
-    
-    const timeRemaining = getTimeRemaining(tab.snoozeUntil);
-    const favicon = tab.favicon || '../icons/icon-16.png';
-    
-    tabEl.innerHTML = `
-      <img src="${favicon}" class="snoozed-favicon" onerror="this.src='../icons/icon-16.png'">
-      <div class="snoozed-info">
-        <div class="snoozed-title" title="${tab.title}">${tab.title}</div>
-        <div class="snoozed-time">Opens in ${timeRemaining}</div>
-      </div>
+  // Group tabs by time period
+  const groups = groupSnoozedTabsByPeriod(snoozedTabs);
+  
+  groups.forEach(group => {
+    // Add group header
+    const groupHeader = document.createElement('div');
+    groupHeader.className = 'snoozed-group-header';
+    groupHeader.innerHTML = `
+      <span class="group-title">${group.title}</span>
+      <span class="group-count">(${group.tabs.length})</span>
     `;
+    elements.snoozedList.appendChild(groupHeader);
     
-    // Add click event to restore immediately
-    tabEl.addEventListener('click', () => restoreSnoozedTab(tab.id));
-    
-    elements.snoozedList.appendChild(tabEl);
+    // Add tabs in group
+    group.tabs.forEach(tab => {
+      const tabEl = document.createElement('div');
+      tabEl.className = 'snoozed-tab';
+      
+      const timeRemaining = getTimeRemaining(tab.snoozeUntil);
+      const favicon = tab.favicon || '../icons/icon-16.png';
+      
+      tabEl.innerHTML = `
+        <img src="${favicon}" class="snoozed-favicon" onerror="this.src='../icons/icon-16.png'">
+        <div class="snoozed-info">
+          <div class="snoozed-title" title="${tab.title}">${tab.title}</div>
+          <div class="snoozed-time">${timeRemaining}</div>
+        </div>
+        <div class="snoozed-actions">
+          <button class="snoozed-action wake-btn" data-tab-id="${tab.id}" title="Wake now">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </button>
+          <button class="snoozed-action reschedule-btn" data-tab-id="${tab.id}" title="Reschedule">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+          </button>
+        </div>
+      `;
+      
+      // Add action event listeners
+      const wakeBtn = tabEl.querySelector('.wake-btn');
+      const rescheduleBtn = tabEl.querySelector('.reschedule-btn');
+      
+      wakeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        restoreSnoozedTab(tab.id);
+      });
+      
+      rescheduleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        rescheduleSnoozedTab(tab);
+      });
+      
+      elements.snoozedList.appendChild(tabEl);
+    });
   });
+}
+
+function groupSnoozedTabsByPeriod(tabs) {
+  const now = Date.now();
+  const groups = {
+    soon: { title: 'Next Hour', tabs: [] },
+    today: { title: 'Today', tabs: [] },
+    tomorrow: { title: 'Tomorrow', tabs: [] },
+    later: { title: 'Later', tabs: [] }
+  };
+  
+  tabs.forEach(tab => {
+    const diff = tab.snoozeUntil - now;
+    const hours = diff / (1000 * 60 * 60);
+    
+    if (hours <= 1) {
+      groups.soon.tabs.push(tab);
+    } else if (hours <= 24) {
+      groups.today.tabs.push(tab);
+    } else if (hours <= 48) {
+      groups.tomorrow.tabs.push(tab);
+    } else {
+      groups.later.tabs.push(tab);
+    }
+  });
+  
+  // Return only non-empty groups
+  return Object.values(groups).filter(g => g.tabs.length > 0);
 }
 
 // ============================================================================
@@ -241,28 +329,12 @@ function setupEventListeners() {
   elements.snoozeCurrent.addEventListener('click', handleSnoozeCurrentToggle);
   elements.suspendInactive.addEventListener('click', handleSuspendInactive);
   
-  // Snooze Options
-  document.querySelectorAll('.snooze-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const minutes = parseInt(e.target.dataset.minutes);
-      handleSnoozeCurrent(minutes);
-    });
-  });
-  
   // Footer Actions
   elements.settingsBtn.addEventListener('click', openSettings);
   elements.commandPalette.addEventListener('click', openCommandPalette);
   elements.dashboard.addEventListener('click', openDashboard);
   elements.export.addEventListener('click', handleExport);
   elements.help.addEventListener('click', openHelp);
-  
-  // Close snooze options when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!elements.snoozeCurrent.contains(e.target) && 
-        !elements.snoozeOptions.contains(e.target)) {
-      elements.snoozeOptions.classList.add('hidden');
-    }
-  });
 }
 
 // ============================================================================
@@ -314,21 +386,99 @@ async function handleGroupByDomain() {
 }
 
 function handleSnoozeCurrentToggle() {
-  elements.snoozeOptions.classList.toggle('hidden');
+  // Check if bulk selection is active
+  const selectedTabs = getSelectedTabs();
+  
+  if (selectedTabs.length > 0) {
+    // Bulk snooze
+    snoozeModal.show(selectedTabs);
+  } else if (currentTab) {
+    // Single tab snooze
+    snoozeModal.show([currentTab]);
+  }
+  
+  // Set up modal callbacks
+  snoozeModal.onSnooze = async (snoozeData) => {
+    await handleSnoozeTabs(snoozeData);
+  };
+  
+  snoozeModal.onCancel = () => {
+    // Modal handles its own cleanup
+  };
 }
 
-async function handleSnoozeCurrent(minutes) {
+async function handleSnoozeTabs(snoozeData) {
   try {
-    await sendMessage({ action: 'snoozeCurrent', minutes });
-    showNotification(`Tab snoozed for ${getReadableDuration(minutes)}`, 'success');
-    elements.snoozeOptions.classList.add('hidden');
+    const { timestamp, presetId, tabIds, tabCount } = snoozeData;
+    const minutes = Math.floor((timestamp - Date.now()) / 60000);
     
-    // Close popup after snoozing
-    setTimeout(() => window.close(), 1000);
+    if (tabIds.length === 1 && tabIds[0] === currentTab?.id) {
+      // Single current tab
+      await sendMessage({ action: 'snoozeCurrent', minutes });
+    } else {
+      // Multiple tabs or specific tabs
+      await sendMessage({ action: 'snoozeTabs', tabIds, minutes });
+    }
+    
+    const tabText = tabCount === 1 ? 'Tab' : `${tabCount} tabs`;
+    showNotification(`${tabText} snoozed for ${getReadableDuration(minutes)}`, 'success');
+    
+    // Clear selection if bulk snooze
+    if (tabCount > 1) {
+      clearSelection();
+    }
+    
+    // Refresh statistics
+    await loadStatistics();
+    await loadSnoozedTabs();
+    
+    // Close popup after single tab snooze
+    if (tabCount === 1 && tabIds[0] === currentTab?.id) {
+      setTimeout(() => window.close(), 1000);
+    }
   } catch (error) {
-    console.error('Failed to snooze tab:', error);
-    showNotification('Failed to snooze tab', 'error');
+    console.error('Failed to snooze tabs:', error);
+    showNotification('Failed to snooze tabs', 'error');
   }
+}
+
+async function rescheduleSnoozedTab(tab) {
+  // Show modal for rescheduling
+  snoozeModal.show([tab]);
+  
+  snoozeModal.onSnooze = async (snoozeData) => {
+    try {
+      // First restore the tab without opening it
+      await sendMessage({ action: 'removeSnoozedTab', tabId: tab.id });
+      
+      // Then create new snoozed entry with new time
+      const newSnoozedTab = {
+        ...tab,
+        snoozeUntil: snoozeData.timestamp,
+        snoozeReason: snoozeData.presetId || 'custom'
+      };
+      
+      await sendMessage({ action: 'addSnoozedTab', tab: newSnoozedTab });
+      
+      showNotification('Tab rescheduled', 'success');
+      await loadSnoozedTabs();
+    } catch (error) {
+      console.error('Failed to reschedule tab:', error);
+      showNotification('Failed to reschedule tab', 'error');
+    }
+  };
+}
+
+function getSelectedTabs() {
+  // Check if we're in the dashboard context with bulk selection
+  // For the popup, we'll only handle the current tab
+  // The dashboard handles bulk selection through its own implementation
+  return [];
+}
+
+function clearSelection() {
+  // Not needed in popup context
+  // Dashboard handles its own selection clearing
 }
 
 async function handleSuspendInactive() {
