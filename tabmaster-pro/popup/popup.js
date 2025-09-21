@@ -29,6 +29,7 @@ const elements = {
   
   // Footer
   settingsBtn: document.getElementById('settingsBtn'),
+  commandPalette: document.getElementById('commandPalette'),
   dashboard: document.getElementById('dashboard'),
   export: document.getElementById('export'),
   help: document.getElementById('help'),
@@ -250,6 +251,7 @@ function setupEventListeners() {
   
   // Footer Actions
   elements.settingsBtn.addEventListener('click', openSettings);
+  elements.commandPalette.addEventListener('click', openCommandPalette);
   elements.dashboard.addEventListener('click', openDashboard);
   elements.export.addEventListener('click', handleExport);
   elements.help.addEventListener('click', openHelp);
@@ -394,6 +396,12 @@ function openSettings() {
 
 function openDashboard() {
   chrome.tabs.create({ url: chrome.runtime.getURL('dashboard/dashboard.html') });
+}
+
+function openCommandPalette() {
+  // Send message to background to open command palette
+  chrome.runtime.sendMessage({ action: 'openCommandPalette' });
+  window.close();
 }
 
 async function handleExport() {

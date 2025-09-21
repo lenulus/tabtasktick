@@ -1,6 +1,13 @@
 // Background Service Worker for TabMaster Pro
 // Core functionality for tab management, rules engine, and automation
 
+console.log('Background service worker loaded');
+
+// Test keyboard shortcut registration
+chrome.commands.getAll((commands) => {
+  console.log('Registered commands:', commands);
+});
+
 // ============================================================================
 // State Management
 // ============================================================================
@@ -653,9 +660,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // ============================================================================
 
 chrome.commands.onCommand.addListener(async (command) => {
+  console.log('Command received:', command);
   switch (command) {
-    case '_execute_action':
+    case 'open_command_palette':
       // Open command palette
+      console.log('Opening command palette...');
       await openCommandPalette();
       break;
       
@@ -676,19 +685,31 @@ chrome.commands.onCommand.addListener(async (command) => {
 async function openCommandPalette() {
   // Create or focus the command palette
   const width = 600;
-  const height = 400;
-  const left = Math.round((screen.width - width) / 2);
-  const top = Math.round((screen.height - height) / 2);
+  const height = 600;
   
-  chrome.windows.create({
-    url: chrome.runtime.getURL('popup/command-palette.html'),
-    type: 'popup',
-    width: width,
-    height: height,
-    left: left,
-    top: top,
-    focused: true
-  });
+  try {
+    // Get the current window to calculate center position
+    const currentWindow = await chrome.windows.getCurrent();
+    const left = Math.round(currentWindow.left + (currentWindow.width - width) / 2);
+    const top = Math.round(currentWindow.top + (currentWindow.height - height) / 2);
+    
+    const window = await chrome.windows.create({
+      url: chrome.runtime.getURL('popup/command-palette.html'),
+      type: 'popup',
+      width: width,
+      height: height,
+      left: left,
+      top: top,
+      focused: true
+    });
+    console.log('Command palette opened:', window);
+  } catch (error) {
+    console.error('Failed to open command palette:', error);
+    // Fallback: open in a new tab
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('popup/command-palette.html')
+    });
+  }
 }
 
 
@@ -703,6 +724,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function handleMessage(request, sender) {
   switch (request.action) {
+    case 'openCommandPalette':
+      await openCommandPalette();
+      return true;
+      
     case 'getStatistics':
       return await getStatistics();
     

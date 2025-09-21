@@ -4,18 +4,18 @@
 
 ## 🚨 Priority 1: Core UI Actions (Week 1) - Vanilla JS Implementation
 
-### Command Palette (No Framework Needed) ❌
-**Current Status**: Only keyboard shortcut registered (Ctrl/Cmd+Shift+P), no UI exists
+### Command Palette (No Framework Needed) ✅ [Spec: SPEC-001]
+**Current Status**: Fully implemented with fuzzy search, keyboard navigation, and all commands
 - [x] Keyboard shortcut registered in manifest
 - [x] Background handler function exists
-- [ ] Create modal overlay with search box using vanilla JS
-- [ ] Implement fuzzy search for commands and tabs
-- [ ] Add keyboard navigation (up/down arrows, enter to select)
-- [ ] List all available actions with shortcuts
-- [ ] Include recent commands section
-- [ ] Add tab search within command palette
-- [ ] Style with CSS Grid/Flexbox for responsive layout
-- [ ] Implement keyboard shortcut hints
+- [x] Create modal overlay with search box using vanilla JS
+- [x] Implement fuzzy search for commands and tabs
+- [x] Add keyboard navigation (up/down arrows, enter to select)
+- [x] List all available actions with shortcuts
+- [x] Include recent commands section
+- [x] Add tab search within command palette
+- [x] Style with CSS Grid/Flexbox for responsive layout
+- [x] Implement keyboard shortcut hints
 
 ### Enhanced Snooze Interface (Vanilla JS) ⚠️
 **Current Status**: Basic snooze works (2h, 4h, 8h, Tomorrow, Next Week presets)
