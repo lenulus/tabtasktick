@@ -297,7 +297,8 @@ function renderTabs(tabs) {
     // Add preview hover handlers
     card.addEventListener('mouseenter', () => {
       if (previewCard) {
-        previewCard.show(tab.id, card);
+        // Pass the element first, then the tab object
+        previewCard.show(card, tab);
       }
     });
     

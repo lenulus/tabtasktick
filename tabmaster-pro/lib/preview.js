@@ -110,7 +110,6 @@ class TabPreviewCard {
     
     // Append to portal container which is outside any transformed elements
     portalContainer.appendChild(this.element);
-    console.log('Preview card element appended to portal container');
     
     // Cache DOM references
     this.screenshotEl = this.element.querySelector('.preview-screenshot');
@@ -176,8 +175,7 @@ class TabPreviewCard {
     });
   }
   
-  async show(tabId, anchorElement) {
-    console.log('Preview show called for tab:', tabId, 'enabled:', this.settings.enabled);
+  async show(tabIdOrElement, anchorElement) {
     if (!this.settings.enabled) return;
     
     // Clear any existing timer
@@ -186,16 +184,34 @@ class TabPreviewCard {
     // Set hover timer
     this.hoverTimer = setTimeout(async () => {
       try {
-        console.log('Fetching tab data for:', tabId);
-        // Get tab data
-        const tab = await chrome.tabs.get(tabId);
-        if (!tab) {
-          console.error('Tab not found:', tabId);
-          return;
+        let tab;
+        
+        // Support both old signature (tabId, element) and new signature (element, tab)
+        if (typeof tabIdOrElement === 'number') {
+          // Old signature: tabId, anchorElement
+          // Get tab data
+          if (typeof chrome !== 'undefined' && chrome.tabs) {
+            tab = await chrome.tabs.get(tabIdOrElement);
+          } else {
+            return;
+          }
+          if (!tab) {
+            return;
+          }
+          this.currentTabId = tabIdOrElement;
+        } else if (typeof tabIdOrElement === 'object' && tabIdOrElement.nodeType) {
+          // New signature: anchorElement, tab object
+          const tempAnchor = tabIdOrElement;
+          tab = anchorElement;  // In this case, second parameter is the tab object
+          anchorElement = tempAnchor;
+          this.currentTabId = tab.id;
+        } else if (typeof tabIdOrElement === 'object' && !tabIdOrElement.nodeType) {
+          // Direct tab object passed (for testing)
+          tab = tabIdOrElement;
+          this.currentTabId = tab.id;
         }
         
-        console.log('Tab data received:', tab.title);
-        this.currentTabId = tabId;
+        this.currentTabId = tab.id || this.currentTabId;
         
         // Update content
         this.updateContent(tab);
@@ -204,28 +220,14 @@ class TabPreviewCard {
         this.updatePosition(anchorElement);
         
         // Show with animation
-        console.log('Adding visible class to preview card');
         
         // Ensure element is in DOM
         if (!this.element.parentNode) {
-          console.log('Element not in DOM, re-appending...');
           document.body.appendChild(this.element);
         }
         
         this.element.classList.add('visible');
         this.isVisible = true;
-        
-        // Check if element is actually in DOM
-        console.log('Preview element parent:', this.element.parentNode);
-        console.log('Preview element classes:', this.element.className);
-        console.log('Preview element computed display:', window.getComputedStyle(this.element).display);
-        console.log('Preview element position:', {
-          left: this.element.style.left,
-          top: this.element.style.top,
-          offsetWidth: this.element.offsetWidth,
-          offsetHeight: this.element.offsetHeight
-        });
-        console.log('Body contains element:', document.body.contains(this.element));
         
         // Load screenshot if enabled
         if (this.settings.showScreenshots) {
@@ -318,7 +320,6 @@ class TabPreviewCard {
   
   updatePosition(anchorElement) {
     const rect = anchorElement.getBoundingClientRect();
-    console.log('Anchor element rect:', rect);
     
     const cardWidth = 320;
     const cardHeight = 280; // Approximate
@@ -342,8 +343,6 @@ class TabPreviewCard {
       left = padding + window.scrollX;
     }
     
-    console.log('Calculated preview position:', { left, top, scrollX: window.scrollX, scrollY: window.scrollY });
-    
     this.element.style.left = `${left}px`;
     this.element.style.top = `${top}px`;
     
@@ -360,54 +359,71 @@ class TabPreviewCard {
       return;
     }
     
-    // For now, disable screenshot capture due to permission complexities
-    // This feature requires activeTab permission and the tab to be visible
-    // TODO: Implement proper screenshot capture with permission checks
-    this.screenshotEl.style.display = 'none';
-    this.screenshotPlaceholderEl.style.display = 'flex';
-    
-    /* Future implementation:
-    // Only capture screenshots for active, visible tabs in the current window
-    // Requires careful permission handling and user experience considerations
-    
     // Create loader to track this request
     const loader = { cancel: false };
     this.screenshotLoader = loader;
     
     try {
-      // Check if we have permission for this tab
-      const permissions = await chrome.permissions.contains({
-        permissions: ['activeTab'],
-        origins: [tab.url]
-      });
-      
-      if (!permissions || !tab.active) {
-        this.screenshotEl.style.display = 'none';
+      // Check if Chrome APIs are available
+      if (typeof chrome === 'undefined' || !chrome.tabs || !chrome.tabs.captureVisibleTab) {
+        this.showEnhancedPlaceholder(tab);
         return;
       }
       
-      // Capture only if tab is in current window and active
-      const currentWindow = await chrome.windows.getCurrent();
-      if (currentWindow.id === tab.windowId && tab.active) {
-        const screenshot = await chrome.tabs.captureVisibleTab(tab.windowId, {
-          format: 'jpeg',
-          quality: 30
-        });
-        
-        if (!loader.cancel) {
-          this.screenshotCache.set(tab.id, {
-            screenshot,
-            timestamp: Date.now()
+      // Check if this is the current active tab we're viewing
+      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
+      // We can only capture screenshots of the currently visible tab
+      if (activeTab && activeTab.id === tab.id) {
+        try {
+          const screenshot = await chrome.tabs.captureVisibleTab(activeTab.windowId, {
+            format: 'jpeg',
+            quality: 30
           });
-          this.displayScreenshot(screenshot);
+          
+          if (!loader.cancel) {
+            this.screenshotCache.set(tab.id, {
+              screenshot,
+              timestamp: Date.now()
+            });
+            this.displayScreenshot(screenshot);
+          }
+        } catch (captureError) {
+          this.showEnhancedPlaceholder(tab);
         }
+      } else {
+        // For non-active tabs, show an enhanced placeholder with site info
+        this.showEnhancedPlaceholder(tab);
       }
     } catch (error) {
-      // Silently fail - screenshots are optional enhancement
-      console.debug('Screenshot capture not available:', error.message);
-      this.screenshotEl.style.display = 'none';
+      this.showEnhancedPlaceholder(tab);
     }
-    */
+  }
+  
+  showEnhancedPlaceholder(tab) {
+    // Hide the actual screenshot
+    this.screenshotEl.style.display = 'none';
+    this.screenshotPlaceholderEl.style.display = 'flex';
+    
+    // Update placeholder to show site-specific content
+    const url = new URL(tab.url || 'https://example.com');
+    const domain = url.hostname.replace('www.', '');
+    
+    // Create a more informative placeholder
+    this.screenshotPlaceholderEl.innerHTML = `
+      <div style="text-align: center; padding: 20px;">
+        ${tab.favIconUrl ? 
+          `<img src="${tab.favIconUrl}" style="width: 48px; height: 48px; margin-bottom: 12px;" onerror="this.style.display='none'">` :
+          `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; opacity: 0.5;">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="9" x2="15" y2="9"></line>
+            <line x1="9" y1="12" x2="15" y2="12"></line>
+            <line x1="9" y1="15" x2="12" y2="15"></line>
+          </svg>`
+        }
+        <div style="font-size: 13px; opacity: 0.7; margin-top: 8px;">${domain}</div>
+      </div>
+    `;
   }
   
   displayScreenshot(dataUrl) {
