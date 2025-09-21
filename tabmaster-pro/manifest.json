@@ -12,7 +12,8 @@
     "contextMenus",
     "webNavigation",
     "idle",
-    "system.memory"
+    "system.memory",
+    "downloads"
   ],
   "host_permissions": [
     "<all_urls>"

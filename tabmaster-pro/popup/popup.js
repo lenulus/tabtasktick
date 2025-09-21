@@ -398,6 +398,9 @@ function openDashboard() {
 
 async function handleExport() {
   try {
+    // Show what's being exported
+    showNotification('Exporting tabs, settings, and rules...', 'info');
+    
     const data = await sendMessage({ action: 'exportData' });
     
     // Create download
@@ -405,16 +408,28 @@ async function handleExport() {
     const url = URL.createObjectURL(blob);
     const filename = `tabmaster-export-${new Date().toISOString().split('T')[0]}.json`;
     
-    chrome.downloads.download({
+    await chrome.downloads.download({
       url: url,
       filename: filename,
       saveAs: true
     });
     
-    showNotification('Export successful', 'success');
+    // Show summary of what was exported
+    const summary = [];
+    if (data.currentSession) {
+      summary.push(`${data.currentSession.tabCount} tabs`);
+    }
+    if (data.extension.rules) {
+      summary.push(`${data.extension.rules.length} rules`);
+    }
+    if (data.extension.snoozedTabs) {
+      summary.push(`${data.extension.snoozedTabs.length} snoozed tabs`);
+    }
+    
+    showNotification(`Exported: ${summary.join(', ')}`, 'success');
   } catch (error) {
     console.error('Failed to export data:', error);
-    showNotification('Failed to export data', 'error');
+    showNotification('Export failed: ' + (error.message || 'Unknown error'), 'error');
   }
 }
 

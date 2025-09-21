@@ -916,15 +916,72 @@ async function toggleRule(ruleId) {
 // Import/Export
 // ============================================================================
 
-async function exportData() {
-  return {
+async function exportData(options = {}) {
+  const exportData = {
     version: '1.0.0',
     exportDate: new Date().toISOString(),
-    rules: state.rules,
-    settings: state.settings,
-    snoozedTabs: state.snoozedTabs,
-    statistics: state.statistics
+    browser: navigator.userAgent,
+    extension: {
+      rules: state.rules,
+      settings: state.settings,
+      snoozedTabs: state.snoozedTabs,
+      statistics: state.statistics,
+      tabGroups: Array.from(state.tabGroups.entries())
+    }
   };
+
+  // Include current tabs if requested (default: true)
+  if (options.includeTabs !== false) {
+    const tabs = await chrome.tabs.query({});
+    const windows = await chrome.windows.getAll({ populate: false });
+    const groups = await chrome.tabGroups.query({});
+    
+    exportData.currentSession = {
+      windowCount: windows.length,
+      tabCount: tabs.length,
+      groupCount: groups.length,
+      tabs: tabs.map(tab => ({
+        id: tab.id,
+        windowId: tab.windowId,
+        groupId: tab.groupId,
+        title: tab.title,
+        url: tab.url,
+        favicon: tab.favIconUrl,
+        pinned: tab.pinned,
+        active: tab.active,
+        index: tab.index,
+        audible: tab.audible,
+        mutedInfo: tab.mutedInfo,
+        openerTabId: tab.openerTabId
+      })),
+      groups: groups.map(group => ({
+        id: group.id,
+        title: group.title,
+        color: group.color,
+        collapsed: group.collapsed,
+        windowId: group.windowId
+      })),
+      windows: windows.map(window => ({
+        id: window.id,
+        focused: window.focused,
+        incognito: window.incognito,
+        type: window.type,
+        state: window.state
+      }))
+    };
+  }
+
+  // Include bookmarks if requested
+  if (options.includeBookmarks) {
+    try {
+      const bookmarkTree = await chrome.bookmarks.getTree();
+      exportData.bookmarks = bookmarkTree;
+    } catch (error) {
+      console.error('Failed to export bookmarks:', error);
+    }
+  }
+
+  return exportData;
 }
 
 async function importData(data) {
