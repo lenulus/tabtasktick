@@ -41,28 +41,56 @@ TabMaster Pro is a Chrome extension for advanced tab management, built with vani
 
 ## Implementation Instructions
 
+### Plan-Spec-Implement Pattern
+
+Follow this development pattern for each feature:
+
+1. **PLAN Phase**
+   - Review the feature requirements in TODO.md
+   - Identify dependencies and affected files
+   - Consider edge cases and error handling
+   - Update TODO.md with any additional subtasks discovered
+
+2. **SPEC Phase** 
+   - Write detailed specification in `docs/specs/`
+   - Filename format: `SPEC-{number}-{feature-name}.md`
+   - Include:
+     - User stories and acceptance criteria
+     - Technical design (data structures, algorithms)
+     - UI/UX mockups (ASCII art or descriptions)
+     - API contracts and Chrome API usage
+     - Test scenarios
+   - Add spec reference to TODO.md item
+
+3. **IMPLEMENT Phase**
+   - Follow the specification exactly
+   - Write code with comprehensive comments
+   - Handle all error cases identified in spec
+   - Update TODO.md checkboxes as you progress
+   - Test with 200+ tabs scenario
+
 ### Working with this Project
 
-1. **Always check TODO.md first** - This is the single source of truth for what needs to be implemented
+1. **Always check TODO.md first** - Single source of truth for tasks
    - Look for status markers: ✅ Complete | ⚠️ Partial | ❌ Not Started
-   - Update TODO.md as you complete tasks
-   - Add [x] checkmarks as you complete individual items
+   - Check for existing spec references
+   - Update as you complete tasks
 
-2. **Follow the implementation order in TODO.md**
-   - Priority 1: Core UI Actions
-   - Priority 2: Visual Enhancements  
-   - Priority 3: Advanced Features
-   - And so on...
+2. **Documentation Structure**
+   - `/docs/specs/` - Feature specifications
+   - `/docs/` - User documentation (EXPORT-IMPORT.md, KEYBINDS.md, etc.)
+   - `/plans/` - Product requirements and planning docs
 
 3. **Before starting any feature**:
-   - Check if it already exists (marked with ⚠️ or ✅)
-   - Read the "Current Status" notes
+   - Check implementation status in TODO.md
+   - Look for existing specs in docs/specs/
    - Don't recreate existing functionality
 
-4. **Update documentation as you work**:
-   - Mark completed items in TODO.md
-   - Update this file if architecture changes
-   - Document any new patterns or decisions
+4. **Testing Approach** (adapted for Chrome Extensions)
+   - Manual testing with test scenarios from spec
+   - Console logging for debugging
+   - Chrome DevTools for performance profiling
+   - Test with large datasets (200+ tabs)
 
 ## Code Patterns & Best Practices
 
@@ -167,6 +195,7 @@ See TODO.md for the prioritized list of features to implement. Start with Priori
 - Follow existing code style (2-space indent, semicolons)
 - Document complex logic with comments
 - Update this file as implementation progresses
+- Add spec references to TODO.md items: `[Spec: SPEC-001]`
 
 ## File Structure
 
