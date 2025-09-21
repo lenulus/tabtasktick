@@ -787,7 +787,7 @@ async function getStatistics() {
     duplicates: findDuplicateCount(tabs),
     topDomains,
     statistics: state.statistics,
-    memoryEstimate: estimateMemoryUsage(tabs)
+    memoryEstimate: await estimateMemoryUsage(tabs)
   };
 }
 
@@ -821,12 +821,52 @@ function findDuplicateCount(tabs) {
   return urls.length - uniqueUrls.size;
 }
 
-function estimateMemoryUsage(tabs) {
-  // Rough estimation: 50MB base + 20MB per tab
-  const estimatedMB = 50 + (tabs.length * 20);
+async function estimateMemoryUsage(tabs) {
+  try {
+    // Try to get actual system memory info
+    if (chrome.system && chrome.system.memory) {
+      const memoryInfo = await chrome.system.memory.getInfo();
+      const totalMemoryGB = (memoryInfo.capacity / (1024 * 1024 * 1024)).toFixed(2);
+      const availableMemoryGB = (memoryInfo.availableCapacity / (1024 * 1024 * 1024)).toFixed(2);
+      const usedMemoryGB = totalMemoryGB - availableMemoryGB;
+      const usagePercentage = ((usedMemoryGB / totalMemoryGB) * 100).toFixed(1);
+      
+      // Estimate Chrome's portion (rough estimate: Chrome uses ~30-40% of used memory with many tabs)
+      const chromeMemoryMB = Math.round((usedMemoryGB * 1024) * 0.35);
+      const perTabEstimate = tabs.length > 0 ? Math.round(chromeMemoryMB / tabs.length) : 0;
+      
+      return {
+        estimatedMB: chromeMemoryMB,
+        percentage: parseFloat(usagePercentage),
+        totalSystemGB: parseFloat(totalMemoryGB),
+        availableSystemGB: parseFloat(availableMemoryGB),
+        perTabMB: perTabEstimate,
+        isRealData: true
+      };
+    }
+  } catch (error) {
+    console.log('System memory API not available, using estimates');
+  }
+  
+  // Fallback to estimation if system.memory API is not available
+  // More realistic estimation based on tab count
+  const baseMemoryMB = 150; // Chrome base usage
+  const memoryPerTab = tabs.length < 50 ? 50 : // Heavy per tab when few tabs
+                       tabs.length < 100 ? 30 : // Medium per tab 
+                       tabs.length < 200 ? 20 : // Light per tab when many
+                       15; // Very light when 200+ tabs
+  
+  const estimatedMB = baseMemoryMB + (tabs.length * memoryPerTab);
+  const assumedSystemMemoryMB = 8192; // Assume 8GB system
+  const percentage = Math.min(95, (estimatedMB / assumedSystemMemoryMB) * 100);
+  
   return {
     estimatedMB,
-    percentage: Math.min(100, (estimatedMB / 4000) * 100) // Assume 4GB available
+    percentage,
+    totalSystemGB: 8,
+    availableSystemGB: ((assumedSystemMemoryMB - estimatedMB) / 1024).toFixed(2),
+    perTabMB: memoryPerTab,
+    isRealData: false
   };
 }
 

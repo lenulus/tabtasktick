@@ -78,13 +78,26 @@ async function loadStatistics() {
     
     // Update memory usage
     const memory = stats.memoryEstimate;
-    elements.memoryValue.textContent = `${memory.estimatedMB} MB`;
-    elements.memoryFill.style.width = `${memory.percentage}%`;
+    if (memory.isRealData) {
+      // Show real system memory data
+      elements.memoryValue.textContent = `${memory.estimatedMB} MB (System: ${memory.percentage}%)`;
+      elements.memoryFill.style.width = `${memory.percentage}%`;
+      
+      // Add title tooltip with more details
+      elements.memoryFill.parentElement.title = `Chrome: ~${memory.estimatedMB}MB\nSystem: ${memory.totalSystemGB}GB total, ${memory.availableSystemGB}GB free\nPer tab: ~${memory.perTabMB}MB`;
+    } else {
+      // Show estimation
+      elements.memoryValue.textContent = `~${memory.estimatedMB} MB (est.)`;
+      elements.memoryFill.style.width = `${memory.percentage}%`;
+      elements.memoryFill.parentElement.title = `Estimated based on ${stats.totalTabs} tabs\nPer tab: ~${memory.perTabMB}MB`;
+    }
     
     if (memory.percentage > 80) {
       elements.memoryFill.classList.add('warning');
+    } else if (memory.percentage > 60) {
+      elements.memoryFill.classList.add('caution');
     } else {
-      elements.memoryFill.classList.remove('warning');
+      elements.memoryFill.classList.remove('warning', 'caution');
     }
     
     // Update top domains

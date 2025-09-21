@@ -11,7 +11,8 @@
     "alarms",
     "contextMenus",
     "webNavigation",
-    "idle"
+    "idle",
+    "system.memory"
   ],
   "host_permissions": [
     "<all_urls>"

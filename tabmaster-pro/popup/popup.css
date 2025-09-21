@@ -149,8 +149,12 @@ body {
   width: 0%;
 }
 
+.memory-fill.caution {
+  background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
+}
+
 .memory-fill.warning {
-  background: linear-gradient(90deg, #f39c12, #e74c3c);
+  background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
 }
 
 /* Sections */
