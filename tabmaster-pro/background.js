@@ -563,6 +563,24 @@ async function quickSnoozeCurrent(minutes = null) {
   });
 }
 
+async function snoozeTabs(tabIds, minutes) {
+  const tabs = await chrome.tabs.query({});
+  const tabsToSnooze = tabs.filter(tab => tabIds.includes(tab.id));
+  
+  if (tabsToSnooze.length === 0) return;
+  
+  await snoozeTabsAction(tabsToSnooze, { snoozeMinutes: minutes });
+  
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: 'icons/icon-128.png',
+    title: 'Tabs Snoozed',
+    message: `${tabsToSnooze.length} tabs will reopen in ${minutes} minutes`
+  });
+  
+  return true;
+}
+
 // ============================================================================
 // Context Menus
 // ============================================================================
@@ -742,6 +760,9 @@ async function handleMessage(request, sender) {
     
     case 'snoozeCurrent':
       return await quickSnoozeCurrent(request.minutes);
+    
+    case 'snoozeTabs':
+      return await snoozeTabs(request.tabIds, request.minutes);
     
     case 'getSnoozedTabs':
       return state.snoozedTabs;

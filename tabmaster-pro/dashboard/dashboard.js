@@ -11,6 +11,13 @@ let groupsData = [];
 let snoozedData = [];
 let charts = {};
 
+// Selection state
+const selectionState = {
+  selectedTabs: new Set(),
+  lastSelectedId: null,
+  isSelectMode: false,
+};
+
 // ============================================================================
 // Initialization
 // ============================================================================
@@ -206,7 +213,10 @@ function renderTabs(tabs) {
     if (tab.audible) badges.push('<span class="tab-badge audible">Playing</span>');
     
     card.innerHTML = `
-      <input type="checkbox" class="tab-checkbox" data-tab-id="${tab.id}">
+      <label class="tab-select-wrapper">
+        <input type="checkbox" class="tab-checkbox" data-tab-id="${tab.id}">
+        <span class="tab-select-indicator"></span>
+      </label>
       <div class="tab-header">
         <img src="${tab.favIconUrl || '../icons/icon-16.png'}" class="tab-favicon" onerror="this.src='../icons/icon-16.png'">
         <div class="tab-title" title="${tab.title}">${tab.title}</div>
@@ -218,14 +228,15 @@ function renderTabs(tabs) {
     // Add click handler for selection
     const checkbox = card.querySelector('.tab-checkbox');
     checkbox.addEventListener('change', (e) => {
-      if (e.target.checked) {
-        selectedTabs.add(tab.id);
-        card.classList.add('selected');
-      } else {
-        selectedTabs.delete(tab.id);
-        card.classList.remove('selected');
+      handleTabSelection(e.target, tab.id, card);
+    });
+    
+    // Handle shift-click for range selection
+    checkbox.addEventListener('click', (e) => {
+      if (e.shiftKey && selectionState.lastSelectedId !== null) {
+        e.preventDefault();
+        handleRangeSelection(tab.id);
       }
-      updateSelectedCount();
     });
     
     // Add click handler to open tab
@@ -729,6 +740,96 @@ function updateDomainDistChart(domains) {
 }
 
 // ============================================================================
+// Selection Management
+// ============================================================================
+
+function handleTabSelection(checkbox, tabId, tabCard) {
+  if (checkbox.checked) {
+    selectionState.selectedTabs.add(tabId);
+    tabCard.classList.add('selected');
+  } else {
+    selectionState.selectedTabs.delete(tabId);
+    tabCard.classList.remove('selected');
+  }
+  
+  selectionState.lastSelectedId = tabId;
+  updateBulkToolbar();
+}
+
+function handleRangeSelection(endId) {
+  const allTabCards = Array.from(document.querySelectorAll('.tab-card'));
+  const startIndex = allTabCards.findIndex(card => 
+    parseInt(card.dataset.tabId) === selectionState.lastSelectedId
+  );
+  const endIndex = allTabCards.findIndex(card => 
+    parseInt(card.dataset.tabId) === endId
+  );
+  
+  if (startIndex === -1 || endIndex === -1) return;
+  
+  const [minIndex, maxIndex] = [Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)];
+  
+  for (let i = minIndex; i <= maxIndex; i++) {
+    const card = allTabCards[i];
+    const tabId = parseInt(card.dataset.tabId);
+    const checkbox = card.querySelector('.tab-checkbox');
+    
+    if (!selectionState.selectedTabs.has(tabId)) {
+      selectionState.selectedTabs.add(tabId);
+      card.classList.add('selected');
+      checkbox.checked = true;
+    }
+  }
+  
+  updateBulkToolbar();
+}
+
+function selectAllTabs() {
+  const allTabCards = document.querySelectorAll('.tab-card');
+  
+  allTabCards.forEach(card => {
+    const tabId = parseInt(card.dataset.tabId);
+    const checkbox = card.querySelector('.tab-checkbox');
+    
+    selectionState.selectedTabs.add(tabId);
+    card.classList.add('selected');
+    checkbox.checked = true;
+  });
+  
+  updateBulkToolbar();
+}
+
+function clearSelection() {
+  const allTabCards = document.querySelectorAll('.tab-card');
+  
+  allTabCards.forEach(card => {
+    const checkbox = card.querySelector('.tab-checkbox');
+    card.classList.remove('selected');
+    checkbox.checked = false;
+  });
+  
+  selectionState.selectedTabs.clear();
+  selectionState.lastSelectedId = null;
+  updateBulkToolbar();
+}
+
+function updateBulkToolbar() {
+  const toolbar = document.getElementById('bulkToolbar');
+  const count = selectionState.selectedTabs.size;
+  
+  if (count > 0) {
+    toolbar.hidden = false;
+    document.getElementById('selectedCount').textContent = count;
+    
+    // Update old modal count too for backward compatibility
+    const modalCount = document.querySelector('#bulkActionsModal #selectedCount');
+    if (modalCount) modalCount.textContent = count;
+  } else {
+    toolbar.hidden = true;
+  }
+}
+
+// ============================================================================
 // Event Listeners
 // ============================================================================
 
@@ -773,9 +874,34 @@ function setupEventListeners() {
   document.getElementById('executeOrganize')?.addEventListener('click', executeQuickOrganize);
   document.getElementById('cancelOrganize')?.addEventListener('click', closeQuickOrganizeModal);
   
-  // Bulk action buttons
-  document.querySelectorAll('.bulk-action-btn').forEach(btn => {
+  // Bulk action buttons (old modal)
+  document.querySelectorAll('#bulkActionsModal .bulk-action-btn').forEach(btn => {
     btn.addEventListener('click', () => executeBulkAction(btn.dataset.action));
+  });
+  
+  // Bulk toolbar buttons
+  document.getElementById('selectAll')?.addEventListener('click', selectAllTabs);
+  document.getElementById('clearSelection')?.addEventListener('click', clearSelection);
+  
+  // Bulk action buttons in toolbar
+  document.querySelectorAll('.bulk-toolbar .bulk-action-btn').forEach(btn => {
+    btn.addEventListener('click', () => executeBulkAction(btn.dataset.action));
+  });
+  
+  // Confirmation modal
+  document.getElementById('confirmCancel')?.addEventListener('click', () => {
+    document.getElementById('confirmModal').classList.remove('show');
+  });
+  
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a' && currentView === 'tabs') {
+      e.preventDefault();
+      selectAllTabs();
+    }
+    if (e.key === 'Escape' && selectionState.selectedTabs.size > 0) {
+      clearSelection();
+    }
   });
 }
 
@@ -839,33 +965,205 @@ function updateSelectedCount() {
 }
 
 async function executeBulkAction(action) {
-  const tabIds = Array.from(selectedTabs);
+  const selectedIds = Array.from(selectionState.selectedTabs);
+  const count = selectedIds.length;
   
-  switch(action) {
-    case 'close':
-      await chrome.tabs.remove(tabIds);
-      break;
-    case 'snooze':
-      // Would implement snooze for selected tabs
-      break;
-    case 'group':
-      if (tabIds.length > 0) {
-        await chrome.tabs.group({ tabIds });
-      }
-      break;
-    case 'bookmark':
-      // Would implement bookmark for selected tabs
-      break;
+  if (count === 0) return;
+  
+  // Check if confirmation needed
+  if (count > 10 && (action === 'close' || action === 'move')) {
+    const confirmed = await showConfirmDialog(action, count);
+    if (!confirmed) return;
   }
   
-  selectedTabs.clear();
-  closeBulkActionsModal();
-  loadTabsView();
+  // Show progress for large operations
+  if (count > 50) {
+    showProgressIndicator(`Processing ${count} tabs...`);
+  }
+  
+  try {
+    switch(action) {
+      case 'close':
+        await closeTabs(selectedIds);
+        showNotification(`Closed ${count} tabs`, 'success');
+        break;
+        
+      case 'snooze':
+        await showSnoozeDialog(selectedIds);
+        break;
+        
+      case 'group':
+        await groupTabs(selectedIds);
+        break;
+        
+      case 'bookmark':
+        await bookmarkTabs(selectedIds);
+        showNotification(`Bookmarked ${count} tabs`, 'success');
+        break;
+        
+      case 'move':
+        await moveToWindow(selectedIds);
+        showNotification(`Moved ${count} tabs to new window`, 'success');
+        break;
+    }
+    
+    // Clear selection after success
+    clearSelection();
+    
+    // Refresh the view
+    if (action !== 'snooze') { // Snooze has its own dialog
+      await loadTabsView();
+    }
+    
+  } catch (error) {
+    console.error(`Failed to ${action} tabs:`, error);
+    showNotification(`Failed to ${action} tabs: ${error.message}`, 'error');
+  } finally {
+    hideProgressIndicator();
+  }
 }
 
 // ============================================================================
 // Tab Management Functions
 // ============================================================================
+
+async function closeTabs(tabIds) {
+  await chrome.tabs.remove(tabIds);
+}
+
+async function groupTabs(tabIds) {
+  if (tabIds.length === 0) return;
+  
+  // Create new group
+  const groupId = await chrome.tabs.group({ tabIds });
+  
+  // Prompt for group name
+  const name = await promptGroupName();
+  if (name) {
+    await chrome.tabGroups.update(groupId, { 
+      title: name,
+      color: 'blue' // Default color
+    });
+  }
+  
+  showNotification(`Created group "${name || 'Untitled'}" with ${tabIds.length} tabs`, 'success');
+}
+
+async function bookmarkTabs(tabIds) {
+  // Create folder for bookmarks
+  const folder = await chrome.bookmarks.create({
+    parentId: '1', // Bookmarks bar
+    title: `TabMaster Export - ${new Date().toLocaleString()}`
+  });
+  
+  // Get tab details
+  const tabs = await chrome.tabs.query({});
+  const selectedTabs = tabs.filter(tab => tabIds.includes(tab.id));
+  
+  // Create bookmarks
+  for (const tab of selectedTabs) {
+    try {
+      await chrome.bookmarks.create({
+        parentId: folder.id,
+        title: tab.title || 'Untitled',
+        url: tab.url
+      });
+    } catch (error) {
+      console.error('Failed to bookmark tab:', tab.url, error);
+    }
+  }
+}
+
+async function moveToWindow(tabIds) {
+  // Create new window with first tab
+  const firstTab = tabIds.shift();
+  const newWindow = await chrome.windows.create({
+    tabId: firstTab,
+    focused: false
+  });
+  
+  // Move remaining tabs
+  if (tabIds.length > 0) {
+    await chrome.tabs.move(tabIds, {
+      windowId: newWindow.id,
+      index: -1
+    });
+  }
+}
+
+async function showSnoozeDialog(tabIds) {
+  // For now, use a simple prompt. In a real implementation, create a proper dialog
+  const snoozeTime = prompt('Snooze for how many hours?', '2');
+  if (snoozeTime) {
+    const hours = parseFloat(snoozeTime);
+    if (!isNaN(hours)) {
+      await sendMessage({
+        action: 'snoozeTabs',
+        tabIds: tabIds,
+        minutes: hours * 60
+      });
+      showNotification(`Snoozed ${tabIds.length} tabs for ${hours} hours`, 'success');
+    }
+  }
+}
+
+// ============================================================================
+// Dialog Functions
+// ============================================================================
+
+function showConfirmDialog(action, count) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('confirmModal');
+    const title = document.getElementById('confirmTitle');
+    const message = document.getElementById('confirmMessage');
+    const proceedBtn = document.getElementById('confirmProceed');
+    
+    title.textContent = `Confirm ${action}`;
+    message.textContent = `Are you sure you want to ${action} ${count} tabs? This action cannot be undone.`;
+    
+    const handleProceed = () => {
+      modal.classList.remove('show');
+      proceedBtn.removeEventListener('click', handleProceed);
+      resolve(true);
+    };
+    
+    const handleCancel = () => {
+      modal.classList.remove('show');
+      resolve(false);
+    };
+    
+    proceedBtn.addEventListener('click', handleProceed, { once: true });
+    document.getElementById('confirmCancel').addEventListener('click', handleCancel, { once: true });
+    
+    modal.classList.add('show');
+  });
+}
+
+async function promptGroupName() {
+  // For now, use a simple prompt. In a real implementation, create a proper dialog
+  return prompt('Enter a name for the group:', 'New Group');
+}
+
+function showProgressIndicator(text = 'Processing...') {
+  const overlay = document.getElementById('progressOverlay');
+  const progressText = document.getElementById('progressText');
+  progressText.textContent = text;
+  overlay.style.display = 'flex';
+}
+
+function hideProgressIndicator() {
+  document.getElementById('progressOverlay').style.display = 'none';
+}
+
+function showNotification(message, type = 'info') {
+  // For now, use chrome notifications. In a real implementation, create toast notifications
+  chrome.notifications.create({
+    type: 'basic',
+    iconUrl: '../icons/icon-128.png',
+    title: 'TabMaster Pro',
+    message: message
+  });
+}
 
 async function createNewGroup() {
   const name = prompt('Enter group name:');

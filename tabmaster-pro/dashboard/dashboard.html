@@ -200,6 +200,52 @@
           </div>
         </div>
 
+        <!-- Bulk Actions Toolbar -->
+        <div class="bulk-toolbar" id="bulkToolbar" hidden>
+          <div class="bulk-info">
+            <span class="bulk-count">
+              <span id="selectedCount">0</span> tabs selected
+            </span>
+            <button class="link-btn" id="selectAll">Select All</button>
+            <button class="link-btn" id="clearSelection">Clear</button>
+          </div>
+          <div class="bulk-actions">
+            <button class="bulk-action-btn" data-action="close">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Close
+            </button>
+            <button class="bulk-action-btn" data-action="snooze">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Snooze
+            </button>
+            <button class="bulk-action-btn" data-action="group">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              </svg>
+              Group
+            </button>
+            <button class="bulk-action-btn" data-action="bookmark">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Bookmark
+            </button>
+            <button class="bulk-action-btn" data-action="move">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"></path>
+                <path d="m12 12 4 10 1.7-4.3L22 16z"></path>
+              </svg>
+              Move
+            </button>
+          </div>
+        </div>
+
         <div class="tabs-grid" id="tabsGrid">
           <!-- Tabs will be populated here -->
         </div>
@@ -315,6 +361,25 @@
   </div>
 
   <!-- Modals -->
+  <!-- Confirmation Modal -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-content compact">
+      <h3 id="confirmTitle">Confirm Action</h3>
+      <p id="confirmMessage"></p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+        <button class="btn btn-danger" id="confirmProceed">Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Overlay -->
+  <div class="progress-overlay" id="progressOverlay" style="display: none;">
+    <div class="progress-content">
+      <div class="spinner"></div>
+      <div class="progress-text" id="progressText">Processing...</div>
+    </div>
+  </div>
   <!-- Bulk Actions Modal -->
   <div class="modal" id="bulkActionsModal">
     <div class="modal-content">

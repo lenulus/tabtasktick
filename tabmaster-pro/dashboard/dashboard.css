@@ -194,6 +194,18 @@ body {
   color: #667eea;
 }
 
+.btn-danger {
+  background: #dc3545;
+  color: white;
+  border: none;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
 /* Search and Filter */
 .search-input {
   padding: 10px 16px;
@@ -977,4 +989,195 @@ body {
   .chart-card.large {
     grid-column: span 1;
   }
+}
+
+/* ============================================================================
+   Tab Selection System
+   ============================================================================ */
+
+/* Enhanced selection styling */
+.tab-card {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.tab-card.selected {
+  background: rgba(102, 126, 234, 0.08);
+  border: 2px solid #667eea;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Checkbox wrapper */
+.tab-select-wrapper {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.tab-card:hover .tab-select-wrapper,
+.tab-card.selected .tab-select-wrapper {
+  opacity: 1;
+}
+
+.tab-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Selection indicator */
+.tab-select-indicator {
+  display: none;
+}
+
+/* ============================================================================
+   Bulk Actions Toolbar
+   ============================================================================ */
+
+.bulk-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: white;
+  border-bottom: 2px solid #667eea;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.3s ease;
+}
+
+.bulk-toolbar[hidden] {
+  display: none;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.bulk-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bulk-count {
+  font-weight: 600;
+  color: #495057;
+}
+
+.bulk-count span {
+  color: #667eea;
+  font-size: 18px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #667eea;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.link-btn:hover {
+  opacity: 0.8;
+}
+
+.bulk-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.bulk-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #495057;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bulk-action-btn:hover {
+  background: #f8f9fa;
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.bulk-action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Confirmation modal compact */
+.modal-content.compact {
+  max-width: 400px;
+  padding: 20px;
+}
+
+.modal-content.compact h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.modal-content.compact p {
+  font-size: 14px;
+  margin-bottom: 20px;
+  color: #6c757d;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Progress indicator */
+.progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.progress-content {
+  background: white;
+  padding: 24px 32px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.progress-content .spinner {
+  margin: 0 auto 16px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #6c757d;
 }

@@ -46,20 +46,20 @@
 - [ ] Quick Organize (AI-powered suggestion)
 - [ ] Implement 5-second undo option after actions
 
-### Tab Selection & Bulk Operations (Vanilla JS) ⚠️
-**Current Status**: Bulk actions modal UI exists in dashboard but not functional
+### Tab Selection & Bulk Operations (Vanilla JS) ✅ [Spec: SPEC-002]
+**Current Status**: Fully implemented with bulk toolbar, selection system, and all actions
 - [x] Bulk actions modal HTML/CSS exists
-- [ ] Add checkbox to each tab item using DOM manipulation
-- [ ] Track selection state in JavaScript object
-- [ ] Show/hide bulk toolbar with CSS classes
-- [ ] Implement actions with existing Chrome APIs:
-  - [ ] Close Selected (chrome.tabs.remove)
-  - [ ] Snooze Selected (batch process)
-  - [ ] Group Selected (chrome.tabs.group)
-  - [ ] Bookmark Selected (chrome.bookmarks.create)
-  - [ ] Move to Window (chrome.windows.create)
-- [ ] Update count dynamically with textContent
-- [ ] Use CSS classes for selection highlighting
+- [x] Add checkbox to each tab item using DOM manipulation
+- [x] Track selection state in JavaScript object
+- [x] Show/hide bulk toolbar with CSS classes
+- [x] Implement actions with existing Chrome APIs:
+  - [x] Close Selected (chrome.tabs.remove)
+  - [x] Snooze Selected (batch process)
+  - [x] Group Selected (chrome.tabs.group)
+  - [x] Bookmark Selected (chrome.bookmarks.create)
+  - [x] Move to Window (chrome.windows.create)
+- [x] Update count dynamically with textContent
+- [x] Use CSS classes for selection highlighting
 
 ## 🎯 Priority 2: Visual Enhancements (Week 2)
 

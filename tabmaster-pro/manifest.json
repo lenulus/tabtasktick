@@ -13,7 +13,9 @@
     "webNavigation",
     "idle",
     "system.memory",
-    "downloads"
+    "downloads",
+    "notifications",
+    "windows"
   ],
   "host_permissions": [
     "<all_urls>"
