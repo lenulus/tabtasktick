@@ -50,11 +50,20 @@ function setupNavigation() {
 }
 
 function switchView(view) {
+  console.log('Switching to view:', view);
+  
   // Hide all views
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const allViews = document.querySelectorAll('.view');
+  console.log('Found views:', allViews.length);
+  allViews.forEach(v => v.classList.remove('active'));
   
   // Show selected view
-  document.getElementById(view).classList.add('active');
+  const targetView = document.getElementById(view);
+  if (!targetView) {
+    console.error('View not found:', view);
+    return;
+  }
+  targetView.classList.add('active');
   currentView = view;
   
   // Load view-specific data
@@ -592,10 +601,17 @@ function renderInsights(insights) {
 // ============================================================================
 
 function initializeCharts() {
+  // Check if Chart.js is loaded
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js not loaded, skipping chart initialization');
+    return;
+  }
+  
   // Initialize Chart.js charts
   const activityCtx = document.getElementById('activityChart');
   if (activityCtx) {
-    charts.activity = new Chart(activityCtx.getContext('2d'), {
+    try {
+      charts.activity = new Chart(activityCtx.getContext('2d'), {
       type: 'line',
       data: {
         labels: [],
@@ -616,11 +632,15 @@ function initializeCharts() {
         }
       }
     });
+    } catch (error) {
+      console.error('Failed to initialize activity chart:', error);
+    }
   }
   
   const domainsCtx = document.getElementById('domainsChart');
   if (domainsCtx) {
-    charts.domains = new Chart(domainsCtx.getContext('2d'), {
+    try {
+      charts.domains = new Chart(domainsCtx.getContext('2d'), {
       type: 'doughnut',
       data: {
         labels: [],
@@ -636,53 +656,64 @@ function initializeCharts() {
         }
       }
     });
+    } catch (error) {
+      console.error('Failed to initialize domains chart:', error);
+    }
   }
 }
 
 function updateActivityChart() {
-  if (!charts.activity) return;
+  if (!charts.activity || typeof Chart === 'undefined') return;
   
-  // Sample data - would be real tracking data
-  const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const data = [45, 52, 38, 65, 48, 35, 40];
-  
-  charts.activity.data = {
-    labels: labels,
-    datasets: [{
-      label: 'Tabs',
-      data: data,
-      borderColor: '#667eea',
-      backgroundColor: 'rgba(102, 126, 234, 0.1)',
-      tension: 0.4
-    }]
-  };
-  
-  charts.activity.update();
+  try {
+    // Sample data - would be real tracking data
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const data = [45, 52, 38, 65, 48, 35, 40];
+    
+    charts.activity.data = {
+      labels: labels,
+      datasets: [{
+        label: 'Tabs',
+        data: data,
+        borderColor: '#667eea',
+        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+        tension: 0.4
+      }]
+    };
+    
+    charts.activity.update();
+  } catch (error) {
+    console.error('Failed to update activity chart:', error);
+  }
 }
 
 function updateDomainsChart(domains) {
-  if (!charts.domains || !domains) return;
+  if (!charts.domains || !domains || typeof Chart === 'undefined') return;
   
-  const labels = domains.map(d => d.domain);
-  const data = domains.map(d => d.count);
-  const colors = [
-    '#667eea',
-    '#764ba2',
-    '#f093fb',
-    '#f5576c',
-    '#4facfe'
-  ];
-  
-  charts.domains.data = {
-    labels: labels,
-    datasets: [{
-      data: data,
-      backgroundColor: colors,
-      borderWidth: 0
-    }]
-  };
-  
-  charts.domains.update();
+  try {
+    const labels = domains.map(d => d.domain);
+    const data = domains.map(d => d.count);
+    const colors = [
+      '#667eea',
+      '#764ba2',
+      '#f093fb',
+      '#f5576c',
+      '#4facfe'
+    ];
+    
+    charts.domains.data = {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors,
+        borderWidth: 0
+      }]
+    };
+    
+    charts.domains.update();
+  } catch (error) {
+    console.error('Failed to update domains chart:', error);
+  }
 }
 
 function updatePatternsChart() {
