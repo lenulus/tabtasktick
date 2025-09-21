@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TabMaster Pro - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <img src="../icons/icon-48.png" alt="TabMaster Pro">
+          <div>
+            <h1>TabMaster Pro Settings</h1>
+            <p class="subtitle">Configure your tab management preferences</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary" id="importBtn">Import Settings</button>
+          <button class="btn btn-primary" id="exportBtn">Export Settings</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Settings Navigation -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="general">General</button>
+      <button class="nav-tab" data-tab="rules">Rules Engine</button>
+      <button class="nav-tab" data-tab="automation">Automation</button>
+      <button class="nav-tab" data-tab="performance">Performance</button>
+      <button class="nav-tab" data-tab="about">About</button>
+    </nav>
+
+    <!-- Settings Content -->
+    <div class="content">
+      
+      <!-- General Tab -->
+      <div class="tab-panel active" id="general">
+        <section class="settings-section">
+          <h2>Basic Settings</h2>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="autoCloseEnabled">Enable Auto-Close</label>
+              <p class="setting-description">Automatically close tabs based on rules</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="autoCloseEnabled" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="autoGroupEnabled">Enable Auto-Grouping</label>
+              <p class="setting-description">Automatically group tabs by domain or rules</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="autoGroupEnabled" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="duplicateDetection">Duplicate Detection</label>
+              <p class="setting-description">Detect and manage duplicate tabs</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="duplicateDetection" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="maxTabsWarning">Tab Count Warning Threshold</label>
+              <p class="setting-description">Show warning when tab count exceeds this number</p>
+            </div>
+            <input type="number" id="maxTabsWarning" min="10" max="500" value="100">
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="defaultSnoozeMinutes">Default Snooze Duration (minutes)</label>
+              <p class="setting-description">Default time for quick snooze action</p>
+            </div>
+            <input type="number" id="defaultSnoozeMinutes" min="5" max="10080" value="120">
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h2>Notifications</h2>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="notifyOnAutoClose">Auto-Close Notifications</label>
+              <p class="setting-description">Show notifications when tabs are automatically closed</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="notifyOnAutoClose" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="notifyOnSnooze">Snooze Notifications</label>
+              <p class="setting-description">Show notifications when tabs are snoozed or restored</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="notifyOnSnooze" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <!-- Rules Engine Tab -->
+      <div class="tab-panel" id="rules">
+        <section class="settings-section">
+          <div class="section-header">
+            <h2>Rules Management</h2>
+            <button class="btn btn-primary btn-sm" id="addRuleBtn">+ Add Rule</button>
+          </div>
+          
+          <div class="rules-container" id="rulesContainer">
+            <!-- Rules will be populated here -->
+          </div>
+        </section>
+
+        <!-- Rule Editor Modal -->
+        <div class="modal" id="ruleModal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 id="ruleModalTitle">Add New Rule</h3>
+              <button class="close-btn" id="closeRuleModal">&times;</button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="ruleName">Rule Name</label>
+                <input type="text" id="ruleName" placeholder="Enter rule name">
+              </div>
+              
+              <div class="form-group">
+                <label for="ruleCondition">Condition Type</label>
+                <select id="ruleCondition">
+                  <option value="duplicate">Duplicate Tabs</option>
+                  <option value="domain_count">Domain Count</option>
+                  <option value="inactive">Inactive Tabs</option>
+                  <option value="age_and_domain">Age and Domain</option>
+                  <option value="memory">Memory Usage</option>
+                </select>
+              </div>
+              
+              <div class="form-group condition-params" id="conditionParams">
+                <!-- Dynamic condition parameters -->
+              </div>
+              
+              <div class="form-group">
+                <label for="ruleAction">Action Type</label>
+                <select id="ruleAction">
+                  <option value="close">Close Tabs</option>
+                  <option value="group">Group Tabs</option>
+                  <option value="snooze">Snooze Tabs</option>
+                  <option value="suspend">Suspend Tabs</option>
+                </select>
+              </div>
+              
+              <div class="form-group action-params" id="actionParams">
+                <!-- Dynamic action parameters -->
+              </div>
+              
+              <div class="form-group">
+                <label for="rulePriority">Priority</label>
+                <input type="number" id="rulePriority" min="1" max="100" value="10">
+                <p class="help-text">Lower numbers have higher priority</p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" id="cancelRuleBtn">Cancel</button>
+              <button class="btn btn-primary" id="saveRuleBtn">Save Rule</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Automation Tab -->
+      <div class="tab-panel" id="automation">
+        <section class="settings-section">
+          <h2>Automation Schedule</h2>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="autoRunInterval">Rule Evaluation Interval (minutes)</label>
+              <p class="setting-description">How often to check and apply rules</p>
+            </div>
+            <input type="number" id="autoRunInterval" min="1" max="60" value="5">
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="runOnStartup">Run Rules on Browser Startup</label>
+              <p class="setting-description">Apply rules when browser starts</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="runOnStartup" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="suspendOnBattery">Suspend Automation on Battery</label>
+              <p class="setting-description">Disable automatic actions when on battery power</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="suspendOnBattery">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h2>Whitelist</h2>
+          <p class="section-description">Domains that should never be automatically closed</p>
+          
+          <div class="whitelist-container">
+            <div class="input-group">
+              <input type="text" id="whitelistInput" placeholder="Enter domain (e.g., gmail.com)">
+              <button class="btn btn-primary" id="addWhitelistBtn">Add</button>
+            </div>
+            <ul class="whitelist" id="whitelistDomains">
+              <!-- Whitelist domains will be populated here -->
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      <!-- Performance Tab -->
+      <div class="tab-panel" id="performance">
+        <section class="settings-section">
+          <h2>Memory Management</h2>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="memoryThreshold">Memory Threshold (%)</label>
+              <p class="setting-description">Trigger memory management when usage exceeds this percentage</p>
+            </div>
+            <div class="range-container">
+              <input type="range" id="memoryThreshold" min="50" max="95" value="80">
+              <span class="range-value" id="memoryThresholdValue">80%</span>
+            </div>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="tabSuspendTime">Auto-Suspend After (minutes)</label>
+              <p class="setting-description">Suspend inactive tabs after this duration</p>
+            </div>
+            <input type="number" id="tabSuspendTime" min="5" max="120" value="30">
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="maxTabsPerGroup">Maximum Tabs per Group</label>
+              <p class="setting-description">Maximum number of tabs in a single group</p>
+            </div>
+            <input type="number" id="maxTabsPerGroup" min="5" max="50" value="20">
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h2>Data Management</h2>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="historyRetention">History Retention (days)</label>
+              <p class="setting-description">How long to keep tab closure history</p>
+            </div>
+            <input type="number" id="historyRetention" min="1" max="90" value="30">
+          </div>
+          
+          <div class="actions-row">
+            <button class="btn btn-secondary" id="clearHistory">Clear History</button>
+            <button class="btn btn-secondary" id="clearStorage">Clear All Data</button>
+            <button class="btn btn-danger" id="resetSettings">Reset to Defaults</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- About Tab -->
+      <div class="tab-panel" id="about">
+        <section class="settings-section">
+          <div class="about-content">
+            <img src="../icons/icon-128.png" alt="TabMaster Pro" class="about-logo">
+            <h2>TabMaster Pro</h2>
+            <p class="version">Version 1.0.0</p>
+            
+            <div class="about-info">
+              <p>Advanced tab and bookmark management extension with intelligent automation.</p>
+              
+              <div class="stats-summary">
+                <h3>Lifetime Statistics</h3>
+                <div class="stats-grid">
+                  <div class="stat">
+                    <span class="stat-label">Tabs Closed</span>
+                    <span class="stat-value" id="lifetimeTabsClosed">0</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-label">Tabs Snoozed</span>
+                    <span class="stat-value" id="lifetimeTabsSnoozed">0</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-label">Tabs Grouped</span>
+                    <span class="stat-value" id="lifetimeTabsGrouped">0</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-label">Duplicates Removed</span>
+                    <span class="stat-value" id="lifetimeDuplicatesRemoved">0</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="links">
+                <a href="https://github.com/yourusername/tabmaster-pro" target="_blank">GitHub</a>
+                <a href="https://github.com/yourusername/tabmaster-pro/wiki" target="_blank">Documentation</a>
+                <a href="https://github.com/yourusername/tabmaster-pro/issues" target="_blank">Report Issue</a>
+                <a href="#" id="privacyLink">Privacy Policy</a>
+              </div>
+              
+              <div class="keyboard-shortcuts">
+                <h3>Keyboard Shortcuts</h3>
+                <dl>
+                  <dt>Alt + S</dt>
+                  <dd>Quick snooze current tab</dd>
+                  
+                  <dt>Alt + G</dt>
+                  <dd>Group all tabs by domain</dd>
+                  
+                  <dt>Alt + D</dt>
+                  <dd>Close duplicate tabs</dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Save Notification -->
+    <div class="save-notification" id="saveNotification">
+      Settings saved successfully!
+    </div>
+  </div>
+
+  <!-- Import file input (hidden) -->
+  <input type="file" id="importFile" accept=".json" style="display: none;">
+  
+  <script src="options.js"></script>
+</body>
+</html>

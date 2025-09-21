@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TabMaster Pro</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <img src="../icons/icon-32.png" alt="TabMaster Pro">
+        <h1>TabMaster Pro</h1>
+      </div>
+      <button class="settings-btn" id="settingsBtn" title="Settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Statistics Overview -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalTabs">-</div>
+        <div class="stat-label">Open Tabs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="groupedTabs">-</div>
+        <div class="stat-label">Grouped</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="snoozedTabs">-</div>
+        <div class="stat-label">Snoozed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="duplicates">-</div>
+        <div class="stat-label">Duplicates</div>
+      </div>
+    </div>
+
+    <!-- Memory Usage Bar -->
+    <div class="memory-usage">
+      <div class="memory-label">
+        <span>Memory Usage</span>
+        <span id="memoryValue">- MB</span>
+      </div>
+      <div class="memory-bar">
+        <div class="memory-fill" id="memoryFill"></div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+      <h2>Quick Actions</h2>
+      <div class="action-buttons">
+        <button class="action-btn primary" id="closeDuplicates">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>Close Duplicates</span>
+          <span class="badge" id="duplicateBadge"></span>
+        </button>
+        
+        <button class="action-btn" id="groupByDomain">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Group by Domain</span>
+        </button>
+        
+        <button class="action-btn" id="snoozeCurrent">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2v10l4 2"></path>
+            <circle cx="12" cy="12" r="10"></circle>
+          </svg>
+          <span>Snooze Current</span>
+        </button>
+        
+        <button class="action-btn" id="suspendInactive">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M10 9v6m4-6v6"></path>
+          </svg>
+          <span>Suspend Inactive</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Snooze Options (Hidden by default) -->
+    <section class="snooze-options hidden" id="snoozeOptions">
+      <h3>Snooze for:</h3>
+      <div class="snooze-buttons">
+        <button class="snooze-btn" data-minutes="120">2 Hours</button>
+        <button class="snooze-btn" data-minutes="240">4 Hours</button>
+        <button class="snooze-btn" data-minutes="480">8 Hours</button>
+        <button class="snooze-btn" data-minutes="1440">Tomorrow</button>
+        <button class="snooze-btn" data-minutes="10080">Next Week</button>
+      </div>
+    </section>
+
+    <!-- Active Rules -->
+    <section class="active-rules">
+      <h2>Active Rules</h2>
+      <div class="rules-list" id="rulesList">
+        <!-- Rules will be populated here -->
+      </div>
+    </section>
+
+    <!-- Top Domains -->
+    <section class="top-domains">
+      <h2>Top Domains</h2>
+      <div class="domains-list" id="domainsList">
+        <!-- Domains will be populated here -->
+      </div>
+    </section>
+
+    <!-- Snoozed Tabs Preview -->
+    <section class="snoozed-preview" id="snoozedSection">
+      <h2>Snoozed Tabs <span class="count" id="snoozedCount"></span></h2>
+      <div class="snoozed-list" id="snoozedList">
+        <!-- Snoozed tabs will be populated here -->
+      </div>
+    </section>
+
+    <!-- Footer Actions -->
+    <footer class="footer">
+      <button class="footer-btn" id="dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        Dashboard
+      </button>
+      <button class="footer-btn" id="export">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Export
+      </button>
+      <button class="footer-btn" id="help">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        Help
+      </button>
+    </footer>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

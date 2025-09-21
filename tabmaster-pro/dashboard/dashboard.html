@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TabMaster Pro - Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="../icons/icon-48.png" alt="TabMaster Pro">
+        <h2>TabMaster Pro</h2>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-view="overview">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Overview
+        </a>
+        
+        <a href="#" class="nav-item" data-view="tabs">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M2 3h20v18H2zM8 3v18M16 3v18"></path>
+          </svg>
+          All Tabs
+        </a>
+        
+        <a href="#" class="nav-item" data-view="groups">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+          </svg>
+          Groups
+        </a>
+        
+        <a href="#" class="nav-item" data-view="snoozed">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          Snoozed
+        </a>
+        
+        <a href="#" class="nav-item" data-view="history">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          History
+        </a>
+        
+        <a href="#" class="nav-item" data-view="analytics">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          Analytics
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <button class="btn-settings" id="openSettings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"></path>
+          </svg>
+          Settings
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Overview View -->
+      <div class="view active" id="overview">
+        <div class="view-header">
+          <h1>Dashboard Overview</h1>
+          <div class="header-actions">
+            <button class="btn btn-primary" id="quickOrganize">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              Quick Organize
+            </button>
+            <button class="btn btn-secondary" id="refreshData">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
+                <path d="M2 3h20v18H2z"></path>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value" id="statTotalTabs">0</div>
+              <div class="stat-label">Total Tabs</div>
+              <div class="stat-change" id="statTabsChange">+0 today</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value" id="statGroups">0</div>
+              <div class="stat-label">Tab Groups</div>
+              <div class="stat-change" id="statGroupsInfo">0 collapsed</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value" id="statSnoozed">0</div>
+              <div class="stat-label">Snoozed</div>
+              <div class="stat-change" id="statNextWake">Next in --</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
+                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value" id="statMemory">0 MB</div>
+              <div class="stat-label">Memory Used</div>
+              <div class="stat-change" id="statMemoryPercent">0% of limit</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-container">
+          <div class="chart-card">
+            <h3>Tab Activity (Last 7 Days)</h3>
+            <canvas id="activityChart"></canvas>
+          </div>
+          
+          <div class="chart-card">
+            <h3>Top Domains</h3>
+            <canvas id="domainsChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="activity-section">
+          <h3>Recent Activity</h3>
+          <div class="activity-list" id="recentActivity">
+            <!-- Activity items will be populated here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- All Tabs View -->
+      <div class="view" id="tabs">
+        <div class="view-header">
+          <h1>All Tabs</h1>
+          <div class="header-actions">
+            <input type="text" class="search-input" id="searchTabs" placeholder="Search tabs...">
+            <select class="filter-select" id="filterTabs">
+              <option value="all">All Tabs</option>
+              <option value="active">Active</option>
+              <option value="pinned">Pinned</option>
+              <option value="audible">Playing Audio</option>
+              <option value="duplicates">Duplicates</option>
+            </select>
+            <button class="btn btn-primary" id="bulkActions">Bulk Actions</button>
+          </div>
+        </div>
+
+        <div class="tabs-grid" id="tabsGrid">
+          <!-- Tabs will be populated here -->
+        </div>
+      </div>
+
+      <!-- Groups View -->
+      <div class="view" id="groups">
+        <div class="view-header">
+          <h1>Tab Groups</h1>
+          <div class="header-actions">
+            <button class="btn btn-primary" id="createGroup">Create Group</button>
+            <button class="btn btn-secondary" id="autoGroup">Auto-Group</button>
+          </div>
+        </div>
+
+        <div class="groups-container" id="groupsContainer">
+          <!-- Groups will be populated here -->
+        </div>
+      </div>
+
+      <!-- Snoozed View -->
+      <div class="view" id="snoozed">
+        <div class="view-header">
+          <h1>Snoozed Tabs</h1>
+          <div class="header-actions">
+            <button class="btn btn-secondary" id="wakeAll">Wake All</button>
+          </div>
+        </div>
+
+        <div class="snoozed-timeline" id="snoozedTimeline">
+          <!-- Snoozed tabs timeline will be populated here -->
+        </div>
+      </div>
+
+      <!-- History View -->
+      <div class="view" id="history">
+        <div class="view-header">
+          <h1>Tab History</h1>
+          <div class="header-actions">
+            <input type="date" id="historyDate">
+            <button class="btn btn-secondary" id="clearHistory">Clear History</button>
+          </div>
+        </div>
+
+        <div class="history-container" id="historyContainer">
+          <!-- History will be populated here -->
+        </div>
+      </div>
+
+      <!-- Analytics View -->
+      <div class="view" id="analytics">
+        <div class="view-header">
+          <h1>Analytics & Insights</h1>
+          <div class="header-actions">
+            <select class="period-select" id="analyticsPeriod">
+              <option value="day">Today</option>
+              <option value="week" selected>This Week</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="analytics-container">
+          <!-- Key Metrics -->
+          <div class="metrics-row">
+            <div class="metric-card">
+              <h4>Average Tabs Open</h4>
+              <div class="metric-value" id="avgTabs">0</div>
+            </div>
+            <div class="metric-card">
+              <h4>Peak Tab Count</h4>
+              <div class="metric-value" id="peakTabs">0</div>
+            </div>
+            <div class="metric-card">
+              <h4>Tabs Closed</h4>
+              <div class="metric-value" id="tabsClosed">0</div>
+            </div>
+            <div class="metric-card">
+              <h4>Time Saved</h4>
+              <div class="metric-value" id="timeSaved">0 hrs</div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="analytics-charts">
+            <div class="chart-card large">
+              <h3>Tab Patterns</h3>
+              <canvas id="patternsChart"></canvas>
+            </div>
+            
+            <div class="chart-card">
+              <h3>Memory Usage Trend</h3>
+              <canvas id="memoryTrendChart"></canvas>
+            </div>
+            
+            <div class="chart-card">
+              <h3>Domain Distribution</h3>
+              <canvas id="domainDistChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Insights -->
+          <div class="insights-section">
+            <h3>Insights & Recommendations</h3>
+            <div class="insights-list" id="insightsList">
+              <!-- Insights will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <!-- Bulk Actions Modal -->
+  <div class="modal" id="bulkActionsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Bulk Actions</h3>
+        <button class="close-btn" id="closeBulkActions">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="selected-count"><span id="selectedCount">0</span> tabs selected</p>
+        <div class="bulk-actions-grid">
+          <button class="bulk-action-btn" data-action="close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Close Selected
+          </button>
+          <button class="bulk-action-btn" data-action="snooze">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Snooze Selected
+          </button>
+          <button class="bulk-action-btn" data-action="group">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            </svg>
+            Group Selected
+          </button>
+          <button class="bulk-action-btn" data-action="bookmark">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Bookmark Selected
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Organize Modal -->
+  <div class="modal" id="quickOrganizeModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Quick Organize</h3>
+        <button class="close-btn" id="closeQuickOrganize">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="organize-options">
+          <label class="organize-option">
+            <input type="checkbox" id="orgCloseDupes" checked>
+            <span>Close duplicate tabs</span>
+            <span class="option-count" id="dupeCount">(0 found)</span>
+          </label>
+          <label class="organize-option">
+            <input type="checkbox" id="orgGroupDomains" checked>
+            <span>Group tabs by domain</span>
+            <span class="option-count" id="domainGroupCount">(0 groups)</span>
+          </label>
+          <label class="organize-option">
+            <input type="checkbox" id="orgSnoozeInactive" checked>
+            <span>Snooze inactive tabs</span>
+            <span class="option-count" id="inactiveCount">(0 tabs)</span>
+          </label>
+          <label class="organize-option">
+            <input type="checkbox" id="orgSuspendHeavy">
+            <span>Suspend memory-heavy tabs</span>
+            <span class="option-count" id="heavyCount">(0 tabs)</span>
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="cancelOrganize">Cancel</button>
+          <button class="btn btn-primary" id="executeOrganize">Organize Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
