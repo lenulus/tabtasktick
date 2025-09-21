@@ -71,6 +71,17 @@ async function loadSettings() {
     memoryThreshold.value = currentSettings.memoryThreshold || 80;
     memoryThresholdValue.textContent = `${memoryThreshold.value}%`;
     
+    // Tab Preview settings
+    const previewSettings = currentSettings.tabPreviewSettings || {
+      enabled: true,
+      showScreenshots: true,
+      hoverDelay: 300
+    };
+    document.getElementById('previewEnabled').checked = previewSettings.enabled;
+    document.getElementById('previewScreenshots').checked = previewSettings.showScreenshots;
+    document.getElementById('previewDelay').value = previewSettings.hoverDelay;
+    document.getElementById('previewDelayValue').textContent = `${previewSettings.hoverDelay}ms`;
+    
     // Load whitelist
     const whitelist = currentSettings.whitelist || [];
     whitelistDomains = whitelist;
@@ -90,7 +101,12 @@ async function saveSettings() {
     maxTabsWarning: parseInt(document.getElementById('maxTabsWarning').value),
     defaultSnoozeMinutes: parseInt(document.getElementById('defaultSnoozeMinutes').value),
     memoryThreshold: parseInt(document.getElementById('memoryThreshold').value),
-    whitelist: whitelistDomains
+    whitelist: whitelistDomains,
+    tabPreviewSettings: {
+      enabled: document.getElementById('previewEnabled').checked,
+      showScreenshots: document.getElementById('previewScreenshots').checked,
+      hoverDelay: parseInt(document.getElementById('previewDelay').value)
+    }
   };
   
   try {
@@ -621,6 +637,17 @@ function setupEventListeners() {
     memoryThresholdValue.textContent = `${memoryThreshold.value}%`;
   });
   memoryThreshold.addEventListener('change', saveSettings);
+  
+  // Tab Preview settings
+  document.getElementById('previewEnabled').addEventListener('change', saveSettings);
+  document.getElementById('previewScreenshots').addEventListener('change', saveSettings);
+  
+  const previewDelay = document.getElementById('previewDelay');
+  const previewDelayValue = document.getElementById('previewDelayValue');
+  previewDelay.addEventListener('input', () => {
+    previewDelayValue.textContent = `${previewDelay.value}ms`;
+  });
+  previewDelay.addEventListener('change', saveSettings);
   
   // Rules
   document.getElementById('addRuleBtn').addEventListener('click', () => openRuleModal());

@@ -17,20 +17,20 @@
 - [x] Style with CSS Grid/Flexbox for responsive layout
 - [x] Implement keyboard shortcut hints
 
-### Enhanced Snooze Interface (Vanilla JS) ⚠️ [Spec: SPEC-003]
-**Current Status**: Basic snooze works (2h, 4h, 8h, Tomorrow, Next Week presets)
+### Enhanced Snooze Interface (Vanilla JS) ✅ [Spec: SPEC-003]
+**Current Status**: Fully implemented with smart presets, bulk snooze, and visual queue
 - [x] Basic snooze time options in popup
 - [x] Snooze tracking and wake-up system
 - [x] Context menu snooze option
 - [x] Dashboard shows snoozed tabs
-- [ ] Build enhanced modal dialog using vanilla JS
-- [ ] Create smart preset buttons with natural language
-- [ ] Add native HTML date/time picker for custom times
-- [ ] Implement bulk snooze with checkbox selection
-- [ ] Build visual queue showing next tabs to wake
-- [ ] Add "Wake Now" and "Reschedule" options
-- [ ] Use CSS animations for smooth transitions
-- [ ] Calculate and show relative times ("in 2 hours")
+- [x] Build enhanced modal dialog using vanilla JS
+- [x] Create smart preset buttons with natural language
+- [x] Add native HTML date/time picker for custom times
+- [x] Implement bulk snooze with checkbox selection
+- [x] Build visual queue showing next tabs to wake
+- [x] Add "Wake Now" and "Reschedule" options
+- [x] Use CSS animations for smooth transitions
+- [x] Calculate and show relative times ("in 2 hours")
 
 ### Quick Action Wheel/Grid ✅ [Spec: SPEC-004]
 **Current Status**: Fully implemented with FAB, expandable grid, preview counts, and undo system
@@ -63,18 +63,18 @@
 
 ## 🎯 Priority 2: Visual Enhancements (Week 2)
 
-### Tab Preview Cards ❌
-**Current Status**: No preview functionality exists
-- [ ] Create hover preview card component showing:
-  - [ ] Full page title (not truncated)
-  - [ ] URL
-  - [ ] Favicon
-  - [ ] Screenshot thumbnail
-  - [ ] Memory usage
-  - [ ] Last accessed time
-  - [ ] Quick actions (close, pin, snooze)
-- [ ] Add smooth hover animations
-- [ ] Add option to disable previews in settings
+### Tab Preview Cards ✅ [Spec: SPEC-005]
+**Current Status**: Fully implemented with hover preview functionality
+- [x] Create hover preview card component showing:
+  - [x] Full page title (not truncated)
+  - [x] URL
+  - [x] Favicon
+  - [x] Screenshot thumbnail (placeholder for now due to permission constraints)
+  - [x] Memory usage (estimated)
+  - [x] Last accessed time
+  - [x] Quick actions (close, pin, snooze)
+- [x] Add smooth hover animations
+- [x] Add option to disable previews in settings
 
 ### Confirmation & Undo System ⚠️
 **Current Status**: Basic Chrome notifications work, no undo system

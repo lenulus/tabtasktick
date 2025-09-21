@@ -11,6 +11,7 @@ let groupsData = [];
 let snoozedData = [];
 let charts = {};
 let snoozeModal = null;
+let previewCard = null;
 
 // Selection state
 const selectionState = {
@@ -33,6 +34,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Initialize Floating Action Button
   const fab = new FloatingActionButton(document.body);
+  
+  // Initialize preview card
+  if (typeof TabPreviewCard !== 'undefined') {
+    previewCard = new TabPreviewCard(document.body);
+    window.previewCard = previewCard; // Make available globally
+    console.log('Preview card initialized');
+  } else {
+    console.error('TabPreviewCard not found - preview.js may not be loaded');
+  }
   
   // Refresh data periodically
   setInterval(refreshData, 30000); // Every 30 seconds
@@ -281,6 +291,19 @@ function renderTabs(tabs) {
       if (!e.target.classList.contains('tab-checkbox')) {
         chrome.tabs.update(tab.id, { active: true });
         chrome.windows.update(tab.windowId, { focused: true });
+      }
+    });
+    
+    // Add preview hover handlers
+    card.addEventListener('mouseenter', () => {
+      if (previewCard) {
+        previewCard.show(tab.id, card);
+      }
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      if (previewCard) {
+        previewCard.hide();
       }
     });
     

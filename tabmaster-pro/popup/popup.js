@@ -44,6 +44,7 @@ const elements = {
 
 let snoozeModal = null;
 let currentTab = null;
+let previewCard = null;
 
 // ============================================================================
 // Initialization
@@ -61,6 +62,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Initialize Floating Action Button
   const fab = new FloatingActionButton(document.body);
+  
+  // Initialize preview card
+  previewCard = new TabPreviewCard(document.body);
+  window.previewCard = previewCard; // Make available globally for other components
   
   // Refresh data every 5 seconds
   setInterval(async () => {
@@ -286,6 +291,19 @@ function updateSnoozedList(snoozedTabs) {
       rescheduleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         rescheduleSnoozedTab(tab);
+      });
+      
+      // Add preview hover handlers
+      tabEl.addEventListener('mouseenter', () => {
+        if (previewCard) {
+          previewCard.show(tab.id, tabEl);
+        }
+      });
+      
+      tabEl.addEventListener('mouseleave', () => {
+        if (previewCard) {
+          previewCard.hide();
+        }
       });
       
       elements.snoozedList.appendChild(tabEl);

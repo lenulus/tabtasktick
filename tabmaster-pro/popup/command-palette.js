@@ -366,6 +366,7 @@ function setupEventListeners() {
   const searchInput = document.getElementById('searchInput');
   const overlay = document.getElementById('overlay');
   const closeButton = document.getElementById('closeButton');
+  const resultsContainer = document.getElementById('resultsContainer');
   
   // Search input
   searchInput.addEventListener('input', debounce(handleSearch, 150));
@@ -387,6 +388,22 @@ function setupEventListeners() {
       e.preventDefault();
     }
   });
+  
+  // Add hover preview for tab results using event delegation
+  resultsContainer.addEventListener('mouseenter', (e) => {
+    const resultItem = e.target.closest('.result-item[data-type="tab"]');
+    if (resultItem && window.previewCard) {
+      const tabId = parseInt(resultItem.dataset.id);
+      window.previewCard.show(tabId, resultItem);
+    }
+  }, true);
+  
+  resultsContainer.addEventListener('mouseleave', (e) => {
+    const resultItem = e.target.closest('.result-item[data-type="tab"]');
+    if (resultItem && window.previewCard) {
+      window.previewCard.hide();
+    }
+  }, true);
 }
 
 function handleKeydown(e) {

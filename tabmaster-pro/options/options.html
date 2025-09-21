@@ -118,6 +118,41 @@
             </label>
           </div>
         </section>
+
+        <section class="settings-section">
+          <h2>Tab Preview Cards</h2>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="previewEnabled">Enable Tab Previews</label>
+              <p class="setting-description">Show detailed preview cards when hovering over tabs</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="previewEnabled" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="previewScreenshots">Show Screenshots</label>
+              <p class="setting-description">Display tab screenshots in preview cards (may impact performance)</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="previewScreenshots" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="previewDelay">Hover Delay</label>
+              <p class="setting-description">Time to wait before showing preview (milliseconds)</p>
+            </div>
+            <input type="range" id="previewDelay" min="0" max="1000" value="300" step="50">
+            <span class="range-value" id="previewDelayValue">300ms</span>
+          </div>
+        </section>
       </div>
 
       <!-- Rules Engine Tab -->
