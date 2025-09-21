@@ -40,23 +40,40 @@
     "open_in_tab": true
   },
   "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "Command+Shift+P"
+      },
+      "description": "Open command palette"
+    },
     "quick_snooze": {
       "suggested_key": {
-        "default": "Alt+S"
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
       },
       "description": "Quick snooze current tab"
     },
     "group_by_domain": {
       "suggested_key": {
-        "default": "Alt+G"
+        "default": "Ctrl+Shift+G",
+        "mac": "Command+Shift+G"
       },
       "description": "Group all tabs by domain"
     },
     "close_duplicates": {
       "suggested_key": {
-        "default": "Alt+D"
+        "default": "Ctrl+Shift+D",
+        "mac": "Command+Shift+D"
       },
       "description": "Close duplicate tabs"
+    },
+    "toggle_tab_list": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+T",
+        "mac": "Command+Shift+T"
+      },
+      "description": "Toggle tab management panel"
     }
   }
 }

@@ -654,6 +654,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 chrome.commands.onCommand.addListener(async (command) => {
   switch (command) {
+    case '_execute_action':
+      // Open command palette
+      await openCommandPalette();
+      break;
+      
     case 'quick_snooze':
       await quickSnoozeCurrent();
       break;
@@ -665,8 +670,38 @@ chrome.commands.onCommand.addListener(async (command) => {
     case 'close_duplicates':
       await findAndCloseDuplicates();
       break;
+      
+    case 'toggle_tab_list':
+      await toggleTabManagementPanel();
+      break;
   }
 });
+
+async function openCommandPalette() {
+  // Create or focus the command palette
+  const width = 600;
+  const height = 400;
+  const left = Math.round((screen.width - width) / 2);
+  const top = Math.round((screen.height - height) / 2);
+  
+  chrome.windows.create({
+    url: chrome.runtime.getURL('popup/command-palette.html'),
+    type: 'popup',
+    width: width,
+    height: height,
+    left: left,
+    top: top,
+    focused: true
+  });
+}
+
+async function toggleTabManagementPanel() {
+  // Toggle a sidebar or panel for tab management
+  // For now, open the popup in a new tab
+  chrome.tabs.create({
+    url: chrome.runtime.getURL('popup/popup.html?panel=true')
+  });
+}
 
 // ============================================================================
 // Message Handling

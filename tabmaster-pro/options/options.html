@@ -30,6 +30,7 @@
       <button class="nav-tab active" data-tab="general">General</button>
       <button class="nav-tab" data-tab="rules">Rules Engine</button>
       <button class="nav-tab" data-tab="automation">Automation</button>
+      <button class="nav-tab" data-tab="keybinds">Keyboard Shortcuts</button>
       <button class="nav-tab" data-tab="performance">Performance</button>
       <button class="nav-tab" data-tab="about">About</button>
     </nav>
@@ -240,6 +241,108 @@
         </section>
       </div>
 
+      <!-- Keyboard Shortcuts Tab -->
+      <div class="tab-panel" id="keybinds">
+        <section class="settings-section">
+          <h2>Keyboard Shortcuts</h2>
+          <p class="section-description">Customize keyboard shortcuts to match your workflow. Click on any shortcut to change it.</p>
+          
+          <div class="shortcuts-info">
+            <div class="info-card">
+              <h4>💡 Tip</h4>
+              <p>For system-wide shortcut management, visit <code>chrome://extensions/shortcuts</code></p>
+            </div>
+          </div>
+          
+          <div class="shortcuts-list" id="shortcutsList">
+            <div class="shortcut-item">
+              <div class="shortcut-info">
+                <h4>Command Palette</h4>
+                <p>Access all TabMaster Pro features</p>
+              </div>
+              <div class="shortcut-key" data-command="_execute_action">
+                <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
+                <button class="edit-shortcut">Edit</button>
+              </div>
+            </div>
+            
+            <div class="shortcut-item">
+              <div class="shortcut-info">
+                <h4>Quick Snooze</h4>
+                <p>Snooze the current tab with dialog</p>
+              </div>
+              <div class="shortcut-key" data-command="quick_snooze">
+                <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>
+                <button class="edit-shortcut">Edit</button>
+              </div>
+            </div>
+            
+            <div class="shortcut-item">
+              <div class="shortcut-info">
+                <h4>Group by Domain</h4>
+                <p>Organize all tabs into domain groups</p>
+              </div>
+              <div class="shortcut-key" data-command="group_by_domain">
+                <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>
+                <button class="edit-shortcut">Edit</button>
+              </div>
+            </div>
+            
+            <div class="shortcut-item">
+              <div class="shortcut-info">
+                <h4>Close Duplicates</h4>
+                <p>Remove all duplicate tabs</p>
+              </div>
+              <div class="shortcut-key" data-command="close_duplicates">
+                <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>
+                <button class="edit-shortcut">Edit</button>
+              </div>
+            </div>
+            
+            <div class="shortcut-item">
+              <div class="shortcut-info">
+                <h4>Toggle Tab Panel</h4>
+                <p>Show/hide tab management panel</p>
+              </div>
+              <div class="shortcut-key" data-command="toggle_tab_list">
+                <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd>
+                <button class="edit-shortcut">Edit</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="actions-row">
+            <button class="btn btn-secondary" id="resetShortcuts">Reset to Defaults</button>
+            <button class="btn btn-secondary" id="importShortcuts">Import Shortcuts</button>
+            <button class="btn btn-primary" id="exportShortcuts">Export Shortcuts</button>
+          </div>
+        </section>
+        
+        <section class="settings-section">
+          <h2>Shortcut Profiles</h2>
+          <p class="section-description">Quick presets for different workflows</p>
+          
+          <div class="profile-grid">
+            <button class="profile-btn" data-profile="default">
+              <h4>Default</h4>
+              <p>Standard shortcuts</p>
+            </button>
+            <button class="profile-btn" data-profile="developer">
+              <h4>Developer</h4>
+              <p>VS Code style</p>
+            </button>
+            <button class="profile-btn" data-profile="vim">
+              <h4>Vim User</h4>
+              <p>Vim-like navigation</p>
+            </button>
+            <button class="profile-btn" data-profile="minimal">
+              <h4>Minimal</h4>
+              <p>Essential shortcuts only</p>
+            </button>
+          </div>
+        </section>
+      </div>
+
       <!-- Performance Tab -->
       <div class="tab-panel" id="performance">
         <section class="settings-section">
@@ -335,14 +438,20 @@
               <div class="keyboard-shortcuts">
                 <h3>Keyboard Shortcuts</h3>
                 <dl>
-                  <dt>Alt + S</dt>
+                  <dt>Ctrl/Cmd + Shift + P</dt>
+                  <dd>Open command palette</dd>
+                  
+                  <dt>Ctrl/Cmd + Shift + S</dt>
                   <dd>Quick snooze current tab</dd>
                   
-                  <dt>Alt + G</dt>
+                  <dt>Ctrl/Cmd + Shift + G</dt>
                   <dd>Group all tabs by domain</dd>
                   
-                  <dt>Alt + D</dt>
+                  <dt>Ctrl/Cmd + Shift + D</dt>
                   <dd>Close duplicate tabs</dd>
+                  
+                  <dt>Ctrl/Cmd + Shift + T</dt>
+                  <dd>Toggle tab management panel</dd>
                 </dl>
               </div>
             </div>

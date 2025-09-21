@@ -2,6 +2,16 @@
 
 ## 🚨 Priority 1: Core UI Actions (Week 1)
 
+### Keyboard Shortcuts & Command Palette
+- [ ] Implement command palette (Ctrl+Shift+P) with fuzzy search
+- [ ] Create customizable keybinding system in settings
+- [ ] Add shortcut profiles (default, developer, vim, minimal)
+- [ ] Build visual shortcut editor with conflict detection
+- [ ] Implement shortcut import/export functionality
+- [ ] Add one-handed mode option for accessibility
+- [ ] Create in-popup keyboard navigation (j/k, /, space)
+- [ ] Add shortcut cheatsheet overlay (? key)
+
 ### Enhanced Snooze Interface
 - [ ] Create React/Preact-based snooze dialog component
 - [ ] Implement smart presets ("Later Today", "Tomorrow Morning", "This Weekend", "Next Week")
