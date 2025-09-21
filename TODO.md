@@ -1,25 +1,26 @@
 # TabMaster Pro - Implementation TODO
 
-## 🚨 Priority 1: Core UI Actions (Week 1)
+## 🚨 Priority 1: Core UI Actions (Week 1) - Vanilla JS Implementation
 
-### Keyboard Shortcuts & Command Palette
-- [ ] Implement command palette (Ctrl+Shift+P) with fuzzy search
-- [ ] Create customizable keybinding system in settings
-- [ ] Add shortcut profiles (default, developer, vim, minimal)
-- [ ] Build visual shortcut editor with conflict detection
-- [ ] Implement shortcut import/export functionality
-- [ ] Add one-handed mode option for accessibility
-- [ ] Create in-popup keyboard navigation (j/k, /, space)
-- [ ] Add shortcut cheatsheet overlay (? key)
+### Command Palette (No Framework Needed)
+- [ ] Create modal overlay with search box using vanilla JS
+- [ ] Implement fuzzy search for commands and tabs
+- [ ] Add keyboard navigation (up/down arrows, enter to select)
+- [ ] List all available actions with shortcuts
+- [ ] Include recent commands section
+- [ ] Add tab search within command palette
+- [ ] Style with CSS Grid/Flexbox for responsive layout
+- [ ] Implement keyboard shortcut hints
 
-### Enhanced Snooze Interface
-- [ ] Create React/Preact-based snooze dialog component
-- [ ] Implement smart presets ("Later Today", "Tomorrow Morning", "This Weekend", "Next Week")
-- [ ] Add custom time picker with calendar widget
-- [ ] Build bulk snooze capability for multiple tabs
-- [ ] Create visual snooze queue showing next 5 tabs to wake
-- [ ] Add "Wake Now" button for each snoozed tab
-- [ ] Make Alt+S shortcut open dialog instead of default snooze
+### Enhanced Snooze Interface (Vanilla JS)
+- [ ] Build modal dialog using vanilla JS
+- [ ] Create smart preset buttons with natural language
+- [ ] Add native HTML date/time picker for custom times
+- [ ] Implement bulk snooze with checkbox selection
+- [ ] Build visual queue showing next tabs to wake
+- [ ] Add "Wake Now" and "Reschedule" options
+- [ ] Use CSS animations for smooth transitions
+- [ ] Calculate and show relative times ("in 2 hours")
 
 ### Quick Action Wheel/Grid
 - [ ] Design floating action button (FAB) component
@@ -32,17 +33,18 @@
 - [ ] Add preview counts/impact for each action
 - [ ] Implement 5-second undo option after actions
 
-### Tab Selection & Bulk Operations
-- [ ] Add checkbox multi-select mode to popup
-- [ ] Implement select all/none/invert selection
-- [ ] Create bulk operations toolbar that appears when tabs selected:
-  - [ ] Close Selected
-  - [ ] Snooze Selected
-  - [ ] Group Selected
-  - [ ] Bookmark Selected
-  - [ ] Move to Window
-- [ ] Add visual feedback for selected tabs
-- [ ] Show count indicator ("12 tabs selected")
+### Tab Selection & Bulk Operations (Vanilla JS)
+- [ ] Add checkbox to each tab item using DOM manipulation
+- [ ] Track selection state in JavaScript object
+- [ ] Show/hide bulk toolbar with CSS classes
+- [ ] Implement actions with existing Chrome APIs:
+  - [ ] Close Selected (chrome.tabs.remove)
+  - [ ] Snooze Selected (batch process)
+  - [ ] Group Selected (chrome.tabs.group)
+  - [ ] Bookmark Selected (chrome.bookmarks.create)
+  - [ ] Move to Window (chrome.windows.create)
+- [ ] Update count dynamically with textContent
+- [ ] Use CSS classes for selection highlighting
 
 ## 🎯 Priority 2: Visual Enhancements (Week 2)
 
@@ -92,17 +94,19 @@
 - [ ] Implement accept/modify/reject for each suggestion
 - [ ] Add machine learning to improve suggestions over time
 
-### Tab Search & Filter
-- [ ] Add search bar to popup with instant results
-- [ ] Implement search by title, URL, or content
-- [ ] Create filter chips:
-  - [ ] Pinned
-  - [ ] Audible
-  - [ ] Duplicates
-  - [ ] By domain
-  - [ ] By age
-- [ ] Add sort options (recent, memory, domain)
-- [ ] Include quick actions in search results
+### Tab Search & Filter (Vanilla JS)
+- [ ] Add search input with event listeners for real-time filtering
+- [ ] Implement search algorithm in JavaScript (no external libs)
+- [ ] Filter tabs array based on search criteria
+- [ ] Create filter buttons with data attributes:
+  - [ ] Pinned (data-filter="pinned")
+  - [ ] Audible (data-filter="audible") 
+  - [ ] Duplicates (data-filter="duplicates")
+  - [ ] By domain (dropdown with domain list)
+  - [ ] By age (dropdown with time ranges)
+- [ ] Sort using Array.sort() with custom comparators
+- [ ] Update DOM efficiently with filtered results
+- [ ] Add debouncing for search input performance
 
 ### Workspace Templates
 - [ ] Create workspace save/restore functionality
@@ -198,21 +202,21 @@
 
 ## 🛠️ Technical Infrastructure
 
-### Build System Setup
-- [ ] Set up Webpack or Vite for modern development
-- [ ] Configure React/Preact with hot reload
-- [ ] Add TypeScript support
-- [ ] Set up ESLint and Prettier
-- [ ] Configure testing framework (Jest)
-- [ ] Add development vs production builds
+### Development Setup (Keeping it Simple)
+- [ ] Set up ESLint and Prettier for code consistency
+- [ ] Configure testing framework (Jest) for vanilla JS
+- [ ] Add development vs production builds (minification only)
+- [ ] Create CSS variables system for theming
+- [ ] Build vanilla JS component patterns
+- [ ] Add JSDoc for better code documentation
 
-### UI Component Library
-- [ ] Integrate Preact (3KB React alternative)
-- [ ] Set up Tailwind CSS
-- [ ] Add Framer Motion for animations
-- [ ] Integrate Chart.js for visualizations
-- [ ] Create component style guide
-- [ ] Build reusable component library
+### UI Improvements (No Framework)
+- [ ] Enhance CSS with modern features (grid, custom properties)
+- [ ] Add smooth animations with CSS transitions
+- [ ] Build reusable vanilla JS modules
+- [ ] Create accessible modal/dialog system
+- [ ] Implement virtual scrolling for large tab lists
+- [ ] Add CSS-only loading states
 
 ### Performance Optimizations
 - [ ] Implement virtual scrolling for large tab lists
@@ -368,8 +372,10 @@
 
 ## Notes
 
-- Start with React/Preact setup to enable modern UI development
-- Prioritize user-facing features that solve immediate pain points
-- Ensure backward compatibility with existing data
+- Keep it simple with vanilla JavaScript - no framework needed
+- Use modern CSS features (Grid, Flexbox, Custom Properties) for layouts
+- Leverage browser native APIs (date picker, Chrome APIs) where possible  
 - Focus on performance with 200+ tabs scenarios
+- Use DOM manipulation efficiently with DocumentFragment for bulk updates
 - Implement features incrementally with user feedback
+- Test thoroughly with large tab counts (200-500 tabs)
