@@ -162,12 +162,39 @@
 - [ ] Add tab isolation features
 - [ ] Build privacy-preserving analytics
 
-### Import/Export & Sync
-- [ ] Enhance export with all data types
-- [ ] Build import from other tab managers
-- [ ] Implement cross-device sync strategy
-- [ ] Add automatic backup functionality
-- [ ] Create data migration tools
+### Import/Export & Session Management
+- [x] Enhance export with all data types (tabs, settings, rules, groups)
+- [ ] Build comprehensive import functionality:
+  - [ ] Full session restore (replace all current tabs)
+  - [ ] Selective import (choose what to import)
+  - [ ] Merge mode (combine with current session)
+  - [ ] Duplicate detection and handling
+  - [ ] Import preview before applying
+  - [ ] Undo import functionality
+- [ ] Import from other tab managers:
+  - [ ] OneTab import support
+  - [ ] Session Buddy import
+  - [ ] Toby import
+  - [ ] Browser bookmarks import as tabs
+- [ ] Advanced import features:
+  - [ ] Import filters (by domain, date, etc.)
+  - [ ] Import transformations (clean URLs, remove tracking)
+  - [ ] Batch import multiple files
+  - [ ] Import scheduling (restore workspace at specific time)
+- [ ] Session templates:
+  - [ ] Save current session as reusable template
+  - [ ] Create workspace templates for different projects
+  - [ ] Share templates with team members
+- [ ] Backup automation:
+  - [ ] Scheduled auto-export (daily/weekly)
+  - [ ] Export on browser close option
+  - [ ] Cloud backup integration (Google Drive, Dropbox)
+  - [ ] Backup retention policies
+- [ ] Cross-device sync:
+  - [ ] Real-time tab sync across devices
+  - [ ] Selective sync (choose what syncs)
+  - [ ] Conflict resolution for concurrent changes
+  - [ ] Offline support with sync on reconnect
 
 ## 🛠️ Technical Infrastructure
 
@@ -330,13 +357,14 @@
 ## High-Impact Features for Professionals (Implement First)
 
 1. **Command Palette** - Fastest way to navigate 200+ tabs
-2. **Project Context Switching** - Essential for multi-client work
-3. **Emergency Recovery** - Critical for preventing work loss
-4. **Time Tracking** - Valuable for consultants/freelancers
-5. **Meeting Mode** - Instant privacy during screensharing
-6. **Smart Search** - Finding needles in the tab haystack
-7. **Bulk Operations** - Managing large tab sets efficiently
-8. **Auto-Backup** - Peace of mind for heavy users
+2. **Import Functionality** - Restore exported sessions (export is done)
+3. **Project Context Switching** - Essential for multi-client work
+4. **Emergency Recovery** - Critical for preventing work loss
+5. **Time Tracking** - Valuable for consultants/freelancers
+6. **Meeting Mode** - Instant privacy during screensharing
+7. **Smart Search** - Finding needles in the tab haystack
+8. **Bulk Operations** - Managing large tab sets efficiently
+9. **Auto-Backup** - Peace of mind for heavy users
 
 ## Notes
 
