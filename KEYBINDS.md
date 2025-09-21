@@ -3,7 +3,9 @@
 ## Default Keybindings
 
 ### Primary Actions (Ctrl/Cmd + Shift + Letter)
-These use Ctrl+Shift on Windows/Linux, Cmd+Shift on Mac to avoid conflicts:
+These use Ctrl+Shift on Windows/Linux, Cmd+Shift on Mac to avoid conflicts.
+
+Chrome limits extensions to 4 keyboard shortcuts. Additional actions can be accessed through the command palette or configured at chrome://extensions/shortcuts.
 
 | Action | Default Shortcut | Description |
 |--------|-----------------|-------------|
@@ -11,29 +13,19 @@ These use Ctrl+Shift on Windows/Linux, Cmd+Shift on Mac to avoid conflicts:
 | **Quick Snooze** | `Ctrl+Shift+S` | Snooze current tab with dialog |
 | **Group by Domain** | `Ctrl+Shift+G` | Group all tabs by domain |
 | **Close Duplicates** | `Ctrl+Shift+D` | Close all duplicate tabs |
-| **Toggle Tab List** | `Ctrl+Shift+T` | Show/hide tab management panel |
-| **Emergency Save** | `Ctrl+Shift+E` | Emergency backup all tabs |
 
-### Navigation (Ctrl/Cmd + Alt + Key)
-For quick navigation without conflicts:
+### Additional Actions via Command Palette
+Access these and many more features through the command palette (`Ctrl+Shift+P`):
 
-| Action | Default Shortcut | Description |
-|--------|-----------------|-------------|
-| **Search Tabs** | `Ctrl+Alt+F` | Open tab search |
-| **Recent Tabs** | `Ctrl+Alt+R` | Show recently closed tabs |
-| **Next Group** | `Ctrl+Alt+]` | Navigate to next tab group |
-| **Previous Group** | `Ctrl+Alt+[` | Navigate to previous tab group |
-| **Jump to Tab** | `Ctrl+Alt+J` | Jump to tab by number/name |
-
-### Tab Management (Ctrl/Cmd + Shift + Alt + Key)
-For advanced management features:
-
-| Action | Default Shortcut | Description |
-|--------|-----------------|-------------|
-| **Bulk Select** | `Ctrl+Shift+Alt+A` | Toggle multi-select mode |
-| **Meeting Mode** | `Ctrl+Shift+Alt+M` | Hide non-work tabs |
-| **Focus Mode** | `Ctrl+Shift+Alt+F` | Show only current project |
-| **Workspace Switch** | `Ctrl+Shift+Alt+W` | Switch between workspaces |
+- **Search Tabs** - Find tabs by title or URL
+- **Recent Tabs** - Show recently closed tabs
+- **Toggle Tab List** - Show/hide tab management panel  
+- **Emergency Save** - Backup all tabs instantly
+- **Meeting Mode** - Hide non-work tabs
+- **Focus Mode** - Show only current project
+- **Workspace Switch** - Switch between saved workspaces
+- **Bulk Select** - Toggle multi-select mode
+- And many more...
 
 ### Quick Actions (No Modifiers - Only in Extension Popup)
 When the extension popup is open:

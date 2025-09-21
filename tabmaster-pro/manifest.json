@@ -67,13 +67,6 @@
         "mac": "Command+Shift+D"
       },
       "description": "Close duplicate tabs"
-    },
-    "toggle_tab_list": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+T",
-        "mac": "Command+Shift+T"
-      },
-      "description": "Toggle tab management panel"
     }
   }
 }

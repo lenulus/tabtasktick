@@ -670,10 +670,6 @@ chrome.commands.onCommand.addListener(async (command) => {
     case 'close_duplicates':
       await findAndCloseDuplicates();
       break;
-      
-    case 'toggle_tab_list':
-      await toggleTabManagementPanel();
-      break;
   }
 });
 
@@ -695,13 +691,6 @@ async function openCommandPalette() {
   });
 }
 
-async function toggleTabManagementPanel() {
-  // Toggle a sidebar or panel for tab management
-  // For now, open the popup in a new tab
-  chrome.tabs.create({
-    url: chrome.runtime.getURL('popup/popup.html?panel=true')
-  });
-}
 
 // ============================================================================
 // Message Handling
