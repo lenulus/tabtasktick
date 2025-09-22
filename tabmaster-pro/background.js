@@ -37,6 +37,25 @@ const state = {
 // Activity Tracking
 // ============================================================================
 
+// Track tab history for the activity chart
+async function trackTabHistory(action) {
+  const history = await chrome.storage.local.get(['tabHistory']);
+  const tabHistory = history.tabHistory || [];
+
+  // Add new entry
+  tabHistory.push({
+    action,
+    timestamp: Date.now()
+  });
+
+  // Keep only last 30 days of history
+  const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+  const recentHistory = tabHistory.filter(h => h.timestamp > thirtyDaysAgo);
+
+  // Save back to storage
+  await chrome.storage.local.set({ tabHistory: recentHistory });
+}
+
 function logActivity(action, details, source = 'manual') {
   const activity = {
     id: Date.now(),
@@ -134,14 +153,16 @@ chrome.runtime.onStartup.addListener(async () => {
 });
 
 async function initializeExtension() {
-  // Set default rules if none exist
+  // Don't auto-install any rules - let users choose what they want
   const { rules } = await chrome.storage.local.get('rules');
-  if (!rules || rules.length === 0) {
-    const defaultRules = getDefaultRules();
-    await chrome.storage.local.set({ rules: defaultRules });
-    state.rules = defaultRules;
+  if (rules) {
+    state.rules = rules;
+  } else {
+    // Start with empty rules - users can install samples from dashboard
+    state.rules = [];
+    await chrome.storage.local.set({ rules: [] });
   }
-  
+
   // Initialize settings
   const { settings } = await chrome.storage.local.get('settings');
   if (settings) {
@@ -152,82 +173,6 @@ async function initializeExtension() {
 // ============================================================================
 // Rules Engine
 // ============================================================================
-
-function getDefaultRules() {
-  return [
-    {
-      id: 'rule_1',
-      name: 'Close duplicate tabs',
-      enabled: true,
-      conditions: {
-        type: 'duplicate',
-      },
-      actions: {
-        type: 'close',
-        keepFirst: true,
-      },
-      priority: 1,
-    },
-    {
-      id: 'rule_2',
-      name: 'Auto-group by domain',
-      enabled: true,
-      conditions: {
-        type: 'domain_count',
-        minCount: 3,
-      },
-      actions: {
-        type: 'group',
-        groupBy: 'domain',
-      },
-      priority: 2,
-    },
-    {
-      id: 'rule_3',
-      name: 'Snooze unread articles',
-      enabled: true,
-      conditions: {
-        type: 'inactive',
-        inactiveMinutes: 60,
-        urlPatterns: ['medium.com', 'dev.to', 'hackernews', 'reddit.com'],
-      },
-      actions: {
-        type: 'snooze',
-        snoozeMinutes: 1440, // 24 hours
-      },
-      priority: 3,
-    },
-    {
-      id: 'rule_4',
-      name: 'Close old Stack Overflow tabs',
-      enabled: true,
-      conditions: {
-        type: 'age_and_domain',
-        ageMinutes: 180,
-        domains: ['stackoverflow.com'],
-      },
-      actions: {
-        type: 'close',
-        saveToBookmarks: true,
-      },
-      priority: 4,
-    },
-    {
-      id: 'rule_5',
-      name: 'Memory management',
-      enabled: true,
-      conditions: {
-        type: 'memory',
-        thresholdPercent: 80,
-      },
-      actions: {
-        type: 'suspend',
-        excludePinned: true,
-      },
-      priority: 5,
-    },
-  ];
-}
 
 async function loadRules() {
   const { rules } = await chrome.storage.local.get('rules');
@@ -250,8 +195,37 @@ async function evaluateRules() {
 }
 
 async function applyRule(rule, tabs) {
-  const matchingTabs = tabs.filter(tab => evaluateCondition(rule.conditions, tab, tabs));
-  
+  let matchingTabs = tabs.filter(tab => evaluateCondition(rule.conditions, tab, tabs));
+
+  // Special handling for duplicate condition with keepFirst
+  if (rule.conditions.type === 'duplicate' && rule.actions.type === 'close') {
+    // Group duplicates by URL
+    const urlGroups = new Map();
+    for (const tab of matchingTabs) {
+      if (!urlGroups.has(tab.url)) {
+        urlGroups.set(tab.url, []);
+      }
+      urlGroups.get(tab.url).push(tab);
+    }
+
+    // For each group of duplicates, exclude the one to keep
+    matchingTabs = [];
+    for (const [url, duplicates] of urlGroups.entries()) {
+      if (duplicates.length > 1) {
+        // Sort by ID (lower ID = older tab)
+        duplicates.sort((a, b) => a.id - b.id);
+
+        if (rule.actions.keepFirst !== false) {
+          // Keep the first (oldest) tab, close the rest
+          matchingTabs.push(...duplicates.slice(1));
+        } else {
+          // Keep the last (newest) tab, close the rest
+          matchingTabs.push(...duplicates.slice(0, -1));
+        }
+      }
+    }
+  }
+
   if (matchingTabs.length > 0) {
     await executeAction(rule.actions, matchingTabs);
   }
@@ -270,11 +244,7 @@ function evaluateCondition(conditions, tab, allTabs) {
     
     case 'age_and_domain':
       return isOldDomainTab(tab, conditions);
-    
-    case 'memory':
-      // This would require additional APIs or estimation
-      return false; // Placeholder
-    
+
     default:
       return false;
   }
@@ -832,12 +802,14 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
   // 2. Part of a bulk operation (will be logged as bulk)
   if (!removeInfo.isWindowClosing && !bulkOperationInProgress) {
     logActivity('close', 'Closed 1 tab', 'manual');
+    trackTabHistory('closed');
   }
 });
 
 // Log tab creations
 chrome.tabs.onCreated.addListener((tab) => {
   logActivity('create', 'Opened new tab', 'manual');
+  trackTabHistory('opened');
 });
 
 // Log tab groups
@@ -954,7 +926,22 @@ async function handleMessage(request, sender) {
     
     case 'toggleRule':
       return await toggleRule(request.ruleId);
-    
+
+    case 'updateRules':
+      return await updateRules(request.rules);
+
+    case 'previewRule':
+      return await previewRule(request.ruleId);
+
+    case 'executeRule':
+      return await executeRule(request.ruleId);
+
+    case 'previewAllRules':
+      return await previewAllRules();
+
+    case 'executeAllRules':
+      return await executeAllRules();
+
     case 'getSettings':
       return state.settings;
     
@@ -1165,6 +1152,91 @@ async function toggleRule(ruleId) {
     await chrome.storage.local.set({ rules: state.rules });
   }
   return rule;
+}
+
+async function updateRules(rules) {
+  state.rules = rules;
+  await chrome.storage.local.set({ rules: state.rules });
+  return state.rules;
+}
+
+async function previewRule(ruleId) {
+  const rule = state.rules.find(r => r.id === ruleId);
+  if (!rule) return { matchingTabs: [] };
+
+  const tabs = await chrome.tabs.query({});
+  let matchingTabs = tabs.filter(tab => evaluateCondition(rule.conditions, tab, tabs));
+
+  // Apply the same logic for duplicates as in applyRule
+  if (rule.conditions.type === 'duplicate' && rule.actions.type === 'close') {
+    const urlGroups = new Map();
+    for (const tab of matchingTabs) {
+      if (!urlGroups.has(tab.url)) {
+        urlGroups.set(tab.url, []);
+      }
+      urlGroups.get(tab.url).push(tab);
+    }
+
+    matchingTabs = [];
+    for (const [url, duplicates] of urlGroups.entries()) {
+      if (duplicates.length > 1) {
+        duplicates.sort((a, b) => a.id - b.id);
+        if (rule.actions.keepFirst !== false) {
+          matchingTabs.push(...duplicates.slice(1));
+        } else {
+          matchingTabs.push(...duplicates.slice(0, -1));
+        }
+      }
+    }
+  }
+
+  return {
+    rule: rule,
+    matchingTabs: matchingTabs.map(t => ({
+      id: t.id,
+      title: t.title,
+      url: t.url
+    }))
+  };
+}
+
+async function executeRule(ruleId) {
+  const rule = state.rules.find(r => r.id === ruleId);
+  if (!rule) return { success: false };
+
+  const tabs = await chrome.tabs.query({});
+  await applyRule(rule, tabs);
+
+  // Log the manual execution
+  logActivity(rule.actions.type, `Manual: ${rule.name}`, 'manual');
+
+  return { success: true };
+}
+
+async function previewAllRules() {
+  const enabledRules = state.rules.filter(r => r.enabled);
+  const results = [];
+
+  for (const rule of enabledRules) {
+    const preview = await previewRule(rule.id);
+    results.push(preview);
+  }
+
+  return { results };
+}
+
+async function executeAllRules() {
+  const enabledRules = state.rules.filter(r => r.enabled);
+  const tabs = await chrome.tabs.query({});
+
+  for (const rule of enabledRules) {
+    await applyRule(rule, tabs);
+  }
+
+  // Log the manual execution
+  logActivity('rule', `Manual execution of ${enabledRules.length} rules`, 'manual');
+
+  return { success: true, rulesExecuted: enabledRules.length };
 }
 
 // ============================================================================

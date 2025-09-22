@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../components/snooze-modal.css">
   <link rel="stylesheet" href="../components/fab.css">
   <link rel="stylesheet" href="../lib/preview.css">
+  <script src="../lib/chart.min.js"></script>
 </head>
 <body>
   <div class="dashboard">
@@ -60,14 +61,12 @@
           </svg>
           History
         </a>
-        
-        <a href="#" class="nav-item" data-view="analytics">
+
+        <a href="#" class="nav-item" data-view="rules">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="18" y1="20" x2="18" y2="10"></line>
-            <line x1="12" y1="20" x2="12" y2="4"></line>
-            <line x1="6" y1="20" x2="6" y2="14"></line>
+            <path d="M3 3h18v18H3zM12 8v8m-4-4h8"></path>
           </svg>
-          Analytics
+          Rules Engine
         </a>
       </nav>
       
@@ -344,65 +343,85 @@
         </div>
       </div>
 
-      <!-- Analytics View -->
-      <div class="view" id="analytics">
+      <!-- Rules View -->
+      <div class="view" id="rules">
         <div class="view-header">
-          <h1>Analytics & Insights</h1>
+          <h1>Rules Engine</h1>
           <div class="header-actions">
-            <select class="period-select" id="analyticsPeriod">
-              <option value="day">Today</option>
-              <option value="week" selected>This Week</option>
-              <option value="month">This Month</option>
-              <option value="year">This Year</option>
-            </select>
+            <button class="btn btn-secondary" id="testAllRulesBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="16 12 12 8 12 16 16 12"></polyline>
+              </svg>
+              Run Rules Now
+            </button>
+            <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" id="addRuleDropdown">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Rule
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-left: 4px;">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div class="dropdown-menu" id="addRuleMenu">
+                <button class="dropdown-item" id="addCustomRuleBtn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  Create Custom Rule
+                </button>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-header">Start from template:</div>
+                <!-- Sample rule items will be added here dynamically -->
+                <div id="sampleRuleItems"></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="analytics-container">
-          <!-- Key Metrics -->
-          <div class="metrics-row">
-            <div class="metric-card">
-              <h4>Average Tabs Open</h4>
-              <div class="metric-value" id="avgTabs">0</div>
+        <div class="rules-container">
+          <!-- Rules Header with quick actions -->
+          <div class="rules-header">
+            <div class="rules-info">
+              <p class="rules-description">
+                Create automated rules to manage your tabs. Rules execute in order from top to bottom. Drag to reorder.
+              </p>
+              <div class="rules-warning">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Rules can automatically close or modify tabs. Test rules carefully before enabling them.</span>
+              </div>
             </div>
-            <div class="metric-card">
-              <h4>Peak Tab Count</h4>
-              <div class="metric-value" id="peakTabs">0</div>
-            </div>
-            <div class="metric-card">
-              <h4>Tabs Closed</h4>
-              <div class="metric-value" id="tabsClosed">0</div>
-            </div>
-            <div class="metric-card">
-              <h4>Time Saved</h4>
-              <div class="metric-value" id="timeSaved">0 hrs</div>
-            </div>
-          </div>
-
-          <!-- Charts -->
-          <div class="analytics-charts">
-            <div class="chart-card large">
-              <h3>Tab Patterns</h3>
-              <canvas id="patternsChart"></canvas>
-            </div>
-            
-            <div class="chart-card">
-              <h3>Memory Usage Trend</h3>
-              <canvas id="memoryTrendChart"></canvas>
-            </div>
-            
-            <div class="chart-card">
-              <h3>Domain Distribution</h3>
-              <canvas id="domainDistChart"></canvas>
+            <div class="rules-quick-actions">
+              <button class="btn btn-sm" id="disableAllRules">Disable All</button>
+              <button class="btn btn-sm" id="enableAllRules">Enable All</button>
             </div>
           </div>
 
-          <!-- Insights -->
-          <div class="insights-section">
-            <h3>Insights & Recommendations</h3>
-            <div class="insights-list" id="insightsList">
-              <!-- Insights will be populated here -->
-            </div>
+          <!-- Active Rules List -->
+          <div class="rules-list" id="rulesList">
+            <!-- Rules will be populated here -->
+          </div>
+
+          <!-- Empty state -->
+          <div class="empty-state" id="rulesEmptyState" style="display: none;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <h3>No Rules Created</h3>
+            <p>Create your first rule to automate tab management, or start from a template.</p>
+            <button class="btn btn-primary" id="createFirstRuleBtn">Add Your First Rule</button>
           </div>
         </div>
       </div>
@@ -504,6 +523,64 @@
           <button class="btn btn-secondary" id="cancelOrganize">Cancel</button>
           <button class="btn btn-primary" id="executeOrganize">Organize Now</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rule Editor Modal -->
+  <div class="modal" id="ruleModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="ruleModalTitle">Add New Rule</h3>
+        <button class="close-btn" id="closeRuleModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="ruleName">Rule Name</label>
+          <input type="text" id="ruleName" placeholder="Enter a descriptive name for this rule">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ruleCondition">When tabs match</label>
+            <select id="ruleCondition">
+              <option value="duplicate">Duplicate URLs</option>
+              <option value="domain_count">Same domain count</option>
+              <option value="inactive">Inactive duration</option>
+              <option value="age_and_domain">Age and specific domains</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="ruleAction">Then do this</label>
+            <select id="ruleAction">
+              <option value="close">Close tabs</option>
+              <option value="group">Group tabs</option>
+              <option value="snooze">Snooze tabs</option>
+              <option value="suspend">Suspend tabs</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group condition-params" id="conditionParams">
+          <!-- Dynamic condition parameters -->
+        </div>
+
+        <div class="form-group action-params" id="actionParams">
+          <!-- Dynamic action parameters -->
+        </div>
+
+        <div class="form-group">
+          <label for="ruleEnabled">
+            <input type="checkbox" id="ruleEnabled">
+            Enable rule immediately
+          </label>
+          <p class="help-text">You can test the rule before enabling it</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelRuleBtn">Cancel</button>
+        <button class="btn btn-primary" id="saveRuleBtn">Save Rule</button>
       </div>
     </div>
   </div>

@@ -60,22 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function initializeDashboard() {
-  // Wait for Chart.js to be available
-  await waitForChartJS();
-  initializeCharts();
   await loadOverviewData();
-}
-
-async function waitForChartJS(maxAttempts = 10) {
-  for (let i = 0; i < maxAttempts; i++) {
-    if (typeof Chart !== 'undefined') {
-      console.log('Chart.js loaded');
-      return;
-    }
-    console.log(`Waiting for Chart.js... attempt ${i + 1}`);
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  console.warn('Chart.js failed to load after maximum attempts');
 }
 
 // ============================================================================
@@ -132,8 +117,8 @@ function switchView(view) {
     case 'history':
       loadHistoryView();
       break;
-    case 'analytics':
-      loadAnalyticsView();
+    case 'rules':
+      loadRulesView();
       break;
   }
 }
@@ -280,6 +265,166 @@ function getActivityIcon(type) {
     rule: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path></svg>',
   };
   return icons[type] || '';
+}
+
+// ============================================================================
+// Chart Functions
+// ============================================================================
+
+let activityChart = null;
+let domainsChart = null;
+
+function updateActivityChart() {
+  const ctx = document.getElementById('activityChart');
+  if (!ctx) return;
+
+  // Get activity data from storage or background
+  chrome.storage.local.get(['tabHistory'], (result) => {
+    const history = result.tabHistory || [];
+    const last7Days = getActivityDataForLast7Days(history);
+
+    if (activityChart) {
+      activityChart.destroy();
+    }
+
+    activityChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: last7Days.labels,
+        datasets: [{
+          label: 'Tabs Opened',
+          data: last7Days.opened,
+          borderColor: 'rgb(102, 126, 234)',
+          backgroundColor: 'rgba(102, 126, 234, 0.1)',
+          tension: 0.4
+        }, {
+          label: 'Tabs Closed',
+          data: last7Days.closed,
+          borderColor: 'rgb(245, 87, 108)',
+          backgroundColor: 'rgba(245, 87, 108, 0.1)',
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  });
+}
+
+function getActivityDataForLast7Days(history) {
+  const days = [];
+  const opened = [];
+  const closed = [];
+  const now = new Date();
+
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    date.setHours(0, 0, 0, 0);
+    const nextDate = new Date(date);
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+    days.push(dayName);
+
+    // Count activities for this day
+    const dayActivities = history.filter(h => {
+      const actDate = new Date(h.timestamp);
+      return actDate >= date && actDate < nextDate;
+    });
+
+    opened.push(dayActivities.filter(a => a.action === 'opened').length);
+    closed.push(dayActivities.filter(a => a.action === 'closed').length);
+  }
+
+  return {
+    labels: days,
+    opened,
+    closed
+  };
+}
+
+function updateDomainsChart(topDomains) {
+  const ctx = document.getElementById('domainsChart');
+  if (!ctx) return;
+
+  // If no data provided, get current tabs
+  if (!topDomains || topDomains.length === 0) {
+    chrome.tabs.query({}, (tabs) => {
+      const domains = {};
+      tabs.forEach(tab => {
+        try {
+          const url = new URL(tab.url);
+          const domain = url.hostname.replace('www.', '');
+          if (domain) {
+            domains[domain] = (domains[domain] || 0) + 1;
+          }
+        } catch (e) {
+          // Ignore invalid URLs
+        }
+      });
+
+      // Sort and get top 5
+      const sortedDomains = Object.entries(domains)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+      renderDomainsChart(sortedDomains);
+    });
+  } else {
+    renderDomainsChart(topDomains);
+  }
+}
+
+function renderDomainsChart(domainData) {
+  const ctx = document.getElementById('domainsChart');
+  if (!ctx) return;
+
+  if (domainsChart) {
+    domainsChart.destroy();
+  }
+
+  const labels = domainData.map(d => Array.isArray(d) ? d[0] : d.domain);
+  const data = domainData.map(d => Array.isArray(d) ? d[1] : d.count);
+
+  domainsChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: [
+          'rgba(102, 126, 234, 0.8)',
+          'rgba(245, 87, 108, 0.8)',
+          'rgba(240, 147, 251, 0.8)',
+          'rgba(79, 172, 254, 0.8)',
+          'rgba(250, 112, 154, 0.8)'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
 }
 
 // ============================================================================
@@ -1885,244 +2030,6 @@ function renderHistory(history) {
 // Analytics View
 // ============================================================================
 
-async function loadAnalyticsView() {
-  // Load analytics data
-  const stats = await sendMessage({ action: 'getStatistics' });
-  
-  // Update metrics
-  document.getElementById('avgTabs').textContent = Math.round(stats.totalTabs);
-  document.getElementById('peakTabs').textContent = stats.totalTabs; // Would need tracking
-  document.getElementById('tabsClosed').textContent = stats.statistics.tabsClosed;
-  document.getElementById('timeSaved').textContent = '2.5 hrs'; // Would need calculation
-  
-  // Update charts
-  updatePatternsChart();
-  updateMemoryTrendChart();
-  updateDomainDistChart(stats.topDomains);
-  
-  // Generate insights
-  generateInsights(stats);
-}
-
-function generateInsights(stats) {
-  const insights = [];
-  
-  if (stats.totalTabs > 50) {
-    insights.push({
-      type: 'warning',
-      text: 'You have over 50 tabs open. Consider using auto-grouping to organize them better.'
-    });
-  }
-  
-  if (stats.duplicates > 5) {
-    insights.push({
-      type: 'tip',
-      text: `Found ${stats.duplicates} duplicate tabs. Enable auto-close duplicates to save memory.`
-    });
-  }
-  
-  if (stats.memoryEstimate.percentage > 70) {
-    insights.push({
-      type: 'warning',
-      text: 'High memory usage detected. Consider suspending inactive tabs.'
-    });
-  }
-  
-  insights.push({
-    type: 'success',
-    text: `You've saved ${stats.statistics.tabsClosed} tabs from cluttering your browser!`
-  });
-  
-  renderInsights(insights);
-}
-
-function renderInsights(insights) {
-  const container = document.getElementById('insightsList');
-  container.innerHTML = '';
-  
-  insights.forEach(insight => {
-    const item = document.createElement('div');
-    item.className = 'insight-item';
-    
-    const icon = insight.type === 'warning' ? '⚠️' : insight.type === 'tip' ? '💡' : '✅';
-    
-    item.innerHTML = `
-      <div class="insight-icon ${insight.type}">${icon}</div>
-      <div class="insight-content">${insight.text}</div>
-    `;
-    
-    container.appendChild(item);
-  });
-}
-
-// ============================================================================
-// Charts
-// ============================================================================
-
-function initializeCharts() {
-  // Check if Chart.js is loaded
-  if (typeof Chart === 'undefined') {
-    console.warn('Chart.js not loaded, skipping chart initialization');
-    return;
-  }
-  
-  // Only initialize if charts don't exist
-  if (charts.activity || charts.domains) {
-    console.log('Charts already initialized, skipping');
-    return;
-  }
-  
-  // Initialize Chart.js charts
-  const activityCtx = document.getElementById('activityChart');
-  if (activityCtx) {
-    try {
-      charts.activity = new Chart(activityCtx.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: []
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        aspectRatio: 2,
-        plugins: {
-          legend: {
-            display: false
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        },
-        layout: {
-          padding: {
-            top: 10,
-            bottom: 10
-          }
-        }
-      }
-    });
-    } catch (error) {
-      console.error('Failed to initialize activity chart:', error);
-    }
-  }
-  
-  const domainsCtx = document.getElementById('domainsChart');
-  if (domainsCtx) {
-    try {
-      charts.domains = new Chart(domainsCtx.getContext('2d'), {
-      type: 'doughnut',
-      data: {
-        labels: [],
-        datasets: []
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        aspectRatio: 1.5,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              padding: 10,
-              font: {
-                size: 12
-              }
-            }
-          }
-        },
-        layout: {
-          padding: {
-            top: 10,
-            bottom: 10
-          }
-        }
-      }
-    });
-    } catch (error) {
-      console.error('Failed to initialize domains chart:', error);
-    }
-  }
-}
-
-function updateActivityChart() {
-  console.log('Updating activity chart...', { chart: !!charts.activity, chartJS: typeof Chart !== 'undefined' });
-  if (!charts.activity || typeof Chart === 'undefined') return;
-  
-  try {
-    // Sample data - would be real tracking data
-    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const data = [45, 52, 38, 65, 48, 35, 40];
-    
-    charts.activity.data = {
-      labels: labels,
-      datasets: [{
-        label: 'Tabs',
-        data: data,
-        borderColor: '#667eea',
-        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-        tension: 0.4
-      }]
-    };
-    
-    charts.activity.update();
-    console.log('Activity chart updated successfully');
-  } catch (error) {
-    console.error('Failed to update activity chart:', error);
-  }
-}
-
-function updateDomainsChart(domains) {
-  console.log('Updating domains chart...', { chart: !!charts.domains, domains: domains?.length || 0 });
-  if (!charts.domains || typeof Chart === 'undefined') return;
-  
-  // Handle empty or missing data
-  if (!domains || domains.length === 0) {
-    console.log('No domain data available');
-    domains = [{ domain: 'No data', count: 1 }];
-  }
-  
-  try {
-    const labels = domains.map(d => d.domain);
-    const data = domains.map(d => d.count);
-    const colors = [
-      '#667eea',
-      '#764ba2',
-      '#f093fb',
-      '#f5576c',
-      '#4facfe'
-    ];
-    
-    charts.domains.data = {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: colors,
-        borderWidth: 0
-      }]
-    };
-    
-    charts.domains.update();
-    console.log('Domains chart updated successfully');
-  } catch (error) {
-    console.error('Failed to update domains chart:', error);
-  }
-}
-
-function updatePatternsChart() {
-  // Would implement patterns chart
-}
-
-function updateMemoryTrendChart() {
-  // Would implement memory trend chart
-}
-
-function updateDomainDistChart(domains) {
-  // Would implement domain distribution chart
-}
-
 // ============================================================================
 // Selection Management
 // ============================================================================
@@ -2874,4 +2781,929 @@ async function refreshData() {
       await loadAnalyticsView();
       break;
   }
+}
+
+// ============================================================================
+// Rules View
+// ============================================================================
+
+let currentRules = [];
+let editingRule = null;
+let sampleRules = [];
+
+async function loadRulesView() {
+  console.log('Loading rules view...');
+
+  try {
+    // Load current rules from background
+    const rules = await sendMessage({ action: 'getRules' });
+    currentRules = rules || [];
+
+    // Initialize sample rules (not auto-enabled)
+    sampleRules = getSampleRules();
+
+    // Update UI
+    updateRulesUI();
+    setupRulesEventListeners();
+
+  } catch (error) {
+    console.error('Failed to load rules:', error);
+  }
+}
+
+function getSampleRules() {
+  return [
+    {
+      id: 'sample_1',
+      name: 'Close duplicate tabs',
+      description: 'Automatically close duplicate tabs, keeping the first one',
+      enabled: false,
+      conditions: { type: 'duplicate' },
+      actions: { type: 'close', keepFirst: true },
+      priority: 1,
+    },
+    {
+      id: 'sample_2',
+      name: 'Group tabs by domain',
+      description: 'Group tabs from the same domain when you have 3 or more',
+      enabled: false,
+      conditions: { type: 'domain_count', minCount: 3 },
+      actions: { type: 'group', groupBy: 'domain' },
+      priority: 2,
+    },
+    {
+      id: 'sample_3',
+      name: 'Snooze inactive articles',
+      description: 'Snooze unread articles after 60 minutes of inactivity',
+      enabled: false,
+      conditions: {
+        type: 'inactive',
+        inactiveMinutes: 60,
+        urlPatterns: ['medium.com', 'dev.to', 'hackernews', 'reddit.com']
+      },
+      actions: { type: 'snooze', snoozeMinutes: 1440 },
+      priority: 3,
+    },
+    {
+      id: 'sample_4',
+      name: 'Auto-close old documentation tabs',
+      description: 'Close old documentation tabs after 3 hours',
+      enabled: false,
+      conditions: {
+        type: 'age_and_domain',
+        ageMinutes: 180,
+        domains: ['stackoverflow.com', 'developer.mozilla.org', 'docs.python.org']
+      },
+      actions: { type: 'close', saveToBookmarks: true },
+      priority: 4,
+    }
+  ];
+}
+
+function updateRulesUI() {
+  const rulesList = document.getElementById('rulesList');
+  const emptyState = document.getElementById('rulesEmptyState');
+
+  // Show/hide empty state
+  if (currentRules.length === 0) {
+    emptyState.style.display = 'flex';
+    rulesList.style.display = 'none';
+  } else {
+    emptyState.style.display = 'none';
+    rulesList.style.display = 'block';
+    rulesList.innerHTML = '';
+
+    // Sort rules by priority
+    const sortedRules = [...currentRules].sort((a, b) => a.priority - b.priority);
+
+    sortedRules.forEach(rule => {
+      const ruleCard = createRuleCard(rule);
+      rulesList.appendChild(ruleCard);
+    });
+  }
+
+  // Update sample rules in dropdown
+  updateSampleRulesDropdown();
+}
+
+function createRuleCard(rule) {
+  const card = document.createElement('div');
+  card.className = `rule-card ${!rule.enabled ? 'disabled' : ''}`;
+  card.dataset.ruleId = rule.id;
+  card.draggable = true;
+
+  card.innerHTML = `
+    <div class="rule-header">
+      <div class="rule-drag-handle" title="Drag to reorder">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="9" cy="5" r="1"></circle>
+          <circle cx="9" cy="12" r="1"></circle>
+          <circle cx="9" cy="19" r="1"></circle>
+          <circle cx="15" cy="5" r="1"></circle>
+          <circle cx="15" cy="12" r="1"></circle>
+          <circle cx="15" cy="19" r="1"></circle>
+        </svg>
+      </div>
+      <div class="rule-info">
+        <h3>${rule.name}</h3>
+      </div>
+      <div class="rule-actions">
+        <label class="switch rule-switch" title="${rule.enabled ? 'Disable rule' : 'Enable rule'}">
+          <input type="checkbox" class="rule-toggle" data-action="toggle" data-rule-id="${rule.id}" ${rule.enabled ? 'checked' : ''}>
+          <span class="slider"></span>
+        </label>
+        <button class="btn-icon" data-action="test" title="Test this rule">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </button>
+        <button class="btn-icon" data-action="edit" title="Edit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+        </button>
+        <button class="btn-icon" data-action="delete" title="Delete">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="rule-details">
+      <div class="rule-condition">
+        <strong>When:</strong> ${getConditionDescription(rule.conditions)}
+      </div>
+      <div class="rule-action">
+        <strong>Then:</strong> ${getActionDescription(rule.actions)}
+      </div>
+    </div>
+  `;
+
+  return card;
+}
+
+function updateSampleRulesDropdown() {
+  const sampleRuleItems = document.getElementById('sampleRuleItems');
+  if (!sampleRuleItems) return;
+
+  sampleRuleItems.innerHTML = '';
+
+  // Filter out already installed samples
+  const installedSampleIds = currentRules.map(r => r.originalSampleId).filter(Boolean);
+  const availableSamples = sampleRules.filter(s => !installedSampleIds.includes(s.id));
+
+  if (availableSamples.length === 0) {
+    sampleRuleItems.innerHTML = '<div class="dropdown-item-text">All templates installed</div>';
+  } else {
+    availableSamples.forEach(sample => {
+      const item = document.createElement('button');
+      item.className = 'dropdown-item sample-rule-item';
+      item.dataset.sampleId = sample.id;
+      item.innerHTML = `
+        <div class="dropdown-item-content">
+          <strong>${sample.name}</strong>
+          <small>${sample.description}</small>
+        </div>
+      `;
+      sampleRuleItems.appendChild(item);
+    });
+  }
+}
+
+function getConditionDescription(conditions) {
+  switch (conditions.type) {
+    case 'duplicate':
+      return 'Duplicate tabs detected';
+    case 'domain_count':
+      return `${conditions.minCount}+ tabs from same domain`;
+    case 'inactive':
+      return `Tabs inactive for ${conditions.inactiveMinutes} minutes`;
+    case 'age_and_domain':
+      return `Tabs older than ${conditions.ageMinutes} minutes from ${conditions.domains.join(', ')}`;
+    default:
+      return 'Unknown condition';
+  }
+}
+
+function getActionDescription(actions) {
+  switch (actions.type) {
+    case 'close':
+      return `Close tabs ${actions.saveToBookmarks ? '(save to bookmarks)' : ''}`;
+    case 'group':
+      return `Group tabs by ${actions.groupBy}`;
+    case 'snooze':
+      return `Snooze for ${actions.snoozeMinutes} minutes`;
+    case 'suspend':
+      return `Suspend tabs ${actions.excludePinned ? '(exclude pinned)' : ''}`;
+    default:
+      return 'Unknown action';
+  }
+}
+
+function setupRulesEventListeners() {
+  // Dropdown toggle
+  const dropdownBtn = document.getElementById('addRuleDropdown');
+  const dropdownMenu = document.getElementById('addRuleMenu');
+
+  if (dropdownBtn && !dropdownBtn.hasListener) {
+    dropdownBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('show');
+    });
+    dropdownBtn.hasListener = true;
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+      dropdownMenu.classList.remove('show');
+    });
+
+    dropdownMenu.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  // Add custom rule button
+  const addCustomBtn = document.getElementById('addCustomRuleBtn');
+  if (addCustomBtn && !addCustomBtn.hasListener) {
+    addCustomBtn.addEventListener('click', () => {
+      openRuleModal();
+      dropdownMenu.classList.remove('show');
+    });
+    addCustomBtn.hasListener = true;
+  }
+
+  // Test all rules button
+  const testAllBtn = document.getElementById('testAllRulesBtn');
+  if (testAllBtn && !testAllBtn.hasListener) {
+    testAllBtn.addEventListener('click', () => testAllRules());
+    testAllBtn.hasListener = true;
+  }
+
+  // Create first rule button (in empty state) - triggers dropdown
+  const createFirstBtn = document.getElementById('createFirstRuleBtn');
+  if (createFirstBtn && !createFirstBtn.hasListener) {
+    createFirstBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Position dropdown near the button for better UX in empty state
+      const dropdownMenu = document.getElementById('addRuleMenu');
+      const btnRect = createFirstBtn.getBoundingClientRect();
+      dropdownMenu.style.position = 'fixed';
+      dropdownMenu.style.top = `${btnRect.bottom + 8}px`;
+      dropdownMenu.style.left = `${btnRect.left}px`;
+      dropdownMenu.style.right = 'auto';
+      dropdownMenu.classList.toggle('show');
+
+      // Reset position when closed
+      const resetPosition = () => {
+        if (!dropdownMenu.classList.contains('show')) {
+          dropdownMenu.style.position = '';
+          dropdownMenu.style.top = '';
+          dropdownMenu.style.left = '';
+          dropdownMenu.style.right = '';
+          document.removeEventListener('click', resetPosition);
+        }
+      };
+
+      setTimeout(() => {
+        document.addEventListener('click', resetPosition);
+      }, 0);
+    });
+    createFirstBtn.hasListener = true;
+  }
+
+  // Modal buttons
+  const closeModalBtn = document.getElementById('closeRuleModal');
+  const cancelBtn = document.getElementById('cancelRuleBtn');
+  const saveBtn = document.getElementById('saveRuleBtn');
+
+  if (closeModalBtn && !closeModalBtn.hasListener) {
+    closeModalBtn.addEventListener('click', closeRuleModal);
+    closeModalBtn.hasListener = true;
+  }
+
+  if (cancelBtn && !cancelBtn.hasListener) {
+    cancelBtn.addEventListener('click', closeRuleModal);
+    cancelBtn.hasListener = true;
+  }
+
+  if (saveBtn && !saveBtn.hasListener) {
+    saveBtn.addEventListener('click', saveRule);
+    saveBtn.hasListener = true;
+  }
+
+  // Condition/Action selects
+  const conditionSelect = document.getElementById('ruleCondition');
+  const actionSelect = document.getElementById('ruleAction');
+
+  if (conditionSelect && !conditionSelect.hasListener) {
+    conditionSelect.addEventListener('change', updateConditionParams);
+    conditionSelect.hasListener = true;
+  }
+
+  if (actionSelect && !actionSelect.hasListener) {
+    actionSelect.addEventListener('change', updateActionParams);
+    actionSelect.hasListener = true;
+  }
+
+  // Rule card actions (use event delegation)
+  const rulesList = document.getElementById('rulesList');
+  if (rulesList && !rulesList.hasListener) {
+    rulesList.addEventListener('click', handleRuleAction);
+    rulesList.hasListener = true;
+  }
+
+  // Sample rule installations from dropdown
+  const sampleRuleItems = document.getElementById('sampleRuleItems');
+  if (sampleRuleItems && !sampleRuleItems.hasListener) {
+    sampleRuleItems.addEventListener('click', async (e) => {
+      const sampleItem = e.target.closest('.sample-rule-item');
+      if (!sampleItem) return;
+
+      const sampleId = sampleItem.dataset.sampleId;
+      const sample = sampleRules.find(s => s.id === sampleId);
+
+      if (sample) {
+        await installSampleRule(sample);
+        dropdownMenu.classList.remove('show');
+      }
+    });
+    sampleRuleItems.hasListener = true;
+  }
+
+  // Quick actions
+  const disableAllBtn = document.getElementById('disableAllRules');
+  const enableAllBtn = document.getElementById('enableAllRules');
+
+  if (disableAllBtn && !disableAllBtn.hasListener) {
+    disableAllBtn.addEventListener('click', () => toggleAllRules(false));
+    disableAllBtn.hasListener = true;
+  }
+
+  if (enableAllBtn && !enableAllBtn.hasListener) {
+    enableAllBtn.addEventListener('click', () => toggleAllRules(true));
+    enableAllBtn.hasListener = true;
+  }
+
+  // Setup drag and drop for rules
+  setupRuleDragAndDrop();
+}
+
+async function handleRuleAction(e) {
+  // Handle switch toggle separately
+  if (e.target.classList.contains('rule-toggle')) {
+    const ruleId = e.target.dataset.ruleId;
+    await toggleRule(ruleId);
+    return;
+  }
+
+  const button = e.target.closest('[data-action]');
+  if (!button) return;
+
+  const action = button.dataset.action;
+  const ruleCard = button.closest('.rule-card');
+  const ruleId = ruleCard.dataset.ruleId;
+
+  switch (action) {
+    case 'test':
+      await testRule(ruleId);
+      break;
+
+    case 'edit':
+      const rule = currentRules.find(r => r.id === ruleId);
+      if (rule) openRuleModal(rule);
+      break;
+
+    case 'delete':
+      if (confirm('Are you sure you want to delete this rule?')) {
+        await deleteRule(ruleId);
+      }
+      break;
+  }
+}
+
+async function installSampleRule(sample) {
+  // Create a new rule from the sample
+  const newRule = {
+    ...sample,
+    id: `rule_${Date.now()}`,
+    originalSampleId: sample.id,
+    enabled: false // Start disabled for safety
+  };
+
+  delete newRule.description; // Remove sample description
+
+  try {
+    await sendMessage({ action: 'updateRule', rule: newRule });
+    await loadRulesView();
+    showNotification(`Template "${sample.name}" added successfully`);
+  } catch (error) {
+    console.error('Failed to install sample rule:', error);
+    showNotification('Failed to install rule', 'error');
+  }
+}
+
+function openRuleModal(rule = null) {
+  const modal = document.getElementById('ruleModal');
+  const title = document.getElementById('ruleModalTitle');
+
+  editingRule = rule;
+
+  if (rule) {
+    title.textContent = 'Edit Rule';
+    document.getElementById('ruleName').value = rule.name;
+    document.getElementById('ruleCondition').value = rule.conditions.type;
+    document.getElementById('ruleAction').value = rule.actions.type;
+    document.getElementById('ruleEnabled').checked = rule.enabled;
+  } else {
+    title.textContent = 'Add New Rule';
+    document.getElementById('ruleName').value = '';
+    document.getElementById('ruleCondition').value = 'duplicate';
+    document.getElementById('ruleAction').value = 'close';
+    document.getElementById('ruleEnabled').checked = false; // Start disabled for safety
+  }
+
+  updateConditionParams();
+  updateActionParams();
+  modal.classList.add('show');
+}
+
+function closeRuleModal() {
+  const modal = document.getElementById('ruleModal');
+  modal.classList.remove('show');
+  editingRule = null;
+}
+
+function updateConditionParams() {
+  const conditionType = document.getElementById('ruleCondition').value;
+  const paramsContainer = document.getElementById('conditionParams');
+
+  let html = '';
+
+  switch (conditionType) {
+    case 'domain_count':
+      html = `
+        <label>Minimum tab count from same domain</label>
+        <input type="number" id="minCount" min="2" value="3">
+      `;
+      break;
+
+    case 'inactive':
+      html = `
+        <label>Inactive duration (minutes)</label>
+        <input type="number" id="inactiveMinutes" min="5" value="60">
+        <label>URL patterns (comma-separated, optional)</label>
+        <input type="text" id="urlPatterns" placeholder="e.g., medium.com, dev.to">
+      `;
+      break;
+
+    case 'age_and_domain':
+      html = `
+        <label>Tab age (minutes)</label>
+        <input type="number" id="ageMinutes" min="5" value="180">
+        <label>Specific domains (comma-separated)</label>
+        <input type="text" id="domains" placeholder="e.g., stackoverflow.com, github.com">
+      `;
+      break;
+
+    case 'duplicate':
+      // No additional parameters needed
+      break;
+  }
+
+  paramsContainer.innerHTML = html;
+
+  // Load existing values if editing
+  if (editingRule && editingRule.conditions.type === conditionType) {
+    switch (conditionType) {
+      case 'domain_count':
+        if (document.getElementById('minCount'))
+          document.getElementById('minCount').value = editingRule.conditions.minCount || 3;
+        break;
+      case 'inactive':
+        if (document.getElementById('inactiveMinutes'))
+          document.getElementById('inactiveMinutes').value = editingRule.conditions.inactiveMinutes || 60;
+        if (document.getElementById('urlPatterns') && editingRule.conditions.urlPatterns)
+          document.getElementById('urlPatterns').value = editingRule.conditions.urlPatterns.join(', ');
+        break;
+      case 'age_and_domain':
+        if (document.getElementById('ageMinutes'))
+          document.getElementById('ageMinutes').value = editingRule.conditions.ageMinutes || 180;
+        if (document.getElementById('domains') && editingRule.conditions.domains)
+          document.getElementById('domains').value = editingRule.conditions.domains.join(', ');
+        break;
+    }
+  }
+}
+
+function updateActionParams() {
+  const actionType = document.getElementById('ruleAction').value;
+  const paramsContainer = document.getElementById('actionParams');
+
+  let html = '';
+
+  switch (actionType) {
+    case 'close':
+      html = `
+        <label>
+          <input type="checkbox" id="saveToBookmarks" checked>
+          Save to bookmarks before closing
+        </label>
+        <label>
+          <input type="checkbox" id="keepFirst" checked>
+          Keep the oldest tab when closing duplicates
+        </label>
+        <p class="help-text">When unchecked, keeps the newest tab instead</p>
+      `;
+      break;
+
+    case 'group':
+      html = `
+        <label>Group by</label>
+        <select id="groupBy">
+          <option value="domain">Domain</option>
+          <option value="category">Category</option>
+        </select>
+      `;
+      break;
+
+    case 'snooze':
+      html = `
+        <label>Snooze duration (minutes)</label>
+        <input type="number" id="snoozeMinutes" min="5" value="120">
+      `;
+      break;
+
+    case 'suspend':
+      html = `
+        <label>
+          <input type="checkbox" id="excludePinned" checked>
+          Exclude pinned tabs
+        </label>
+      `;
+      break;
+  }
+
+  paramsContainer.innerHTML = html;
+
+  // Load existing values if editing
+  if (editingRule && editingRule.actions.type === actionType) {
+    switch (actionType) {
+      case 'close':
+        if (document.getElementById('saveToBookmarks'))
+          document.getElementById('saveToBookmarks').checked = editingRule.actions.saveToBookmarks !== false;
+        if (document.getElementById('keepFirst'))
+          document.getElementById('keepFirst').checked = editingRule.actions.keepFirst !== false;
+        break;
+      case 'group':
+        if (document.getElementById('groupBy'))
+          document.getElementById('groupBy').value = editingRule.actions.groupBy || 'domain';
+        break;
+      case 'snooze':
+        if (document.getElementById('snoozeMinutes'))
+          document.getElementById('snoozeMinutes').value = editingRule.actions.snoozeMinutes || 120;
+        break;
+      case 'suspend':
+        if (document.getElementById('excludePinned'))
+          document.getElementById('excludePinned').checked = editingRule.actions.excludePinned !== false;
+        break;
+    }
+  }
+}
+
+async function saveRule() {
+  const name = document.getElementById('ruleName').value.trim();
+
+  if (!name) {
+    alert('Please enter a rule name');
+    return;
+  }
+
+  const conditionType = document.getElementById('ruleCondition').value;
+  const actionType = document.getElementById('ruleAction').value;
+  const enabled = document.getElementById('ruleEnabled').checked;
+
+  // Priority will be set based on position (new rules go to end)
+  const priority = editingRule?.priority || currentRules.length + 1;
+
+  // Build conditions object
+  const conditions = { type: conditionType };
+
+  switch (conditionType) {
+    case 'domain_count':
+      conditions.minCount = parseInt(document.getElementById('minCount')?.value || 3);
+      break;
+
+    case 'inactive':
+      conditions.inactiveMinutes = parseInt(document.getElementById('inactiveMinutes')?.value || 60);
+      const urlPatterns = document.getElementById('urlPatterns')?.value;
+      if (urlPatterns) {
+        conditions.urlPatterns = urlPatterns.split(',').map(p => p.trim()).filter(Boolean);
+      }
+      break;
+
+    case 'age_and_domain':
+      conditions.ageMinutes = parseInt(document.getElementById('ageMinutes')?.value || 180);
+      const domains = document.getElementById('domains')?.value;
+      if (domains) {
+        conditions.domains = domains.split(',').map(d => d.trim()).filter(Boolean);
+      } else {
+        alert('Please specify at least one domain');
+        return;
+      }
+      break;
+  }
+
+  // Build actions object
+  const actions = { type: actionType };
+
+  switch (actionType) {
+    case 'close':
+      actions.saveToBookmarks = document.getElementById('saveToBookmarks')?.checked !== false;
+      actions.keepFirst = document.getElementById('keepFirst')?.checked !== false;
+      break;
+
+    case 'group':
+      actions.groupBy = document.getElementById('groupBy')?.value || 'domain';
+      break;
+
+    case 'snooze':
+      actions.snoozeMinutes = parseInt(document.getElementById('snoozeMinutes')?.value || 120);
+      break;
+
+    case 'suspend':
+      actions.excludePinned = document.getElementById('excludePinned')?.checked !== false;
+      break;
+  }
+
+  const rule = {
+    id: editingRule?.id || `rule_${Date.now()}`,
+    name,
+    enabled,
+    conditions,
+    actions,
+    priority
+  };
+
+  try {
+    await sendMessage({ action: 'updateRule', rule });
+    await loadRulesView();
+    closeRuleModal();
+    showNotification('Rule saved successfully');
+  } catch (error) {
+    console.error('Failed to save rule:', error);
+    alert('Failed to save rule');
+  }
+}
+
+async function toggleRule(ruleId) {
+  try {
+    await sendMessage({ action: 'toggleRule', ruleId });
+    await loadRulesView();
+  } catch (error) {
+    console.error('Failed to toggle rule:', error);
+  }
+}
+
+async function deleteRule(ruleId) {
+  currentRules = currentRules.filter(r => r.id !== ruleId);
+
+  try {
+    await sendMessage({ action: 'updateRules', rules: currentRules });
+    updateRulesUI();
+    showNotification('Rule deleted successfully');
+  } catch (error) {
+    console.error('Failed to delete rule:', error);
+  }
+}
+
+async function toggleAllRules(enabled) {
+  for (const rule of currentRules) {
+    rule.enabled = enabled;
+  }
+
+  try {
+    await sendMessage({ action: 'updateRules', rules: currentRules });
+    updateRulesUI();
+    showNotification(enabled ? 'All rules enabled' : 'All rules disabled');
+  } catch (error) {
+    console.error('Failed to toggle all rules:', error);
+  }
+}
+
+async function testRule(ruleId) {
+  const rule = currentRules.find(r => r.id === ruleId);
+  if (!rule) return;
+
+  try {
+    // Get preview of what would happen
+    const result = await sendMessage({
+      action: 'previewRule',
+      ruleId: ruleId
+    });
+
+    if (result.matchingTabs && result.matchingTabs.length > 0) {
+      const message = `Rule "${rule.name}" would affect ${result.matchingTabs.length} tab(s):\n\n` +
+        result.matchingTabs.slice(0, 5).map(t => `• ${t.title}`).join('\n') +
+        (result.matchingTabs.length > 5 ? `\n... and ${result.matchingTabs.length - 5} more` : '') +
+        `\n\nAction: ${getActionDescription(rule.actions)}` +
+        '\n\nDo you want to run this rule now?';
+
+      if (confirm(message)) {
+        await sendMessage({ action: 'executeRule', ruleId: ruleId });
+        showNotification(`Rule "${rule.name}" executed successfully`);
+
+        // Refresh the view to show any changes
+        await loadRulesView();
+      }
+    } else {
+      showNotification(`No tabs match the conditions for rule "${rule.name}"`, 'info');
+    }
+  } catch (error) {
+    console.error('Failed to test rule:', error);
+    showNotification('Failed to test rule', 'error');
+  }
+}
+
+async function testAllRules() {
+  try {
+    // Get preview of all rules
+    const result = await sendMessage({ action: 'previewAllRules' });
+
+    let totalAffected = 0;
+    let summary = 'Rules Preview:\n\n';
+
+    for (const ruleResult of result.results) {
+      if (ruleResult.matchingTabs.length > 0) {
+        totalAffected += ruleResult.matchingTabs.length;
+        summary += `• ${ruleResult.rule.name}: ${ruleResult.matchingTabs.length} tab(s)\n`;
+      }
+    }
+
+    if (totalAffected === 0) {
+      showNotification('No tabs match any rule conditions', 'info');
+      return;
+    }
+
+    summary += `\nTotal tabs affected: ${totalAffected}\n\nRun all enabled rules now?`;
+
+    if (confirm(summary)) {
+      await sendMessage({ action: 'executeAllRules' });
+      showNotification(`All rules executed successfully`);
+
+      // Refresh the view
+      await loadRulesView();
+    }
+  } catch (error) {
+    console.error('Failed to test rules:', error);
+    showNotification('Failed to test rules', 'error');
+  }
+}
+
+function setupRuleDragAndDrop() {
+  const rulesList = document.getElementById('rulesList');
+  if (!rulesList) return;
+
+  let draggedElement = null;
+  let draggedOverElement = null;
+
+  rulesList.addEventListener('dragstart', (e) => {
+    const ruleCard = e.target.closest('.rule-card');
+    if (!ruleCard) return;
+
+    draggedElement = ruleCard;
+    ruleCard.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  rulesList.addEventListener('dragend', (e) => {
+    const ruleCard = e.target.closest('.rule-card');
+    if (!ruleCard) return;
+
+    ruleCard.classList.remove('dragging');
+    draggedElement = null;
+
+    // Clean up any remaining drag-over classes
+    document.querySelectorAll('.drag-over').forEach(el => {
+      el.classList.remove('drag-over');
+    });
+  });
+
+  rulesList.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    const ruleCard = e.target.closest('.rule-card');
+    if (!ruleCard || ruleCard === draggedElement) return;
+
+    // Remove previous drag-over class
+    if (draggedOverElement && draggedOverElement !== ruleCard) {
+      draggedOverElement.classList.remove('drag-over');
+    }
+
+    draggedOverElement = ruleCard;
+
+    // Determine if we should insert before or after
+    const rect = ruleCard.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+
+    if (e.clientY < midpoint) {
+      ruleCard.classList.add('drag-over-top');
+      ruleCard.classList.remove('drag-over-bottom');
+    } else {
+      ruleCard.classList.add('drag-over-bottom');
+      ruleCard.classList.remove('drag-over-top');
+    }
+  });
+
+  rulesList.addEventListener('dragleave', (e) => {
+    const ruleCard = e.target.closest('.rule-card');
+    if (!ruleCard) return;
+
+    // Only remove classes if we're actually leaving the card
+    if (!ruleCard.contains(e.relatedTarget)) {
+      ruleCard.classList.remove('drag-over-top', 'drag-over-bottom');
+    }
+  });
+
+  rulesList.addEventListener('drop', async (e) => {
+    e.preventDefault();
+
+    const targetCard = e.target.closest('.rule-card');
+    if (!targetCard || !draggedElement || targetCard === draggedElement) return;
+
+    // Clean up visual feedback
+    targetCard.classList.remove('drag-over-top', 'drag-over-bottom');
+
+    // Determine insert position
+    const rect = targetCard.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    const insertBefore = e.clientY < midpoint;
+
+    // Reorder in DOM
+    if (insertBefore) {
+      rulesList.insertBefore(draggedElement, targetCard);
+    } else {
+      rulesList.insertBefore(draggedElement, targetCard.nextSibling);
+    }
+
+    // Update priorities based on new order
+    await updateRulePriorities();
+  });
+}
+
+async function updateRulePriorities() {
+  const ruleCards = document.querySelectorAll('.rule-card');
+  const updatedRules = [];
+
+  // Update each rule's priority based on its position
+  ruleCards.forEach((card, index) => {
+    const ruleId = card.dataset.ruleId;
+    const rule = currentRules.find(r => r.id === ruleId);
+    if (rule) {
+      rule.priority = index + 1;
+      updatedRules.push(rule);
+    }
+  });
+
+  // Update currentRules array to match the new order
+  currentRules = updatedRules;
+
+  try {
+    // Save the new order to background
+    await sendMessage({ action: 'updateRules', rules: currentRules });
+    console.log('Rule order updated successfully');
+  } catch (error) {
+    console.error('Failed to update rule order:', error);
+    showNotification('Failed to save rule order', 'error');
+    // Reload to restore correct order
+    await loadRulesView();
+  }
+}
+
+function showNotification(message, type = 'success') {
+  // Simple notification implementation
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.textContent = message;
+  notification.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: ${type === 'error' ? '#dc3545' : type === 'info' ? '#17a2b8' : '#28a745'};
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 10000;
+    animation: slideIn 0.3s ease;
+  `;
+
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
 }
