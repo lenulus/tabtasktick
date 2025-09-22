@@ -155,10 +155,14 @@ This document tracks the implementation status of TabMaster Pro features and rem
 - ❌ Keyboard navigation
 
 ### Bookmarks Integration
+- ❌ Setting to choose target bookmark folder
+- ❌ Create/select bookmark folder for bulk operations
+- ❌ Remember last used bookmark folder
 - ❌ Save tab groups as bookmarks
 - ❌ Import bookmarks as tabs
 - ❌ Bookmark folder sync
 - ❌ Auto-bookmark before close
+- ❌ Organize bookmarks by date/session
 
 ### Smart Suggestions
 - ❌ AI-powered tab organization
