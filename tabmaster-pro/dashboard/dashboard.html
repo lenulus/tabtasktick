@@ -218,6 +218,21 @@
               <option value="title">Title (A-Z)</option>
               <option value="domain">Domain (A-Z)</option>
             </select>
+            <div class="view-toggle" style="display: inline-flex; gap: 2px; background: #f0f0f0; border-radius: 6px; padding: 2px; margin: 0 8px;">
+              <button class="view-toggle-btn active" data-view="grid" title="Grid View" style="padding: 6px 10px; background: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+              </button>
+              <button class="view-toggle-btn" data-view="tree" title="Tree View" style="padding: 6px 10px; background: transparent; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M3 3v18M9 3v18M9 9h12M9 15h12"></path>
+                </svg>
+              </button>
+            </div>
             <button class="btn btn-primary" id="bulkActions">Bulk Actions</button>
           </div>
         </div>
@@ -268,8 +283,16 @@
           </div>
         </div>
 
-        <div class="tabs-grid" id="tabsGrid">
-          <!-- Tabs will be populated here -->
+        <!-- Tab Views Container -->
+        <div class="tabs-container" id="tabsContainer">
+          <!-- Grid View -->
+          <div class="tabs-grid view-content active" id="tabsGrid" data-view="grid">
+            <!-- Tab cards will be populated here -->
+          </div>
+          <!-- Tree View -->
+          <div class="tabs-tree view-content" id="tabsTree" data-view="tree" style="display: none;">
+            <!-- Tree structure will be populated here -->
+          </div>
         </div>
       </div>
 

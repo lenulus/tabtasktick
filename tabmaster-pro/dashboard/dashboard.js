@@ -309,6 +309,7 @@ async function loadTabsView() {
   try {
     const tabs = await chrome.tabs.query({});
     const windows = await chrome.windows.getAll();
+    const groups = await chrome.tabGroups.query({});
     
     // Get custom window names from storage (keyed by window signature)
     const { windowNames = {}, windowSignatures = {} } = await chrome.storage.local.get(['windowNames', 'windowSignatures']);
@@ -405,15 +406,28 @@ async function loadTabsView() {
     // Save updated access times
     await chrome.storage.session.set({ tabLastAccess }).catch(() => {});
     
-    // Store window info globally for use in other functions
-    window.windowInfo = { windowColorMap, windowNameMap, currentWindowId };
+    // Create group map
+    const groupMap = new Map();
+    groups.forEach(group => {
+      groupMap.set(group.id, {
+        title: group.title || `Group ${group.id}`,
+        color: group.color,
+        collapsed: group.collapsed
+      });
+    });
     
-    // Map tab data with real state information and window info - MUST be done before updateWindowFilterDropdown
+    // Store window and group info globally
+    window.windowInfo = { windowColorMap, windowNameMap, currentWindowId };
+    window.groupInfo = groupMap;
+    
+    // Map tab data with real state information and window/group info
     tabsData = tabs.map(tab => ({
       ...tab,
       lastAccessed: tabLastAccess[tab.id] || (tab.active ? Date.now() : null),
       windowColor: windowColorMap.get(tab.windowId),
-      windowName: windowNameMap.get(tab.windowId)
+      windowName: windowNameMap.get(tab.windowId),
+      groupName: tab.groupId > 0 ? groupMap.get(tab.groupId)?.title : null,
+      groupColor: tab.groupId > 0 ? groupMap.get(tab.groupId)?.color : null
     }));
     
     // Populate window filter dropdown - AFTER tabsData is populated so counts work
@@ -477,11 +491,42 @@ function updateTabCount(displayedCount, totalCount) {
 }
 
 function renderTabs(tabs) {
-  const grid = document.getElementById('tabsGrid');
-  grid.innerHTML = '';
+  // Get saved view preference or default to grid
+  const savedView = localStorage.getItem('tabsViewMode') || 'grid';
+  let currentView = document.querySelector('.view-toggle-btn.active')?.dataset.view || savedView;
+  
+  // If the saved view doesn't match current active, update the UI
+  if (currentView !== savedView && document.querySelector(`.view-toggle-btn[data-view="${savedView}"]`)) {
+    document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.view-toggle-btn[data-view="${savedView}"]`).classList.add('active');
+    currentView = savedView;
+  }
+  
+  // Show/hide the correct view containers
+  const gridContainer = document.getElementById('tabsGrid');
+  const treeContainer = document.getElementById('tabsTree');
+  
+  if (currentView === 'tree') {
+    if (gridContainer) gridContainer.style.display = 'none';
+    if (treeContainer) treeContainer.style.display = 'block';
+  } else {
+    if (gridContainer) gridContainer.style.display = 'grid';
+    if (treeContainer) treeContainer.style.display = 'none';
+  }
   
   // Update tab count display
   updateTabCount(tabs.length, tabsData.length);
+  
+  if (currentView === 'tree') {
+    renderTreeView(tabs);
+  } else {
+    renderGridView(tabs);
+  }
+}
+
+function renderGridView(tabs) {
+  const grid = document.getElementById('tabsGrid');
+  grid.innerHTML = '';
   
   if (tabs.length === 0) {
     grid.innerHTML = `
@@ -597,6 +642,472 @@ function renderTabs(tabs) {
     
     grid.appendChild(card);
   });
+}
+
+function getGroupColor(chromeColor) {
+  const colors = {
+    'grey': '#5f6368',
+    'blue': '#1a73e8',
+    'red': '#d93025',
+    'yellow': '#f9ab00',
+    'green': '#188038',
+    'pink': '#e91e63',
+    'purple': '#9c27b0',
+    'cyan': '#00acc1',
+    'orange': '#ff6d00'
+  };
+  return colors[chromeColor] || '#5f6368';
+}
+
+function renderTreeView(tabs) {
+  const tree = document.getElementById('tabsTree');
+  tree.innerHTML = '';
+  
+  if (tabs.length === 0) {
+    tree.innerHTML = `
+      <div class="empty-state">
+        <h3>No tabs found</h3>
+        <p>No tabs match your current filter</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Group tabs by window and then by group
+  const windows = new Map();
+  
+  tabs.forEach(tab => {
+    if (!windows.has(tab.windowId)) {
+      windows.set(tab.windowId, {
+        id: tab.windowId,
+        name: tab.windowName || `Window ${tab.windowId}`,
+        color: tab.windowColor || '#999',
+        groups: new Map(),
+        ungroupedTabs: []
+      });
+    }
+    
+    const window = windows.get(tab.windowId);
+    
+    if (tab.groupId && tab.groupId !== -1) {
+      if (!window.groups.has(tab.groupId)) {
+        window.groups.set(tab.groupId, {
+          id: tab.groupId,
+          name: tab.groupName || `Group ${tab.groupId}`,
+          color: getGroupColor(tab.groupColor),
+          tabs: []
+        });
+      }
+      window.groups.get(tab.groupId).tabs.push(tab);
+    } else {
+      window.ungroupedTabs.push(tab);
+    }
+  });
+  
+  // Render tree structure
+  windows.forEach((window, windowId) => {
+    const windowEl = document.createElement('div');
+    windowEl.className = 'tree-window';
+    windowEl.dataset.windowId = windowId;
+    
+    // Calculate window selection state
+    const allWindowTabs = [...Array.from(window.groups.values()).flatMap(g => g.tabs), ...window.ungroupedTabs];
+    const selectedWindowTabs = allWindowTabs.filter(tab => selectionState.selectedTabs.has(tab.id));
+    const windowCheckedState = selectedWindowTabs.length === allWindowTabs.length ? 'checked' : 
+                                selectedWindowTabs.length > 0 ? 'indeterminate' : 'unchecked';
+    
+    // Window header
+    const windowHeader = document.createElement('div');
+    windowHeader.className = 'tree-window-header';
+    const totalWindowTabs = Array.from(window.groups.values()).reduce((sum, g) => sum + g.tabs.length, 0) + window.ungroupedTabs.length;
+    windowHeader.innerHTML = `
+      <svg class="tree-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      <input type="checkbox" class="tree-select-checkbox" data-window-id="${windowId}" 
+             ${windowCheckedState === 'checked' ? 'checked' : ''}
+             title="Select all tabs in window">
+      <div class="tree-window-color" style="background: ${window.color};"></div>
+      <div class="tree-window-name">${window.name}</div>
+      <div class="tree-window-count">${totalWindowTabs} tabs</div>
+      <div class="tree-window-actions">
+        <button class="tree-action-btn" title="Close window" data-action="close-window" data-window-id="${windowId}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    `;
+    
+    windowHeader.addEventListener('click', (e) => {
+      // Don't toggle collapse if clicking on checkbox or actions
+      if (e.target.type === 'checkbox' || e.target.closest('.tree-action-btn')) {
+        return;
+      }
+      windowHeader.classList.toggle('collapsed');
+    });
+    
+    windowEl.appendChild(windowHeader);
+    
+    // Window content
+    const windowContent = document.createElement('div');
+    windowContent.className = 'tree-window-content';
+    
+    // Render groups
+    window.groups.forEach((group, groupId) => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'tree-group';
+      groupEl.dataset.groupId = groupId;
+      
+      // Calculate group selection state
+      const selectedGroupTabs = group.tabs.filter(tab => selectionState.selectedTabs.has(tab.id));
+      const groupCheckedState = selectedGroupTabs.length === group.tabs.length ? 'checked' : 
+                                selectedGroupTabs.length > 0 ? 'indeterminate' : 'unchecked';
+      
+      // Group header
+      const groupHeader = document.createElement('div');
+      groupHeader.className = 'tree-group-header';
+      groupHeader.innerHTML = `
+        <svg class="tree-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 14px; height: 14px;">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+        <input type="checkbox" class="tree-select-checkbox" data-group-id="${groupId}" 
+               ${groupCheckedState === 'checked' ? 'checked' : ''}
+               title="Select all tabs in group">
+        <div class="tree-group-color" style="background: ${group.color};"></div>
+        <div class="tree-group-name" contenteditable="false" data-group-id="${groupId}">${group.name}</div>
+        <div class="tree-window-count">${group.tabs.length} tabs</div>
+        <div class="tree-group-actions">
+          <button class="tree-action-btn" title="Rename group" data-action="rename-group" data-group-id="${groupId}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button class="tree-action-btn" title="Close group" data-action="close-group" data-group-id="${groupId}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      `;
+      
+      groupHeader.addEventListener('click', (e) => {
+        // Don't toggle collapse if clicking on checkbox, name, or actions
+        if (e.target.type === 'checkbox' || 
+            e.target.closest('.tree-action-btn') ||
+            e.target.classList.contains('tree-group-name')) {
+          return;
+        }
+        groupHeader.classList.toggle('collapsed');
+      });
+      
+      groupEl.appendChild(groupHeader);
+      
+      // Group tabs
+      const groupContent = document.createElement('div');
+      groupContent.className = 'tree-group-content';
+      
+      group.tabs.forEach(tab => {
+        groupContent.appendChild(createTreeTab(tab));
+      });
+      
+      groupEl.appendChild(groupContent);
+      windowContent.appendChild(groupEl);
+      
+      // Set initial indeterminate state for group checkbox if needed
+      const groupCheckbox = groupHeader.querySelector('.tree-select-checkbox');
+      if (groupCheckedState === 'indeterminate') {
+        groupCheckbox.indeterminate = true;
+      }
+      
+      // Handle select all in group - attached after groupEl is in DOM
+      groupCheckbox.addEventListener('change', (e) => {
+        e.stopPropagation();
+        const groupTabCheckboxes = groupEl.querySelectorAll('.tree-tab-checkbox');
+        
+        if (e.target.checked) {
+          // Select all tabs in group
+          group.tabs.forEach(tab => {
+            selectionState.selectedTabs.add(tab.id);
+          });
+          // Update UI without re-rendering
+          groupTabCheckboxes.forEach(checkbox => {
+            checkbox.checked = true;
+            checkbox.closest('.tree-tab').classList.add('selected');
+          });
+        } else {
+          // Deselect all tabs in group
+          group.tabs.forEach(tab => {
+            selectionState.selectedTabs.delete(tab.id);
+          });
+          // Update UI without re-rendering  
+          groupTabCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+            checkbox.closest('.tree-tab').classList.remove('selected');
+          });
+        }
+        
+        updateBulkToolbar();
+        // Update window checkbox state
+        updateWindowCheckbox(windowEl);
+      });
+    });
+    
+    // Render ungrouped tabs
+    if (window.ungroupedTabs.length > 0) {
+      const ungroupedEl = document.createElement('div');
+      ungroupedEl.className = 'tree-ungrouped';
+      
+      const ungroupedHeader = document.createElement('div');
+      ungroupedHeader.className = 'tree-ungrouped-header';
+      ungroupedHeader.textContent = 'Ungrouped Tabs';
+      ungroupedEl.appendChild(ungroupedHeader);
+      
+      window.ungroupedTabs.forEach(tab => {
+        ungroupedEl.appendChild(createTreeTab(tab));
+      });
+      
+      windowContent.appendChild(ungroupedEl);
+    }
+    
+    windowEl.appendChild(windowContent);
+    tree.appendChild(windowEl);
+    
+    // Set initial indeterminate state for window checkbox if needed
+    const windowCheckbox = windowHeader.querySelector('.tree-select-checkbox');
+    if (windowCheckedState === 'indeterminate') {
+      windowCheckbox.indeterminate = true;
+    }
+    
+    // Handle select all in window - attached after windowEl is in DOM
+    windowCheckbox.addEventListener('change', (e) => {
+      e.stopPropagation();
+      const allTabs = [...Array.from(window.groups.values()).flatMap(g => g.tabs), ...window.ungroupedTabs];
+      const allTabCheckboxes = windowEl.querySelectorAll('.tree-tab-checkbox');
+      const allGroupCheckboxes = windowEl.querySelectorAll('.tree-group-header .tree-select-checkbox');
+      
+      if (e.target.checked) {
+        // Select all tabs
+        allTabs.forEach(tab => {
+          selectionState.selectedTabs.add(tab.id);
+        });
+        // Update UI without re-rendering
+        allTabCheckboxes.forEach(checkbox => {
+          checkbox.checked = true;
+          checkbox.closest('.tree-tab').classList.add('selected');
+        });
+        // Check all group checkboxes
+        allGroupCheckboxes.forEach(checkbox => {
+          checkbox.checked = true;
+          checkbox.indeterminate = false;
+        });
+      } else {
+        // Deselect all tabs
+        allTabs.forEach(tab => {
+          selectionState.selectedTabs.delete(tab.id);
+        });
+        // Update UI without re-rendering
+        allTabCheckboxes.forEach(checkbox => {
+          checkbox.checked = false;
+          checkbox.closest('.tree-tab').classList.remove('selected');
+        });
+        // Uncheck all group checkboxes
+        allGroupCheckboxes.forEach(checkbox => {
+          checkbox.checked = false;
+          checkbox.indeterminate = false;
+        });
+      }
+      updateBulkToolbar();
+    });
+  });
+  
+  // Add global event delegation for tree actions
+  tree.addEventListener('click', async (e) => {
+    const actionBtn = e.target.closest('.tree-action-btn');
+    if (!actionBtn) return;
+    
+    const action = actionBtn.dataset.action;
+    
+    if (action === 'close-window') {
+      const windowId = parseInt(actionBtn.dataset.windowId);
+      if (confirm('Close this window and all its tabs?')) {
+        await chrome.windows.remove(windowId);
+        await loadTabsView();
+      }
+    } else if (action === 'close-group') {
+      const groupId = parseInt(actionBtn.dataset.groupId);
+      if (confirm('Close all tabs in this group?')) {
+        const tabsToClose = tabs.filter(t => t.groupId === groupId).map(t => t.id);
+        await chrome.tabs.remove(tabsToClose);
+        await loadTabsView();
+      }
+    } else if (action === 'rename-group') {
+      const groupId = parseInt(actionBtn.dataset.groupId);
+      const nameEl = actionBtn.closest('.tree-group-header').querySelector('.tree-group-name');
+      nameEl.contentEditable = true;
+      nameEl.focus();
+      
+      // Select all text
+      const range = document.createRange();
+      range.selectNodeContents(nameEl);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // Save on blur or enter
+      const saveRename = async () => {
+        nameEl.contentEditable = false;
+        const newName = nameEl.textContent.trim();
+        if (newName) {
+          await chrome.tabGroups.update(groupId, { title: newName });
+        }
+      };
+      
+      nameEl.addEventListener('blur', saveRename, { once: true });
+      nameEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          nameEl.blur();
+        }
+      }, { once: true });
+    }
+  });
+}
+
+function createTreeTab(tab) {
+  const tabEl = document.createElement('div');
+  tabEl.className = 'tree-tab';
+  if (selectionState.selectedTabs.has(tab.id)) {
+    tabEl.classList.add('selected');
+  }
+  
+  const badges = [];
+  if (tab.pinned) badges.push('<span class="tree-tab-badge pinned">Pin</span>');
+  if (tab.audible) badges.push('<span class="tree-tab-badge audible">Audio</span>');
+  
+  // Filter out invalid favicon URLs
+  const getFaviconUrl = (url) => {
+    if (!url) return '../icons/icon-16.png';
+    if (url.startsWith('chrome-extension://') && !url.includes(chrome.runtime.id)) {
+      return '../icons/icon-16.png';
+    }
+    if (url === 'chrome-extension://invalid/') {
+      return '../icons/icon-16.png';
+    }
+    return url;
+  };
+  
+  const safeFaviconUrl = getFaviconUrl(tab.favIconUrl);
+  
+  tabEl.innerHTML = `
+    <input type="checkbox" class="tree-tab-checkbox tab-checkbox" data-tab-id="${tab.id}" 
+           ${selectionState.selectedTabs.has(tab.id) ? 'checked' : ''}>
+    <img src="${safeFaviconUrl}" class="tree-tab-favicon" data-fallback="../icons/icon-16.png">
+    <div class="tree-tab-title" title="${tab.title}">${tab.title}</div>
+    <button class="tree-tab-goto" title="Go to tab">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <line x1="10" y1="14" x2="21" y2="3"></line>
+      </svg>
+    </button>
+    ${badges.length > 0 ? `<div class="tree-tab-badges">${badges.join('')}</div>` : ''}
+  `;
+  
+  // Handle favicon errors
+  const favicon = tabEl.querySelector('.tree-tab-favicon');
+  favicon.addEventListener('error', function(e) {
+    e.preventDefault();
+    this.src = this.dataset.fallback || '../icons/icon-16.png';
+  }, true);
+  
+  // Add checkbox handler
+  const checkbox = tabEl.querySelector('.tab-checkbox');
+  checkbox.addEventListener('change', (e) => {
+    e.stopPropagation();
+    if (e.target.checked) {
+      selectionState.selectedTabs.add(tab.id);
+      tabEl.classList.add('selected');
+    } else {
+      selectionState.selectedTabs.delete(tab.id);
+      tabEl.classList.remove('selected');
+    }
+    updateBulkToolbar();
+    
+    // Update parent group/window checkbox states
+    updateParentCheckboxes(tabEl);
+  });
+  
+  // Make entire row clickable for selection (except checkbox and goto button)
+  tabEl.addEventListener('click', (e) => {
+    // Don't toggle if clicking checkbox or goto button
+    if (e.target.classList.contains('tab-checkbox') || 
+        e.target.closest('.tree-tab-goto')) {
+      return;
+    }
+    e.stopPropagation();
+    checkbox.checked = !checkbox.checked;
+    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  
+  // Add click handler to goto button
+  const gotoBtn = tabEl.querySelector('.tree-tab-goto');
+  gotoBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    chrome.tabs.update(tab.id, { active: true });
+    chrome.windows.update(tab.windowId, { focused: true });
+  });
+  
+  return tabEl;
+}
+
+// Helper function to update parent checkboxes based on child selections
+function updateParentCheckboxes(tabEl) {
+  // Update group checkbox if tab is in a group
+  const groupEl = tabEl.closest('.tree-group');
+  if (groupEl) {
+    const groupCheckbox = groupEl.querySelector('.tree-group-header .tree-select-checkbox');
+    const allGroupTabs = groupEl.querySelectorAll('.tab-checkbox');
+    const checkedGroupTabs = groupEl.querySelectorAll('.tab-checkbox:checked');
+    
+    if (checkedGroupTabs.length === 0) {
+      groupCheckbox.checked = false;
+      groupCheckbox.indeterminate = false;
+    } else if (checkedGroupTabs.length === allGroupTabs.length) {
+      groupCheckbox.checked = true;
+      groupCheckbox.indeterminate = false;
+    } else {
+      groupCheckbox.checked = false;
+      groupCheckbox.indeterminate = true;
+    }
+  }
+  
+  // Update window checkbox
+  const windowEl = tabEl.closest('.tree-window');
+  if (windowEl) {
+    updateWindowCheckbox(windowEl);
+  }
+}
+
+// Helper function to update window checkbox based on all child selections
+function updateWindowCheckbox(windowEl) {
+  const windowCheckbox = windowEl.querySelector('.tree-window-header .tree-select-checkbox');
+  const allWindowTabs = windowEl.querySelectorAll('.tab-checkbox');
+  const checkedWindowTabs = windowEl.querySelectorAll('.tab-checkbox:checked');
+  
+  if (checkedWindowTabs.length === 0) {
+    windowCheckbox.checked = false;
+    windowCheckbox.indeterminate = false;
+  } else if (checkedWindowTabs.length === allWindowTabs.length) {
+    windowCheckbox.checked = true;
+    windowCheckbox.indeterminate = false;
+  } else {
+    windowCheckbox.checked = false;
+    windowCheckbox.indeterminate = true;
+  }
 }
 
 function updateWindowFilterDropdown(windows, windowNameMap, currentWindowId) {
@@ -1579,6 +2090,27 @@ function setupEventListeners() {
   document.getElementById('filterTabs')?.addEventListener('change', filterTabs);
   document.getElementById('windowFilter')?.addEventListener('change', filterTabs);
   document.getElementById('sortTabs')?.addEventListener('change', filterTabs);
+  
+  // View toggle
+  document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Update active state
+      document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Show/hide views
+      const view = btn.dataset.view;
+      document.querySelectorAll('.view-content').forEach(content => {
+        content.style.display = content.dataset.view === view ? 'block' : 'none';
+      });
+      
+      // Save preference
+      localStorage.setItem('tabsViewMode', view);
+      
+      // Re-render with current filters
+      filterTabs();
+    });
+  });
   
   // Bulk actions
   document.getElementById('bulkActions')?.addEventListener('click', openBulkActions);
