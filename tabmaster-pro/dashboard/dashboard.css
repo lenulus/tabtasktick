@@ -410,6 +410,17 @@ body {
   cursor: pointer;
   position: relative;
   min-height: 100px;
+  overflow: hidden; /* For window indicator */
+}
+
+/* Window indicator - small colored bar at top of card */
+.window-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  opacity: 0.8;
 }
 
 .tab-card:hover {
@@ -475,8 +486,8 @@ body {
   opacity: 1;
 }
 
-.tab-memory {
-  color: #888;
+.tab-state {
+  color: #666;
   font-weight: 500;
 }
 

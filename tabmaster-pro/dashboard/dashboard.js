@@ -226,14 +226,183 @@ function getActivityIcon(type) {
 // Tabs View
 // ============================================================================
 
+// Helper to generate a window signature based on its tabs
+function getWindowSignature(tabs) {
+  // Create a signature from the first few pinned/important tabs
+  const pinnedUrls = tabs
+    .filter(t => t.pinned)
+    .slice(0, 3)
+    .map(t => new URL(t.url).hostname)
+    .sort()
+    .join('|');
+  
+  const topDomains = tabs
+    .slice(0, 5)
+    .map(t => new URL(t.url).hostname)
+    .sort()
+    .join('|');
+    
+  return pinnedUrls || topDomains;
+}
+
 async function loadTabsView() {
   try {
     const tabs = await chrome.tabs.query({});
-    tabsData = tabs;
-    renderTabs(tabs);
+    const windows = await chrome.windows.getAll();
+    
+    // Get custom window names from storage (keyed by window signature)
+    const { windowNames = {}, windowSignatures = {} } = await chrome.storage.local.get(['windowNames', 'windowSignatures']);
+    
+    // Create window color map with better color generation for many windows
+    const windowColorMap = new Map();
+    const windowNameMap = new Map();
+    const windowSignatureMap = new Map();
+    
+    // Generate colors using HSL for even distribution
+    const generateWindowColor = (index, total) => {
+      const hue = (index * 360 / Math.max(8, total)) % 360;
+      const saturation = 60 + (index % 3) * 15; // Vary saturation between 60-90%
+      const lightness = 50 + (index % 2) * 10; // Vary lightness between 50-60%
+      return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    };
+    
+    // Sort windows by ID for consistent ordering
+    const sortedWindows = windows.sort((a, b) => a.id - b.id);
+    const currentWindowId = (await chrome.windows.getCurrent()).id;
+    
+    // Process each window
+    sortedWindows.forEach((window, index) => {
+      // Get tabs for this window
+      const windowTabs = tabs.filter(t => t.windowId === window.id);
+      const signature = getWindowSignature(windowTabs);
+      windowSignatureMap.set(window.id, signature);
+      
+      // Assign color
+      windowColorMap.set(window.id, generateWindowColor(index, windows.length));
+      
+      // Determine window name
+      let windowName;
+      
+      // First check if we have a name for this window ID
+      if (windowNames[window.id]) {
+        windowName = windowNames[window.id];
+      }
+      // Then check if we recognize this window by its signature
+      else if (signature && windowSignatures[signature]) {
+        windowName = windowSignatures[signature];
+        // Update the windowNames with current ID
+        windowNames[window.id] = windowName;
+      }
+      // Otherwise generate smart default name based on content
+      else {
+        if (window.id === currentWindowId) {
+          windowName = 'Current Window';
+        } else if (windowTabs.length > 0) {
+          // Try to generate a smart name based on window content
+          const domains = windowTabs.map(t => {
+            try {
+              return new URL(t.url).hostname.replace('www.', '');
+            } catch {
+              return '';
+            }
+          }).filter(d => d);
+          
+          // Find most common domain
+          const domainCounts = {};
+          domains.forEach(d => {
+            domainCounts[d] = (domainCounts[d] || 0) + 1;
+          });
+          
+          const topDomain = Object.entries(domainCounts)
+            .sort((a, b) => b[1] - a[1])[0];
+          
+          if (topDomain && topDomain[1] >= 2) {
+            // If one domain appears multiple times, use it as the name
+            windowName = topDomain[0].split('.')[0].charAt(0).toUpperCase() + 
+                        topDomain[0].split('.')[0].slice(1) + ' Window';
+          } else {
+            windowName = `Window ${index + 1}`;
+          }
+        } else {
+          windowName = `Window ${index + 1}`;
+        }
+      }
+      
+      windowNameMap.set(window.id, windowName);
+    });
+    
+    // Save updated window mappings
+    await chrome.storage.local.set({ 
+      windowNames,
+      windowSignatures: Object.fromEntries(
+        Array.from(windowSignatureMap.entries()).map(([id, sig]) => {
+          const name = windowNameMap.get(id);
+          return [sig, name];
+        }).filter(([sig, name]) => sig && !name.startsWith('Window '))
+      )
+    });
+    
+    // Populate window filter dropdown
+    updateWindowFilterDropdown(sortedWindows, windowNameMap, currentWindowId);
+    
+    // Get last accessed time from session storage if available
+    const lastAccessData = await chrome.storage.session.get('tabLastAccess').catch(() => ({}));
+    const tabLastAccess = lastAccessData.tabLastAccess || {};
+    
+    // Update last access for active tabs
+    tabs.forEach(tab => {
+      if (tab.active) {
+        tabLastAccess[tab.id] = Date.now();
+      }
+    });
+    
+    // Save updated access times
+    await chrome.storage.session.set({ tabLastAccess }).catch(() => {});
+    
+    // Store window info globally for use in other functions
+    window.windowInfo = { windowColorMap, windowNameMap, currentWindowId };
+    
+    // Map tab data with real state information and window info
+    tabsData = tabs.map(tab => ({
+      ...tab,
+      lastAccessed: tabLastAccess[tab.id] || (tab.active ? Date.now() : null),
+      windowColor: windowColorMap.get(tab.windowId),
+      windowName: windowNameMap.get(tab.windowId)
+    }));
+    
+    // Apply current filter/sort if they exist (preserves state during refresh)
+    if (document.getElementById('searchTabs') || document.getElementById('filterTabs')) {
+      filterTabs();
+    } else {
+      renderTabs(tabsData);
+    }
   } catch (error) {
     console.error('Failed to load tabs:', error);
   }
+}
+
+function getTabState(tab) {
+  if (tab.discarded) return '💤 Suspended';
+  if (tab.active) return '👁 Active';
+  if (tab.audible) return '🔊 Playing';
+  if (tab.pinned) return '📌 Pinned';
+  return 'Loaded';
+}
+
+function getLastAccessText(tab) {
+  if (tab.active) return 'Now';
+  if (!tab.lastAccessed) return 'Unknown';
+  
+  const now = Date.now();
+  const diff = now - tab.lastAccessed;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  return `${days}d ago`;
 }
 
 function renderTabs(tabs) {
@@ -260,11 +429,17 @@ function renderTabs(tabs) {
       card.classList.add('selected');
     }
     
+    // Add window color as border
+    if (tab.windowColor) {
+      card.style.borderLeft = `4px solid ${tab.windowColor}`;
+    }
+    
     const badges = [];
     if (tab.pinned) badges.push('<span class="tab-badge pinned">Pinned</span>');
     if (tab.audible) badges.push('<span class="tab-badge audible">Playing</span>');
     
     card.innerHTML = `
+      <div class="window-indicator" style="background: ${tab.windowColor || '#999'};" title="${tab.windowName || 'Unknown Window'}"></div>
       <label class="tab-select-wrapper">
         <input type="checkbox" class="tab-checkbox" data-tab-id="${tab.id}" ${selectionState.selectedTabs.has(tab.id) ? 'checked' : ''}>
         <span class="tab-select-indicator"></span>
@@ -276,8 +451,8 @@ function renderTabs(tabs) {
       <div class="tab-url" title="${tab.url}">${new URL(tab.url).hostname}</div>
       ${badges.length > 0 ? `<div class="tab-badges">${badges.join('')}</div>` : ''}
       <div class="tab-hover-info">
-        <span class="tab-memory">~${Math.floor(Math.random() * 150) + 20} MB</span>
-        <span class="tab-access">• ${tab.active ? 'Active now' : 'Recently'}</span>
+        <span class="tab-state">${getTabState(tab)}</span>
+        <span class="tab-access">• ${getLastAccessText(tab)}</span>
       </div>
     `;
     
@@ -324,9 +499,46 @@ function renderTabs(tabs) {
   });
 }
 
+function updateWindowFilterDropdown(windows, windowNameMap, currentWindowId) {
+  const windowFilter = document.getElementById('windowFilter');
+  if (!windowFilter) return;
+  
+  // Clear existing options except 'All Windows'
+  windowFilter.innerHTML = '<option value="all">All Windows</option>';
+  
+  // Add window options with custom names
+  windows.forEach(window => {
+    const option = document.createElement('option');
+    option.value = window.id;
+    const name = windowNameMap.get(window.id);
+    const tabCount = tabsData.filter(t => t.windowId === window.id).length;
+    option.textContent = `${name} (${tabCount} tabs)`;
+    if (window.id === currentWindowId) {
+      option.textContent = `⭐ ${option.textContent}`;
+    }
+    windowFilter.appendChild(option);
+  });
+  
+  // Add rename option at the end
+  const renameOption = document.createElement('option');
+  renameOption.value = 'rename';
+  renameOption.textContent = '✏️ Rename Windows...';
+  renameOption.style.borderTop = '1px solid #ddd';
+  windowFilter.appendChild(renameOption);
+}
+
 function filterTabs() {
   const searchTerm = document.getElementById('searchTabs').value.toLowerCase();
   const filterType = document.getElementById('filterTabs').value;
+  const windowFilterValue = document.getElementById('windowFilter')?.value || 'all';
+  const sortType = document.getElementById('sortTabs')?.value || 'default';
+  
+  // Handle rename option
+  if (windowFilterValue === 'rename') {
+    showRenameWindowsDialog();
+    document.getElementById('windowFilter').value = 'all';
+    return;
+  }
   
   let filtered = tabsData;
   
@@ -336,6 +548,11 @@ function filterTabs() {
       tab.title.toLowerCase().includes(searchTerm) ||
       tab.url.toLowerCase().includes(searchTerm)
     );
+  }
+  
+  // Apply window filter
+  if (windowFilterValue !== 'all') {
+    filtered = filtered.filter(tab => tab.windowId === parseInt(windowFilterValue));
   }
   
   // Apply type filter
@@ -366,7 +583,214 @@ function filterTabs() {
       break;
   }
   
-  renderTabs(filtered);
+  sortAndRenderTabs(filtered, sortType);
+}
+
+function sortAndRenderTabs(tabs, sortType) {
+  let sorted = [...tabs]; // Create a copy to avoid mutating original
+  
+  switch(sortType) {
+    case 'window':
+      // Group tabs by window
+      sorted.sort((a, b) => {
+        if (a.windowId !== b.windowId) {
+          return a.windowId - b.windowId;
+        }
+        // Within same window, sort by index
+        return a.index - b.index;
+      });
+      break;
+      
+    case 'recent':
+      // Most recently used (active tabs first, then by last accessed)
+      sorted.sort((a, b) => {
+        if (a.active) return -1;
+        if (b.active) return 1;
+        return (b.lastAccessed || 0) - (a.lastAccessed || 0);
+      });
+      break;
+      
+    case 'oldest':
+      // Least recently used
+      sorted.sort((a, b) => {
+        if (a.active) return 1;
+        if (b.active) return -1;
+        return (a.lastAccessed || 0) - (b.lastAccessed || 0);
+      });
+      break;
+      
+    case 'suspended':
+      // Suspended tabs first (good for cleanup)
+      sorted.sort((a, b) => {
+        if (a.discarded && !b.discarded) return -1;
+        if (!a.discarded && b.discarded) return 1;
+        return 0;
+      });
+      break;
+      
+    case 'active':
+      // Active/playing tabs first
+      sorted.sort((a, b) => {
+        const aScore = (a.active ? 4 : 0) + (a.audible ? 2 : 0) + (a.pinned ? 1 : 0);
+        const bScore = (b.active ? 4 : 0) + (b.audible ? 2 : 0) + (b.pinned ? 1 : 0);
+        return bScore - aScore;
+      });
+      break;
+      
+    case 'title':
+      sorted.sort((a, b) => a.title.localeCompare(b.title));
+      break;
+      
+    case 'domain':
+      sorted.sort((a, b) => {
+        const domainA = new URL(a.url).hostname;
+        const domainB = new URL(b.url).hostname;
+        return domainA.localeCompare(domainB);
+      });
+      break;
+      
+    case 'default':
+    default:
+      // Keep original order (by tab index)
+      break;
+  }
+  
+  renderTabs(sorted);
+}
+
+// ============================================================================
+// Window Management
+// ============================================================================
+
+async function showRenameWindowsDialog() {
+  const windows = await chrome.windows.getAll();
+  const { windowNames = {} } = await chrome.storage.local.get('windowNames');
+  const currentWindowId = (await chrome.windows.getCurrent()).id;
+  
+  // Create modal dialog
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  `;
+  
+  const dialog = document.createElement('div');
+  dialog.className = 'rename-dialog';
+  dialog.style.cssText = `
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  `;
+  
+  let windowInputs = [];
+  
+  // Sort windows by ID for consistent ordering
+  const sortedWindows = windows.sort((a, b) => a.id - b.id);
+  
+  dialog.innerHTML = `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px;">Rename Windows</h2>
+    <div style="margin-bottom: 20px;">
+      ${sortedWindows.map((window, index) => {
+        const tabCount = tabsData.filter(t => t.windowId === window.id).length;
+        const defaultName = window.id === currentWindowId ? 'Current Window' : `Window ${index + 1}`;
+        const currentName = windowNames[window.id] || '';
+        windowInputs.push({ id: window.id, defaultName });
+        
+        return `
+          <div style="margin-bottom: 16px; padding: 12px; border: 1px solid #e0e0e0; border-radius: 6px; background: ${window.id === currentWindowId ? '#f0f7ff' : '#fff'};">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <div style="width: 20px; height: 20px; border-radius: 4px; background: ${window.windowInfo?.windowColorMap?.get(window.id) || generateWindowColor(index, windows.length)};"></div>
+              <span style="font-weight: 500;">${defaultName}</span>
+              <span style="color: #666; font-size: 12px;">(${tabCount} tabs)</span>
+              ${window.id === currentWindowId ? '<span style="background: #4285f4; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px;">CURRENT</span>' : ''}
+            </div>
+            <input 
+              type="text" 
+              data-window-id="${window.id}"
+              placeholder="Custom name (optional)"
+              value="${currentName}"
+              style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;"
+            />
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <button id="cancelRename" style="padding: 8px 16px; border: 1px solid #ddd; border-radius: 4px; background: white; cursor: pointer;">Cancel</button>
+      <button id="saveRename" style="padding: 8px 16px; border: none; border-radius: 4px; background: #4285f4; color: white; cursor: pointer;">Save Names</button>
+    </div>
+  `;
+  
+  modal.appendChild(dialog);
+  document.body.appendChild(modal);
+  
+  // Helper function for color generation
+  function generateWindowColor(index, total) {
+    const hue = (index * 360 / Math.max(8, total)) % 360;
+    const saturation = 60 + (index % 3) * 15;
+    const lightness = 50 + (index % 2) * 10;
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  }
+  
+  // Add event handlers
+  document.getElementById('cancelRename').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  document.getElementById('saveRename').addEventListener('click', async () => {
+    const newWindowNames = {};
+    const newWindowSignatures = {};
+    
+    // Collect all custom names
+    modal.querySelectorAll('input[data-window-id]').forEach((input, index) => {
+      const windowId = parseInt(input.dataset.windowId);
+      const customName = input.value.trim();
+      if (customName) {
+        newWindowNames[windowId] = customName;
+        
+        // Also save by signature for persistence
+        const windowTabs = tabsData.filter(t => t.windowId === windowId);
+        const signature = getWindowSignature(windowTabs);
+        if (signature) {
+          newWindowSignatures[signature] = customName;
+        }
+      }
+    });
+    
+    // Get existing signatures and merge
+    const { windowSignatures = {} } = await chrome.storage.local.get('windowSignatures');
+    
+    // Save to storage
+    await chrome.storage.local.set({ 
+      windowNames: newWindowNames,
+      windowSignatures: { ...windowSignatures, ...newWindowSignatures }
+    });
+    
+    // Close dialog and reload view
+    document.body.removeChild(modal);
+    await loadTabsView();
+  });
+  
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
 }
 
 // ============================================================================
@@ -954,9 +1378,11 @@ function setupEventListeners() {
   // Refresh
   document.getElementById('refreshData')?.addEventListener('click', refreshData);
   
-  // Search and filter
+  // Search, filter and sort
   document.getElementById('searchTabs')?.addEventListener('input', filterTabs);
   document.getElementById('filterTabs')?.addEventListener('change', filterTabs);
+  document.getElementById('windowFilter')?.addEventListener('change', filterTabs);
+  document.getElementById('sortTabs')?.addEventListener('change', filterTabs);
   
   // Bulk actions
   document.getElementById('bulkActions')?.addEventListener('click', openBulkActions);

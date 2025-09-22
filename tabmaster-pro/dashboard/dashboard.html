@@ -203,6 +203,20 @@
               <option value="audible">Playing Audio</option>
               <option value="duplicates">Duplicates</option>
             </select>
+            <select class="filter-select" id="windowFilter">
+              <option value="all">All Windows</option>
+              <!-- Window options will be dynamically added -->
+            </select>
+            <select class="filter-select" id="sortTabs">
+              <option value="default">Default Order</option>
+              <option value="window">Group by Window</option>
+              <option value="recent">Most Recently Used</option>
+              <option value="oldest">Least Recently Used</option>
+              <option value="suspended">Suspended First</option>
+              <option value="active">Active First</option>
+              <option value="title">Title (A-Z)</option>
+              <option value="domain">Domain (A-Z)</option>
+            </select>
             <button class="btn btn-primary" id="bulkActions">Bulk Actions</button>
           </div>
         </div>

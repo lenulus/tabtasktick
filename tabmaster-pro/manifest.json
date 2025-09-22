@@ -16,7 +16,8 @@
     "downloads",
     "notifications",
     "windows",
-    "activeTab"
+    "activeTab",
+    "processes"
   ],
   "host_permissions": [
     "<all_urls>"
