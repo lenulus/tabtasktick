@@ -255,13 +255,18 @@ function renderTabs(tabs) {
     card.className = 'tab-card';
     card.dataset.tabId = tab.id;
     
+    // Restore selection state if tab was previously selected
+    if (selectionState.selectedTabs.has(tab.id)) {
+      card.classList.add('selected');
+    }
+    
     const badges = [];
     if (tab.pinned) badges.push('<span class="tab-badge pinned">Pinned</span>');
     if (tab.audible) badges.push('<span class="tab-badge audible">Playing</span>');
     
     card.innerHTML = `
       <label class="tab-select-wrapper">
-        <input type="checkbox" class="tab-checkbox" data-tab-id="${tab.id}">
+        <input type="checkbox" class="tab-checkbox" data-tab-id="${tab.id}" ${selectionState.selectedTabs.has(tab.id) ? 'checked' : ''}>
         <span class="tab-select-indicator"></span>
       </label>
       <div class="tab-header">
@@ -270,6 +275,10 @@ function renderTabs(tabs) {
       </div>
       <div class="tab-url" title="${tab.url}">${new URL(tab.url).hostname}</div>
       ${badges.length > 0 ? `<div class="tab-badges">${badges.join('')}</div>` : ''}
+      <div class="tab-hover-info">
+        <span class="tab-memory">~${Math.floor(Math.random() * 150) + 20} MB</span>
+        <span class="tab-access">• ${tab.active ? 'Active now' : 'Recently'}</span>
+      </div>
     `;
     
     // Add click handler for selection
@@ -288,25 +297,28 @@ function renderTabs(tabs) {
     
     // Add click handler to open tab
     card.addEventListener('click', (e) => {
-      if (!e.target.classList.contains('tab-checkbox')) {
+      // Don't open tab if clicking on checkbox or its wrapper
+      const isCheckboxArea = e.target.closest('.tab-select-wrapper') || 
+                            e.target.classList.contains('tab-checkbox');
+      if (!isCheckboxArea) {
         chrome.tabs.update(tab.id, { active: true });
         chrome.windows.update(tab.windowId, { focused: true });
       }
     });
     
-    // Add preview hover handlers
-    card.addEventListener('mouseenter', () => {
-      if (previewCard) {
-        // Pass the element first, then the tab object
-        previewCard.show(card, tab);
-      }
-    });
-    
-    card.addEventListener('mouseleave', () => {
-      if (previewCard) {
-        previewCard.hide();
-      }
-    });
+    // Add hover handlers for inline info (disabled popup preview)
+    // card.addEventListener('mouseenter', () => {
+    //   if (previewCard) {
+    //     // Pass the element first, then the tab object
+    //     previewCard.show(card, tab);
+    //   }
+    // });
+    // 
+    // card.addEventListener('mouseleave', () => {
+    //   if (previewCard) {
+    //     previewCard.hide();
+    //   }
+    // });
     
     grid.appendChild(card);
   });

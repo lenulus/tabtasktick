@@ -13,7 +13,7 @@ class TabPreviewCard {
     this.settings = {
       enabled: true,
       showScreenshots: true,
-      hoverDelay: 300,
+      hoverDelay: 1500, // 1.5 seconds - much less intrusive
       screenshotCacheTime: 300000, // 5 minutes
     };
     
