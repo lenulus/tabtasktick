@@ -2040,12 +2040,27 @@ function selectAllTabs() {
 }
 
 function clearSelection() {
+  // Clear selections in grid view
   const allTabCards = document.querySelectorAll('.tab-card');
-  
   allTabCards.forEach(card => {
     const checkbox = card.querySelector('.tab-checkbox');
     card.classList.remove('selected');
+    if (checkbox) checkbox.checked = false;
+  });
+  
+  // Clear selections in tree view
+  const allTreeTabs = document.querySelectorAll('.tree-tab');
+  allTreeTabs.forEach(tab => {
+    const checkbox = tab.querySelector('.tab-checkbox');
+    tab.classList.remove('selected');
+    if (checkbox) checkbox.checked = false;
+  });
+  
+  // Clear all parent checkboxes in tree view (windows and groups)
+  const allParentCheckboxes = document.querySelectorAll('.tree-select-checkbox');
+  allParentCheckboxes.forEach(checkbox => {
     checkbox.checked = false;
+    checkbox.indeterminate = false;
   });
   
   selectionState.selectedTabs.clear();
