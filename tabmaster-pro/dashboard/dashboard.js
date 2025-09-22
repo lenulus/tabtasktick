@@ -719,6 +719,7 @@ function renderTreeView(tabs) {
     // Window header
     const windowHeader = document.createElement('div');
     windowHeader.className = 'tree-window-header';
+    windowHeader.dataset.windowId = windowId;
     const totalWindowTabs = Array.from(window.groups.values()).reduce((sum, g) => sum + g.tabs.length, 0) + window.ungroupedTabs.length;
     windowHeader.innerHTML = `
       <svg class="tree-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -768,6 +769,8 @@ function renderTreeView(tabs) {
       // Group header
       const groupHeader = document.createElement('div');
       groupHeader.className = 'tree-group-header';
+      groupHeader.dataset.groupId = groupId;
+      groupHeader.dataset.windowId = windowId;
       groupHeader.innerHTML = `
         <svg class="tree-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 14px; height: 14px;">
           <polyline points="6 9 12 15 18 9"></polyline>
@@ -876,6 +879,19 @@ function renderTreeView(tabs) {
     windowEl.appendChild(windowContent);
     tree.appendChild(windowEl);
     
+    // Add drag and drop handlers for window
+    windowHeader.addEventListener('dragover', handleDragOver);
+    windowHeader.addEventListener('drop', handleDropOnWindow);
+    
+    // Add drag and drop handlers for groups
+    window.groups.forEach((group, groupId) => {
+      const groupHeader = windowEl.querySelector(`.tree-group-header[data-group-id="${groupId}"]`);
+      if (groupHeader) {
+        groupHeader.addEventListener('dragover', handleDragOver);
+        groupHeader.addEventListener('drop', handleDropOnGroup);
+      }
+    });
+    
     // Set initial indeterminate state for window checkbox if needed
     const windowCheckbox = windowHeader.querySelector('.tree-select-checkbox');
     if (windowCheckedState === 'indeterminate') {
@@ -977,9 +993,100 @@ function renderTreeView(tabs) {
   });
 }
 
+// Drag and drop handlers
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  
+  // Add visual feedback
+  this.classList.add('drop-target');
+  
+  // Clear other drop targets
+  document.querySelectorAll('.drop-target').forEach(el => {
+    if (el !== this) el.classList.remove('drop-target');
+  });
+}
+
+async function handleDropOnWindow(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  this.classList.remove('drop-target');
+  
+  const data = JSON.parse(e.dataTransfer.getData('application/json'));
+  const targetWindowId = parseInt(this.dataset.windowId);
+  
+  if (data.sourceWindowId === targetWindowId) {
+    // Same window, just remove from group if in one
+    if (data.sourceGroupId && data.sourceGroupId !== -1) {
+      try {
+        await chrome.tabs.ungroup(data.tabIds);
+        showNotification(`Removed ${data.tabIds.length} tab(s) from group`, 'success');
+        await loadTabsView();
+      } catch (error) {
+        console.error('Failed to ungroup tabs:', error);
+        showNotification('Failed to ungroup tabs', 'error');
+      }
+    }
+  } else {
+    // Different window, move tabs
+    try {
+      await chrome.tabs.move(data.tabIds, {
+        windowId: targetWindowId,
+        index: -1
+      });
+      showNotification(`Moved ${data.tabIds.length} tab(s) to window`, 'success');
+      clearSelection();
+      await loadTabsView();
+    } catch (error) {
+      console.error('Failed to move tabs:', error);
+      showNotification('Failed to move tabs', 'error');
+    }
+  }
+}
+
+async function handleDropOnGroup(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  this.classList.remove('drop-target');
+  
+  const data = JSON.parse(e.dataTransfer.getData('application/json'));
+  const targetGroupId = parseInt(this.dataset.groupId);
+  const targetWindowId = parseInt(this.dataset.windowId);
+  
+  try {
+    // First move to target window if different
+    if (data.sourceWindowId !== targetWindowId) {
+      await chrome.tabs.move(data.tabIds, {
+        windowId: targetWindowId,
+        index: -1
+      });
+    }
+    
+    // Then add to group
+    await chrome.tabs.group({
+      tabIds: data.tabIds,
+      groupId: targetGroupId
+    });
+    
+    showNotification(`Added ${data.tabIds.length} tab(s) to group`, 'success');
+    clearSelection();
+    await loadTabsView();
+  } catch (error) {
+    console.error('Failed to move tabs to group:', error);
+    showNotification('Failed to move tabs to group', 'error');
+  }
+}
+
 function createTreeTab(tab) {
   const tabEl = document.createElement('div');
   tabEl.className = 'tree-tab';
+  tabEl.draggable = true;
+  tabEl.dataset.tabId = tab.id;
+  tabEl.dataset.windowId = tab.windowId;
+  tabEl.dataset.groupId = tab.groupId || -1;
+  
   if (selectionState.selectedTabs.has(tab.id)) {
     tabEl.classList.add('selected');
   }
@@ -1059,6 +1166,31 @@ function createTreeTab(tab) {
     e.stopPropagation();
     chrome.tabs.update(tab.id, { active: true });
     chrome.windows.update(tab.windowId, { focused: true });
+  });
+  
+  // Add drag and drop handlers
+  tabEl.addEventListener('dragstart', (e) => {
+    // If multiple tabs selected, drag them all
+    const tabsToMove = selectionState.selectedTabs.has(tab.id) 
+      ? Array.from(selectionState.selectedTabs)
+      : [tab.id];
+    
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      tabIds: tabsToMove,
+      sourceWindowId: tab.windowId,
+      sourceGroupId: tab.groupId
+    }));
+    
+    tabEl.classList.add('dragging');
+  });
+  
+  tabEl.addEventListener('dragend', (e) => {
+    tabEl.classList.remove('dragging');
+    // Remove all drop zone indicators
+    document.querySelectorAll('.drop-target, .drop-before, .drop-after').forEach(el => {
+      el.classList.remove('drop-target', 'drop-before', 'drop-after');
+    });
   });
   
   return tabEl;
@@ -2248,8 +2380,8 @@ async function executeBulkAction(action) {
   
   if (count === 0) return;
   
-  // Check if confirmation needed
-  if (count > 10 && (action === 'close' || action === 'move')) {
+  // Check if confirmation needed (only for close action)
+  if (count > 10 && action === 'close') {
     const confirmed = await showConfirmDialog(action, count);
     if (!confirmed) return;
   }
@@ -2280,16 +2412,16 @@ async function executeBulkAction(action) {
         break;
         
       case 'move':
-        await moveToWindow(selectedIds);
-        showNotification(`Moved ${count} tabs to new window`, 'success');
-        break;
+        await showMoveToWindowDialog(selectedIds);
+        // Don't clear selection or refresh here - dialog handles it
+        return;
     }
     
-    // Clear selection after success
+    // Clear selection after success (except for move which handles its own)
     clearSelection();
     
     // Refresh the view
-    if (action !== 'snooze') { // Snooze has its own dialog
+    if (action !== 'snooze' && action !== 'move') { // Snooze and move have their own dialogs
       await loadTabsView();
     }
     
@@ -2352,21 +2484,161 @@ async function bookmarkTabs(tabIds) {
   }
 }
 
-async function moveToWindow(tabIds) {
-  // Create new window with first tab
-  const firstTab = tabIds.shift();
-  const newWindow = await chrome.windows.create({
-    tabId: firstTab,
-    focused: false
-  });
-  
-  // Move remaining tabs
-  if (tabIds.length > 0) {
+async function moveToWindow(tabIds, targetWindowId) {
+  if (targetWindowId === 'new') {
+    // Create new window with first tab
+    const firstTab = tabIds.shift();
+    const newWindow = await chrome.windows.create({
+      tabId: firstTab,
+      focused: false
+    });
+    
+    // Move remaining tabs
+    if (tabIds.length > 0) {
+      await chrome.tabs.move(tabIds, {
+        windowId: newWindow.id,
+        index: -1
+      });
+    }
+    return newWindow.id;
+  } else {
+    // Move to existing window
     await chrome.tabs.move(tabIds, {
-      windowId: newWindow.id,
+      windowId: targetWindowId,
       index: -1
     });
+    return targetWindowId;
   }
+}
+
+async function showMoveToWindowDialog(tabIds) {
+  // Get all windows
+  const windows = await chrome.windows.getAll({ populate: true });
+  const currentWindowId = (await chrome.windows.getCurrent()).id;
+  
+  // Get window names from our stored data
+  const { windowNames = {} } = await chrome.storage.local.get(['windowNames']);
+  const { windowInfo } = window;
+  
+  // Get current tab info to determine source window
+  const firstTabId = Array.isArray(tabIds) ? tabIds[0] : tabIds;
+  const sourceTab = await chrome.tabs.get(firstTabId);
+  const sourceWindowId = sourceTab.windowId;
+  
+  // Create dialog HTML
+  const dialogHtml = `
+    <div class="modal-overlay" id="moveWindowDialog">
+      <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+          <h2>Move ${tabIds.length} tab${tabIds.length > 1 ? 's' : ''} to...</h2>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+          <div class="window-list" style="display: flex; flex-direction: column; gap: 8px;">
+            ${windows.map(window => {
+              const name = windowInfo?.windowNameMap?.get(window.id) || 
+                          windowNames[window.id] || 
+                          (window.id === currentWindowId ? 'Current Window' : `Window ${window.id}`);
+              const tabCount = window.tabs ? window.tabs.length : 0;
+              const isSource = window.id === sourceWindowId;
+              const windowColor = windowInfo?.windowColorMap?.get(window.id) || '#999';
+              
+              return `
+                <button class="window-option" 
+                        data-window-id="${window.id}"
+                        style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; 
+                               background: white; text-align: left; cursor: pointer; display: flex;
+                               align-items: center; gap: 10px; transition: all 0.2s;
+                               ${isSource ? 'opacity: 0.5; cursor: not-allowed;' : ''}"
+                        ${isSource ? 'disabled' : ''}>
+                  <div style="width: 12px; height: 12px; border-radius: 50%; background: ${windowColor}; flex-shrink: 0;"></div>
+                  <div style="flex: 1;">
+                    <div style="font-weight: 500;">${name}</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                      ${tabCount} tab${tabCount !== 1 ? 's' : ''}
+                      ${isSource ? ' (current location)' : ''}
+                    </div>
+                  </div>
+                </button>
+              `;
+            }).join('')}
+            <button class="window-option" 
+                    data-window-id="new"
+                    style="padding: 12px; border: 2px dashed #667eea; border-radius: 8px; 
+                           background: #f8f9ff; text-align: left; cursor: pointer; display: flex;
+                           align-items: center; gap: 10px; transition: all 0.2s;">
+              <div style="width: 12px; height: 12px; display: flex; align-items: center; 
+                          justify-content: center; color: #667eea; font-weight: bold;">+</div>
+              <div style="flex: 1;">
+                <div style="font-weight: 500; color: #667eea;">Create New Window</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Add dialog to DOM
+  document.body.insertAdjacentHTML('beforeend', dialogHtml);
+  
+  // Add event listeners
+  const dialog = document.getElementById('moveWindowDialog');
+  const closeBtn = dialog.querySelector('.modal-close');
+  
+  closeBtn.addEventListener('click', () => dialog.remove());
+  
+  // Add hover effect for non-disabled buttons
+  dialog.querySelectorAll('.window-option:not([disabled])').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      btn.style.background = '#f8f9fa';
+      btn.style.borderColor = '#667eea';
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.background = btn.dataset.windowId === 'new' ? '#f8f9ff' : 'white';
+      btn.style.borderColor = btn.dataset.windowId === 'new' ? '#667eea' : '#e0e0e0';
+    });
+  });
+  
+  // Handle window selection
+  dialog.querySelectorAll('.window-option:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const targetWindowId = btn.dataset.windowId === 'new' ? 'new' : parseInt(btn.dataset.windowId);
+      
+      try {
+        const movedToId = await moveToWindow(tabIds, targetWindowId);
+        const windowName = targetWindowId === 'new' ? 'new window' : 
+                          (windowInfo?.windowNameMap?.get(movedToId) || 
+                           windowNames[movedToId] || 
+                           `Window ${movedToId}`);
+        
+        showNotification(`Moved ${tabIds.length} tab${tabIds.length > 1 ? 's' : ''} to ${windowName}`, 'success');
+        clearSelection();
+        await loadTabsView();
+      } catch (error) {
+        console.error('Failed to move tabs:', error);
+        showNotification('Failed to move tabs', 'error');
+      }
+      
+      dialog.remove();
+    });
+  });
+  
+  // Handle escape key
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      dialog.remove();
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+  
+  // Handle clicking outside
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) {
+      dialog.remove();
+    }
+  });
 }
 
 async function showSnoozeDialog(tabIds) {

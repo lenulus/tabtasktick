@@ -788,6 +788,26 @@ body {
   pointer-events: none;
 }
 
+/* Drag and drop styles */
+.tree-tab.dragging {
+  opacity: 0.5;
+}
+
+.tree-window-header.drop-target,
+.tree-group-header.drop-target {
+  background: rgba(102, 126, 234, 0.1);
+  border: 2px dashed #667eea;
+  border-radius: 8px;
+}
+
+.tree-tab[draggable="true"] {
+  cursor: move;
+}
+
+.tree-tab[draggable="true"]:active {
+  cursor: grabbing;
+}
+
 .tree-tab-badges {
   display: flex;
   gap: 4px;
@@ -1189,6 +1209,19 @@ body {
   display: flex;
 }
 
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
 .modal-content {
   background: white;
   border-radius: 12px;
@@ -1218,10 +1251,34 @@ body {
   align-items: center;
 }
 
+.modal-header h2,
 .modal-header h3 {
   font-size: 20px;
   font-weight: 600;
   color: #2c3e50;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #6c757d;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.modal-close:hover {
+  background: #f8f9fa;
+  color: #495057;
 }
 
 .close-btn {
