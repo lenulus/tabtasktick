@@ -331,20 +331,6 @@ async function loadTabsView() {
       windowNameMap.set(window.id, windowName);
     });
     
-    // Save updated window mappings
-    await chrome.storage.local.set({ 
-      windowNames,
-      windowSignatures: Object.fromEntries(
-        Array.from(windowSignatureMap.entries()).map(([id, sig]) => {
-          const name = windowNameMap.get(id);
-          return [sig, name];
-        }).filter(([sig, name]) => sig && !name.startsWith('Window '))
-      )
-    });
-    
-    // Populate window filter dropdown
-    updateWindowFilterDropdown(sortedWindows, windowNameMap, currentWindowId);
-    
     // Get last accessed time from session storage if available
     const lastAccessData = await chrome.storage.session.get('tabLastAccess').catch(() => ({}));
     const tabLastAccess = lastAccessData.tabLastAccess || {};
@@ -362,13 +348,27 @@ async function loadTabsView() {
     // Store window info globally for use in other functions
     window.windowInfo = { windowColorMap, windowNameMap, currentWindowId };
     
-    // Map tab data with real state information and window info
+    // Map tab data with real state information and window info - MUST be done before updateWindowFilterDropdown
     tabsData = tabs.map(tab => ({
       ...tab,
       lastAccessed: tabLastAccess[tab.id] || (tab.active ? Date.now() : null),
       windowColor: windowColorMap.get(tab.windowId),
       windowName: windowNameMap.get(tab.windowId)
     }));
+    
+    // Populate window filter dropdown - AFTER tabsData is populated so counts work
+    updateWindowFilterDropdown(sortedWindows, windowNameMap, currentWindowId);
+    
+    // Save updated window mappings
+    await chrome.storage.local.set({ 
+      windowNames,
+      windowSignatures: Object.fromEntries(
+        Array.from(windowSignatureMap.entries()).map(([id, sig]) => {
+          const name = windowNameMap.get(id);
+          return [sig, name];
+        }).filter(([sig, name]) => sig && !name.startsWith('Window '))
+      )
+    });
     
     // Apply current filter/sort if they exist (preserves state during refresh)
     if (document.getElementById('searchTabs') || document.getElementById('filterTabs')) {
@@ -405,9 +405,23 @@ function getLastAccessText(tab) {
   return `${days}d ago`;
 }
 
+function updateTabCount(displayedCount, totalCount) {
+  const tabCountEl = document.getElementById('tabCount');
+  if (tabCountEl) {
+    if (displayedCount === totalCount) {
+      tabCountEl.textContent = `(${totalCount})`;
+    } else {
+      tabCountEl.textContent = `(${displayedCount} of ${totalCount})`;
+    }
+  }
+}
+
 function renderTabs(tabs) {
   const grid = document.getElementById('tabsGrid');
   grid.innerHTML = '';
+  
+  // Update tab count display
+  updateTabCount(tabs.length, tabsData.length);
   
   if (tabs.length === 0) {
     grid.innerHTML = `
@@ -438,6 +452,22 @@ function renderTabs(tabs) {
     if (tab.pinned) badges.push('<span class="tab-badge pinned">Pinned</span>');
     if (tab.audible) badges.push('<span class="tab-badge audible">Playing</span>');
     
+    // Filter out invalid favicon URLs
+    const getFaviconUrl = (url) => {
+      if (!url) return '../icons/icon-16.png';
+      // Skip chrome-extension:// URLs from other extensions
+      if (url.startsWith('chrome-extension://') && !url.includes(chrome.runtime.id)) {
+        return '../icons/icon-16.png';
+      }
+      // Skip invalid URLs
+      if (url === 'chrome-extension://invalid/') {
+        return '../icons/icon-16.png';
+      }
+      return url;
+    };
+    
+    const safeFaviconUrl = getFaviconUrl(tab.favIconUrl);
+    
     card.innerHTML = `
       <div class="window-indicator" style="background: ${tab.windowColor || '#999'};" title="${tab.windowName || 'Unknown Window'}"></div>
       <label class="tab-select-wrapper">
@@ -445,7 +475,7 @@ function renderTabs(tabs) {
         <span class="tab-select-indicator"></span>
       </label>
       <div class="tab-header">
-        <img src="${tab.favIconUrl || '../icons/icon-16.png'}" class="tab-favicon" onerror="this.src='../icons/icon-16.png'">
+        <img src="${safeFaviconUrl}" class="tab-favicon" data-fallback="../icons/icon-16.png">
         <div class="tab-title" title="${tab.title}">${tab.title}</div>
       </div>
       <div class="tab-url" title="${tab.url}">${new URL(tab.url).hostname}</div>
@@ -455,6 +485,16 @@ function renderTabs(tabs) {
         <span class="tab-access">• ${getLastAccessText(tab)}</span>
       </div>
     `;
+    
+    // Handle favicon errors silently
+    const favicon = card.querySelector('.tab-favicon');
+    if (favicon) {
+      favicon.addEventListener('error', function(e) {
+        // Prevent error from bubbling up and logging to console
+        e.preventDefault();
+        this.src = this.dataset.fallback || '../icons/icon-16.png';
+      }, true);
+    }
     
     // Add click handler for selection
     const checkbox = card.querySelector('.tab-checkbox');
@@ -836,9 +876,11 @@ function renderGroups(groups) {
       <div class="empty-state">
         <h3>No tab groups</h3>
         <p>Create groups to organize your tabs better</p>
-        <button class="btn btn-primary" onclick="autoGroupTabs()">Auto-Group Tabs</button>
+        <button class="btn btn-primary" id="autoGroupBtn">Auto-Group Tabs</button>
       </div>
     `;
+    // Add event listener after creating the button
+    document.getElementById('autoGroupBtn')?.addEventListener('click', autoGroupTabs);
     return;
   }
   
@@ -853,12 +895,12 @@ function renderGroups(groups) {
           <span class="group-count">${group.tabs.length} tabs</span>
         </div>
         <div class="group-actions">
-          <button class="group-action-btn" onclick="collapseGroup(${group.id})">
+          <button class="group-action-btn" data-action="collapse" data-group-id="${group.id}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
-          <button class="group-action-btn" onclick="closeGroup(${group.id})">
+          <button class="group-action-btn" data-action="close" data-group-id="${group.id}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -867,14 +909,22 @@ function renderGroups(groups) {
         </div>
       </div>
       <div class="group-tabs ${group.collapsed ? 'collapsed' : ''}">
-        ${group.tabs.map(tab => `
+        ${group.tabs.map(tab => {
+          // Filter out invalid favicon URLs
+          const favIconUrl = (!tab.favIconUrl || 
+                              tab.favIconUrl.startsWith('chrome-extension://') || 
+                              tab.favIconUrl === 'chrome-extension://invalid/') 
+                              ? '../icons/icon-16.png' 
+                              : tab.favIconUrl;
+          return `
           <div class="tab-card">
             <div class="tab-header">
-              <img src="${tab.favIconUrl || '../icons/icon-16.png'}" class="tab-favicon">
+              <img src="${favIconUrl}" class="tab-favicon" data-fallback="../icons/icon-16.png">
               <div class="tab-title">${tab.title}</div>
             </div>
           </div>
-        `).join('')}
+        `;
+        }).join('')}
       </div>
     `;
     
@@ -888,6 +938,30 @@ function renderGroups(groups) {
     });
     
     container.appendChild(card);
+  });
+  
+  // Add event delegation for group actions
+  container.addEventListener('click', (e) => {
+    const button = e.target.closest('.group-action-btn');
+    if (!button) return;
+    
+    const action = button.dataset.action;
+    const groupId = parseInt(button.dataset.groupId);
+    
+    if (action === 'collapse') {
+      collapseGroup(groupId);
+    } else if (action === 'close') {
+      closeGroup(groupId);
+    }
+  });
+  
+  // Handle favicon errors silently
+  container.querySelectorAll('.tab-favicon').forEach(img => {
+    img.addEventListener('error', function(e) {
+      // Prevent error from bubbling up and logging to console
+      e.preventDefault();
+      this.src = this.dataset.fallback || '../icons/icon-16.png';
+    }, true);
   });
 }
 
@@ -1745,6 +1819,33 @@ async function createNewGroup() {
   }
   
   loadGroupsView();
+}
+
+async function collapseGroup(groupId) {
+  try {
+    const group = await chrome.tabGroups.get(groupId);
+    await chrome.tabGroups.update(groupId, { collapsed: !group.collapsed });
+    await loadGroupsView(); // Refresh the view
+  } catch (error) {
+    console.error('Failed to collapse group:', error);
+  }
+}
+
+async function closeGroup(groupId) {
+  try {
+    // Get all tabs in this group
+    const tabs = await chrome.tabs.query({ groupId });
+    const tabIds = tabs.map(tab => tab.id);
+    
+    // Close all tabs in the group
+    if (tabIds.length > 0) {
+      await chrome.tabs.remove(tabIds);
+    }
+    
+    await loadGroupsView(); // Refresh the view
+  } catch (error) {
+    console.error('Failed to close group:', error);
+  }
 }
 
 async function autoGroupTabs() {

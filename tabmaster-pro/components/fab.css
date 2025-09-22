@@ -92,9 +92,9 @@
   transform: translateY(20px) scale(0.9);
   opacity: 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  max-width: 340px;
-  max-height: 400px;
-  overflow-y: auto;
+  width: 340px;
+  /* Remove fixed max-height and overflow to prevent scrollbars */
+  overflow: visible;
 }
 
 .fab-overlay.active .action-grid-container {
@@ -112,21 +112,25 @@
 
 .action-grid {
   display: grid;
-  grid-template-columns: repeat(3, 100px);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
+  /* Ensure grid items fit without scrolling */
+  width: 100%;
 }
 
-/* Responsive for smaller popup */
-@media (max-width: 380px) {
-  .action-grid {
-    grid-template-columns: repeat(3, 90px);
-    gap: 10px;
-  }
-  
+/* Responsive for smaller screens */
+@media (max-width: 400px) {
   .action-grid-container {
-    padding: 16px;
+    width: calc(100vw - 40px);
+    max-width: 340px;
     right: 10px;
     bottom: 80px;
+    padding: 16px;
+  }
+  
+  .action-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
   }
 }
 
@@ -136,14 +140,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px 8px;
+  padding: 12px 8px;
   background: #f8f9fa;
-  border: 1px solid transparent;
+  border: 1px solid #e9ecef;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  min-height: 90px;
+  min-height: 85px;
   opacity: 0;
   animation: fadeInUp 0.3s ease forwards;
 }
@@ -335,21 +339,4 @@
   }
 }
 
-/* Scrollbar for action grid */
-.action-grid-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.action-grid-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.action-grid-container::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 3px;
-}
-
-.action-grid-container::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
+/* Remove scrollbar styles since we removed overflow */
