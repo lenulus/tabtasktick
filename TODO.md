@@ -59,6 +59,8 @@ This document tracks the implementation status of TabMaster Pro features and rem
 - ✅ View snoozed tabs
 - ✅ Wake snoozed tabs
 - ⚠️ Enhanced snooze UI with presets
+- ❌ Add "message to future self" field when snoozing
+- ❌ Display snooze message/reason when tab wakes
 - ❌ Recurring snooze schedules
 - ❌ Smart wake suggestions
 
@@ -106,7 +108,9 @@ This document tracks the implementation status of TabMaster Pro features and rem
 - ✅ Empty states
 - ✅ Window filtering and indicators
 - ✅ Tree view for All Tabs (hierarchical display)
-- ⚠️ Dark mode support
+- ❌ Dark mode support (auto-detect browser preference)
+- ❌ Match browser's light/dark mode setting
+- ❌ Manual dark mode toggle option
 - ❌ Customizable dashboard layout
 
 ### Popup (Extension Interface)
