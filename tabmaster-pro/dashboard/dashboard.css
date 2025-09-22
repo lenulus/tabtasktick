@@ -298,6 +298,28 @@ body {
   color: #dc3545;
 }
 
+/* Activity Filter Buttons */
+.activity-filter-btn {
+  padding: 4px 12px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activity-filter-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.activity-filter-btn.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
 /* Charts Container */
 .charts-container {
   display: grid;
@@ -681,6 +703,56 @@ body {
   background: #f8f9fa;
   border-radius: 6px;
   font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.history-item:hover {
+  background: #e9ecef;
+}
+
+.history-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.history-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-time {
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.source-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 8px;
+}
+
+.source-badge.auto {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.source-badge.rule {
+  background: #e8f5e9;
+  color: #388e3c;
 }
 
 .history-action {

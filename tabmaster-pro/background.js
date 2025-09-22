@@ -16,6 +16,7 @@ const state = {
   rules: [],
   snoozedTabs: [],
   tabGroups: new Map(),
+  activityLog: [], // Track recent activities
   settings: {
     autoCloseEnabled: true,
     autoGroupEnabled: true,
@@ -33,6 +34,84 @@ const state = {
 };
 
 // ============================================================================
+// Activity Tracking
+// ============================================================================
+
+function logActivity(action, details, source = 'manual') {
+  const activity = {
+    id: Date.now(),
+    action,
+    details,
+    source, // 'manual', 'auto', 'rule'
+    timestamp: Date.now(),
+    icon: getActivityIcon(action),
+    color: getActivityColor(action)
+  };
+  
+  // Add to front of array (most recent first)
+  state.activityLog.unshift(activity);
+  
+  // Keep only last 50 activities
+  if (state.activityLog.length > 50) {
+    state.activityLog = state.activityLog.slice(0, 50);
+  }
+  
+  // Save to storage
+  saveActivityLog();
+}
+
+function getActivityIcon(action) {
+  const icons = {
+    close: 'close',
+    snooze: 'snooze',
+    group: 'group',
+    suspend: 'suspend',
+    wake: 'wake',
+    duplicate: 'duplicate',
+    rule: 'rule',
+    export: 'export',
+    import: 'import',
+    bookmark: 'bookmark'
+  };
+  return icons[action] || 'action';
+}
+
+function getActivityColor(action) {
+  const colors = {
+    close: '#e74c3c',
+    snooze: '#4facfe',
+    group: '#667eea',
+    suspend: '#95a5a6',
+    wake: '#2ecc71',
+    duplicate: '#e67e22',
+    rule: '#28a745',
+    export: '#3498db',
+    import: '#9b59b6',
+    bookmark: '#f39c12'
+  };
+  return colors[action] || '#7f8c8d';
+}
+
+async function saveActivityLog() {
+  try {
+    await chrome.storage.local.set({ activityLog: state.activityLog });
+  } catch (error) {
+    console.error('Failed to save activity log:', error);
+  }
+}
+
+async function loadActivityLog() {
+  try {
+    const data = await chrome.storage.local.get('activityLog');
+    if (data.activityLog) {
+      state.activityLog = data.activityLog;
+    }
+  } catch (error) {
+    console.error('Failed to load activity log:', error);
+  }
+}
+
+// ============================================================================
 // Initialization
 // ============================================================================
 
@@ -42,12 +121,14 @@ chrome.runtime.onInstalled.addListener(async () => {
   await setupContextMenus();
   await loadSettings();
   await loadRules();
+  await loadActivityLog();
   await checkAndMigrateTabs();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   await loadSettings();
   await loadRules();
+  await loadActivityLog();
   await restoreSnoozedTabs();
   await startMonitoring();
 });
@@ -528,6 +609,9 @@ async function findAndCloseDuplicates() {
     await chrome.tabs.remove(duplicates);
     await updateStatistics();
     
+    // Log activity
+    logActivity('close', `Closed ${duplicates.length} duplicate tab${duplicates.length > 1 ? 's' : ''}`, 'manual');
+    
     // Notify user
     chrome.notifications.create({
       type: 'basic',
@@ -567,6 +651,7 @@ async function groupTabsByDomain() {
   
   // Create groups for domains with multiple tabs
   let groupsCreated = 0;
+  let totalTabsGrouped = 0;
   for (const [domain, tabIds] of domainMap) {
     if (tabIds.length >= 2) {
       const groupId = await chrome.tabs.group({ tabIds });
@@ -578,6 +663,7 @@ async function groupTabsByDomain() {
       });
       
       groupsCreated++;
+      totalTabsGrouped += tabIds.length;
       state.statistics.tabsGrouped += tabIds.length;
     }
   }
@@ -585,6 +671,8 @@ async function groupTabsByDomain() {
   await updateStatistics();
   
   if (groupsCreated > 0) {
+    // Log activity
+    logActivity('group', `Created ${groupsCreated} group${groupsCreated > 1 ? 's' : ''} (${totalTabsGrouped} tabs)`, 'manual');
     chrome.notifications.create({
       type: 'basic',
       iconUrl: 'icons/icon-128.png',
@@ -805,6 +893,9 @@ async function handleMessage(request, sender) {
       
     case 'getStatistics':
       return await getStatistics();
+    
+    case 'getActivityLog':
+      return state.activityLog || [];
     
     case 'getTabInfo':
       return await getTabInfo();

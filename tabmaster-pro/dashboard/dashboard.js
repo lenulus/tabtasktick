@@ -160,8 +160,13 @@ async function loadOverviewData() {
     document.getElementById('statSnoozed').textContent = stats.snoozedTabs;
     updateNextWakeTime(stats.snoozedTabs);
     
-    document.getElementById('statMemory').textContent = `${stats.memoryEstimate.estimatedMB} MB`;
-    document.getElementById('statMemoryPercent').textContent = `${Math.round(stats.memoryEstimate.percentage)}% of limit`;
+    // Calculate active and suspended tabs
+    const tabs = await chrome.tabs.query({});
+    const activeTabs = tabs.filter(t => !t.discarded && (t.active || t.audible));
+    const suspendedTabs = tabs.filter(t => t.discarded);
+    
+    document.getElementById('statActive').textContent = activeTabs.length;
+    document.getElementById('statSuspended').textContent = `${suspendedTabs.length} suspended`;
     
     // Update charts with sample data
     console.log('Calling chart updates...');
@@ -170,7 +175,7 @@ async function loadOverviewData() {
     console.log('Chart updates called');
     
     // Update recent activity
-    updateRecentActivity();
+    await updateRecentActivity();
     
   } catch (error) {
     console.error('Failed to load overview data:', error);
@@ -185,18 +190,73 @@ function updateNextWakeTime(snoozedCount) {
   }
 }
 
-function updateRecentActivity() {
-  const activities = [
-    { icon: 'close', color: '#e74c3c', text: 'Closed 5 duplicate tabs', time: '2 minutes ago' },
-    { icon: 'group', color: '#667eea', text: 'Created group "Development"', time: '15 minutes ago' },
-    { icon: 'snooze', color: '#4facfe', text: 'Snoozed 3 tabs', time: '1 hour ago' },
-    { icon: 'rule', color: '#28a745', text: 'Rule "Clean Stack Overflow" triggered', time: '2 hours ago' },
-  ];
+async function updateRecentActivity(filter = 'all') {
+  // Get real activity log from background
+  const activities = await sendMessage({ action: 'getActivityLog' });
+  
+  // Filter activities if needed
+  let filteredActivities = activities || [];
+  if (filter !== 'all') {
+    filteredActivities = filteredActivities.filter(a => a.source === filter);
+  }
+  
+  // Take only the most recent 5 activities
+  const recentActivities = filteredActivities.slice(0, 5);
+  
+  // Format activities for display
+  const formattedActivities = recentActivities.map(activity => ({
+    icon: activity.icon,
+    color: activity.color,
+    text: activity.details,
+    time: getTimeAgo(activity.timestamp),
+    source: activity.source
+  }));
   
   const container = document.getElementById('recentActivity');
   container.innerHTML = '';
   
-  activities.forEach(activity => {
+  // Add filter buttons if not present
+  const activitySection = container.closest('.activity-section');
+  if (!activitySection || !activitySection.querySelector('#activityFilter')) {
+    const filterContainer = document.createElement('div');
+    filterContainer.id = 'activityFilter';
+    filterContainer.style.cssText = 'display: flex; gap: 8px; margin-bottom: 12px;';
+    filterContainer.innerHTML = `
+      <button class="activity-filter-btn ${filter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+      <button class="activity-filter-btn ${filter === 'manual' ? 'active' : ''}" data-filter="manual">Manual</button>
+      <button class="activity-filter-btn ${filter === 'auto' ? 'active' : ''}" data-filter="auto">Auto</button>
+      <button class="activity-filter-btn ${filter === 'rule' ? 'active' : ''}" data-filter="rule">Rules</button>
+    `;
+    
+    // Add event listeners for filter buttons
+    filterContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('activity-filter-btn')) {
+        updateRecentActivity(e.target.dataset.filter);
+      }
+    });
+    
+    // Insert after the section title
+    const sectionTitle = activitySection?.querySelector('h3');
+    if (sectionTitle) {
+      sectionTitle.after(filterContainer);
+    }
+  } else {
+    // Update active state of filter buttons
+    document.querySelectorAll('.activity-filter-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+  }
+  
+  if (formattedActivities.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding: 20px;">
+        <p style="margin: 0; color: #6c757d; text-align: center;">No recent activity</p>
+      </div>
+    `;
+    return;
+  }
+  
+  formattedActivities.forEach(activity => {
     const item = document.createElement('div');
     item.className = 'activity-item';
     item.innerHTML = `
@@ -1058,48 +1118,110 @@ function groupSnoozedByTime(tabs) {
 // ============================================================================
 
 async function loadHistoryView() {
-  // This would load actual history from storage
-  const sampleHistory = [
-    {
-      date: 'Today',
-      items: [
-        { action: 'Closed', count: 5, description: 'duplicate tabs' },
-        { action: 'Snoozed', count: 3, description: 'news articles' },
-        { action: 'Grouped', count: 8, description: 'GitHub tabs' }
-      ]
-    },
-    {
-      date: 'Yesterday',
-      items: [
-        { action: 'Closed', count: 12, description: 'Stack Overflow tabs' },
-        { action: 'Created', count: 2, description: 'new groups' }
-      ]
-    }
-  ];
+  // Get real activity log from background
+  const activities = await sendMessage({ action: 'getActivityLog' }) || [];
   
-  renderHistory(sampleHistory);
+  // Group activities by date
+  const groupedHistory = {};
+  const now = Date.now();
+  const todayStart = new Date().setHours(0, 0, 0, 0);
+  const yesterdayStart = todayStart - 86400000;
+  const weekAgo = todayStart - 7 * 86400000;
+  
+  activities.forEach(activity => {
+    let dateKey;
+    
+    if (activity.timestamp >= todayStart) {
+      dateKey = 'Today';
+    } else if (activity.timestamp >= yesterdayStart) {
+      dateKey = 'Yesterday';
+    } else if (activity.timestamp >= weekAgo) {
+      const daysAgo = Math.floor((todayStart - activity.timestamp) / 86400000);
+      dateKey = `${daysAgo} days ago`;
+    } else {
+      const date = new Date(activity.timestamp);
+      dateKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    
+    if (!groupedHistory[dateKey]) {
+      groupedHistory[dateKey] = [];
+    }
+    
+    groupedHistory[dateKey].push({
+      action: activity.action,
+      description: activity.details,
+      timestamp: activity.timestamp,
+      source: activity.source,
+      color: activity.color,
+      icon: activity.icon
+    });
+  });
+  
+  // Convert to array format for rendering
+  const historyArray = Object.entries(groupedHistory).map(([date, items]) => ({
+    date,
+    items,
+    sortKey: items[0]?.timestamp || 0
+  }));
+  
+  // Sort by most recent date first
+  historyArray.sort((a, b) => b.sortKey - a.sortKey);
+  
+  renderHistory(historyArray);
 }
 
 function renderHistory(history) {
   const container = document.getElementById('historyContainer');
   container.innerHTML = '';
   
+  if (history.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>No tab history</h3>
+        <p>Your tab management activity will appear here as you use TabMaster Pro</p>
+      </div>
+    `;
+    return;
+  }
+  
   history.forEach(day => {
     const dayCard = document.createElement('div');
     dayCard.className = 'history-day';
     
-    dayCard.innerHTML = `
-      <h3>${day.date}</h3>
-      <div class="history-items">
-        ${day.items.map(item => `
-          <div class="history-item">
-            <div class="history-action">${item.action}</div>
-            <div>${item.count} ${item.description}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
+    const dayHeader = document.createElement('h3');
+    dayHeader.textContent = day.date;
+    dayCard.appendChild(dayHeader);
     
+    const itemsContainer = document.createElement('div');
+    itemsContainer.className = 'history-items';
+    
+    day.items.forEach(item => {
+      const historyItem = document.createElement('div');
+      historyItem.className = 'history-item';
+      
+      const badge = item.source === 'auto' ? '<span class="source-badge auto">Auto</span>' : 
+                   item.source === 'rule' ? '<span class="source-badge rule">Rule</span>' : '';
+      
+      historyItem.innerHTML = `
+        <div class="history-icon" style="color: ${item.color || '#666'};">
+          ${getActivityIcon(item.icon || 'action')}
+        </div>
+        <div class="history-content">
+          <div class="history-action">
+            ${item.description}
+            ${badge}
+          </div>
+          <div class="history-time">${new Date(item.timestamp).toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit'
+          })}</div>
+        </div>
+      `;
+      
+      itemsContainer.appendChild(historyItem);
+    });
+    
+    dayCard.appendChild(itemsContainer);
     container.appendChild(dayCard);
   });
 }
