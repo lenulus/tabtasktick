@@ -1303,11 +1303,23 @@ function filterTabs() {
     case 'active':
       filtered = filtered.filter(tab => tab.active);
       break;
+    case 'suspended':
+      filtered = filtered.filter(tab => tab.discarded);
+      break;
     case 'pinned':
       filtered = filtered.filter(tab => tab.pinned);
       break;
     case 'audible':
       filtered = filtered.filter(tab => tab.audible);
+      break;
+    case 'muted':
+      filtered = filtered.filter(tab => tab.mutedInfo && tab.mutedInfo.muted);
+      break;
+    case 'grouped':
+      filtered = filtered.filter(tab => tab.groupId && tab.groupId !== -1);
+      break;
+    case 'ungrouped':
+      filtered = filtered.filter(tab => !tab.groupId || tab.groupId === -1);
       break;
     case 'duplicates':
       const urls = new Map();
@@ -2439,6 +2451,14 @@ async function executeBulkAction(action) {
 
 async function closeTabs(tabIds) {
   await chrome.tabs.remove(tabIds);
+  
+  // Send message to background to log this bulk action
+  chrome.runtime.sendMessage({
+    action: 'logBulkActivity',
+    type: 'close',
+    count: tabIds.length,
+    source: 'bulk'
+  });
 }
 
 async function groupTabs(tabIds) {

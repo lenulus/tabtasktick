@@ -819,6 +819,37 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 // ============================================================================
+// Tab Event Listeners
+// ============================================================================
+
+// Track bulk operations to avoid double-logging
+let bulkOperationInProgress = false;
+
+// Log tab closes to activity history
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+  // Skip logging if:
+  // 1. Window is closing (too noisy)
+  // 2. Part of a bulk operation (will be logged as bulk)
+  if (!removeInfo.isWindowClosing && !bulkOperationInProgress) {
+    logActivity('close', 'Closed 1 tab', 'manual');
+  }
+});
+
+// Log tab creations
+chrome.tabs.onCreated.addListener((tab) => {
+  logActivity('create', 'Opened new tab', 'manual');
+});
+
+// Log tab groups
+chrome.tabGroups.onCreated.addListener((group) => {
+  logActivity('group', 'Created new group', 'manual');
+});
+
+chrome.tabGroups.onRemoved.addListener((group) => {
+  logActivity('ungroup', 'Removed group', 'manual');
+});
+
+// ============================================================================
 // Keyboard Commands
 // ============================================================================
 
@@ -956,6 +987,18 @@ async function handleMessage(request, sender) {
     
     case 'undo':
       return await executeUndo(request.actionId, request.undoData);
+    
+    case 'logBulkActivity':
+      // Set flag to prevent double-logging individual tab events
+      bulkOperationInProgress = true;
+      setTimeout(() => { bulkOperationInProgress = false; }, 500);
+      
+      // Log bulk actions with proper count
+      const message = request.type === 'close' 
+        ? `Closed ${request.count} tab${request.count > 1 ? 's' : ''}`
+        : `Performed bulk action on ${request.count} tabs`;
+      logActivity(request.type, message, request.source || 'manual');
+      return true;
     
     default:
       throw new Error(`Unknown action: ${request.action}`);

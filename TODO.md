@@ -27,16 +27,16 @@ This document tracks the implementation status of TabMaster Pro features and rem
 - ❌ Tab preview on hover (abandoned due to Chrome API limitations)
 
 ### Tree View Enhancements
-- 🚧 Fix selection checkboxes visibility in tree view
-- ❌ Select all tabs in window/group
-- ❌ Drag and drop tabs between groups within window
-- ❌ Drag and drop tabs to different windows
+- ✅ Fix selection checkboxes visibility in tree view
+- ✅ Select all tabs in window/group
+- ✅ Drag and drop tabs between groups within window
+- ✅ Drag and drop tabs to different windows
 - ❌ Create new group from selected tabs
-- ❌ Rename tab groups inline
-- ❌ Close entire window action
-- ❌ Close entire group action
+- ✅ Rename tab groups inline
+- ✅ Close entire window action
+- ✅ Close entire group action
 - ❌ Collapse/expand all windows/groups
-- ❌ Move selected tabs to new window
+- ✅ Move selected tabs to new window (via dialog)
 - ❌ Merge all windows
 - ❌ Sort tabs within group (by title, URL, etc.)
 
@@ -46,10 +46,10 @@ This document tracks the implementation status of TabMaster Pro features and rem
 - ✅ Collapse/expand groups (in dashboard)
 - ✅ Close entire groups
 - ✅ Visual group indicators
-- ❌ Rename groups inline
-- ❌ Drag-and-drop between groups
+- ✅ Rename groups inline (in tree view)
+- ✅ Drag-and-drop between groups
 - ❌ Group templates/presets
-- ❌ Ungroup tabs
+- ✅ Ungroup tabs (drag to window header)
 - ❌ Group color picker
 - ❌ Save group as bookmark folder
 
@@ -76,6 +76,8 @@ This document tracks the implementation status of TabMaster Pro features and rem
 - ✅ Full history view with date grouping
 - ✅ Filter by source (manual/auto/rule)
 - ✅ Activity icons and colors
+- ✅ Bulk action logging (tracks multi-tab operations)
+- ✅ Tab event tracking (open, close, group)
 - ❌ Activity statistics/trends
 - ❌ Activity export
 
@@ -103,7 +105,7 @@ This document tracks the implementation status of TabMaster Pro features and rem
 - ✅ Responsive layout
 - ✅ Empty states
 - ✅ Window filtering and indicators
-- 🚧 Tree view for All Tabs (hierarchical display)
+- ✅ Tree view for All Tabs (hierarchical display)
 - ⚠️ Dark mode support
 - ❌ Customizable dashboard layout
 
@@ -216,6 +218,18 @@ This document tracks the implementation status of TabMaster Pro features and rem
 4. Plugin system
 
 ---
+
+## Recently Completed (Current Session)
+- ✅ Implemented tree view with full selection support
+- ✅ Added drag-and-drop between windows and groups
+- ✅ Created Move dialog for off-screen window targets
+- ✅ Fixed Clear button to properly deselect all items
+- ✅ Added suspended/muted/grouped filters
+- ✅ Implemented bulk action activity logging
+- ✅ Added tab event listeners for history tracking
+- ✅ Fixed tree view persistence and initial load issues
+- ✅ Added "go to tab" button in tree view
+- ✅ Improved spacing and visual design in tree view
 
 ## Recently Completed (Last Session)
 - ✅ Fixed console errors and CSP violations
