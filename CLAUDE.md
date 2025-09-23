@@ -145,11 +145,14 @@ async function saveSettings(settings) {
 ## Testing Commands
 
 ```bash
-# Lint JavaScript
-npm run lint
-
-# Run tests (when implemented)
+# Run unit tests
 npm test
+
+# Run tests in watch mode (auto-rerun on changes)
+npm run test:watch
+
+# Run tests with code coverage
+npm run test:coverage
 
 # Load extension in Chrome
 # 1. Open chrome://extensions/
