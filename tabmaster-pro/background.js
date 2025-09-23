@@ -513,16 +513,60 @@ function isDuplicateTab(tab, allTabs) {
 }
 
 function shouldGroupByDomain(tab, allTabs, minCount) {
-  const domain = new URL(tab.url).hostname;
-  const sameDomainTabs = allTabs.filter(t => {
-    try {
-      return new URL(t.url).hostname === domain;
-    } catch {
+  try {
+    const domain = new URL(tab.url).hostname;
+    
+    // Find all tabs with the same domain
+    const sameDomainTabs = allTabs.filter(t => {
+      try {
+        return new URL(t.url).hostname === domain;
+      } catch (e) {
+        return false;
+      }
+    });
+    
+    // Find existing groups for this domain
+    const existingGroups = new Map();
+    sameDomainTabs.forEach(t => {
+      if (t.groupId && t.groupId !== -1) {
+        if (!existingGroups.has(t.groupId)) {
+          existingGroups.set(t.groupId, []);
+        }
+        existingGroups.get(t.groupId).push(t);
+      }
+    });
+    
+    // Count ungrouped tabs
+    const ungroupedTabs = sameDomainTabs.filter(t => !t.groupId || t.groupId === -1);
+    
+    console.log(`Domain count check for tab ${tab.id} (${domain}):\n` +
+      `  Total ${domain} tabs: ${sameDomainTabs.length}\n` +
+      `  Existing groups: ${existingGroups.size} (${Array.from(existingGroups.values()).map(g => g.length + ' tabs').join(', ')})\n` +
+      `  Ungrouped tabs: ${ungroupedTabs.length}\n` +
+      `  This tab grouped: ${tab.groupId && tab.groupId !== -1}`);
+    
+    // Case 1: Tab is already grouped - don't match
+    if (tab.groupId && tab.groupId !== -1) {
       return false;
     }
-  });
-  
-  return sameDomainTabs.length >= minCount && !tab.groupId;
+    
+    // Case 2: There's an existing group we can add to
+    if (existingGroups.size > 0) {
+      console.log(`  → Can add to existing group`);
+      return true;
+    }
+    
+    // Case 3: Enough ungrouped tabs to create a new group
+    if (ungroupedTabs.length >= minCount) {
+      console.log(`  → Can create new group with ${ungroupedTabs.length} tabs`);
+      return true;
+    }
+    
+    return false;
+  } catch (e) {
+    console.error(`Error in shouldGroupByDomain for tab ${tab.id}:`, e);
+    return false;
+  }
 }
 
 function isInactiveTab(tab, conditions) {
@@ -712,28 +756,66 @@ async function closeTabsAction(tabs, action) {
 
 async function groupTabsAction(tabs, action) {
   if (action.groupBy === 'domain') {
-    const tabsByDomain = new Map();
+    // Get all tabs to find existing groups
+    const allTabs = await chrome.tabs.query({});
+    const domainGroups = new Map(); // domain -> { groupId, tabs }
+    const ungroupedTabsByDomain = new Map();
     
-    // Group tabs by domain
-    for (const tab of tabs) {
+    // First, map existing groups by domain
+    for (const tab of allTabs) {
       try {
         const domain = new URL(tab.url).hostname;
-        if (!tabsByDomain.has(domain)) {
-          tabsByDomain.set(domain, []);
+        
+        if (tab.groupId && tab.groupId !== -1) {
+          // Tab is in a group
+          if (!domainGroups.has(domain)) {
+            const groupInfo = await chrome.tabGroups.get(tab.groupId);
+            domainGroups.set(domain, {
+              groupId: tab.groupId,
+              title: groupInfo.title,
+              tabs: []
+            });
+          }
+          domainGroups.get(domain).tabs.push(tab);
         }
-        tabsByDomain.get(domain).push(tab);
       } catch {
         // Skip invalid URLs
       }
     }
     
-    // Create groups for each domain
-    for (const [domain, domainTabs] of tabsByDomain) {
+    // Now process the tabs we need to group
+    for (const tab of tabs) {
+      try {
+        const domain = new URL(tab.url).hostname;
+        
+        // Check if there's an existing group for this domain
+        if (domainGroups.has(domain)) {
+          // Add to existing group
+          console.log(`Adding tab ${tab.id} to existing group for ${domain}`);
+          await chrome.tabs.group({ 
+            tabIds: [tab.id], 
+            groupId: domainGroups.get(domain).groupId 
+          });
+          state.statistics.tabsGrouped++;
+        } else {
+          // Collect ungrouped tabs for potential new groups
+          if (!ungroupedTabsByDomain.has(domain)) {
+            ungroupedTabsByDomain.set(domain, []);
+          }
+          ungroupedTabsByDomain.get(domain).push(tab);
+        }
+      } catch {
+        // Skip invalid URLs
+      }
+    }
+    
+    // Create new groups for domains with multiple ungrouped tabs
+    for (const [domain, domainTabs] of ungroupedTabsByDomain) {
       if (domainTabs.length >= 2) {
         const tabIds = domainTabs.map(t => t.id);
-        const group = await chrome.tabs.group({ tabIds });
+        const groupId = await chrome.tabs.group({ tabIds });
         
-        await chrome.tabGroups.update(group, {
+        await chrome.tabGroups.update(groupId, {
           title: domain,
           color: getColorForDomain(domain),
           collapsed: false
