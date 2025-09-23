@@ -1,10 +1,37 @@
 // Dashboard JavaScript for TabMaster Pro
 
+// Import utilities
+import { 
+  debounce, 
+  formatBytes, 
+  getTimeAgo, 
+  getActivityIcon, 
+  getGroupColor, 
+  getTabState, 
+  getLastAccessText,
+  getWindowSignature,
+  generateWindowColor,
+  getFaviconUrl,
+  getColorForDomain,
+  escapeHtml,
+  sortTabs
+} from './modules/core/utils.js';
+
+import { 
+  VIEWS, 
+  TAB_STATES, 
+  ACTIVITY_TYPES, 
+  SORT_TYPES, 
+  FILTER_TYPES, 
+  STORAGE_KEYS,
+  LIMITS 
+} from './modules/core/constants.js';
+
 // ============================================================================
 // State Management
 // ============================================================================
 
-let currentView = 'overview';
+let currentView = VIEWS.OVERVIEW;
 let selectedTabs = new Set();
 let tabsData = [];
 let groupsData = [];
@@ -175,21 +202,6 @@ function updateNextWakeTime(snoozedCount) {
   }
 }
 
-// Helper function to format time ago
-function getTimeAgo(timestamp) {
-  const now = Date.now();
-  const diff = now - timestamp;
-  
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString();
-}
 
 async function updateRecentActivity(filter = 'all') {
   // Get real activity log from background
@@ -273,15 +285,6 @@ async function updateRecentActivity(filter = 'all') {
   });
 }
 
-function getActivityIcon(type) {
-  const icons = {
-    close: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
-    group: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>',
-    snooze: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
-    rule: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"></path></svg>',
-  };
-  return icons[type] || '';
-}
 
 // ============================================================================
 // Chart Functions
@@ -494,12 +497,6 @@ async function loadTabsView() {
     const windowSignatureMap = new Map();
     
     // Generate colors using HSL for even distribution
-    const generateWindowColor = (index, total) => {
-      const hue = (index * 360 / Math.max(8, total)) % 360;
-      const saturation = 60 + (index % 3) * 15; // Vary saturation between 60-90%
-      const lightness = 50 + (index % 2) * 10; // Vary lightness between 50-60%
-      return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    };
     
     // Sort windows by ID for consistent ordering
     const sortedWindows = windows.sort((a, b) => a.id - b.id);
@@ -633,30 +630,6 @@ async function loadTabsView() {
   } catch (error) {
     console.error('Failed to load tabs:', error);
   }
-}
-
-function getTabState(tab) {
-  if (tab.discarded) return '💤 Suspended';
-  if (tab.active) return '👁 Active';
-  if (tab.audible) return '🔊 Playing';
-  if (tab.pinned) return '📌 Pinned';
-  return 'Loaded';
-}
-
-function getLastAccessText(tab) {
-  if (tab.active) return 'Now';
-  if (!tab.lastAccessed) return 'Unknown';
-  
-  const now = Date.now();
-  const diff = now - tab.lastAccessed;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${days}d ago`;
 }
 
 function updateTabCount(displayedCount, totalCount) {
@@ -824,20 +797,6 @@ function renderGridView(tabs) {
   });
 }
 
-function getGroupColor(chromeColor) {
-  const colors = {
-    'grey': '#5f6368',
-    'blue': '#1a73e8',
-    'red': '#d93025',
-    'yellow': '#f9ab00',
-    'green': '#188038',
-    'pink': '#e91e63',
-    'purple': '#9c27b0',
-    'cyan': '#00acc1',
-    'orange': '#ff6d00'
-  };
-  return colors[chromeColor] || '#5f6368';
-}
 
 function renderTreeView(tabs) {
   const tree = document.getElementById('tabsTree');
@@ -1673,13 +1632,6 @@ async function showRenameWindowsDialog() {
   modal.appendChild(dialog);
   document.body.appendChild(modal);
   
-  // Helper function for color generation
-  function generateWindowColor(index, total) {
-    const hue = (index * 360 / Math.max(8, total)) % 360;
-    const saturation = 60 + (index % 3) * 15;
-    const lightness = 50 + (index % 2) * 10;
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-  }
   
   // Add event handlers
   document.getElementById('cancelRename').addEventListener('click', () => {

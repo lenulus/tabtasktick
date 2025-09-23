@@ -23,6 +23,10 @@
       "lib/**/*.js",
       "dashboard/**/*.js",
       "!**/*.test.js"
-    ]
+    ],
+    "transform": {},
+    "testEnvironmentOptions": {
+      "customExportConditions": ["node", "node-addons"]
+    }
   }
 }
