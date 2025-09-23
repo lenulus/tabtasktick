@@ -450,24 +450,6 @@ function renderDomainsChart(domainData) {
 // Tabs View
 // ============================================================================
 
-// Helper to generate a window signature based on its tabs
-function getWindowSignature(tabs) {
-  // Create a signature from the first few pinned/important tabs
-  const pinnedUrls = tabs
-    .filter(t => t.pinned)
-    .slice(0, 3)
-    .map(t => new URL(t.url).hostname)
-    .sort()
-    .join('|');
-  
-  const topDomains = tabs
-    .slice(0, 5)
-    .map(t => new URL(t.url).hostname)
-    .sort()
-    .join('|');
-    
-  return pinnedUrls || topDomains;
-}
 
 async function loadTabsView() {
   // Store current filter values before they are potentially cleared
@@ -711,7 +693,7 @@ function renderGridView(tabs) {
     if (tab.audible) badges.push('<span class="tab-badge audible">Playing</span>');
     
     // Filter out invalid favicon URLs
-    const getFaviconUrl = (url) => {
+    const filterFaviconUrl = (url) => {
       if (!url) return '../icons/icon-16.png';
       // Skip chrome-extension:// URLs from other extensions
       if (url.startsWith('chrome-extension://') && !url.includes(chrome.runtime.id)) {
@@ -724,7 +706,7 @@ function renderGridView(tabs) {
       return url;
     };
     
-    const safeFaviconUrl = getFaviconUrl(tab.favIconUrl);
+    const safeFaviconUrl = filterFaviconUrl(getFaviconUrl(tab));
     
     card.innerHTML = `
       <div class="window-indicator" style="background: ${tab.windowColor || '#999'};" title="${tab.windowName || 'Unknown Window'}"></div>
@@ -1235,7 +1217,7 @@ function createTreeTab(tab) {
   if (tab.audible) badges.push('<span class="tree-tab-badge audible">Audio</span>');
   
   // Filter out invalid favicon URLs
-  const getFaviconUrl = (url) => {
+  const filterFaviconUrl = (url) => {
     if (!url) return '../icons/icon-16.png';
     if (url.startsWith('chrome-extension://') && !url.includes(chrome.runtime.id)) {
       return '../icons/icon-16.png';
@@ -1246,7 +1228,7 @@ function createTreeTab(tab) {
     return url;
   };
   
-  const safeFaviconUrl = getFaviconUrl(tab.favIconUrl);
+  const safeFaviconUrl = filterFaviconUrl(getFaviconUrl(tab));
   
   tabEl.innerHTML = `
     <input type="checkbox" class="tree-tab-checkbox tab-checkbox" data-tab-id="${tab.id}" 

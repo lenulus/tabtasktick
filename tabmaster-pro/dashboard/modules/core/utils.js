@@ -178,17 +178,23 @@ export function generateWindowColor(index, total) {
 }
 
 /**
- * Get favicon URL with fallback
- * @param {string} url - Page URL
+ * Get favicon URL for a tab
+ * @param {Object} tab - Chrome tab object
  * @returns {string} Favicon URL
  */
-export function getFaviconUrl(url) {
+export function getFaviconUrl(tab) {
+  // Use the tab's favicon if available
+  if (tab.favIconUrl) {
+    return tab.favIconUrl;
+  }
+  
+  // Otherwise generate one from the URL
   try {
-    const u = new URL(url);
+    const u = new URL(tab.url);
     if (u.protocol === 'chrome:' || u.protocol === 'chrome-extension:') {
-      return `chrome://favicon/${url}`;
+      return `chrome://favicon/${tab.url}`;
     }
-    return `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=16`;
+    return `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(tab.url)}&size=16`;
   } catch {
     return 'chrome://favicon/';
   }
