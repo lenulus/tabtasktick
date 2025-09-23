@@ -153,14 +153,14 @@ chrome.runtime.onStartup.addListener(async () => {
 });
 
 async function initializeExtension() {
-  // Don't auto-install any rules - let users choose what they want
+  // This function now primarily handles first-time setup
   const { rules } = await chrome.storage.local.get('rules');
-  if (rules) {
-    state.rules = rules;
-  } else {
-    // Start with empty rules - users can install samples from dashboard
+  if (!rules) {
+    // On first install, if no rules exist, initialize storage with an empty array
     state.rules = [];
     await chrome.storage.local.set({ rules: [] });
+  } else {
+    state.rules = rules;
   }
 
   // Initialize settings
@@ -244,6 +244,9 @@ function evaluateCondition(conditions, tab, allTabs) {
     
     case 'age_and_domain':
       return isOldDomainTab(tab, conditions);
+    
+    case 'url_pattern':
+      return isUrlPatternMatch(tab, conditions);
 
     default:
       return false;
@@ -330,6 +333,29 @@ function isOldDomainTab(tab, conditions) {
     // For now, return matches for domain
     return matches && !tab.pinned && !tab.active;
   } catch {
+    return false;
+  }
+}
+
+function isUrlPatternMatch(tab, conditions) {
+  if (!conditions.pattern) return false;
+  
+  try {
+    // Create regex from the pattern
+    const regex = new RegExp(conditions.pattern);
+    const matches = regex.test(tab.url);
+    
+    // Check inactive time if specified (default 30 minutes)
+    if (matches && conditions.inactiveMinutes) {
+      // For now, consider tab inactive if not active/pinned
+      // In real implementation, track last access time
+      const isInactive = !tab.active && !tab.pinned;
+      return isInactive;
+    }
+    
+    return matches && !tab.pinned;
+  } catch (e) {
+    console.error('Invalid regex pattern:', conditions.pattern, e);
     return false;
   }
 }

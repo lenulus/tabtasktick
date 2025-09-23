@@ -451,6 +451,19 @@ function getWindowSignature(tabs) {
 }
 
 async function loadTabsView() {
+  // Store current filter values before they are potentially cleared
+  const searchInput = document.getElementById('searchTabs');
+  const filterInput = document.getElementById('filterTabs');
+  const windowInput = document.getElementById('windowFilter');
+  const sortInput = document.getElementById('sortTabs');
+  
+  const preservedFilterState = {
+    searchTerm: searchInput ? searchInput.value : '',
+    filterType: filterInput ? filterInput.value : 'all',
+    windowId: windowInput ? windowInput.value : 'all',
+    sortType: sortInput ? sortInput.value : 'default'
+  };
+  
   try {
     const tabs = await chrome.tabs.query({});
     const windows = await chrome.windows.getAll();
@@ -577,6 +590,12 @@ async function loadTabsView() {
     
     // Populate window filter dropdown - AFTER tabsData is populated so counts work
     updateWindowFilterDropdown(sortedWindows, windowNameMap, currentWindowId);
+    
+    // Restore filter values after UI elements (like windowFilter) are repopulated
+    if (searchInput) searchInput.value = preservedFilterState.searchTerm;
+    if (filterInput) filterInput.value = preservedFilterState.filterType;
+    if (windowInput) windowInput.value = preservedFilterState.windowId;
+    if (sortInput) sortInput.value = preservedFilterState.sortType;
     
     // Save updated window mappings
     await chrome.storage.local.set({ 
@@ -2761,6 +2780,12 @@ async function sendMessage(message) {
 }
 
 async function refreshData() {
+  // Do not refresh if tabs are selected for a bulk action
+  if (selectionState.selectedTabs.size > 0) {
+    console.log('Skipping auto-refresh due to active tab selection.');
+    return;
+  }
+  
   switch(currentView) {
     case 'overview':
       await loadOverviewData();
@@ -2846,15 +2871,15 @@ function getSampleRules() {
     },
     {
       id: 'sample_4',
-      name: 'Auto-close old documentation tabs',
-      description: 'Close old documentation tabs after 3 hours',
+      name: 'Clean up inactive Chrome pages',
+      description: 'Close common Chrome internal pages after 30 minutes of inactivity',
       enabled: false,
       conditions: {
-        type: 'age_and_domain',
-        ageMinutes: 180,
-        domains: ['stackoverflow.com', 'developer.mozilla.org', 'docs.python.org']
+        type: 'url_pattern',
+        pattern: '^chrome://(extensions|downloads|settings|flags|history|bookmarks|newtab)',
+        inactiveMinutes: 30
       },
-      actions: { type: 'close', saveToBookmarks: true },
+      actions: { type: 'close', saveToBookmarks: false },
       priority: 4,
     }
   ];
@@ -2982,6 +3007,8 @@ function getConditionDescription(conditions) {
       return `Tabs inactive for ${conditions.inactiveMinutes} minutes`;
     case 'age_and_domain':
       return `Tabs older than ${conditions.ageMinutes} minutes from ${conditions.domains.join(', ')}`;
+    case 'url_pattern':
+      return `URLs matching pattern "${conditions.pattern}"${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
     default:
       return 'Unknown condition';
   }

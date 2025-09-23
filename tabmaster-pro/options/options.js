@@ -190,6 +190,8 @@ function getConditionDescription(conditions) {
       return `Tabs older than ${conditions.ageMinutes} minutes from ${conditions.domains.join(', ')}`;
     case 'memory':
       return `Memory usage exceeds ${conditions.thresholdPercent}%`;
+    case 'url_pattern':
+      return `URLs matching "${conditions.pattern}"${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
     default:
       return 'Unknown condition';
   }
@@ -395,7 +397,7 @@ async function saveRule() {
   }
   
   const rule = {
-    id: editingRule?.id || `rule_${Date.now()}`,
+    id: editingRule?.id || crypto.randomUUID(),
     name,
     enabled: editingRule?.enabled !== false,
     conditions,
@@ -680,6 +682,16 @@ function setupEventListeners() {
   document.getElementById('privacyLink').addEventListener('click', (e) => {
     e.preventDefault();
     alert('TabMaster Pro does not collect or transmit any personal data. All data is stored locally in your browser.');
+  });
+  
+  // Handle Escape key for modal
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('ruleModal');
+      if (modal && modal.classList.contains('show')) {
+        closeRuleModal();
+      }
+    }
   });
 }
 
