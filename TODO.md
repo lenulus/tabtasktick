@@ -204,6 +204,62 @@ This document tracks the implementation status of TabMaster Pro features and rem
 
 ## Next Priority Items
 
+### Critical Priority (P0) - Dashboard Refactoring [Spec: SPEC-003, SPEC-004]
+Dashboard.js has grown to 4000+ lines and needs modular refactoring for maintainability.
+
+#### Milestone 1: Foundation Setup (~2 hours)
+- ❌ Create module directory structure
+- ❌ Setup ES6 module loader in dashboard.html
+- ❌ Extract core utilities to modules/core/utils.js
+- ❌ Add tests for utility functions
+
+#### Milestone 2: State Management (~3 hours)
+- ❌ Create centralized state module
+- ❌ Create storage service wrapper
+- ❌ Migrate global variables to state
+
+#### Milestone 3: Chrome API Service (~2 hours)
+- ❌ Create Chrome API wrapper service
+- ❌ Add error handling and retries
+- ❌ Update all direct chrome.* calls
+
+#### Milestone 4: Extract Components (~4 hours)
+- ❌ Extract TabCard component
+- ❌ Extract Filters component
+- ❌ Extract BulkActions toolbar
+- ❌ Extract Modal manager
+- ❌ Extract Charts component
+
+#### Milestone 5: Extract Simple Views (~3 hours)
+- ❌ Extract History view module
+- ❌ Extract Snoozed view module
+- ❌ Extract Groups view module
+
+#### Milestone 6: Extract Complex Views (~4 hours)
+- ❌ Extract Tabs view module
+- ❌ Extract Overview view module
+- ❌ Extract Rules view module
+
+#### Milestone 7: Router & Navigation (~2 hours)
+- ❌ Create simple router module
+- ❌ Add view lifecycle management
+- ❌ Update navigation to use router
+
+#### Milestone 8: Event System (~2 hours)
+- ❌ Create event bus for module communication
+- ❌ Refactor global event handlers
+- ❌ Add event namespacing
+
+#### Milestone 9: Final Integration (~3 hours)
+- ❌ Slim down dashboard.js to <500 lines
+- ❌ Performance optimization
+- ❌ Full test suite run
+
+#### Milestone 10: Polish & Cleanup (~2 hours)
+- ❌ Code quality checks
+- ❌ Error handling improvements
+- ❌ Documentation updates
+
 ### High Priority (P1)
 1. Implement unified time-based triggers [Spec: SPEC-002]
    - Tab time tracking (created, lastActive, lastAccessed)
@@ -213,13 +269,14 @@ This document tracks the implementation status of TabMaster Pro features and rem
 2. Make popup stats clickable with navigation to dashboard
 3. Add "Create Rule" button to popup
 4. Fix virtual scrolling for performance with 200+ tabs
+5. Add domain include/exclude filters to domain_count rule
 
 ### Medium Priority (P2)
 1. Complete import functionality
-3. Add undo functionality for destructive actions
-4. Command palette
-5. Dark mode support
-6. Bookmark integration
+2. Add undo functionality for destructive actions
+3. Command palette
+4. Dark mode support
+5. Bookmark integration
 
 ### Low Priority (P3)
 1. Smart suggestions
