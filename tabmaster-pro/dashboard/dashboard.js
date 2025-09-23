@@ -2637,16 +2637,6 @@ function hideProgressIndicator() {
   document.getElementById('progressOverlay').style.display = 'none';
 }
 
-function showNotification(message, type = 'info') {
-  // For now, use chrome notifications. In a real implementation, create toast notifications
-  chrome.notifications.create({
-    type: 'basic',
-    iconUrl: '../icons/icon-128.png',
-    title: 'TabMaster Pro',
-    message: message
-  });
-}
-
 async function createNewGroup() {
   const name = prompt('Enter group name:');
   if (!name) return;
@@ -3933,7 +3923,7 @@ async function updateRulePriorities() {
 }
 
 function showNotification(message, type = 'success') {
-  // Simple notification implementation
+  // DOM-based toast notification implementation
   const notification = document.createElement('div');
   notification.className = `notification notification-${type}`;
   notification.textContent = message;
