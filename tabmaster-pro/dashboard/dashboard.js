@@ -1632,13 +1632,18 @@ async function showRenameWindowsDialog() {
   modal.appendChild(dialog);
   document.body.appendChild(modal);
   
+  // Add event handlers - use querySelector to ensure we get the elements from the modal
+  const cancelBtn = modal.querySelector('#cancelRename');
+  const saveBtn = modal.querySelector('#saveRename');
   
-  // Add event handlers
-  document.getElementById('cancelRename').addEventListener('click', () => {
-    document.body.removeChild(modal);
-  });
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+  }
   
-  document.getElementById('saveRename').addEventListener('click', async () => {
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
     const newWindowNames = {};
     const newWindowSignatures = {};
     
@@ -1670,7 +1675,8 @@ async function showRenameWindowsDialog() {
     // Close dialog and reload view
     document.body.removeChild(modal);
     await loadTabsView();
-  });
+    });
+  }
   
   // Close on backdrop click
   modal.addEventListener('click', (e) => {
@@ -2128,7 +2134,7 @@ function updateBulkToolbar() {
 
 function setupEventListeners() {
   // Settings button
-  document.getElementById('openSettings').addEventListener('click', () => {
+  document.getElementById('openSettings')?.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
   });
   
@@ -2627,7 +2633,7 @@ function showConfirmDialog(action, count) {
     };
     
     proceedBtn.addEventListener('click', handleProceed, { once: true });
-    document.getElementById('confirmCancel').addEventListener('click', handleCancel, { once: true });
+    document.getElementById('confirmCancel')?.addEventListener('click', handleCancel, { once: true });
     
     modal.classList.add('show');
   });
