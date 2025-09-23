@@ -175,6 +175,22 @@ function updateNextWakeTime(snoozedCount) {
   }
 }
 
+// Helper function to format time ago
+function getTimeAgo(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return new Date(timestamp).toLocaleDateString();
+}
+
 async function updateRecentActivity(filter = 'all') {
   // Get real activity log from background
   const activities = await sendMessage({ action: 'getActivityLog' });
@@ -2863,11 +2879,12 @@ function getSampleRules() {
       enabled: false,
       conditions: {
         type: 'inactive',
-        inactiveMinutes: 60,
-        urlPatterns: ['medium.com', 'dev.to', 'hackernews', 'reddit.com']
+        urlPatterns: ['medium.com', 'dev.to', 'hackernews', 'reddit.com'],
+        timeCriteria: { inactive: 60 }
       },
       actions: { type: 'snooze', snoozeMinutes: 1440 },
       priority: 3,
+      trigger: { type: 'event' }
     },
     {
       id: 'sample_4',
@@ -2877,10 +2894,11 @@ function getSampleRules() {
       conditions: {
         type: 'url_pattern',
         pattern: '^chrome://(extensions|downloads|settings|flags|history|bookmarks|newtab)',
-        inactiveMinutes: 30
+        timeCriteria: { inactive: 30 }
       },
       actions: { type: 'close', saveToBookmarks: false },
       priority: 4,
+      trigger: { type: 'event' }
     },
     {
       id: 'sample_5',
@@ -2890,10 +2908,11 @@ function getSampleRules() {
       conditions: {
         type: 'category',
         categories: ['social'],
-        inactiveMinutes: 60
+        timeCriteria: { inactive: 60 }
       },
       actions: { type: 'close', saveToBookmarks: false },
       priority: 5,
+      trigger: { type: 'periodic', interval: 15 }
     },
     {
       id: 'sample_6',
@@ -2906,6 +2925,37 @@ function getSampleRules() {
       },
       actions: { type: 'group', groupBy: 'category' },
       priority: 6,
+      trigger: { type: 'event' }
+    },
+    {
+      id: 'sample_7',
+      name: 'Archive old research tabs',
+      description: 'Close tabs older than 7 days that haven\'t been accessed in 24 hours',
+      enabled: false,
+      conditions: {
+        type: 'duplicate',  // Match all tabs
+        timeCriteria: { 
+          age: 10080,  // 7 days
+          notAccessed: 1440  // 24 hours
+        }
+      },
+      actions: { type: 'close', saveToBookmarks: true },
+      priority: 7,
+      trigger: { type: 'periodic', interval: 60 }  // Check hourly
+    },
+    {
+      id: 'sample_8',
+      name: 'Suspend memory-heavy tabs',
+      description: 'Suspend tabs from specific domains after 2 hours of inactivity',
+      enabled: false,
+      conditions: {
+        type: 'age_and_domain',
+        domains: ['youtube.com', 'netflix.com', 'twitch.tv', 'spotify.com'],
+        timeCriteria: { inactive: 120 }  // 2 hours
+      },
+      actions: { type: 'suspend', excludePinned: true },
+      priority: 8,
+      trigger: { type: 'periodic', interval: 30 }  // Check every 30 minutes
     }
   ];
 }
@@ -2988,6 +3038,11 @@ function createRuleCard(rule) {
       <div class="rule-action">
         <strong>Then:</strong> ${getActionDescription(rule.actions)}
       </div>
+      ${rule.trigger && rule.trigger.type === 'periodic' ? `
+      <div class="rule-trigger">
+        <strong>Runs:</strong> Every ${rule.trigger.interval} minutes
+      </div>
+      ` : ''}
     </div>
   `;
 
@@ -3023,23 +3078,62 @@ function updateSampleRulesDropdown() {
 }
 
 function getConditionDescription(conditions) {
+  let description = '';
+  
+  // Base condition
   switch (conditions.type) {
     case 'duplicate':
-      return 'Duplicate tabs detected';
+      description = 'Duplicate tabs';
+      break;
     case 'domain_count':
-      return `${conditions.minCount}+ tabs from same domain`;
+      description = `${conditions.minCount}+ tabs from same domain`;
+      break;
     case 'inactive':
-      return `Tabs inactive for ${conditions.inactiveMinutes} minutes`;
+      description = conditions.urlPatterns && conditions.urlPatterns.length > 0 
+        ? `Tabs from ${conditions.urlPatterns.join(', ')}`
+        : 'All tabs';
+      break;
     case 'age_and_domain':
-      return `Tabs older than ${conditions.ageMinutes} minutes from ${conditions.domains.join(', ')}`;
+      description = `Tabs from ${conditions.domains.join(', ')}`;
+      break;
     case 'url_pattern':
-      return `URLs matching pattern "${conditions.pattern}"${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
+      description = `URLs matching "${conditions.pattern}"`;
+      break;
     case 'category':
       const categoryNames = conditions.categories ? conditions.categories.join(', ') : 'none';
-      return `Sites in categories: ${categoryNames}${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
+      description = `Sites in categories: ${categoryNames}`;
+      break;
     default:
       return 'Unknown condition';
   }
+  
+  // Add time criteria if present
+  const timeParts = [];
+  if (conditions.timeCriteria) {
+    if (conditions.timeCriteria.inactive !== undefined) {
+      timeParts.push(`inactive for ${conditions.timeCriteria.inactive} min`);
+    }
+    if (conditions.timeCriteria.age !== undefined) {
+      timeParts.push(`older than ${conditions.timeCriteria.age} min`);
+    }
+    if (conditions.timeCriteria.notAccessed !== undefined) {
+      timeParts.push(`not accessed for ${conditions.timeCriteria.notAccessed} min`);
+    }
+  }
+  
+  // Handle legacy format for backward compatibility
+  if (conditions.inactiveMinutes && !conditions.timeCriteria) {
+    timeParts.push(`inactive for ${conditions.inactiveMinutes} min`);
+  }
+  if (conditions.ageMinutes && !conditions.timeCriteria) {
+    timeParts.push(`older than ${conditions.ageMinutes} min`);
+  }
+  
+  if (timeParts.length > 0) {
+    description += ` (${timeParts.join(', ')})`;
+  }
+  
+  return description;
 }
 
 function getActionDescription(actions) {
@@ -3162,6 +3256,32 @@ function setupRulesEventListeners() {
     actionSelect.hasListener = true;
   }
 
+  // Time criteria checkboxes
+  const timeCheckboxes = ['useInactive', 'useAge', 'useNotAccessed'];
+  timeCheckboxes.forEach(id => {
+    const checkbox = document.getElementById(id);
+    if (checkbox && !checkbox.hasListener) {
+      checkbox.addEventListener('change', (e) => {
+        const inputId = id.replace('use', '').toLowerCase() + 'Minutes';
+        const input = document.getElementById(inputId);
+        if (input) {
+          input.disabled = !e.target.checked;
+        }
+      });
+      checkbox.hasListener = true;
+    }
+  });
+
+  // Trigger type select
+  const triggerSelect = document.getElementById('triggerType');
+  if (triggerSelect && !triggerSelect.hasListener) {
+    triggerSelect.addEventListener('change', (e) => {
+      const intervalDiv = document.getElementById('triggerInterval');
+      intervalDiv.style.display = e.target.value === 'periodic' ? 'block' : 'none';
+    });
+    triggerSelect.hasListener = true;
+  }
+
   // Rule card actions (use event delegation)
   const rulesList = document.getElementById('rulesList');
   if (rulesList && !rulesList.hasListener) {
@@ -3271,12 +3391,51 @@ function openRuleModal(rule = null) {
     document.getElementById('ruleCondition').value = rule.conditions.type;
     document.getElementById('ruleAction').value = rule.actions.type;
     document.getElementById('ruleEnabled').checked = rule.enabled;
+    
+    // Load time criteria
+    const timeCriteria = rule.conditions.timeCriteria || {};
+    document.getElementById('useInactive').checked = timeCriteria.inactive !== undefined;
+    document.getElementById('inactiveMinutes').value = timeCriteria.inactive || 60;
+    document.getElementById('inactiveMinutes').disabled = timeCriteria.inactive === undefined;
+    
+    document.getElementById('useAge').checked = timeCriteria.age !== undefined;
+    document.getElementById('ageMinutes').value = timeCriteria.age || 180;
+    document.getElementById('ageMinutes').disabled = timeCriteria.age === undefined;
+    
+    document.getElementById('useNotAccessed').checked = timeCriteria.notAccessed !== undefined;
+    document.getElementById('notAccessedMinutes').value = timeCriteria.notAccessed || 120;
+    document.getElementById('notAccessedMinutes').disabled = timeCriteria.notAccessed === undefined;
+    
+    // Load trigger settings
+    const trigger = rule.trigger || { type: 'event' };
+    document.getElementById('triggerType').value = trigger.type;
+    document.getElementById('intervalMinutes').value = trigger.interval || 15;
+    document.getElementById('triggerInterval').style.display = trigger.type === 'periodic' ? 'block' : 'none';
+    
   } else {
     title.textContent = 'Add New Rule';
     document.getElementById('ruleName').value = '';
     document.getElementById('ruleCondition').value = 'duplicate';
     document.getElementById('ruleAction').value = 'close';
     document.getElementById('ruleEnabled').checked = false; // Start disabled for safety
+    
+    // Reset time criteria
+    document.getElementById('useInactive').checked = false;
+    document.getElementById('inactiveMinutes').value = 60;
+    document.getElementById('inactiveMinutes').disabled = true;
+    
+    document.getElementById('useAge').checked = false;
+    document.getElementById('ageMinutes').value = 180;
+    document.getElementById('ageMinutes').disabled = true;
+    
+    document.getElementById('useNotAccessed').checked = false;
+    document.getElementById('notAccessedMinutes').value = 120;
+    document.getElementById('notAccessedMinutes').disabled = true;
+    
+    // Reset trigger
+    document.getElementById('triggerType').value = 'event';
+    document.getElementById('intervalMinutes').value = 15;
+    document.getElementById('triggerInterval').style.display = 'none';
   }
 
   updateConditionParams();
@@ -3306,17 +3465,14 @@ function updateConditionParams() {
 
     case 'inactive':
       html = `
-        <label>Inactive duration (minutes)</label>
-        <input type="number" id="inactiveMinutes" min="5" value="60">
         <label>URL patterns (comma-separated, optional)</label>
         <input type="text" id="urlPatterns" placeholder="e.g., medium.com, dev.to">
+        <p class="help-text">Leave empty to match all tabs</p>
       `;
       break;
 
     case 'age_and_domain':
       html = `
-        <label>Tab age (minutes)</label>
-        <input type="number" id="ageMinutes" min="5" value="180">
         <label>Specific domains (comma-separated)</label>
         <input type="text" id="domains" placeholder="e.g., stackoverflow.com, github.com">
       `;
@@ -3373,14 +3529,10 @@ function updateConditionParams() {
           document.getElementById('minCount').value = editingRule.conditions.minCount || 3;
         break;
       case 'inactive':
-        if (document.getElementById('inactiveMinutes'))
-          document.getElementById('inactiveMinutes').value = editingRule.conditions.inactiveMinutes || 60;
         if (document.getElementById('urlPatterns') && editingRule.conditions.urlPatterns)
           document.getElementById('urlPatterns').value = editingRule.conditions.urlPatterns.join(', ');
         break;
       case 'age_and_domain':
-        if (document.getElementById('ageMinutes'))
-          document.getElementById('ageMinutes').value = editingRule.conditions.ageMinutes || 180;
         if (document.getElementById('domains') && editingRule.conditions.domains)
           document.getElementById('domains').value = editingRule.conditions.domains.join(', ');
         break;
@@ -3501,7 +3653,6 @@ async function saveRule() {
       break;
 
     case 'inactive':
-      conditions.inactiveMinutes = parseInt(document.getElementById('inactiveMinutes')?.value || 60);
       const urlPatterns = document.getElementById('urlPatterns')?.value;
       if (urlPatterns) {
         conditions.urlPatterns = urlPatterns.split(',').map(p => p.trim()).filter(Boolean);
@@ -3509,7 +3660,6 @@ async function saveRule() {
       break;
 
     case 'age_and_domain':
-      conditions.ageMinutes = parseInt(document.getElementById('ageMinutes')?.value || 180);
       const domains = document.getElementById('domains')?.value;
       if (domains) {
         conditions.domains = domains.split(',').map(d => d.trim()).filter(Boolean);
@@ -3572,13 +3722,38 @@ async function saveRule() {
       break;
   }
 
+  // Build time criteria if any are checked
+  const timeCriteria = {};
+  if (document.getElementById('useInactive').checked) {
+    timeCriteria.inactive = parseInt(document.getElementById('inactiveMinutes').value);
+  }
+  if (document.getElementById('useAge').checked) {
+    timeCriteria.age = parseInt(document.getElementById('ageMinutes').value);
+  }
+  if (document.getElementById('useNotAccessed').checked) {
+    timeCriteria.notAccessed = parseInt(document.getElementById('notAccessedMinutes').value);
+  }
+  
+  // Add time criteria to conditions if any were set
+  if (Object.keys(timeCriteria).length > 0) {
+    conditions.timeCriteria = timeCriteria;
+  }
+  
+  // Build trigger object
+  const triggerType = document.getElementById('triggerType').value;
+  const trigger = { type: triggerType };
+  if (triggerType === 'periodic') {
+    trigger.interval = parseInt(document.getElementById('intervalMinutes').value);
+  }
+
   const rule = {
     id: editingRule?.id || `rule_${Date.now()}`,
     name,
     enabled,
     conditions,
     actions,
-    priority
+    priority,
+    trigger
   };
 
   try {

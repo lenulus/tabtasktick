@@ -34,6 +34,33 @@ const state = {
 };
 
 // ============================================================================
+// Tab Time Tracking
+// ============================================================================
+
+// Track tab timestamps: tabId -> { created, lastActive, lastAccessed }
+const tabTimeData = new Map();
+
+// Initialize time tracking for existing tabs on startup
+async function initializeTabTimeTracking() {
+  try {
+    const tabs = await chrome.tabs.query({});
+    const now = Date.now();
+    
+    tabs.forEach(tab => {
+      tabTimeData.set(tab.id, {
+        created: now - (5 * 60 * 1000), // Assume 5 minutes old for existing tabs
+        lastActive: tab.active ? now : now - (10 * 60 * 1000),
+        lastAccessed: now - (10 * 60 * 1000)
+      });
+    });
+    
+    console.log(`Initialized time tracking for ${tabs.length} tabs`);
+  } catch (error) {
+    console.error('Failed to initialize tab time tracking:', error);
+  }
+}
+
+// ============================================================================
 // Activity Tracking
 // ============================================================================
 
@@ -142,6 +169,8 @@ chrome.runtime.onInstalled.addListener(async () => {
   await loadSettings();
   await loadRules();
   await loadActivityLog();
+  await initializeTabTimeTracking();
+  await setupPeriodicRuleChecking();
   await checkAndMigrateTabs();
 });
 
@@ -150,6 +179,8 @@ chrome.runtime.onStartup.addListener(async () => {
   await loadSettings();
   await loadRules();
   await loadActivityLog();
+  await initializeTabTimeTracking();
+  await setupPeriodicRuleChecking();
   await restoreSnoozedTabs();
   await startMonitoring();
 });
@@ -179,8 +210,123 @@ async function initializeExtension() {
 async function loadRules() {
   const { rules } = await chrome.storage.local.get('rules');
   if (rules) {
-    state.rules = rules;
+    // Migrate rules to new format if needed
+    state.rules = rules.map(migrateRule);
+    
+    // Save migrated rules back to storage
+    await chrome.storage.local.set({ rules: state.rules });
   }
+}
+
+// Migrate old rule format to new format with timeCriteria
+function migrateRule(rule) {
+  // Skip if already migrated
+  if (rule._migrated) return rule;
+  
+  const migratedRule = { ...rule };
+  
+  // Migrate time-based conditions to timeCriteria
+  if (rule.conditions.type === 'inactive' && rule.conditions.inactiveMinutes) {
+    migratedRule.conditions = {
+      ...rule.conditions,
+      timeCriteria: { inactive: rule.conditions.inactiveMinutes }
+    };
+    delete migratedRule.conditions.inactiveMinutes;
+  }
+  
+  if (rule.conditions.type === 'age_and_domain' && rule.conditions.ageMinutes) {
+    migratedRule.conditions = {
+      ...rule.conditions,
+      timeCriteria: { age: rule.conditions.ageMinutes }
+    };
+    delete migratedRule.conditions.ageMinutes;
+  }
+  
+  // Migrate category and url_pattern conditions with inactiveMinutes
+  if ((rule.conditions.type === 'category' || rule.conditions.type === 'url_pattern') && 
+      rule.conditions.inactiveMinutes) {
+    migratedRule.conditions = {
+      ...rule.conditions,
+      timeCriteria: { inactive: rule.conditions.inactiveMinutes }
+    };
+    delete migratedRule.conditions.inactiveMinutes;
+  }
+  
+  // Add default trigger if not present
+  if (!migratedRule.trigger) {
+    migratedRule.trigger = { type: 'event' };
+  }
+  
+  // Mark as migrated to avoid re-processing
+  migratedRule._migrated = true;
+  
+  return migratedRule;
+}
+
+// Set up periodic rule checking
+async function setupPeriodicRuleChecking() {
+  // Clear any existing alarm
+  await chrome.alarms.clear('checkRules');
+  
+  // Create alarm to check rules every minute
+  chrome.alarms.create('checkRules', {
+    delayInMinutes: 1,
+    periodInMinutes: 1
+  });
+  
+  console.log('Periodic rule checking set up (every 1 minute)');
+}
+
+// Handle alarm events
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'checkRules') {
+    checkPeriodicRules();
+  }
+});
+
+async function checkPeriodicRules() {
+  try {
+    const rules = state.rules.filter(rule => {
+      // Only check enabled rules with periodic triggers
+      return rule.enabled && rule.trigger && rule.trigger.type === 'periodic';
+    });
+    
+    console.log(`Checking ${rules.length} periodic rules`);
+    if (rules.length === 0) return;
+    
+    const tabs = await chrome.tabs.query({});
+    const now = Date.now();
+    
+    for (const rule of rules) {
+      // Check if it's time to run this rule based on its interval
+      if (shouldRunPeriodicRule(rule, now)) {
+        console.log(`Running periodic rule: ${rule.name}`, rule.conditions);
+        await applyRule(rule, tabs);
+        
+        // Update last run time
+        rule.lastRun = now;
+        await chrome.storage.local.set({ rules: state.rules });
+        
+        // Log the automatic execution
+        logActivity(rule.actions.type, `Auto: ${rule.name}`, 'rule');
+      }
+    }
+  } catch (error) {
+    console.error('Error in periodic rule check:', error);
+  }
+}
+
+function shouldRunPeriodicRule(rule, now) {
+  if (!rule.trigger || rule.trigger.type !== 'periodic') return false;
+  
+  const intervalMinutes = rule.trigger.interval || 15; // Default 15 minutes
+  const intervalMs = intervalMinutes * 60 * 1000;
+  
+  // If never run, run now
+  if (!rule.lastRun) return true;
+  
+  // Check if interval has passed
+  return (now - rule.lastRun) >= intervalMs;
 }
 
 async function evaluateRules() {
@@ -197,7 +343,15 @@ async function evaluateRules() {
 }
 
 async function applyRule(rule, tabs) {
-  let matchingTabs = tabs.filter(tab => evaluateCondition(rule.conditions, tab, tabs));
+  console.log(`Applying rule "${rule.name}" to ${tabs.length} tabs`);
+  
+  // Use Promise.all to handle async evaluation
+  const evaluations = await Promise.all(
+    tabs.map(tab => evaluateCondition(rule.conditions, tab, tabs))
+  );
+  let matchingTabs = tabs.filter((tab, index) => evaluations[index]);
+  
+  console.log(`Rule "${rule.name}" matched ${matchingTabs.length} tabs`);
 
   // Special handling for duplicate condition with keepFirst
   if (rule.conditions.type === 'duplicate' && rule.actions.type === 'close') {
@@ -233,29 +387,87 @@ async function applyRule(rule, tabs) {
   }
 }
 
-function evaluateCondition(conditions, tab, allTabs) {
+// Helper function to check time criteria
+function checkTimeCriteria(tab, timeCriteria) {
+  const timeData = tabTimeData.get(tab.id);
+  if (!timeData) return false;
+  
+  const now = Date.now();
+  
+  // Check inactive time (not active or pinned)
+  if (timeCriteria.inactive !== undefined) {
+    const inactiveMinutes = (now - timeData.lastActive) / 60000;
+    if (inactiveMinutes < timeCriteria.inactive || tab.active || tab.pinned) {
+      return false;
+    }
+  }
+  
+  // Check tab age
+  if (timeCriteria.age !== undefined) {
+    const ageMinutes = (now - timeData.created) / 60000;
+    if (ageMinutes < timeCriteria.age) {
+      return false;
+    }
+  }
+  
+  // Check not accessed time
+  if (timeCriteria.notAccessed !== undefined) {
+    const notAccessedMinutes = (now - timeData.lastAccessed) / 60000;
+    if (notAccessedMinutes < timeCriteria.notAccessed) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+async function evaluateCondition(conditions, tab, allTabs) {
+  let matches = false;
+  
+  // First check the base condition
   switch (conditions.type) {
     case 'duplicate':
-      return isDuplicateTab(tab, allTabs);
+      matches = isDuplicateTab(tab, allTabs);
+      break;
     
     case 'domain_count':
-      return shouldGroupByDomain(tab, allTabs, conditions.minCount);
+      matches = shouldGroupByDomain(tab, allTabs, conditions.minCount);
+      break;
     
     case 'inactive':
-      return isInactiveTab(tab, conditions);
+      // For backward compatibility, convert old format
+      if (conditions.inactiveMinutes && !conditions.timeCriteria) {
+        conditions.timeCriteria = { inactive: conditions.inactiveMinutes };
+      }
+      matches = isInactiveTab(tab, conditions);
+      break;
     
     case 'age_and_domain':
-      return isOldDomainTab(tab, conditions);
+      // For backward compatibility, convert old format
+      if (conditions.ageMinutes && !conditions.timeCriteria) {
+        conditions.timeCriteria = { age: conditions.ageMinutes };
+      }
+      matches = isOldDomainTab(tab, conditions);
+      break;
     
     case 'url_pattern':
-      return isUrlPatternMatch(tab, conditions);
+      matches = isUrlPatternMatch(tab, conditions);
+      break;
     
     case 'category':
-      return isCategoryMatch(tab, conditions);
+      matches = await isCategoryMatch(tab, conditions);
+      break;
 
     default:
       return false;
   }
+  
+  // Then apply time criteria if specified (new unified approach)
+  if (matches && conditions.timeCriteria) {
+    matches = checkTimeCriteria(tab, conditions.timeCriteria);
+  }
+  
+  return matches;
 }
 
 async function executeAction(action, tabs) {
@@ -314,17 +526,17 @@ function shouldGroupByDomain(tab, allTabs, minCount) {
 }
 
 function isInactiveTab(tab, conditions) {
-  // Check if tab matches URL patterns
-  if (conditions.urlPatterns) {
+  // Check if tab matches URL patterns (if specified)
+  if (conditions.urlPatterns && conditions.urlPatterns.length > 0) {
     const matches = conditions.urlPatterns.some(pattern => 
       tab.url.includes(pattern)
     );
-    if (!matches) return false;
+    return matches;
   }
   
-  // In a real implementation, we'd track last access time
-  // For now, we'll use a simplified check
-  return !tab.active && !tab.pinned;
+  // If no URL patterns specified, match all non-pinned tabs
+  // Time criteria will be checked separately
+  return !tab.pinned;
 }
 
 function isOldDomainTab(tab, conditions) {
@@ -334,9 +546,8 @@ function isOldDomainTab(tab, conditions) {
     const domain = new URL(tab.url).hostname;
     const matches = conditions.domains.some(d => domain.includes(d));
     
-    // In a real implementation, we'd track tab creation time
-    // For now, return matches for domain
-    return matches && !tab.pinned && !tab.active;
+    // Just check domain match; time criteria handled separately
+    return matches && !tab.pinned;
   } catch {
     return false;
   }
@@ -350,14 +561,7 @@ function isUrlPatternMatch(tab, conditions) {
     const regex = new RegExp(conditions.pattern);
     const matches = regex.test(tab.url);
     
-    // Check inactive time if specified (default 30 minutes)
-    if (matches && conditions.inactiveMinutes) {
-      // For now, consider tab inactive if not active/pinned
-      // In real implementation, track last access time
-      const isInactive = !tab.active && !tab.pinned;
-      return isInactive;
-    }
-    
+    // Just check pattern match; time criteria handled separately
     return matches && !tab.pinned;
   } catch (e) {
     console.error('Invalid regex pattern:', conditions.pattern, e);
@@ -379,23 +583,42 @@ async function isCategoryMatch(tab, conditions) {
     const userCategories = domainCategories[domain] || [];
     
     // Then check built-in categories (imported from domain-categories.js)
-    // For now, we'll implement a simple check - in production, import the module
     const builtInCategories = getBuiltInCategoriesForDomain(domain);
     
     // Combine categories
     const allCategories = [...new Set([...userCategories, ...builtInCategories])];
     
+    // If no categories found for this domain, it doesn't match any category
+    if (allCategories.length === 0) {
+      return false;
+    }
+    
+    // Debug logging - log ALL domain checks when checking for social
+    if (conditions.categories.includes('social')) {
+      const wouldMatch = conditions.categories.some(cat => allCategories.includes(cat));
+      const finalResult = wouldMatch && !tab.pinned;
+      console.log(`Category match check for ${domain}:`, {
+        url: tab.url,
+        domain,
+        userCategories,
+        builtInCategories,
+        allCategories,
+        lookingFor: conditions.categories,
+        wouldMatch,
+        isPinned: tab.pinned,
+        finalResult
+      });
+      console.log(`  -> Would match social? ${wouldMatch} (looking for ${conditions.categories.join(',')} in ${allCategories.join(',')})`);
+      console.log(`  -> Final result: ${finalResult}`);
+    }
+    
     // Check if any of the tab's categories match the rule's categories
     const matches = conditions.categories.some(cat => allCategories.includes(cat));
     
-    // Check inactive time if specified
-    if (matches && conditions.inactiveMinutes) {
-      const isInactive = !tab.active && !tab.pinned;
-      return isInactive;
-    }
-    
+    // Just check category match; time criteria handled separately
     return matches && !tab.pinned;
-  } catch {
+  } catch (error) {
+    console.error('Category match error:', error);
     return false;
   }
 }
@@ -406,25 +629,25 @@ let DOMAIN_CATEGORIES_MAP = {};
 // Load domain categories at startup
 async function loadDomainCategories() {
   try {
-    // In a Chrome extension, we need to fetch the file
-    const response = await fetch(chrome.runtime.getURL('lib/domain-categories-generated.js'));
-    const text = await response.text();
+    console.log('Loading domain categories...');
+    const response = await fetch(chrome.runtime.getURL('lib/domain-categories.json'));
+    const domains = await response.json();
     
-    // Parse the JavaScript module content
-    // Extract the CATEGORIZED_DOMAINS array
-    const match = text.match(/export const CATEGORIZED_DOMAINS = \[([\s\S]*?)\];/);
-    if (match) {
-      // Create a map for faster lookups
-      const domainsStr = match[1];
-      // Use eval carefully here - we control the source
-      const domains = eval('[' + domainsStr + ']');
-      
-      domains.forEach(d => {
-        DOMAIN_CATEGORIES_MAP[d.domain] = d.categories;
-      });
-      
-      console.log(`Loaded ${Object.keys(DOMAIN_CATEGORIES_MAP).length} categorized domains`);
-    }
+    console.log('Fetched domains:', domains.length);
+    
+    // Create map for faster lookups
+    domains.forEach(d => {
+      DOMAIN_CATEGORIES_MAP[d.domain] = d.categories;
+    });
+    
+    console.log(`Loaded ${Object.keys(DOMAIN_CATEGORIES_MAP).length} categorized domains`);
+    // Test a few known domains
+    console.log('Test lookups:', {
+      'google.com': DOMAIN_CATEGORIES_MAP['google.com'],
+      'facebook.com': DOMAIN_CATEGORIES_MAP['facebook.com'],
+      'instagram.com': DOMAIN_CATEGORIES_MAP['instagram.com'],
+      'mail.google.com with subdomain stripping': getBuiltInCategoriesForDomain('mail.google.com')
+    });
   } catch (error) {
     console.error('Failed to load domain categories:', error);
     // Fallback to basic categories
@@ -453,10 +676,12 @@ function getBuiltInCategoriesForDomain(domain) {
   if (parts.length > 2) {
     const withoutSubdomain = parts.slice(1).join('.');
     if (DOMAIN_CATEGORIES_MAP[withoutSubdomain]) {
+      console.log(`Found categories for ${domain} by stripping to ${withoutSubdomain}:`, DOMAIN_CATEGORIES_MAP[withoutSubdomain]);
       return DOMAIN_CATEGORIES_MAP[withoutSubdomain];
     }
   }
   
+  console.log(`No categories found for ${domain} in map with ${Object.keys(DOMAIN_CATEGORIES_MAP).length} domains`);
   return [];
 }
 
@@ -921,8 +1146,24 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // Track bulk operations to avoid double-logging
 let bulkOperationInProgress = false;
 
-// Log tab closes to activity history
+// Tab event listeners with time tracking
+chrome.tabs.onCreated.addListener((tab) => {
+  // Track time data for new tab
+  tabTimeData.set(tab.id, {
+    created: Date.now(),
+    lastActive: Date.now(),
+    lastAccessed: Date.now()
+  });
+  
+  // Log activity
+  logActivity('create', 'Opened new tab', 'manual');
+  trackTabHistory('opened');
+});
+
 chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+  // Remove time data
+  tabTimeData.delete(tabId);
+  
   // Skip logging if:
   // 1. Window is closing (too noisy)
   // 2. Part of a bulk operation (will be logged as bulk)
@@ -932,10 +1173,37 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
   }
 });
 
-// Log tab creations
-chrome.tabs.onCreated.addListener((tab) => {
-  logActivity('create', 'Opened new tab', 'manual');
-  trackTabHistory('opened');
+chrome.tabs.onActivated.addListener(async ({ tabId, windowId }) => {
+  // Update last active time
+  const timeData = tabTimeData.get(tabId);
+  if (timeData) {
+    timeData.lastActive = Date.now();
+    timeData.lastAccessed = Date.now();
+  } else {
+    // Tab might have been created before we started tracking
+    tabTimeData.set(tabId, {
+      created: Date.now() - (5 * 60 * 1000), // Assume 5 minutes old
+      lastActive: Date.now(),
+      lastAccessed: Date.now()
+    });
+  }
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // Track navigation/reload as access
+  if (changeInfo.url || changeInfo.status === 'loading') {
+    const timeData = tabTimeData.get(tabId);
+    if (timeData) {
+      timeData.lastAccessed = Date.now();
+    } else {
+      // Tab might have been created before we started tracking
+      tabTimeData.set(tabId, {
+        created: Date.now() - (5 * 60 * 1000), // Assume 5 minutes old
+        lastActive: tab.active ? Date.now() : Date.now() - (10 * 60 * 1000),
+        lastAccessed: Date.now()
+      });
+    }
+  }
 });
 
 // Log tab groups
@@ -1291,7 +1559,12 @@ async function previewRule(ruleId) {
   if (!rule) return { matchingTabs: [] };
 
   const tabs = await chrome.tabs.query({});
-  let matchingTabs = tabs.filter(tab => evaluateCondition(rule.conditions, tab, tabs));
+  
+  // Use Promise.all to handle async evaluation (same as applyRule)
+  const evaluations = await Promise.all(
+    tabs.map(tab => evaluateCondition(rule.conditions, tab, tabs))
+  );
+  let matchingTabs = tabs.filter((tab, index) => evaluations[index]);
 
   // Apply the same logic for duplicates as in applyRule
   if (rule.conditions.type === 'duplicate' && rule.actions.type === 'close') {

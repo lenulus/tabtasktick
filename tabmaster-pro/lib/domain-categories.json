@@ -1,0 +1,342 @@
+[
+  {
+    "domain": "google.com",
+    "rank": 1,
+    "categories": ["productivity_tools", "search"]
+  },
+  {
+    "domain": "youtube.com",
+    "rank": 2,
+    "categories": ["streaming_entertainment"]
+  },
+  {
+    "domain": "microsoft.com",
+    "rank": 3,
+    "categories": ["productivity_tools", "tech_dev"]
+  },
+  {
+    "domain": "facebook.com",
+    "rank": 4,
+    "categories": ["social"]
+  },
+  {
+    "domain": "amazon.com",
+    "rank": 5,
+    "categories": ["shopping"]
+  },
+  {
+    "domain": "netflix.com",
+    "rank": 6,
+    "categories": ["streaming_entertainment"]
+  },
+  {
+    "domain": "wikipedia.org",
+    "rank": 7,
+    "categories": ["reference_research"]
+  },
+  {
+    "domain": "cloudflare.com",
+    "rank": 8,
+    "categories": ["tech_dev"]
+  },
+  {
+    "domain": "apple.com",
+    "rank": 10,
+    "categories": ["shopping", "tech_dev"]
+  },
+  {
+    "domain": "instagram.com",
+    "rank": 11,
+    "categories": ["social"]
+  },
+  {
+    "domain": "twitter.com",
+    "rank": 14,
+    "categories": ["social"]
+  },
+  {
+    "domain": "linkedin.com",
+    "rank": 17,
+    "categories": ["professional", "social"]
+  },
+  {
+    "domain": "reddit.com",
+    "rank": 23,
+    "categories": ["social", "reference_research"]
+  },
+  {
+    "domain": "pinterest.com",
+    "rank": 25,
+    "categories": ["social", "entertainment"]
+  },
+  {
+    "domain": "ebay.com",
+    "rank": 28,
+    "categories": ["shopping"]
+  },
+  {
+    "domain": "office.com",
+    "rank": 15,
+    "categories": ["productivity_tools"]
+  },
+  {
+    "domain": "docs.google.com",
+    "rank": 38,
+    "categories": ["productivity_tools"]
+  },
+  {
+    "domain": "github.com",
+    "rank": 45,
+    "categories": ["tech_dev", "productivity_tools"]
+  },
+  {
+    "domain": "stackoverflow.com",
+    "rank": 60,
+    "categories": ["tech_dev", "reference_research"]
+  },
+  {
+    "domain": "twitch.tv",
+    "rank": 35,
+    "categories": ["streaming_entertainment", "gaming"]
+  },
+  {
+    "domain": "spotify.com",
+    "rank": 50,
+    "categories": ["music", "streaming_entertainment"]
+  },
+  {
+    "domain": "cnn.com",
+    "rank": 70,
+    "categories": ["news_media"]
+  },
+  {
+    "domain": "bbc.com",
+    "rank": 75,
+    "categories": ["news_media"]
+  },
+  {
+    "domain": "nytimes.com",
+    "rank": 80,
+    "categories": ["news_media"]
+  },
+  {
+    "domain": "medium.com",
+    "rank": 90,
+    "categories": ["reference_research", "entertainment"]
+  },
+  {
+    "domain": "quora.com",
+    "rank": 80,
+    "categories": ["social", "reference_research"]
+  },
+  {
+    "domain": "discord.com",
+    "rank": 45,
+    "categories": ["communication", "gaming"]
+  },
+  {
+    "domain": "zoom.us",
+    "rank": 55,
+    "categories": ["communication", "productivity_tools"]
+  },
+  {
+    "domain": "slack.com",
+    "rank": 65,
+    "categories": ["communication", "productivity_tools"]
+  },
+  {
+    "domain": "dropbox.com",
+    "rank": 125,
+    "categories": ["productivity_tools"]
+  },
+  {
+    "domain": "adobe.com",
+    "rank": 100,
+    "categories": ["productivity_tools", "tech_dev"]
+  },
+  {
+    "domain": "paypal.com",
+    "rank": 40,
+    "categories": ["finance"]
+  },
+  {
+    "domain": "chase.com",
+    "rank": 150,
+    "categories": ["finance"]
+  },
+  {
+    "domain": "wellsfargo.com",
+    "rank": 200,
+    "categories": ["finance"]
+  },
+  {
+    "domain": "bankofamerica.com",
+    "rank": 180,
+    "categories": ["finance"]
+  },
+  {
+    "domain": "walmart.com",
+    "rank": 120,
+    "categories": ["shopping"]
+  },
+  {
+    "domain": "target.com",
+    "rank": 140,
+    "categories": ["shopping"]
+  },
+  {
+    "domain": "bestbuy.com",
+    "rank": 160,
+    "categories": ["shopping", "tech_dev"]
+  },
+  {
+    "domain": "homedepot.com",
+    "rank": 170,
+    "categories": ["shopping"]
+  },
+  {
+    "domain": "etsy.com",
+    "rank": 130,
+    "categories": ["shopping"]
+  },
+  {
+    "domain": "aliexpress.com",
+    "rank": 110,
+    "categories": ["shopping"]
+  },
+  {
+    "domain": "alibaba.com",
+    "rank": 115,
+    "categories": ["shopping"]
+  },
+  {
+    "domain": "booking.com",
+    "rank": 95,
+    "categories": ["travel"]
+  },
+  {
+    "domain": "airbnb.com",
+    "rank": 105,
+    "categories": ["travel"]
+  },
+  {
+    "domain": "expedia.com",
+    "rank": 135,
+    "categories": ["travel"]
+  },
+  {
+    "domain": "tripadvisor.com",
+    "rank": 145,
+    "categories": ["travel", "reference_research"]
+  },
+  {
+    "domain": "uber.com",
+    "rank": 155,
+    "categories": ["travel", "food_delivery"]
+  },
+  {
+    "domain": "doordash.com",
+    "rank": 165,
+    "categories": ["food_delivery"]
+  },
+  {
+    "domain": "grubhub.com",
+    "rank": 175,
+    "categories": ["food_delivery"]
+  },
+  {
+    "domain": "yelp.com",
+    "rank": 185,
+    "categories": ["reference_research", "food_delivery"]
+  },
+  {
+    "domain": "espn.com",
+    "rank": 190,
+    "categories": ["sports", "news_media"]
+  },
+  {
+    "domain": "weather.com",
+    "rank": 85,
+    "categories": ["reference_research", "news_media"]
+  },
+  {
+    "domain": "imdb.com",
+    "rank": 65,
+    "categories": ["reference_research", "entertainment"]
+  },
+  {
+    "domain": "fandom.com",
+    "rank": 75,
+    "categories": ["reference_research", "entertainment"]
+  },
+  {
+    "domain": "hulu.com",
+    "rank": 85,
+    "categories": ["streaming_entertainment"]
+  },
+  {
+    "domain": "disneyplus.com",
+    "rank": 95,
+    "categories": ["streaming_entertainment"]
+  },
+  {
+    "domain": "hbomax.com",
+    "rank": 105,
+    "categories": ["streaming_entertainment"]
+  },
+  {
+    "domain": "paramount.com",
+    "rank": 115,
+    "categories": ["streaming_entertainment"]
+  },
+  {
+    "domain": "peacocktv.com",
+    "rank": 125,
+    "categories": ["streaming_entertainment"]
+  },
+  {
+    "domain": "steam.com",
+    "rank": 40,
+    "categories": ["gaming", "shopping"]
+  },
+  {
+    "domain": "epicgames.com",
+    "rank": 150,
+    "categories": ["gaming"]
+  },
+  {
+    "domain": "roblox.com",
+    "rank": 55,
+    "categories": ["gaming"]
+  },
+  {
+    "domain": "minecraft.net",
+    "rank": 160,
+    "categories": ["gaming"]
+  },
+  {
+    "domain": "coursera.org",
+    "rank": 170,
+    "categories": ["education"]
+  },
+  {
+    "domain": "udemy.com",
+    "rank": 180,
+    "categories": ["education"]
+  },
+  {
+    "domain": "khanacademy.org",
+    "rank": 190,
+    "categories": ["education"]
+  },
+  {
+    "domain": "edx.org",
+    "rank": 200,
+    "categories": ["education"]
+  },
+  {
+    "domain": "duolingo.com",
+    "rank": 210,
+    "categories": ["education"]
+  }
+]

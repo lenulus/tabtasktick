@@ -568,6 +568,38 @@
           <!-- Dynamic condition parameters -->
         </div>
 
+        <div class="form-group time-criteria" id="timeCriteriaSection">
+          <label>Time Criteria (optional)</label>
+          <div class="time-options">
+            <label class="time-option">
+              <input type="checkbox" id="useInactive">
+              <span>Inactive for</span>
+              <input type="number" id="inactiveMinutes" min="5" value="60" class="time-input"> minutes
+            </label>
+            <label class="time-option">
+              <input type="checkbox" id="useAge">
+              <span>Older than</span>
+              <input type="number" id="ageMinutes" min="5" value="180" class="time-input"> minutes
+            </label>
+            <label class="time-option">
+              <input type="checkbox" id="useNotAccessed">
+              <span>Not accessed for</span>
+              <input type="number" id="notAccessedMinutes" min="5" value="120" class="time-input"> minutes
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group trigger-type" id="triggerSection">
+          <label for="triggerType">When to check</label>
+          <select id="triggerType">
+            <option value="event">On tab events (immediate)</option>
+            <option value="periodic">Periodically</option>
+          </select>
+          <div id="triggerInterval" style="display:none;">
+            <label>Check every <input type="number" id="intervalMinutes" min="1" value="15" class="time-input"> minutes</label>
+          </div>
+        </div>
+
         <div class="form-group action-params" id="actionParams">
           <!-- Dynamic action parameters -->
         </div>

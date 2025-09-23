@@ -2131,3 +2131,58 @@ input:checked + .slider:before {
 .dark-theme .category-checkboxes label:hover {
   background-color: #2a2a2a;
 }
+
+/* Time criteria options */
+.time-criteria {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.time-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.time-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.time-option input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+.time-input {
+  width: 60px;
+  padding: 4px 8px;
+  margin: 0 5px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.time-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trigger-type {
+  margin-top: 20px;
+}
+
+#triggerInterval {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+/* Dark mode for time criteria */
+.dark-theme .time-input {
+  background-color: #1a1a1a;
+  border-color: #333;
+}
