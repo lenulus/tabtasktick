@@ -2881,6 +2881,31 @@ function getSampleRules() {
       },
       actions: { type: 'close', saveToBookmarks: false },
       priority: 4,
+    },
+    {
+      id: 'sample_5',
+      name: 'Close inactive social media tabs',
+      description: 'Close social media tabs after 60 minutes of inactivity',
+      enabled: false,
+      conditions: {
+        type: 'category',
+        categories: ['social'],
+        inactiveMinutes: 60
+      },
+      actions: { type: 'close', saveToBookmarks: false },
+      priority: 5,
+    },
+    {
+      id: 'sample_6',
+      name: 'Group shopping tabs together',
+      description: 'Automatically group all shopping sites into one tab group',
+      enabled: false,
+      conditions: {
+        type: 'category',
+        categories: ['shopping']
+      },
+      actions: { type: 'group', groupBy: 'category' },
+      priority: 6,
     }
   ];
 }
@@ -3009,6 +3034,9 @@ function getConditionDescription(conditions) {
       return `Tabs older than ${conditions.ageMinutes} minutes from ${conditions.domains.join(', ')}`;
     case 'url_pattern':
       return `URLs matching pattern "${conditions.pattern}"${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
+    case 'category':
+      const categoryNames = conditions.categories ? conditions.categories.join(', ') : 'none';
+      return `Sites in categories: ${categoryNames}${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
     default:
       return 'Unknown condition';
   }
@@ -3297,6 +3325,42 @@ function updateConditionParams() {
     case 'duplicate':
       // No additional parameters needed
       break;
+
+    case 'url_pattern':
+      html = `
+        <label>URL pattern (regex)</label>
+        <input type="text" id="urlPattern" placeholder="e.g., .*\\.github\\.com/.*">
+        <p class="help-text">Use regular expressions. Example: .*\\.example\\.com/.* matches all example.com URLs</p>
+      `;
+      break;
+
+    case 'category':
+      html = `
+        <label>Select categories</label>
+        <div id="categoryCheckboxes" class="category-checkboxes">
+          <label><input type="checkbox" value="social"> Social Media</label>
+          <label><input type="checkbox" value="streaming_entertainment"> Streaming & Entertainment</label>
+          <label><input type="checkbox" value="news_media"> News & Media</label>
+          <label><input type="checkbox" value="shopping"> Shopping</label>
+          <label><input type="checkbox" value="productivity_tools"> Productivity Tools</label>
+          <label><input type="checkbox" value="reference_research"> Reference & Research</label>
+          <label><input type="checkbox" value="tech_dev"> Tech & Development</label>
+          <label><input type="checkbox" value="gaming"> Gaming</label>
+          <label><input type="checkbox" value="finance"> Finance</label>
+          <label><input type="checkbox" value="communication"> Communication</label>
+          <label><input type="checkbox" value="entertainment"> Entertainment</label>
+          <label><input type="checkbox" value="education"> Education</label>
+          <label><input type="checkbox" value="travel"> Travel</label>
+          <label><input type="checkbox" value="food_delivery"> Food Delivery</label>
+          <label><input type="checkbox" value="health_fitness"> Health & Fitness</label>
+          <label><input type="checkbox" value="government"> Government</label>
+          <label><input type="checkbox" value="crypto"> Cryptocurrency</label>
+          <label><input type="checkbox" value="sports"> Sports</label>
+          <label><input type="checkbox" value="music"> Music</label>
+        </div>
+        <p class="help-text">Select one or more categories to match</p>
+      `;
+      break;
   }
 
   paramsContainer.innerHTML = html;
@@ -3319,6 +3383,20 @@ function updateConditionParams() {
           document.getElementById('ageMinutes').value = editingRule.conditions.ageMinutes || 180;
         if (document.getElementById('domains') && editingRule.conditions.domains)
           document.getElementById('domains').value = editingRule.conditions.domains.join(', ');
+        break;
+      
+      case 'url_pattern':
+        if (document.getElementById('urlPattern'))
+          document.getElementById('urlPattern').value = editingRule.conditions.pattern || '';
+        break;
+      
+      case 'category':
+        if (editingRule.conditions.categories) {
+          const checkboxes = document.querySelectorAll('#categoryCheckboxes input[type="checkbox"]');
+          checkboxes.forEach(checkbox => {
+            checkbox.checked = editingRule.conditions.categories.includes(checkbox.value);
+          });
+        }
         break;
     }
   }
@@ -3439,6 +3517,36 @@ async function saveRule() {
         alert('Please specify at least one domain');
         return;
       }
+      break;
+    
+    case 'url_pattern':
+      const pattern = document.getElementById('urlPattern')?.value?.trim();
+      if (pattern) {
+        try {
+          // Validate regex
+          new RegExp(pattern);
+          conditions.pattern = pattern;
+        } catch (e) {
+          alert('Invalid regular expression: ' + e.message);
+          return;
+        }
+      } else {
+        alert('Please specify a URL pattern');
+        return;
+      }
+      break;
+    
+    case 'category':
+      const selectedCategories = [];
+      const checkboxes = document.querySelectorAll('#categoryCheckboxes input[type="checkbox"]:checked');
+      checkboxes.forEach(checkbox => {
+        selectedCategories.push(checkbox.value);
+      });
+      if (selectedCategories.length === 0) {
+        alert('Please select at least one category');
+        return;
+      }
+      conditions.categories = selectedCategories;
       break;
   }
 

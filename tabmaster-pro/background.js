@@ -136,6 +136,7 @@ async function loadActivityLog() {
 
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('TabMaster Pro installed');
+  await loadDomainCategories();
   await initializeExtension();
   await setupContextMenus();
   await loadSettings();
@@ -145,6 +146,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onStartup.addListener(async () => {
+  await loadDomainCategories();
   await loadSettings();
   await loadRules();
   await loadActivityLog();
@@ -247,6 +249,9 @@ function evaluateCondition(conditions, tab, allTabs) {
     
     case 'url_pattern':
       return isUrlPatternMatch(tab, conditions);
+    
+    case 'category':
+      return isCategoryMatch(tab, conditions);
 
     default:
       return false;
@@ -358,6 +363,101 @@ function isUrlPatternMatch(tab, conditions) {
     console.error('Invalid regex pattern:', conditions.pattern, e);
     return false;
   }
+}
+
+async function isCategoryMatch(tab, conditions) {
+  if (!conditions.categories || conditions.categories.length === 0) return false;
+  
+  try {
+    const url = new URL(tab.url);
+    const domain = url.hostname.replace(/^www\./, '');
+    
+    // Get categories for this domain from storage or built-in list
+    const { domainCategories = {} } = await chrome.storage.local.get('domainCategories');
+    
+    // Check user-defined categories first
+    const userCategories = domainCategories[domain] || [];
+    
+    // Then check built-in categories (imported from domain-categories.js)
+    // For now, we'll implement a simple check - in production, import the module
+    const builtInCategories = getBuiltInCategoriesForDomain(domain);
+    
+    // Combine categories
+    const allCategories = [...new Set([...userCategories, ...builtInCategories])];
+    
+    // Check if any of the tab's categories match the rule's categories
+    const matches = conditions.categories.some(cat => allCategories.includes(cat));
+    
+    // Check inactive time if specified
+    if (matches && conditions.inactiveMinutes) {
+      const isInactive = !tab.active && !tab.pinned;
+      return isInactive;
+    }
+    
+    return matches && !tab.pinned;
+  } catch {
+    return false;
+  }
+}
+
+// Import domain categories (loaded at startup)
+let DOMAIN_CATEGORIES_MAP = {};
+
+// Load domain categories at startup
+async function loadDomainCategories() {
+  try {
+    // In a Chrome extension, we need to fetch the file
+    const response = await fetch(chrome.runtime.getURL('lib/domain-categories-generated.js'));
+    const text = await response.text();
+    
+    // Parse the JavaScript module content
+    // Extract the CATEGORIZED_DOMAINS array
+    const match = text.match(/export const CATEGORIZED_DOMAINS = \[([\s\S]*?)\];/);
+    if (match) {
+      // Create a map for faster lookups
+      const domainsStr = match[1];
+      // Use eval carefully here - we control the source
+      const domains = eval('[' + domainsStr + ']');
+      
+      domains.forEach(d => {
+        DOMAIN_CATEGORIES_MAP[d.domain] = d.categories;
+      });
+      
+      console.log(`Loaded ${Object.keys(DOMAIN_CATEGORIES_MAP).length} categorized domains`);
+    }
+  } catch (error) {
+    console.error('Failed to load domain categories:', error);
+    // Fallback to basic categories
+    DOMAIN_CATEGORIES_MAP = {
+      'google.com': ['search', 'productivity_tools'],
+      'youtube.com': ['streaming_entertainment', 'social'],
+      'facebook.com': ['social'],
+      'reddit.com': ['social', 'reference_research'],
+      'github.com': ['tech_dev', 'productivity_tools'],
+      'stackoverflow.com': ['tech_dev', 'reference_research'],
+      'amazon.com': ['shopping'],
+      'netflix.com': ['streaming_entertainment']
+    };
+  }
+}
+
+// Get categories for a domain
+function getBuiltInCategoriesForDomain(domain) {
+  // Direct lookup
+  if (DOMAIN_CATEGORIES_MAP[domain]) {
+    return DOMAIN_CATEGORIES_MAP[domain];
+  }
+  
+  // Try without subdomain
+  const parts = domain.split('.');
+  if (parts.length > 2) {
+    const withoutSubdomain = parts.slice(1).join('.');
+    if (DOMAIN_CATEGORIES_MAP[withoutSubdomain]) {
+      return DOMAIN_CATEGORIES_MAP[withoutSubdomain];
+    }
+  }
+  
+  return [];
 }
 
 async function closeTabsAction(tabs, action) {

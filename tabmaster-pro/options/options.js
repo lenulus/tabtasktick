@@ -192,6 +192,9 @@ function getConditionDescription(conditions) {
       return `Memory usage exceeds ${conditions.thresholdPercent}%`;
     case 'url_pattern':
       return `URLs matching "${conditions.pattern}"${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
+    case 'category':
+      const categoryNames = conditions.categories ? conditions.categories.join(', ') : 'none';
+      return `Sites in categories: ${categoryNames}${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
     default:
       return 'Unknown condition';
   }

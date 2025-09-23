@@ -1,0 +1,52 @@
+{
+  "generated_at": "2025-09-23T05:28:44.283288+00:00",
+  "sources": {
+    "tranco": {
+      "file": "tranco_20250922_222539.csv.zip",
+      "fetched_at": "2025-09-23T05:28:44.283288+00:00",
+      "domains_processed": 1000
+    }
+  },
+  "filtering": {
+    "adult_gambling_patterns": [
+      "porn",
+      "sex",
+      "xxx",
+      "xvideos",
+      "xnxx",
+      "xhamster",
+      "hentai",
+      "redtube",
+      "brazzers",
+      "youporn",
+      "cam",
+      "escort",
+      "adult",
+      "nsfw",
+      "nude",
+      "bet",
+      "casino",
+      "bookmaker",
+      "wager",
+      "lotto",
+      "gambling",
+      "poker",
+      "slots",
+      "bingo",
+      "888",
+      "betway",
+      "sportbet",
+      "oddschecker"
+    ],
+    "allowlist": [
+      "sexualhealth.com",
+      "betterhealth.vic.gov.au"
+    ],
+    "excluded_count": 0
+  },
+  "output": {
+    "total_domains": 1000,
+    "categorized_domains": 126,
+    "uncategorized_domains": 874
+  }
+}

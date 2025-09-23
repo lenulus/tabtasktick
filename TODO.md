@@ -137,14 +137,15 @@ This document tracks the implementation status of TabMaster Pro features and rem
 ## Advanced Features (Not Started)
 
 ### Rules Engine
-- 🚧 Move rules from settings to dashboard (better discoverability)
-- ⚠️ Fix Edit/Disable/Delete functionality (currently broken)
-- ⚠️ Remove or disable dangerous default rules (5 pre-populated rules)
-- ❌ Create custom rules
-- ❌ Rule conditions (URL patterns, time, memory)
-- ❌ Rule actions (close, group, snooze)
-- ❌ Rule scheduling
-- ❌ Rule templates
+- ✅ Move rules from settings to dashboard (better discoverability)
+- ✅ Fix Edit/Disable/Delete functionality (currently broken)
+- ✅ Remove or disable dangerous default rules (5 pre-populated rules)
+- ✅ Create custom rules
+- ✅ Rule conditions (URL patterns, time, memory) - Basic implementation
+- ✅ Rule actions (close, group, snooze)
+- ⚠️ Rule conditions inconsistent time handling [Spec: SPEC-002]
+- ❌ Rule scheduling (periodic triggers)
+- ❌ Rule templates (beyond sample rules)
 - ❌ Rule import/export
 
 ### Command Palette
@@ -204,16 +205,17 @@ This document tracks the implementation status of TabMaster Pro features and rem
 ## Next Priority Items
 
 ### High Priority (P1)
-1. Complete tree view for All Tabs dashboard
-2. Move rules engine to dashboard for better discoverability
-3. Fix rules Edit/Disable/Delete functionality
-4. Make popup stats clickable with navigation to dashboard
-5. Replace popup memory stat with meaningful metric
-6. Remove/disable dangerous default rules
+1. Implement unified time-based triggers [Spec: SPEC-002]
+   - Tab time tracking (created, lastActive, lastAccessed)
+   - Time criteria as optional modifiers for all conditions
+   - Periodic rule checking with chrome.alarms
+   - Update UI to support time criteria consistently
+2. Make popup stats clickable with navigation to dashboard
+3. Add "Create Rule" button to popup
+4. Fix virtual scrolling for performance with 200+ tabs
 
 ### Medium Priority (P2)
-1. Fix virtual scrolling for performance with 200+ tabs
-2. Complete import functionality
+1. Complete import functionality
 3. Add undo functionality for destructive actions
 4. Command palette
 5. Dark mode support
@@ -238,6 +240,15 @@ This document tracks the implementation status of TabMaster Pro features and rem
 - ✅ Fixed tree view persistence and initial load issues
 - ✅ Added "go to tab" button in tree view
 - ✅ Improved spacing and visual design in tree view
+- ✅ Moved rules engine to dashboard
+- ✅ Fixed critical issues from debugging session
+- ✅ Added UUID generation for rule IDs
+- ✅ Implemented url_pattern condition type with regex support
+- ✅ Built domain categorization system (190 domains, 20 categories)
+- ✅ Added category condition type to rules engine
+- ✅ Implemented category selection UI with checkboxes
+- ✅ Added sample rules for social media and shopping categories
+- ✅ Created SPEC-002 for unified time-based triggers
 
 ## Recently Completed (Last Session)
 - ✅ Fixed console errors and CSP violations
