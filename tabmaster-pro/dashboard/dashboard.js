@@ -27,25 +27,17 @@ import {
   LIMITS 
 } from './modules/core/constants.js';
 
+import state from './modules/core/state.js';
+import storage from './modules/services/storage.js';
+
 // ============================================================================
 // State Management
 // ============================================================================
 
-let currentView = VIEWS.OVERVIEW;
-let selectedTabs = new Set();
-let tabsData = [];
-let groupsData = [];
-let snoozedData = [];
-let charts = {};
-let snoozeModal = null;
-let previewCard = null;
-
-// Selection state
-const selectionState = {
-  selectedTabs: new Set(),
-  lastSelectedId: null,
-  isSelectMode: false,
-};
+// Note: All state is now managed through the state module
+// Access state with: state.get('propertyName')
+// Update state with: state.set('propertyName', value)
+// Subscribe to changes with: state.subscribe(['propertyName'], callback)
 
 // ============================================================================
 // Initialization
@@ -57,14 +49,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupNavigation();
   
   // Initialize snooze modal
-  snoozeModal = new SnoozeModal();
+  state.set('snoozeModal', new SnoozeModal());
   
   // Initialize Floating Action Button
   const fab = new FloatingActionButton(document.body);
   
   // Initialize preview card
   if (typeof TabPreviewCard !== 'undefined') {
-    previewCard = new TabPreviewCard(document.body);
+    const previewCard = new TabPreviewCard(document.body);
+    state.set('previewCard', previewCard);
     window.previewCard = previewCard; // Make available globally
     console.log('Preview card initialized');
   } else {
@@ -80,8 +73,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
       // Resize charts if they exist
-      if (charts.activity) charts.activity.resize();
-      if (charts.domains) charts.domains.resize();
+      const activityChart = state.get('activityChart');
+      const domainsChart = state.get('domainsChart');
+      if (activityChart) activityChart.resize();
+      if (domainsChart) domainsChart.resize();
     }, 250);
   });
 });
@@ -125,7 +120,7 @@ function switchView(view) {
     return;
   }
   targetView.classList.add('active');
-  currentView = view;
+  state.set('currentView', view);
   
   // Load view-specific data
   switch(view) {
@@ -290,8 +285,7 @@ async function updateRecentActivity(filter = 'all') {
 // Chart Functions
 // ============================================================================
 
-let activityChart = null;
-let domainsChart = null;
+// Chart instances are now stored in state.charts.activityChart and state.charts.domainsChart
 
 function updateActivityChart() {
   const ctx = document.getElementById('activityChart');
@@ -302,11 +296,11 @@ function updateActivityChart() {
     const history = result.tabHistory || [];
     const last7Days = getActivityDataForLast7Days(history);
 
-    if (activityChart) {
-      activityChart.destroy();
+    if (state.get('activityChart')) {
+      state.get('activityChart').destroy();
     }
 
-    activityChart = new Chart(ctx, {
+    state.set('activityChart', new Chart(ctx, {
       type: 'line',
       data: {
         labels: last7Days.labels,
@@ -338,7 +332,7 @@ function updateActivityChart() {
           }
         }
       }
-    });
+    }));
   });
 }
 
@@ -411,14 +405,14 @@ function renderDomainsChart(domainData) {
   const ctx = document.getElementById('domainsChart');
   if (!ctx) return;
 
-  if (domainsChart) {
-    domainsChart.destroy();
+  if (state.get('domainsChart')) {
+    state.get('domainsChart').destroy();
   }
 
   const labels = domainData.map(d => Array.isArray(d) ? d[0] : d.domain);
   const data = domainData.map(d => Array.isArray(d) ? d[1] : d.count);
 
-  domainsChart = new Chart(ctx, {
+  state.set('domainsChart', new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: labels,
@@ -443,7 +437,7 @@ function renderDomainsChart(domainData) {
         }
       }
     }
-  });
+  }));
 }
 
 // ============================================================================
@@ -574,14 +568,14 @@ async function loadTabsView() {
     window.groupInfo = groupMap;
     
     // Map tab data with real state information and window/group info
-    tabsData = tabs.map(tab => ({
+    state.set('tabsData', tabs.map(tab => ({
       ...tab,
       lastAccessed: tabLastAccess[tab.id] || (tab.active ? Date.now() : null),
       windowColor: windowColorMap.get(tab.windowId),
       windowName: windowNameMap.get(tab.windowId),
       groupName: tab.groupId > 0 ? groupMap.get(tab.groupId)?.title : null,
       groupColor: tab.groupId > 0 ? groupMap.get(tab.groupId)?.color : null
-    }));
+    })));
     
     // Populate window filter dropdown - AFTER tabsData is populated so counts work
     updateWindowFilterDropdown(sortedWindows, windowNameMap, currentWindowId);
@@ -607,7 +601,7 @@ async function loadTabsView() {
     if (document.getElementById('searchTabs') || document.getElementById('filterTabs')) {
       filterTabs();
     } else {
-      renderTabs(tabsData);
+      renderTabs(state.get('tabsData'));
     }
   } catch (error) {
     console.error('Failed to load tabs:', error);
@@ -650,7 +644,7 @@ function renderTabs(tabs) {
   }
   
   // Update tab count display
-  updateTabCount(tabs.length, tabsData.length);
+  updateTabCount(tabs.length, state.get('tabsData').length);
   
   if (currentView === 'tree') {
     renderTreeView(tabs);
@@ -679,7 +673,7 @@ function renderGridView(tabs) {
     card.dataset.tabId = tab.id;
     
     // Restore selection state if tab was previously selected
-    if (selectionState.selectedTabs.has(tab.id)) {
+    if (state.selectedTabs.has(tab.id)) {
       card.classList.add('selected');
     }
     
@@ -711,7 +705,7 @@ function renderGridView(tabs) {
     card.innerHTML = `
       <div class="window-indicator" style="background: ${tab.windowColor || '#999'};" title="${tab.windowName || 'Unknown Window'}"></div>
       <label class="tab-select-wrapper">
-        <input type="checkbox" class="tab-checkbox" data-tab-id="${tab.id}" ${selectionState.selectedTabs.has(tab.id) ? 'checked' : ''}>
+        <input type="checkbox" class="tab-checkbox" data-tab-id="${tab.id}" ${state.selectedTabs.has(tab.id) ? 'checked' : ''}>
         <span class="tab-select-indicator"></span>
       </label>
       <div class="tab-header">
@@ -833,7 +827,7 @@ function renderTreeView(tabs) {
     
     // Calculate window selection state
     const allWindowTabs = [...Array.from(window.groups.values()).flatMap(g => g.tabs), ...window.ungroupedTabs];
-    const selectedWindowTabs = allWindowTabs.filter(tab => selectionState.selectedTabs.has(tab.id));
+    const selectedWindowTabs = allWindowTabs.filter(tab => state.selectedTabs.has(tab.id));
     const windowCheckedState = selectedWindowTabs.length === allWindowTabs.length ? 'checked' : 
                                 selectedWindowTabs.length > 0 ? 'indeterminate' : 'unchecked';
     
@@ -883,7 +877,7 @@ function renderTreeView(tabs) {
       groupEl.dataset.groupId = groupId;
       
       // Calculate group selection state
-      const selectedGroupTabs = group.tabs.filter(tab => selectionState.selectedTabs.has(tab.id));
+      const selectedGroupTabs = group.tabs.filter(tab => state.selectedTabs.has(tab.id));
       const groupCheckedState = selectedGroupTabs.length === group.tabs.length ? 'checked' : 
                                 selectedGroupTabs.length > 0 ? 'indeterminate' : 'unchecked';
       
@@ -955,7 +949,7 @@ function renderTreeView(tabs) {
         if (e.target.checked) {
           // Select all tabs in group
           group.tabs.forEach(tab => {
-            selectionState.selectedTabs.add(tab.id);
+            state.selectedTabs.add(tab.id);
           });
           // Update UI without re-rendering
           groupTabCheckboxes.forEach(checkbox => {
@@ -965,7 +959,7 @@ function renderTreeView(tabs) {
         } else {
           // Deselect all tabs in group
           group.tabs.forEach(tab => {
-            selectionState.selectedTabs.delete(tab.id);
+            state.selectedTabs.delete(tab.id);
           });
           // Update UI without re-rendering  
           groupTabCheckboxes.forEach(checkbox => {
@@ -1029,7 +1023,7 @@ function renderTreeView(tabs) {
       if (e.target.checked) {
         // Select all tabs
         allTabs.forEach(tab => {
-          selectionState.selectedTabs.add(tab.id);
+          state.selectedTabs.add(tab.id);
         });
         // Update UI without re-rendering
         allTabCheckboxes.forEach(checkbox => {
@@ -1044,7 +1038,7 @@ function renderTreeView(tabs) {
       } else {
         // Deselect all tabs
         allTabs.forEach(tab => {
-          selectionState.selectedTabs.delete(tab.id);
+          state.selectedTabs.delete(tab.id);
         });
         // Update UI without re-rendering
         allTabCheckboxes.forEach(checkbox => {
@@ -1208,7 +1202,7 @@ function createTreeTab(tab) {
   tabEl.dataset.windowId = tab.windowId;
   tabEl.dataset.groupId = tab.groupId || -1;
   
-  if (selectionState.selectedTabs.has(tab.id)) {
+  if (state.selectedTabs.has(tab.id)) {
     tabEl.classList.add('selected');
   }
   
@@ -1232,7 +1226,7 @@ function createTreeTab(tab) {
   
   tabEl.innerHTML = `
     <input type="checkbox" class="tree-tab-checkbox tab-checkbox" data-tab-id="${tab.id}" 
-           ${selectionState.selectedTabs.has(tab.id) ? 'checked' : ''}>
+           ${state.selectedTabs.has(tab.id) ? 'checked' : ''}>
     <img src="${safeFaviconUrl}" class="tree-tab-favicon" data-fallback="../icons/icon-16.png">
     <div class="tree-tab-title" title="${tab.title}">${tab.title}</div>
     <button class="tree-tab-goto" title="Go to tab">
@@ -1247,20 +1241,23 @@ function createTreeTab(tab) {
   
   // Handle favicon errors
   const favicon = tabEl.querySelector('.tree-tab-favicon');
-  favicon.addEventListener('error', function(e) {
-    e.preventDefault();
-    this.src = this.dataset.fallback || '../icons/icon-16.png';
-  }, true);
+  if (favicon) {
+    favicon.addEventListener('error', function(e) {
+      e.preventDefault();
+      this.src = this.dataset.fallback || '../icons/icon-16.png';
+    }, true);
+  }
   
   // Add checkbox handler
   const checkbox = tabEl.querySelector('.tab-checkbox');
-  checkbox.addEventListener('change', (e) => {
+  if (checkbox) {
+    checkbox.addEventListener('change', (e) => {
     e.stopPropagation();
     if (e.target.checked) {
-      selectionState.selectedTabs.add(tab.id);
+      state.selectedTabs.add(tab.id);
       tabEl.classList.add('selected');
     } else {
-      selectionState.selectedTabs.delete(tab.id);
+      state.selectedTabs.delete(tab.id);
       tabEl.classList.remove('selected');
     }
     updateBulkToolbar();
@@ -1268,6 +1265,7 @@ function createTreeTab(tab) {
     // Update parent group/window checkbox states
     updateParentCheckboxes(tabEl);
   });
+  }
   
   // Make entire row clickable for selection (except checkbox and goto button)
   tabEl.addEventListener('click', (e) => {
@@ -1283,17 +1281,19 @@ function createTreeTab(tab) {
   
   // Add click handler to goto button
   const gotoBtn = tabEl.querySelector('.tree-tab-goto');
-  gotoBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    chrome.tabs.update(tab.id, { active: true });
-    chrome.windows.update(tab.windowId, { focused: true });
-  });
+  if (gotoBtn) {
+    gotoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      chrome.tabs.update(tab.id, { active: true });
+      chrome.windows.update(tab.windowId, { focused: true });
+    });
+  }
   
   // Add drag and drop handlers
   tabEl.addEventListener('dragstart', (e) => {
     // If multiple tabs selected, drag them all
-    const tabsToMove = selectionState.selectedTabs.has(tab.id) 
-      ? Array.from(selectionState.selectedTabs)
+    const tabsToMove = state.selectedTabs.has(tab.id) 
+      ? Array.from(state.get('selectedTabs'))
       : [tab.id];
     
     e.dataTransfer.effectAllowed = 'move';
@@ -1375,7 +1375,7 @@ function updateWindowFilterDropdown(windows, windowNameMap, currentWindowId) {
     const option = document.createElement('option');
     option.value = window.id;
     const name = windowNameMap.get(window.id);
-    const tabCount = tabsData.filter(t => t.windowId === window.id).length;
+    const tabCount = state.get('tabsData').filter(t => t.windowId === window.id).length;
     option.textContent = `${name} (${tabCount} tabs)`;
     if (window.id === currentWindowId) {
       option.textContent = `⭐ ${option.textContent}`;
@@ -1404,7 +1404,7 @@ function filterTabs() {
     return;
   }
   
-  let filtered = tabsData;
+  let filtered = state.get('tabsData');
   
   // Apply search filter
   if (searchTerm) {
@@ -1581,7 +1581,7 @@ async function showRenameWindowsDialog() {
     <h2 style="margin: 0 0 20px 0; font-size: 20px;">Rename Windows</h2>
     <div style="margin-bottom: 20px;">
       ${sortedWindows.map((window, index) => {
-        const tabCount = tabsData.filter(t => t.windowId === window.id).length;
+        const tabCount = state.get('tabsData').filter(t => t.windowId === window.id).length;
         const defaultName = window.id === currentWindowId ? 'Current Window' : `Window ${index + 1}`;
         const currentName = windowNames[window.id] || '';
         windowInputs.push({ id: window.id, defaultName });
@@ -1637,7 +1637,7 @@ async function showRenameWindowsDialog() {
         newWindowNames[windowId] = customName;
         
         // Also save by signature for persistence
-        const windowTabs = tabsData.filter(t => t.windowId === windowId);
+        const windowTabs = state.get('tabsData').filter(t => t.windowId === windowId);
         const signature = getWindowSignature(windowTabs);
         if (signature) {
           newWindowSignatures[signature] = customName;
@@ -2011,10 +2011,10 @@ function renderHistory(history) {
 
 function handleTabSelection(checkbox, tabId, tabCard) {
   if (checkbox.checked) {
-    selectionState.selectedTabs.add(tabId);
+    state.selectedTabs.add(tabId);
     tabCard.classList.add('selected');
   } else {
-    selectionState.selectedTabs.delete(tabId);
+    state.selectedTabs.delete(tabId);
     tabCard.classList.remove('selected');
   }
   
@@ -2040,8 +2040,8 @@ function handleRangeSelection(endId) {
     const tabId = parseInt(card.dataset.tabId);
     const checkbox = card.querySelector('.tab-checkbox');
     
-    if (!selectionState.selectedTabs.has(tabId)) {
-      selectionState.selectedTabs.add(tabId);
+    if (!state.selectedTabs.has(tabId)) {
+      state.selectedTabs.add(tabId);
       card.classList.add('selected');
       checkbox.checked = true;
     }
@@ -2057,7 +2057,7 @@ function selectAllTabs() {
     const tabId = parseInt(card.dataset.tabId);
     const checkbox = card.querySelector('.tab-checkbox');
     
-    selectionState.selectedTabs.add(tabId);
+    state.selectedTabs.add(tabId);
     card.classList.add('selected');
     checkbox.checked = true;
   });
@@ -2089,14 +2089,14 @@ function clearSelection() {
     checkbox.indeterminate = false;
   });
   
-  selectionState.selectedTabs.clear();
+  state.selectedTabs.clear();
   selectionState.lastSelectedId = null;
   updateBulkToolbar();
 }
 
 function updateBulkToolbar() {
   const toolbar = document.getElementById('bulkToolbar');
-  const count = selectionState.selectedTabs.size;
+  const count = state.selectedTabs.size;
   
   if (count > 0) {
     toolbar.hidden = false;
@@ -2199,11 +2199,11 @@ function setupEventListeners() {
   
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'a' && currentView === 'tabs') {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a' && state.get('currentView') === 'tabs') {
       e.preventDefault();
       selectAllTabs();
     }
-    if (e.key === 'Escape' && selectionState.selectedTabs.size > 0) {
+    if (e.key === 'Escape' && state.selectedTabs.size > 0) {
       clearSelection();
     }
   });
@@ -2549,6 +2549,7 @@ async function showSnoozeDialog(tabIds) {
   const selectedTabsData = tabs.filter(tab => tabIds.includes(tab.id));
   
   // Show enhanced snooze modal
+  const snoozeModal = state.get('snoozeModal');
   snoozeModal.show(selectedTabsData);
   
   // Set up modal callbacks
@@ -2727,12 +2728,12 @@ async function sendMessage(message) {
 
 async function refreshData() {
   // Do not refresh if tabs are selected for a bulk action
-  if (selectionState.selectedTabs.size > 0) {
+  if (state.selectedTabs.size > 0) {
     console.log('Skipping auto-refresh due to active tab selection.');
     return;
   }
   
-  switch(currentView) {
+  switch(state.get('currentView')) {
     case 'overview':
       await loadOverviewData();
       break;
@@ -2758,9 +2759,8 @@ async function refreshData() {
 // Rules View
 // ============================================================================
 
-let currentRules = [];
-let editingRule = null;
-let sampleRules = [];
+// Rules data is now managed through state module
+// state.get('currentRules'), state.get('editingRule'), state.get('sampleRules')
 
 async function loadRulesView() {
   console.log('Loading rules view...');
@@ -2768,10 +2768,10 @@ async function loadRulesView() {
   try {
     // Load current rules from background
     const rules = await sendMessage({ action: 'getRules' });
-    currentRules = rules || [];
+    state.set('currentRules', rules || []);
 
     // Initialize sample rules (not auto-enabled)
-    sampleRules = getSampleRules();
+    state.set('sampleRules', getSampleRules());
 
     // Update UI
     updateRulesUI();
@@ -2895,7 +2895,7 @@ function updateRulesUI() {
   const emptyState = document.getElementById('rulesEmptyState');
 
   // Show/hide empty state
-  if (currentRules.length === 0) {
+  if (state.get('currentRules').length === 0) {
     emptyState.style.display = 'flex';
     rulesList.style.display = 'none';
   } else {
@@ -2904,7 +2904,7 @@ function updateRulesUI() {
     rulesList.innerHTML = '';
 
     // Sort rules by priority
-    const sortedRules = [...currentRules].sort((a, b) => a.priority - b.priority);
+    const sortedRules = [...state.get('currentRules')].sort((a, b) => a.priority - b.priority);
 
     sortedRules.forEach(rule => {
       const ruleCard = createRuleCard(rule);
@@ -2986,8 +2986,8 @@ function updateSampleRulesDropdown() {
   sampleRuleItems.innerHTML = '';
 
   // Filter out already installed samples
-  const installedSampleIds = currentRules.map(r => r.originalSampleId).filter(Boolean);
-  const availableSamples = sampleRules.filter(s => !installedSampleIds.includes(s.id));
+  const installedSampleIds = state.get('currentRules').map(r => r.originalSampleId).filter(Boolean);
+  const availableSamples = state.get('sampleRules').filter(s => !installedSampleIds.includes(s.id));
 
   if (availableSamples.length === 0) {
     sampleRuleItems.innerHTML = '<div class="dropdown-item-text">All templates installed</div>';
@@ -3227,7 +3227,7 @@ function setupRulesEventListeners() {
       if (!sampleItem) return;
 
       const sampleId = sampleItem.dataset.sampleId;
-      const sample = sampleRules.find(s => s.id === sampleId);
+      const sample = state.get('sampleRules').find(s => s.id === sampleId);
 
       if (sample) {
         await installSampleRule(sample);
@@ -3313,7 +3313,7 @@ function openRuleModal(rule = null) {
   const modal = document.getElementById('ruleModal');
   const title = document.getElementById('ruleModalTitle');
 
-  editingRule = rule;
+  state.set('editingRule', rule);
 
   if (rule) {
     title.textContent = 'Edit Rule';
@@ -3376,7 +3376,7 @@ function openRuleModal(rule = null) {
 function closeRuleModal() {
   const modal = document.getElementById('ruleModal');
   modal.classList.remove('show');
-  editingRule = null;
+  state.set('editingRule', null);
 }
 
 function updateConditionParams() {
@@ -3452,6 +3452,7 @@ function updateConditionParams() {
   paramsContainer.innerHTML = html;
 
   // Load existing values if editing
+  const editingRule = state.get('editingRule');
   if (editingRule && editingRule.conditions.type === conditionType) {
     switch (conditionType) {
       case 'domain_count':
@@ -3710,7 +3711,7 @@ async function deleteRule(ruleId) {
   currentRules = currentRules.filter(r => r.id !== ruleId);
 
   try {
-    await sendMessage({ action: 'updateRules', rules: currentRules });
+    await sendMessage({ action: 'updateRules', rules: state.get('currentRules') });
     updateRulesUI();
     showNotification('Rule deleted successfully');
   } catch (error) {
@@ -3724,7 +3725,7 @@ async function toggleAllRules(enabled) {
   }
 
   try {
-    await sendMessage({ action: 'updateRules', rules: currentRules });
+    await sendMessage({ action: 'updateRules', rules: state.get('currentRules') });
     updateRulesUI();
     showNotification(enabled ? 'All rules enabled' : 'All rules disabled');
   } catch (error) {
@@ -3912,7 +3913,7 @@ async function updateRulePriorities() {
 
   try {
     // Save the new order to background
-    await sendMessage({ action: 'updateRules', rules: currentRules });
+    await sendMessage({ action: 'updateRules', rules: state.get('currentRules') });
     console.log('Rule order updated successfully');
   } catch (error) {
     console.error('Failed to update rule order:', error);
