@@ -240,9 +240,6 @@ function updateBulkToolbar() {
     toolbar.hidden = false;
     document.getElementById('selectedCount').textContent = count;
     
-    // Update old modal count too for backward compatibility
-    const modalCount = document.querySelector('#bulkActionsModal #selectedCount');
-    if (modalCount) modalCount.textContent = count;
   } else {
     toolbar.hidden = true;
   }
@@ -291,8 +288,6 @@ function setupEventListeners() {
     });
   });
   
-  // Bulk actions
-  document.getElementById('bulkActions')?.addEventListener('click', openBulkActions);
   
   // Create group
   document.getElementById('createGroup')?.addEventListener('click', createNewGroup);
@@ -309,17 +304,12 @@ function setupEventListeners() {
   });
   
   // Modal close buttons
-  document.getElementById('closeBulkActions')?.addEventListener('click', closeBulkActionsModal);
   document.getElementById('closeQuickOrganize')?.addEventListener('click', closeQuickOrganizeModal);
   
   // Quick organize execute
   document.getElementById('executeOrganize')?.addEventListener('click', executeQuickOrganize);
   document.getElementById('cancelOrganize')?.addEventListener('click', closeQuickOrganizeModal);
   
-  // Bulk action buttons (old modal)
-  document.querySelectorAll('#bulkActionsModal .bulk-action-btn').forEach(btn => {
-    btn.addEventListener('click', () => executeBulkAction(btn.dataset.action));
-  });
   
   // Bulk toolbar buttons
   document.getElementById('selectAll')?.addEventListener('click', selectAllTabs);
@@ -392,19 +382,6 @@ async function executeQuickOrganize() {
   refreshData();
 }
 
-function openBulkActions() {
-  const modal = document.getElementById('bulkActionsModal');
-  modal.classList.add('show');
-  document.getElementById('selectedCount').textContent = state.selectedTabs.size;
-}
-
-function closeBulkActionsModal() {
-  document.getElementById('bulkActionsModal').classList.remove('show');
-}
-
-function updateSelectedCount() {
-  document.getElementById('selectedCount').textContent = state.selectedTabs.size;
-}
 
 async function executeBulkAction(action) {
   const selectedIds = Array.from(state.selectedTabs);
