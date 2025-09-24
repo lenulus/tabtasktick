@@ -270,7 +270,17 @@ class TabPreviewCard {
   updateContent(tab) {
     // Update favicon
     this.faviconEl.src = tab.favIconUrl || '../icons/icon-16.png';
-    this.faviconEl.onerror = () => { this.faviconEl.src = '../icons/icon-16.png'; };
+    
+    // Remove any existing error listener
+    if (this.faviconErrorHandler) {
+      this.faviconEl.removeEventListener('error', this.faviconErrorHandler);
+    }
+    
+    // Add new error handler
+    this.faviconErrorHandler = () => { 
+      this.faviconEl.src = '../icons/icon-16.png'; 
+    };
+    this.faviconEl.addEventListener('error', this.faviconErrorHandler);
     
     // Update title and URL
     this.titleEl.textContent = tab.title;
@@ -413,7 +423,7 @@ class TabPreviewCard {
     this.screenshotPlaceholderEl.innerHTML = `
       <div style="text-align: center; padding: 20px;">
         ${tab.favIconUrl ? 
-          `<img src="${tab.favIconUrl}" style="width: 48px; height: 48px; margin-bottom: 12px;" onerror="this.style.display='none'">` :
+          `<img class="placeholder-favicon" src="${tab.favIconUrl}" style="width: 48px; height: 48px; margin-bottom: 12px;">` :
           `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; opacity: 0.5;">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="9" y1="9" x2="15" y2="9"></line>
@@ -424,6 +434,16 @@ class TabPreviewCard {
         <div style="font-size: 13px; opacity: 0.7; margin-top: 8px;">${domain}</div>
       </div>
     `;
+    
+    // Add error handler for favicon if it exists
+    if (tab.favIconUrl) {
+      const faviconImg = this.screenshotPlaceholderEl.querySelector('.placeholder-favicon');
+      if (faviconImg) {
+        faviconImg.addEventListener('error', () => {
+          faviconImg.style.display = 'none';
+        });
+      }
+    }
   }
   
   displayScreenshot(dataUrl) {

@@ -160,11 +160,11 @@ function updateRulesUI() {
           </span>
         </div>
         <div class="rule-actions">
-          <button class="rule-btn" onclick="editRule('${rule.id}')">Edit</button>
-          <button class="rule-btn" onclick="toggleRule('${rule.id}')">
+          <button class="rule-btn" data-action="edit" data-rule-id="${rule.id}">Edit</button>
+          <button class="rule-btn" data-action="toggle" data-rule-id="${rule.id}">
             ${rule.enabled ? 'Disable' : 'Enable'}
           </button>
-          <button class="rule-btn" onclick="deleteRule('${rule.id}')">Delete</button>
+          <button class="rule-btn" data-action="delete" data-rule-id="${rule.id}">Delete</button>
         </div>
       </div>
       <div class="rule-details">
@@ -662,6 +662,26 @@ function setupEventListeners() {
   
   document.getElementById('ruleCondition').addEventListener('change', updateConditionParams);
   document.getElementById('ruleAction').addEventListener('change', updateActionParams);
+  
+  // Event delegation for rule action buttons
+  document.getElementById('rulesContainer').addEventListener('click', async (e) => {
+    if (e.target.classList.contains('rule-btn')) {
+      const action = e.target.dataset.action;
+      const ruleId = e.target.dataset.ruleId;
+      
+      switch (action) {
+        case 'edit':
+          editRule(ruleId);
+          break;
+        case 'toggle':
+          await toggleRule(ruleId);
+          break;
+        case 'delete':
+          await deleteRule(ruleId);
+          break;
+      }
+    }
+  });
   
   // Whitelist
   document.getElementById('addWhitelistBtn').addEventListener('click', addToWhitelist);
