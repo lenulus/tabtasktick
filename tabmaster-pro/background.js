@@ -171,6 +171,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   await loadActivityLog();
   await initializeTabTimeTracking();
   await setupPeriodicRuleChecking();
+  await restoreSnoozedTabs();
   await checkAndMigrateTabs();
 });
 
@@ -858,6 +859,7 @@ async function snoozeTabsAction(tabs, action) {
   
   // Save snoozed tabs
   await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+  console.log('Saved snoozed tabs to storage. Total snoozed:', state.snoozedTabs.length);
   
   // Set alarm to restore tabs
   chrome.alarms.create('checkSnoozedTabs', { delayInMinutes: 1, periodInMinutes: 1 });
@@ -958,15 +960,66 @@ async function checkSnoozedTabs() {
   const tabsToRestore = state.snoozedTabs.filter(tab => tab.snoozeUntil <= now);
   
   if (tabsToRestore.length > 0) {
-    for (const snoozedTab of tabsToRestore) {
+    // Get current window to restore tabs to
+    const currentWindow = await chrome.windows.getCurrent();
+    
+    // Group tabs by groupId for batch restoration
+    const groupedTabs = {};
+    const singleTabs = [];
+    
+    tabsToRestore.forEach(tab => {
+      if (tab.groupId) {
+        if (!groupedTabs[tab.groupId]) {
+          groupedTabs[tab.groupId] = [];
+        }
+        groupedTabs[tab.groupId].push(tab);
+      } else {
+        singleTabs.push(tab);
+      }
+    });
+    
+    // Restore single tabs
+    for (const snoozedTab of singleTabs) {
       await chrome.tabs.create({
         url: snoozedTab.url,
+        windowId: currentWindow.id,
         active: false
       });
-      
-      // Remove from snoozed tabs
-      state.snoozedTabs = state.snoozedTabs.filter(t => t.id !== snoozedTab.id);
     }
+    
+    // Restore grouped tabs (open in new window if multiple)
+    for (const [groupId, tabs] of Object.entries(groupedTabs)) {
+      if (tabs.length > 3) {
+        // For groups with many tabs, create a new window
+        const firstTab = tabs.shift();
+        const newWindow = await chrome.windows.create({
+          url: firstTab.url,
+          focused: false
+        });
+        
+        // Add remaining tabs to the new window
+        for (const tab of tabs) {
+          await chrome.tabs.create({
+            url: tab.url,
+            windowId: newWindow.id,
+            active: false
+          });
+        }
+      } else {
+        // For small groups, add to current window
+        for (const tab of tabs) {
+          await chrome.tabs.create({
+            url: tab.url,
+            windowId: currentWindow.id,
+            active: false
+          });
+        }
+      }
+    }
+    
+    // Remove all restored tabs from state
+    const restoredIds = tabsToRestore.map(t => t.id);
+    state.snoozedTabs = state.snoozedTabs.filter(t => !restoredIds.includes(t.id));
     
     // Update storage
     await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
@@ -982,9 +1035,13 @@ async function restoreSnoozedTabs() {
   const { snoozedTabs } = await chrome.storage.local.get('snoozedTabs');
   if (snoozedTabs) {
     state.snoozedTabs = snoozedTabs;
+    console.log('Restored snoozed tabs from storage:', snoozedTabs.length);
     if (snoozedTabs.length > 0) {
       chrome.alarms.create('checkSnoozedTabs', { delayInMinutes: 1, periodInMinutes: 1 });
     }
+  } else {
+    state.snoozedTabs = [];
+    console.log('No snoozed tabs found in storage');
   }
 }
 
@@ -1395,7 +1452,14 @@ async function handleMessage(request, sender) {
       return await snoozeTabs(request.tabIds, request.minutes);
     
     case 'getSnoozedTabs':
+      console.log('Returning snoozed tabs:', state.snoozedTabs.length);
       return state.snoozedTabs;
+    
+    case 'wakeSnoozedTab':
+      return await restoreSnoozedTab(request.tabId);
+    
+    case 'wakeAllSnoozed':
+      return await wakeAllSnoozedTabs();
     
     case 'getRules':
       return state.rules;
@@ -1860,16 +1924,96 @@ async function startMonitoring() {
 async function restoreSnoozedTab(tabId) {
   const snoozedTab = state.snoozedTabs.find(t => t.id === tabId);
   if (snoozedTab) {
+    const currentWindow = await chrome.windows.getCurrent();
     await chrome.tabs.create({
       url: snoozedTab.url,
+      windowId: currentWindow.id,
       active: true
     });
     
     state.snoozedTabs = state.snoozedTabs.filter(t => t.id !== tabId);
     await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+    console.log('Restored snoozed tab:', snoozedTab.url);
   }
   
   return snoozedTab;
+}
+
+async function wakeAllSnoozedTabs() {
+  if (state.snoozedTabs.length === 0) {
+    return { success: true, count: 0 };
+  }
+  
+  const tabsToRestore = [...state.snoozedTabs];
+  const currentWindow = await chrome.windows.getCurrent();
+  let restoredCount = 0;
+  
+  // Group tabs by groupId for batch restoration
+  const groupedTabs = {};
+  const singleTabs = [];
+  
+  tabsToRestore.forEach(tab => {
+    if (tab.groupId) {
+      if (!groupedTabs[tab.groupId]) {
+        groupedTabs[tab.groupId] = [];
+      }
+      groupedTabs[tab.groupId].push(tab);
+    } else {
+      singleTabs.push(tab);
+    }
+  });
+  
+  // Restore single tabs
+  for (const snoozedTab of singleTabs) {
+    await chrome.tabs.create({
+      url: snoozedTab.url,
+      windowId: currentWindow.id,
+      active: false
+    });
+    restoredCount++;
+  }
+  
+  // Restore grouped tabs
+  for (const [groupId, tabs] of Object.entries(groupedTabs)) {
+    if (tabs.length > 3) {
+      // For large groups, create a new window
+      const firstTab = tabs.shift();
+      const newWindow = await chrome.windows.create({
+        url: firstTab.url,
+        focused: false
+      });
+      restoredCount++;
+      
+      for (const tab of tabs) {
+        await chrome.tabs.create({
+          url: tab.url,
+          windowId: newWindow.id,
+          active: false
+        });
+        restoredCount++;
+      }
+    } else {
+      // For small groups, add to current window
+      for (const tab of tabs) {
+        await chrome.tabs.create({
+          url: tab.url,
+          windowId: currentWindow.id,
+          active: false
+        });
+        restoredCount++;
+      }
+    }
+  }
+  
+  // Clear all snoozed tabs
+  state.snoozedTabs = [];
+  await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+  
+  // Clear the alarm since no more snoozed tabs
+  chrome.alarms.clear('checkSnoozedTabs');
+  
+  console.log('Woke all snoozed tabs:', restoredCount);
+  return { success: true, count: restoredCount };
 }
 
 async function removeSnoozedTab(tabId) {

@@ -3,10 +3,16 @@
 
 export async function loadSnoozedView() {
   try {
+    console.log('Loading snoozed view...');
     const snoozedTabs = await sendMessage({ action: 'getSnoozedTabs' });
-    renderSnoozedTimeline(snoozedTabs);
+    console.log('Received snoozed tabs:', snoozedTabs);
+    renderSnoozedTimeline(snoozedTabs || []);
+    
+    // Set up event listeners for Wake Now buttons
+    setupSnoozedEventListeners();
   } catch (error) {
     console.error('Failed to load snoozed tabs:', error);
+    renderSnoozedTimeline([]);
   }
 }
 
@@ -41,12 +47,20 @@ function renderSnoozedTimeline(snoozedTabs) {
       </div>
       <div class="timeline-tabs">
         ${tabs.map(tab => `
-          <div class="tab-card">
+          <div class="tab-card ${tab.groupId ? 'grouped' : ''}">
             <div class="tab-header">
               <img src="${tab.favicon || '../icons/icon-16.png'}" class="tab-favicon">
               <div class="tab-title">${tab.title}</div>
             </div>
             <div class="tab-url">${tab.url}</div>
+            <div class="tab-meta">
+              <span class="wake-time">🕐 ${getExactWakeTime(tab.snoozeUntil)}</span>
+              ${tab.groupId ? '<span class="group-indicator">📁 Grouped</span>' : ''}
+              <span class="snooze-reason">${tab.snoozeReason || 'manual'}</span>
+            </div>
+            <div class="tab-actions">
+              <button class="btn-small" data-tab-id="${tab.id}">Wake Now</button>
+            </div>
           </div>
         `).join('')}
       </div>
@@ -83,6 +97,71 @@ function groupSnoozedByTime(tabs) {
   });
   
   return groups;
+}
+
+function getExactWakeTime(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  
+  // Format time
+  const timeOptions = { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  };
+  
+  // Check if it's today, tomorrow, or later
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const dayAfter = new Date(tomorrow);
+  dayAfter.setDate(dayAfter.getDate() + 1);
+  
+  if (date < tomorrow) {
+    return `Today at ${date.toLocaleTimeString('en-US', timeOptions)}`;
+  } else if (date < dayAfter) {
+    return `Tomorrow at ${date.toLocaleTimeString('en-US', timeOptions)}`;
+  } else {
+    const dateOptions = { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    };
+    return date.toLocaleString('en-US', dateOptions);
+  }
+}
+
+async function wakeTab(tabId) {
+  try {
+    console.log('Waking snoozed tab:', tabId);
+    const result = await sendMessage({ action: 'wakeSnoozedTab', tabId });
+    if (result) {
+      // Reload the snoozed view
+      await loadSnoozedView();
+    }
+  } catch (error) {
+    console.error('Failed to wake tab:', error);
+  }
+}
+
+function setupSnoozedEventListeners() {
+  const timeline = document.getElementById('snoozedTimeline');
+  
+  // Event delegation for Wake Now buttons
+  timeline.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('btn-small')) {
+      const tabId = e.target.dataset.tabId;
+      if (tabId) {
+        await wakeTab(tabId);
+      }
+    }
+  });
 }
 
 // Helper function
