@@ -221,47 +221,34 @@ Dashboard.js has grown to 4000+ lines and needs modular refactoring for maintain
 - ✅ Create state-listeners.js with examples
 - ✅ Update all global variable references to use state module
 
-#### Milestone 3: Chrome API Service (~2 hours)
-- ❌ Create Chrome API wrapper service
-- ❌ Add error handling and retries
-- ❌ Update all direct chrome.* calls
+#### REVISED PLAN - FOCUS ON WHAT ACTUALLY REDUCES FILE SIZE
 
-#### Milestone 4: Extract Components (~4 hours)
-- ❌ Extract TabCard component
-- ❌ Extract Filters component
-- ❌ Extract BulkActions toolbar
-- ❌ Extract Modal manager
-- ❌ Extract Charts component
+**Goal**: Reduce dashboard.js from 3950 lines to <500 lines
 
-#### Milestone 5: Extract Simple Views (~3 hours)
-- ❌ Extract History view module
-- ❌ Extract Snoozed view module
-- ❌ Extract Groups view module
+**What Actually Works:**
+1. ✅ Extract view functions to modules/views/
+   - loadTabsView() (~800+ lines) → modules/views/tabs.js
+   - loadOverviewData() (~300 lines) → modules/views/overview.js  
+   - loadRulesView() (~200+ lines) → modules/views/rules.js
+   - loadGroupsView() (~130 lines) → modules/views/groups.js
+   - loadSnoozedView() (~90 lines) → modules/views/snoozed.js
+   - loadHistoryView() (~100 lines) → modules/views/history.js
+   - This alone removes ~1600+ lines from dashboard.js
 
-#### Milestone 6: Extract Complex Views (~4 hours)
-- ❌ Extract Tabs view module
-- ❌ Extract Overview view module
-- ❌ Extract Rules view module
+2. ✅ Extract large helper functions that these views use
+   - renderGridView(), renderTreeView() 
+   - Any other large functions specific to views
 
-#### Milestone 7: Router & Navigation (~2 hours)
-- ❌ Create simple router module
-- ❌ Add view lifecycle management
-- ❌ Update navigation to use router
+3. ✅ Leave everything else as-is
+   - No routers, no event buses, no component abstractions
+   - Just move the big chunks of code out
 
-#### Milestone 8: Event System (~2 hours)
-- ❌ Create event bus for module communication
-- ❌ Refactor global event handlers
-- ❌ Add event namespacing
-
-#### Milestone 9: Final Integration (~3 hours)
-- ❌ Slim down dashboard.js to <500 lines
-- ❌ Performance optimization
-- ❌ Full test suite run
-
-#### Milestone 10: Polish & Cleanup (~2 hours)
-- ❌ Code quality checks
-- ❌ Error handling improvements
-- ❌ Documentation updates
+**What We're NOT Doing (because it's pointless):**
+- ❌ SKIP Chrome API wrappers - adds complexity, no size reduction
+- ❌ SKIP Component extraction - no reusable components exist
+- ❌ SKIP Router system - overengineering for simple view switching  
+- ❌ SKIP Event bus - current event handling works fine
+- ❌ SKIP Any other "architectural improvements" that don't reduce file size
 
 ### High Priority (P1)
 1. Implement unified time-based triggers [Spec: SPEC-002]
