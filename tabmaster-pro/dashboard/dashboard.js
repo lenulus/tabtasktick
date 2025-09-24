@@ -86,14 +86,21 @@ import { loadHistoryView } from './modules/views/history.js';
 // Initialization
 // ============================================================================
 
-document.addEventListener('DOMContentLoaded', async () => {
+// Store modal instances outside of state to preserve their methods
+let snoozeModalInstance = null;
+
+// Use window.addEventListener to ensure all scripts are loaded
+window.addEventListener('load', async () => {
   await initializeDashboard();
   setupEventListeners();
   setupNavigation();
   
-  // Initialize snooze modal
+  // Initialize snooze modal - should be available after window load
   if (typeof SnoozeModal !== 'undefined') {
-    state.set('snoozeModal', new SnoozeModal());
+    console.log('Initializing SnoozeModal');
+    snoozeModalInstance = new SnoozeModal();
+  } else {
+    console.error('SnoozeModal class not found after window load');
   }
   
   // Initialize Floating Action Button
@@ -384,8 +391,12 @@ async function executeQuickOrganize() {
 
 
 async function executeBulkAction(action) {
-  const selectedIds = Array.from(state.selectedTabs);
+  console.log('executeBulkAction called with action:', action);
+  // Get the actual Set from state
+  const selectedTabs = state.get('selectedTabs');
+  const selectedIds = Array.from(selectedTabs);
   const count = selectedIds.length;
+  console.log('Selected IDs:', selectedIds, 'Count:', count);
   
   if (count === 0) return;
   
@@ -447,7 +458,37 @@ async function executeBulkAction(action) {
 // ============================================================================
 
 async function closeTabs(tabIds) {
+  // Get the window IDs of tabs we're closing
+  const tabs = await chrome.tabs.query({});
+  const closingTabs = tabs.filter(tab => tabIds.includes(tab.id));
+  const windowsToCheck = new Set(closingTabs.map(tab => tab.windowId));
+  
+  // Count tabs per window before closing
+  const windowTabCounts = new Map();
+  tabs.forEach(tab => {
+    if (!windowTabCounts.has(tab.windowId)) {
+      windowTabCounts.set(tab.windowId, 0);
+    }
+    windowTabCounts.set(tab.windowId, windowTabCounts.get(tab.windowId) + 1);
+  });
+  
+  // Check if we're closing all tabs in any window
+  const windowsBeingClosed = [];
+  windowsToCheck.forEach(windowId => {
+    const tabsInWindow = tabs.filter(tab => tab.windowId === windowId);
+    const tabsBeingClosed = tabsInWindow.filter(tab => tabIds.includes(tab.id));
+    if (tabsInWindow.length === tabsBeingClosed.length) {
+      windowsBeingClosed.push(windowId);
+    }
+  });
+  
   await chrome.tabs.remove(tabIds);
+  
+  // If we closed all tabs in a window, Chrome will close that window
+  // Add a small delay to ensure Chrome has time to close the window
+  if (windowsBeingClosed.length > 0) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
   
   // Send message to background to log this bulk action
   chrome.runtime.sendMessage({
@@ -663,12 +704,22 @@ async function showSnoozeDialog(tabIds) {
   const tabs = await chrome.tabs.query({});
   const selectedTabsData = tabs.filter(tab => tabIds.includes(tab.id));
   
-  // Show enhanced snooze modal
-  const snoozeModal = state.get('snoozeModal');
-  snoozeModal.show(selectedTabsData);
+  // Try to initialize if not already done
+  if (!snoozeModalInstance && typeof SnoozeModal !== 'undefined') {
+    console.log('Initializing SnoozeModal on demand');
+    snoozeModalInstance = new SnoozeModal();
+  }
+  
+  if (!snoozeModalInstance || typeof snoozeModalInstance.show !== 'function') {
+    console.error('SnoozeModal not initialized properly');
+    showNotification('Snooze feature is not available', 'error');
+    return;
+  }
+  
+  snoozeModalInstance.show(selectedTabsData);
   
   // Set up modal callbacks
-  snoozeModal.onSnooze = async (snoozeData) => {
+  snoozeModalInstance.onSnooze = async (snoozeData) => {
     try {
       const { timestamp, presetId, tabIds: snoozeTabIds, tabCount } = snoozeData;
       const minutes = Math.floor((timestamp - Date.now()) / 60000);
@@ -691,7 +742,7 @@ async function showSnoozeDialog(tabIds) {
     }
   };
   
-  snoozeModal.onCancel = () => {
+  snoozeModalInstance.onCancel = () => {
     // Modal handles its own cleanup
   };
 }
@@ -731,6 +782,14 @@ function showConfirmDialog(action, count) {
     };
     
     proceedBtn.addEventListener('click', handleProceed, { once: true });
+    document.getElementById('confirmCancel').addEventListener('click', handleCancel, { once: true });
+    
+    // Handle clicking outside the modal
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        handleCancel();
+      }
+    }, { once: true });
     
     modal.classList.add('show');
   });

@@ -175,7 +175,18 @@ export async function loadTabsView() {
     // Restore filter values after UI elements (like windowFilter) are repopulated
     if (searchInput) searchInput.value = preservedFilterState.searchTerm;
     if (filterInput) filterInput.value = preservedFilterState.filterType;
-    if (windowInput) windowInput.value = preservedFilterState.windowId;
+    if (windowInput) {
+      // Check if the preserved window ID still exists
+      const windowExists = preservedFilterState.windowId === 'all' || 
+                          windows.some(w => w.id === parseInt(preservedFilterState.windowId));
+      console.log('Window filter check:', {
+        preserved: preservedFilterState.windowId,
+        exists: windowExists,
+        windows: windows.map(w => w.id),
+        setting: windowExists ? preservedFilterState.windowId : 'all'
+      });
+      windowInput.value = windowExists ? preservedFilterState.windowId : 'all';
+    }
     if (sortInput) sortInput.value = preservedFilterState.sortType;
     
     // Save updated window mappings
@@ -1009,7 +1020,21 @@ export function filterTabs() {
   
   // Apply window filter
   if (windowFilterValue !== 'all') {
-    filtered = filtered.filter(tab => tab.windowId === parseInt(windowFilterValue));
+    const windowId = parseInt(windowFilterValue);
+    const windowFiltered = filtered.filter(tab => tab.windowId === windowId);
+    
+    // If no tabs found for this window (window was closed), reset to all windows
+    if (windowFiltered.length === 0 && filtered.length > 0) {
+      const windowFilter = document.getElementById('windowFilter');
+      if (windowFilter) {
+        windowFilter.value = 'all';
+        // Re-run filter with all windows
+        filterTabs();
+        return;
+      }
+    }
+    
+    filtered = windowFiltered;
   }
   
   // Apply type filter

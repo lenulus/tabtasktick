@@ -1,5 +1,20 @@
 /* Snooze Modal Styles */
 
+/* Default values for CSS variables if not defined */
+.snooze-modal,
+.snooze-backdrop {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --border-color: #e0e0e0;
+  --primary-color: #667eea;
+  --primary-hover: #5a6fd4;
+  --success-color: #48bb78;
+  --error-color: #f56565;
+}
+
 .snooze-backdrop {
   position: fixed;
   top: 0;
@@ -22,7 +37,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.9);
-  background: var(--bg-primary);
+  background: var(--bg-primary, #ffffff);
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   width: 90%;
@@ -44,14 +59,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
 }
 
 .snooze-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-primary, #333333);
 }
 
 .snooze-close {
@@ -59,14 +74,14 @@
   border: none;
   padding: 8px;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #666666);
   border-radius: 8px;
   transition: all 0.2s;
 }
 
 .snooze-close:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: var(--bg-hover, #f0f0f0);
+  color: var(--text-primary, #333333);
 }
 
 .snooze-content {
@@ -79,7 +94,7 @@
   margin: 0 0 16px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #666666);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -93,7 +108,7 @@
 }
 
 .preset-button {
-  background: var(--bg-secondary);
+  background: var(--bg-secondary, #f8f9fa);
   border: 2px solid transparent;
   border-radius: 10px;
   padding: 16px;
@@ -108,7 +123,7 @@
 }
 
 .preset-button:hover {
-  background: var(--bg-hover);
+  background: var(--bg-hover, #f0f0f0);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -119,8 +134,14 @@
 }
 
 .preset-button.selected {
-  background: var(--accent-light);
-  border-color: var(--accent-color);
+  background: var(--primary-color, #667eea);
+  border-color: var(--primary-color, #667eea);
+  color: white;
+}
+
+.preset-button.selected .preset-label,
+.preset-button.selected .preset-sublabel {
+  color: white;
 }
 
 .preset-icon {
@@ -131,12 +152,12 @@
 .preset-label {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-primary, #333333);
 }
 
 .preset-sublabel {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #666666);
 }
 
 /* Custom Time */
@@ -156,16 +177,16 @@
 .input-group label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #666666);
 }
 
 .input-group input {
   padding: 10px 12px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color, #e0e0e0);
   border-radius: 8px;
   font-size: 14px;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+  background: var(--bg-secondary, #f8f9fa);
+  color: var(--text-primary, #333333);
   transition: border-color 0.2s;
 }
 
@@ -176,7 +197,7 @@
 
 .custom-preview {
   padding: 12px 16px;
-  background: var(--bg-secondary);
+  background: var(--bg-secondary, #f8f9fa);
   border-radius: 8px;
   font-size: 13px;
   min-height: 40px;
@@ -186,12 +207,12 @@
 }
 
 .preview-absolute {
-  color: var(--text-primary);
+  color: var(--text-primary, #333333);
   font-weight: 500;
 }
 
 .preview-relative {
-  color: var(--text-secondary);
+  color: var(--text-secondary, #666666);
 }
 
 .error-message {
@@ -208,7 +229,7 @@
   border-radius: 8px;
   margin-top: 24px;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--text-secondary, #666666);
 }
 
 .info-icon {
@@ -218,11 +239,11 @@
 /* Footer */
 .snooze-footer {
   padding: 16px 24px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color, #e0e0e0);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  background: var(--bg-secondary);
+  background: var(--bg-secondary, #f8f9fa);
 }
 
 .snooze-button {
@@ -236,14 +257,14 @@
 }
 
 .snooze-button.primary {
-  background: var(--accent-color);
+  background: var(--primary-color, #667eea);
   color: white;
 }
 
 .snooze-button.primary:hover:not(:disabled) {
-  background: var(--accent-dark);
+  background: var(--primary-hover, #5a6fd4);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .snooze-button.primary:disabled {
@@ -252,8 +273,8 @@
 }
 
 .snooze-button.secondary {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: var(--bg-hover, #f0f0f0);
+  color: var(--text-primary, #333333);
 }
 
 .snooze-button.secondary:hover {

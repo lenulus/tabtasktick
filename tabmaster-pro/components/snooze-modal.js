@@ -50,7 +50,7 @@ class SnoozeModal {
       {
         id: 'end_of_day',
         label: 'End of Day',
-        sublabel: '5 PM',
+        sublabel: this.getEndOfDayTime(),
         icon: '🌙',
         getTime: () => {
           const endOfDay = new Date();
@@ -67,13 +67,11 @@ class SnoozeModal {
       {
         id: 'next_week',
         label: 'Next Week',
-        sublabel: 'Monday 9 AM',
+        sublabel: 'Same time',
         icon: '📅',
         getTime: () => {
           const nextWeek = new Date();
-          const daysUntilMonday = (8 - nextWeek.getDay()) % 7 || 7;
-          nextWeek.setDate(nextWeek.getDate() + daysUntilMonday);
-          nextWeek.setHours(9, 0, 0, 0);
+          nextWeek.setDate(nextWeek.getDate() + 7);
           return nextWeek.getTime();
         }
       },
@@ -116,6 +114,15 @@ class SnoozeModal {
       return '2 PM';
     } else {
       return 'Tomorrow 1 PM';
+    }
+  }
+  
+  getEndOfDayTime() {
+    const now = new Date();
+    if (now.getHours() >= 17) {
+      return 'Tomorrow 5 PM';
+    } else {
+      return '5 PM';
     }
   }
   

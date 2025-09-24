@@ -1,5 +1,23 @@
 /* Dashboard Styles */
 
+/* CSS Variables for theming */
+:root {
+  /* Color variables for consistent theming */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f0f0f0;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --border-color: #e0e0e0;
+  --primary-color: #667eea;
+  --primary-hover: #5a6fd4;
+  --success-color: #48bb78;
+  --error-color: #f56565;
+  --warning-color: #f6ad55;
+  --info-color: #4299e1;
+}
+
 /* Reset and Base */
 * {
   margin: 0;
