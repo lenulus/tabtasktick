@@ -358,10 +358,11 @@ async function applyRule(rule, tabs) {
     // Group duplicates by URL
     const urlGroups = new Map();
     for (const tab of matchingTabs) {
-      if (!urlGroups.has(tab.url)) {
-        urlGroups.set(tab.url, []);
+      const normalizedUrl = normalizeUrl(tab.url);
+      if (!urlGroups.has(normalizedUrl)) {
+        urlGroups.set(normalizedUrl, []);
       }
-      urlGroups.get(tab.url).push(tab);
+      urlGroups.get(normalizedUrl).push(tab);
     }
 
     // For each group of duplicates, exclude the one to keep
@@ -497,15 +498,16 @@ async function executeAction(action, tabs) {
 function isDuplicateTab(tab, allTabs) {
   if (tab.pinned) return false;
   
+  const normalizedUrl = normalizeUrl(tab.url);
   const duplicates = allTabs.filter(t => 
     t.id !== tab.id && 
-    t.url === tab.url &&
+    normalizeUrl(t.url) === normalizedUrl &&
     !t.pinned
   );
   
   // Only mark as duplicate if this isn't the first occurrence
   if (duplicates.length > 0) {
-    const firstOccurrence = allTabs.find(t => t.url === tab.url);
+    const firstOccurrence = allTabs.find(t => normalizeUrl(t.url) === normalizedUrl);
     return firstOccurrence.id !== tab.id;
   }
   
@@ -999,11 +1001,12 @@ async function findAndCloseDuplicates() {
   for (const tab of tabs) {
     if (tab.pinned) continue;
     
-    if (urlMap.has(tab.url)) {
+    const normalizedUrl = normalizeUrl(tab.url);
+    if (urlMap.has(normalizedUrl)) {
       duplicates.push(tab.id);
       state.statistics.duplicatesRemoved++;
     } else {
-      urlMap.set(tab.url, tab.id);
+      urlMap.set(normalizedUrl, tab.id);
     }
   }
   
@@ -1534,7 +1537,7 @@ async function getTabInfo() {
 }
 
 function findDuplicateCount(tabs) {
-  const urls = tabs.map(t => t.url);
+  const urls = tabs.map(t => normalizeUrl(t.url));
   const uniqueUrls = new Set(urls);
   return urls.length - uniqueUrls.size;
 }
@@ -1652,10 +1655,11 @@ async function previewRule(ruleId) {
   if (rule.conditions.type === 'duplicate' && rule.actions.type === 'close') {
     const urlGroups = new Map();
     for (const tab of matchingTabs) {
-      if (!urlGroups.has(tab.url)) {
-        urlGroups.set(tab.url, []);
+      const normalizedUrl = normalizeUrl(tab.url);
+      if (!urlGroups.has(normalizedUrl)) {
+        urlGroups.set(normalizedUrl, []);
       }
-      urlGroups.get(tab.url).push(tab);
+      urlGroups.get(normalizedUrl).push(tab);
     }
 
     matchingTabs = [];
@@ -1814,6 +1818,18 @@ async function importData(data) {
 // ============================================================================
 // Utility Functions
 // ============================================================================
+
+function normalizeUrl(urlString) {
+  try {
+    const url = new URL(urlString);
+    // Remove query parameters and hash fragments
+    return `${url.protocol}//${url.host}${url.pathname}`;
+  } catch (error) {
+    // If URL parsing fails, return the original string
+    console.warn(`Could not parse URL: ${urlString}`, error);
+    return urlString;
+  }
+}
 
 async function updateStatistics() {
   await chrome.storage.local.set({ statistics: state.statistics });

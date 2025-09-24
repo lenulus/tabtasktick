@@ -3,6 +3,23 @@
  */
 
 /**
+ * Normalize URL by removing query parameters and hash fragments
+ * @param {string} urlString - URL to normalize
+ * @returns {string} Normalized URL
+ */
+export function normalizeUrl(urlString) {
+  try {
+    const url = new URL(urlString);
+    // Remove query parameters and hash fragments
+    return `${url.protocol}//${url.host}${url.pathname}`;
+  } catch (error) {
+    // If URL parsing fails, return the original string
+    console.warn(`Could not parse URL: ${urlString}`, error);
+    return urlString;
+  }
+}
+
+/**
  * Debounce function to limit execution rate
  * @param {Function} func - Function to debounce
  * @param {number} wait - Wait time in milliseconds

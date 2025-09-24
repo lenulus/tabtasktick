@@ -14,7 +14,8 @@ import {
   getFaviconUrl,
   getColorForDomain,
   escapeHtml,
-  sortTabs
+  sortTabs,
+  normalizeUrl
 } from '../core/utils.js';
 
 import { 
@@ -1063,10 +1064,11 @@ export function filterTabs() {
     case 'duplicates':
       const urls = new Map();
       filtered.forEach(tab => {
-        if (!urls.has(tab.url)) {
-          urls.set(tab.url, []);
+        const normalizedUrl = normalizeUrl(tab.url);
+        if (!urls.has(normalizedUrl)) {
+          urls.set(normalizedUrl, []);
         }
-        urls.get(tab.url).push(tab);
+        urls.get(normalizedUrl).push(tab);
       });
       filtered = [];
       urls.forEach(tabs => {
