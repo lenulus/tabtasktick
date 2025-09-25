@@ -2258,3 +2258,209 @@ input:checked + .slider:before {
   background-color: #1a1a1a;
   border-color: #333;
 }
+
+/* DSL Modal Styles */
+.modal-content.large {
+  max-width: 900px;
+  width: 95%;
+}
+
+.dsl-editor {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+
+.dsl-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dsl-textarea {
+  flex: 1;
+  width: 100%;
+  padding: 12px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  resize: vertical;
+  min-height: 400px;
+}
+
+/* When highlighting is active */
+.dsl-highlight-container .dsl-textarea {
+  color: transparent !important;
+  caret-color: var(--text-primary);
+  background: transparent !important;
+  position: relative;
+  z-index: 1;
+}
+
+.dsl-status {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  display: none;
+}
+
+.dsl-status.success {
+  display: block;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.dsl-status.error {
+  display: block;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.dsl-status.info {
+  display: block;
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+/* Dark mode for DSL */
+.dark-theme .dsl-textarea {
+  background-color: #1a1a1a;
+  border-color: #333;
+  color: #e0e0e0;
+}
+
+.dark-theme .dsl-status.success {
+  background-color: #1a3e1a;
+  color: #6fc06f;
+  border-color: #2d5a2d;
+}
+
+.dark-theme .dsl-status.error {
+  background-color: #3e1a1a;
+  color: #f06060;
+  border-color: #5a2d2d;
+}
+
+.dark-theme .dsl-status.info {
+  background-color: #1a2e3e;
+  color: #60a0f0;
+  border-color: #2d445a;
+}
+
+/* DSL Syntax Highlighting */
+.dsl-highlight-container {
+  position: relative;
+  flex: 1;
+  display: flex;
+}
+
+.dsl-highlight-backdrop {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  border: 1px solid transparent;
+  pointer-events: none;
+  overflow: auto !important;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Syntax colors - Light theme */
+.dsl-keyword {
+  color: #d73a49; /* Red */
+  font-weight: bold;
+}
+
+.dsl-string {
+  color: #032f62; /* Dark blue */
+}
+
+.dsl-number {
+  color: #005cc5; /* Blue */
+}
+
+.dsl-operator {
+  color: #d73a49; /* Red */
+}
+
+.dsl-identifier {
+  color: #6f42c1; /* Purple */
+}
+
+.dsl-property {
+  color: #005cc5; /* Blue */
+}
+
+.dsl-comment {
+  color: #6a737d; /* Gray */
+  font-style: italic;
+}
+
+.dsl-bracket {
+  color: #24292e; /* Dark gray */
+  font-weight: bold;
+}
+
+.dsl-regex {
+  color: #22863a; /* Green */
+}
+
+/* Dark theme syntax colors */
+.dark-theme .dsl-keyword {
+  color: #f97583; /* Light red */
+}
+
+.dark-theme .dsl-string {
+  color: #79b8ff; /* Light blue */
+}
+
+.dark-theme .dsl-number {
+  color: #79b8ff; /* Light blue */
+}
+
+.dark-theme .dsl-operator {
+  color: #f97583; /* Light red */
+}
+
+.dark-theme .dsl-identifier {
+  color: #b392f0; /* Light purple */
+}
+
+.dark-theme .dsl-property {
+  color: #79b8ff; /* Light blue */
+}
+
+.dark-theme .dsl-comment {
+  color: #6a737d; /* Gray */
+}
+
+.dark-theme .dsl-bracket {
+  color: #e1e4e8; /* Light gray */
+}
+
+.dark-theme .dsl-regex {
+  color: #85e89d; /* Light green */
+}
+
+/* Fix textarea background in modal */
+#dslContent {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+.dsl-highlight-backdrop {
+  background-color: var(--bg-secondary) !important;
+}

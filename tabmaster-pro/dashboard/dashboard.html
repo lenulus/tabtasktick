@@ -354,6 +354,22 @@
               </svg>
               Run Rules Now
             </button>
+            <button class="btn btn-secondary" id="exportDSLBtn" title="Export rules as DSL">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export DSL
+            </button>
+            <button class="btn btn-secondary" id="importDSLBtn" title="Import rules from DSL">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Import DSL
+            </button>
             <div class="dropdown">
               <button class="btn btn-primary dropdown-toggle" id="addRuleDropdown">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -445,6 +461,32 @@
     <div class="progress-content">
       <div class="spinner"></div>
       <div class="progress-text" id="progressText">Processing...</div>
+    </div>
+  </div>
+
+  <!-- DSL Import/Export Modal -->
+  <div class="modal" id="dslModal">
+    <div class="modal-content large">
+      <div class="modal-header">
+        <h3 id="dslModalTitle">Import/Export Rules DSL</h3>
+        <button class="close-btn" id="closeDSLModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="dsl-editor">
+          <div class="dsl-toolbar">
+            <button class="btn btn-sm" id="formatDSLBtn">Format</button>
+            <button class="btn btn-sm" id="validateDSLBtn">Validate</button>
+            <button class="btn btn-sm" id="clearDSLBtn">Clear</button>
+            <a href="/docs/DSL-SYNTAX.md" target="_blank" class="btn btn-sm">DSL Syntax Help</a>
+          </div>
+          <textarea id="dslContent" class="dsl-textarea" placeholder="Paste DSL rules here or they will appear here when exporting..." spellcheck="false"></textarea>
+          <div class="dsl-status" id="dslStatus"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelDSLBtn">Cancel</button>
+        <button class="btn btn-primary" id="confirmDSLBtn">Import</button>
+      </div>
     </div>
   </div>
 

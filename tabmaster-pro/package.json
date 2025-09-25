@@ -1,6 +1,7 @@
 {
   "name": "tabmaster-pro",
   "version": "1.0.0",
+  "type": "module",
   "description": "Chrome extension for advanced tab management",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.mjs",

@@ -1,7 +1,7 @@
 export default {
   // Use native ES modules
   testEnvironment: 'jsdom',
-  extensionsToTreatAsEsm: ['.js'],
+  extensionsToTreatAsEsm: ['.jsx'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1'
   },
@@ -10,5 +10,8 @@ export default {
     '<rootDir>/dashboard/tests/**/*.test.js',
     '<rootDir>/tests/**/*.test.js'
   ],
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js']
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons']
+  }
 };

@@ -3,6 +3,8 @@
 
 import state from '../core/state.js';
 import { showNotification } from '../core/shared-utils.js';
+import { parseDSL, serializeRuleToDSL, validateDSL, formatDSL } from '../../../lib/dsl.js';
+import { createHighlightedOverlay } from '../../../lib/dsl-highlighter.js';
 
 export async function loadRulesView() {
   console.log('Loading rules view...');
@@ -495,6 +497,9 @@ export function setupRulesEventListeners() {
 
   // Setup drag and drop for rules
   setupRuleDragAndDrop();
+  
+  // Setup DSL import/export
+  setupDSLEventListeners();
 }
 
 export async function handleRuleAction(e) {
@@ -1091,4 +1096,438 @@ export async function updateRulePriorities() {
 // Helper functions
 async function sendMessage(message) {
   return chrome.runtime.sendMessage(message);
+}
+
+// DSL Import/Export Functions
+export function exportRulesAsDSL() {
+  const rules = state.get('currentRules');
+  if (!rules || rules.length === 0) {
+    showNotification('No rules to export', 'info');
+    return;
+  }
+
+  // Convert rules to DSL format
+  const dslContent = rules.map(rule => {
+    // Convert old rule format to new format if needed
+    const newRule = convertRuleToNewFormat(rule);
+    return serializeRuleToDSL(newRule);
+  }).join('\n\n');
+
+  // Show DSL modal with export content
+  showDSLModal('export', dslContent);
+}
+
+export function importRulesFromDSL() {
+  // Show DSL modal for import
+  showDSLModal('import', '');
+}
+
+// Store highlighter instance globally
+let dslHighlighter = null;
+
+function showDSLModal(mode, content = '') {
+  const modal = document.getElementById('dslModal');
+  const modalTitle = document.getElementById('dslModalTitle');
+  const textarea = document.getElementById('dslContent');
+  const confirmBtn = document.getElementById('confirmDSLBtn');
+  const status = document.getElementById('dslStatus');
+
+  // Set mode
+  modalTitle.textContent = mode === 'export' ? 'Export Rules as DSL' : 'Import Rules from DSL';
+  confirmBtn.textContent = mode === 'export' ? 'Copy to Clipboard' : 'Import';
+  confirmBtn.style.display = mode === 'export' ? 'block' : 'block';
+  textarea.readOnly = mode === 'export';
+  textarea.value = content;
+  
+  // Clear status
+  status.className = 'dsl-status';
+  status.textContent = '';
+
+  // Initialize syntax highlighting
+  if (!dslHighlighter) {
+    dslHighlighter = createHighlightedOverlay(textarea);
+  } else {
+    dslHighlighter.update();
+  }
+
+  // Show modal
+  modal.style.display = 'flex';
+
+  if (mode === 'export') {
+    // Select all text for easy copying
+    textarea.select();
+  }
+}
+
+function closeDSLModal() {
+  const modal = document.getElementById('dslModal');
+  modal.style.display = 'none';
+}
+
+export async function handleDSLImport() {
+  const textarea = document.getElementById('dslContent');
+  const dslContent = textarea.value.trim();
+  const status = document.getElementById('dslStatus');
+
+  if (!dslContent) {
+    showDSLStatus('Please enter DSL rules to import', 'error');
+    return;
+  }
+
+  // Validate DSL
+  const validation = validateDSL(dslContent);
+  if (!validation.valid) {
+    showDSLStatus(`Invalid DSL: ${validation.error}`, 'error');
+    return;
+  }
+
+  try {
+    // Parse DSL to rules
+    const parsedRules = parseDSL(dslContent);
+    
+    // Convert to old format for compatibility
+    const convertedRules = parsedRules.map(rule => convertRuleFromNewFormat(rule));
+
+    // Get existing rules
+    let existingRules = state.get('currentRules') || [];
+    
+    // Add new rules with unique IDs and priorities
+    const newRules = convertedRules.map((rule, index) => ({
+      ...rule,
+      id: `rule_${Date.now()}_${index}`,
+      priority: existingRules.length + index + 1,
+      createdAt: Date.now(),
+      enabled: false // Start disabled for safety
+    }));
+
+    // Combine rules
+    const allRules = [...existingRules, ...newRules];
+    
+    // Save rules
+    state.set('currentRules', allRules);
+    await sendMessage({
+      action: 'saveRules',
+      rules: allRules
+    });
+
+    // Update UI and close modal
+    updateRulesUI();
+    closeDSLModal();
+    showNotification(`Imported ${newRules.length} rule(s) successfully`, 'success');
+  } catch (error) {
+    showDSLStatus(`Import failed: ${error.message}`, 'error');
+  }
+}
+
+export function formatDSLContent() {
+  const textarea = document.getElementById('dslContent');
+  const content = textarea.value.trim();
+  
+  if (!content) return;
+
+  try {
+    // Parse and re-serialize to format
+    const validation = validateDSL(content);
+    if (validation.valid) {
+      const formatted = validation.rules.map(rule => serializeRuleToDSL(rule)).join('\n\n');
+      textarea.value = formatDSL(formatted);
+      
+      // Update syntax highlighting
+      if (dslHighlighter) {
+        dslHighlighter.update();
+      }
+      
+      showDSLStatus('DSL formatted successfully', 'success');
+    } else {
+      showDSLStatus(`Cannot format invalid DSL: ${validation.error}`, 'error');
+    }
+  } catch (error) {
+    showDSLStatus(`Format error: ${error.message}`, 'error');
+  }
+}
+
+export function validateDSLContent() {
+  const textarea = document.getElementById('dslContent');
+  const content = textarea.value.trim();
+  
+  if (!content) {
+    showDSLStatus('Please enter DSL content to validate', 'info');
+    return;
+  }
+
+  const validation = validateDSL(content);
+  if (validation.valid) {
+    showDSLStatus(`Valid DSL with ${validation.rules.length} rule(s)`, 'success');
+  } else {
+    showDSLStatus(`Invalid DSL: ${validation.error}`, 'error');
+  }
+}
+
+function showDSLStatus(message, type) {
+  const status = document.getElementById('dslStatus');
+  status.className = `dsl-status ${type}`;
+  status.textContent = message;
+}
+
+export function copyDSLToClipboard() {
+  const textarea = document.getElementById('dslContent');
+  textarea.select();
+  document.execCommand('copy');
+  showDSLStatus('Copied to clipboard!', 'success');
+}
+
+// DSL event listeners setup
+export function setupDSLEventListeners() {
+  // Export button
+  const exportBtn = document.getElementById('exportDSLBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportRulesAsDSL);
+  }
+
+  // Import button
+  const importBtn = document.getElementById('importDSLBtn');
+  if (importBtn) {
+    importBtn.addEventListener('click', importRulesFromDSL);
+  }
+
+  // Modal buttons
+  const closeDSLBtn = document.getElementById('closeDSLModal');
+  if (closeDSLBtn) {
+    closeDSLBtn.addEventListener('click', closeDSLModal);
+  }
+
+  const cancelDSLBtn = document.getElementById('cancelDSLBtn');
+  if (cancelDSLBtn) {
+    cancelDSLBtn.addEventListener('click', closeDSLModal);
+  }
+
+  const confirmDSLBtn = document.getElementById('confirmDSLBtn');
+  if (confirmDSLBtn) {
+    confirmDSLBtn.addEventListener('click', () => {
+      const modalTitle = document.getElementById('dslModalTitle');
+      if (modalTitle.textContent.includes('Import')) {
+        handleDSLImport();
+      } else {
+        copyDSLToClipboard();
+      }
+    });
+  }
+
+  // Toolbar buttons
+  const formatBtn = document.getElementById('formatDSLBtn');
+  if (formatBtn) {
+    formatBtn.addEventListener('click', formatDSLContent);
+  }
+
+  const validateBtn = document.getElementById('validateDSLBtn');
+  if (validateBtn) {
+    validateBtn.addEventListener('click', validateDSLContent);
+  }
+
+  const clearBtn = document.getElementById('clearDSLBtn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      document.getElementById('dslContent').value = '';
+      document.getElementById('dslStatus').className = 'dsl-status';
+      document.getElementById('dslStatus').textContent = '';
+    });
+  }
+
+  // Modal backdrop click
+  const dslModal = document.getElementById('dslModal');
+  if (dslModal) {
+    dslModal.addEventListener('click', (e) => {
+      if (e.target === dslModal) {
+        closeDSLModal();
+      }
+    });
+  }
+}
+
+// Rule format conversion helpers
+function convertRuleToNewFormat(oldRule) {
+  // Convert old rule format to Rules Engine 2.0 format
+  const newRule = {
+    name: oldRule.name,
+    enabled: oldRule.enabled,
+    when: null,
+    then: [],
+    trigger: {},
+    flags: {}
+  };
+
+  // Convert conditions
+  if (oldRule.conditions) {
+    newRule.when = convertConditionsToNew(oldRule.conditions);
+  }
+
+  // Convert actions
+  if (oldRule.actions) {
+    newRule.then = [convertActionsToNew(oldRule.actions)];
+  }
+
+  // Convert trigger
+  if (oldRule.trigger) {
+    if (oldRule.trigger.type === 'event') {
+      newRule.trigger.immediate = true;
+    } else if (oldRule.trigger.type === 'periodic') {
+      newRule.trigger.repeat_every = `${oldRule.trigger.interval}m`;
+    }
+  }
+
+  return newRule;
+}
+
+function convertConditionsToNew(conditions) {
+  const type = conditions.type;
+  const result = { all: [] };
+
+  switch (type) {
+    case 'duplicate':
+      return { is: ['tab.isDupe', true] };
+    
+    case 'domain_count':
+      return { gte: ['tab.countPerOrigin:domain', conditions.minCount || 3] };
+    
+    case 'inactive':
+      if (conditions.urlPatterns && conditions.urlPatterns.length > 0) {
+        result.all.push({ in: ['tab.domain', conditions.urlPatterns] });
+      }
+      if (conditions.timeCriteria?.inactive) {
+        result.all.push({ gte: ['tab.age', `${conditions.timeCriteria.inactive}m`] });
+      }
+      break;
+    
+    case 'url_pattern':
+      return { regex: ['tab.url', conditions.pattern] };
+    
+    case 'category':
+      return { in: ['tab.category', conditions.categories || []] };
+    
+    case 'age_and_domain':
+      if (conditions.domains) {
+        result.all.push({ in: ['tab.domain', conditions.domains] });
+      }
+      if (conditions.timeCriteria?.inactive) {
+        result.all.push({ gte: ['tab.age', `${conditions.timeCriteria.inactive}m`] });
+      }
+      break;
+  }
+
+  return result.all.length === 1 ? result.all[0] : result;
+}
+
+function convertActionsToNew(actions) {
+  const result = { action: actions.type };
+
+  switch (actions.type) {
+    case 'close':
+      if (actions.saveToBookmarks) {
+        result.saveToBookmarks = true;
+      }
+      break;
+    
+    case 'snooze':
+      if (actions.snoozeMinutes) {
+        result.for = `${actions.snoozeMinutes}m`;
+      }
+      break;
+    
+    case 'group':
+      if (actions.groupBy) {
+        result.by = actions.groupBy;
+      } else if (actions.name) {
+        result.name = actions.name;
+      }
+      break;
+  }
+
+  return result;
+}
+
+function convertRuleFromNewFormat(newRule) {
+  // Convert Rules Engine 2.0 format back to old format
+  const oldRule = {
+    name: newRule.name,
+    enabled: newRule.enabled !== false,
+    conditions: {},
+    actions: {}
+  };
+
+  // Convert trigger
+  if (newRule.trigger.immediate) {
+    oldRule.trigger = { type: 'event' };
+  } else if (newRule.trigger.repeat_every) {
+    const match = newRule.trigger.repeat_every.match(/(\d+)([mhd])/);
+    if (match) {
+      let minutes = parseInt(match[1]);
+      if (match[2] === 'h') minutes *= 60;
+      if (match[2] === 'd') minutes *= 1440;
+      oldRule.trigger = { type: 'periodic', interval: minutes };
+    }
+  }
+
+  // Convert conditions - simplified conversion
+  if (newRule.when) {
+    oldRule.conditions = convertConditionsFromNew(newRule.when);
+  }
+
+  // Convert actions
+  if (newRule.then && newRule.then.length > 0) {
+    oldRule.actions = convertActionsFromNew(newRule.then[0]);
+  }
+
+  return oldRule;
+}
+
+function convertConditionsFromNew(condition) {
+  // Simplified conversion - may need expansion based on actual use
+  if (condition.is && condition.is[0] === 'tab.isDupe') {
+    return { type: 'duplicate' };
+  } else if (condition.gte && condition.gte[0] === 'tab.countPerOrigin:domain') {
+    return { type: 'domain_count', minCount: condition.gte[1] };
+  } else if (condition.in && condition.in[0] === 'tab.category') {
+    return { type: 'category', categories: condition.in[1] };
+  } else if (condition.regex && condition.regex[0] === 'tab.url') {
+    return { type: 'url_pattern', pattern: condition.regex[1] };
+  } else if (condition.all) {
+    // Handle complex conditions - simplified
+    return { type: 'duplicate' }; // Default fallback
+  }
+  
+  return { type: 'duplicate' };
+}
+
+function convertActionsFromNew(action) {
+  const result = { type: action.action };
+
+  switch (action.action) {
+    case 'close':
+      if (action.saveToBookmarks) {
+        result.saveToBookmarks = true;
+      }
+      break;
+    
+    case 'snooze':
+      if (action.for) {
+        const match = action.for.match(/(\d+)([mhd])/);
+        if (match) {
+          let minutes = parseInt(match[1]);
+          if (match[2] === 'h') minutes *= 60;
+          if (match[2] === 'd') minutes *= 1440;
+          result.snoozeMinutes = minutes;
+        }
+      }
+      break;
+    
+    case 'group':
+      if (action.by) {
+        result.groupBy = action.by;
+      } else if (action.name) {
+        result.name = action.name;
+      }
+      break;
+  }
+
+  return result;
 }

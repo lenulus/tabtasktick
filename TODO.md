@@ -250,16 +250,66 @@ Dashboard.js has grown to 4000+ lines and needs modular refactoring for maintain
 - ❌ SKIP Event bus - current event handling works fine
 - ❌ SKIP Any other "architectural improvements" that don't reduce file size
 
+### Rules Engine 2.0 [Spec: rules-prd.md] ✅ PHASE 1 COMPLETE
+#### Phase 1: Core Engine - Test Infrastructure & Modules ✅
+- ✅ Create test infrastructure (chrome-mock.js, tab-factory.js, rule-factory.js, test-helpers.js)
+- ✅ Create normalize.js module with tests for URL deduplication (32 tests passing)
+- ✅ Create predicate.js module with tests for condition compilation (27 tests passing)
+- ✅ Create engine.js with tests for rule evaluation and dry-run (27 tests passing)
+  - ✅ buildIndices for efficient rule evaluation
+  - ✅ evaluateRule with condition matching
+  - ✅ executeActions with dry-run support
+  - ✅ runRules for batch processing
+  - ✅ previewRule for UI integration
+  - ✅ Support for all actions: close, group, snooze, bookmark
+  - ✅ Action ordering and skip logic (closed tabs)
+  - ✅ Error handling with graceful failures
+- ✅ Create scheduler.js with tests for trigger system (23 tests passing)
+  - ✅ Immediate triggers with configurable debouncing
+  - ✅ Repeat triggers with interval support ('30m', '1h', '2d')
+  - ✅ Once triggers with ISO date/time scheduling
+  - ✅ Persistence support for surviving restarts
+  - ✅ Rule setup integration
+  - ✅ Status reporting and control methods
+- ✅ Integrate scheduler and engine with background.js
+  - ✅ Created background-integrated.js with full Rules Engine 2.0 integration
+  - ✅ Supports all triggers: immediate (via tab events), repeat, once, manual
+  - ✅ Full message handler API for rules, preview, scheduler status
+  - ✅ Bookmark action implemented with folder creation
+  - ✅ Activity logging and statistics tracking
+- ✅ Migrate existing rules to new format (18 tests passing)
+  - ✅ Created migrate-rules.js with comprehensive migration logic
+  - ✅ Handles all old condition types (domain, age, duplicate, etc.)
+  - ✅ Converts actions to new format
+  - ✅ Migrates triggers (immediate, interval → repeat_every)
+  - ✅ Preserves unknown fields and handles errors gracefully
+  - ✅ Includes default rules in new format
+
+#### Phase 2: DSL Support ✅ COMPLETE
+- ✅ Create dsl.js parser/serializer with comprehensive tests (31 tests passing)
+- ✅ Add DSL import/export to rules view with validation tests (13 tests passing)
+- ✅ Create DSL syntax highlighting (18 tests passing)
+- ✅ Test DSL round-trip conversion and error handling
+
+#### Phase 3: UI Enhancement
+- ❌ Create Session View with tests for bulk management
+- ❌ Build advanced conditions editor with input validation tests
+- ❌ Add action ordering UI with drag-drop tests
+- ❌ Create categories manager with mapping tests
+- ❌ Add dry-run preview panel with rendering tests
+
+#### Phase 4: Safety & Polish
+- ❌ Implement undo system with restoration tests
+- ❌ Add virtual scrolling with performance tests
+- ❌ Create performance test suite for 200+ tabs
+- ❌ Add e2e tests for PRD scenarios
+
 ### High Priority (P1)
-1. Implement unified time-based triggers [Spec: SPEC-002]
-   - Tab time tracking (created, lastActive, lastAccessed)
-   - Time criteria as optional modifiers for all conditions
-   - Periodic rule checking with chrome.alarms
-   - Update UI to support time criteria consistently
+1. Complete Rules Engine 2.0 implementation
 2. Make popup stats clickable with navigation to dashboard
 3. Add "Create Rule" button to popup
 4. Fix virtual scrolling for performance with 200+ tabs
-5. Add domain include/exclude filters to domain_count rule
+5. Implement unified time-based triggers [Spec: SPEC-002]
 
 ### Medium Priority (P2)
 1. Complete import functionality
@@ -286,6 +336,17 @@ Dashboard.js has grown to 4000+ lines and needs modular refactoring for maintain
 - ✅ Added tab event listeners for history tracking
 - ✅ Fixed tree view persistence and initial load issues
 - ✅ Added "go to tab" button in tree view
+- ✅ **COMPLETED RULES ENGINE 2.0 PHASE 1** (127 tests passing total):
+  - ✅ Created test infrastructure (chrome-mock.js, tab-factory.js, rule-factory.js, test-helpers.js)
+  - ✅ normalize.js: URL deduplication and domain extraction (32 tests)
+  - ✅ predicate.js: Condition compilation with all PRD operators (27 tests)
+  - ✅ engine.js: Rule evaluation, action execution, dry-run (27 tests)
+  - ✅ scheduler.js: Immediate/repeat/once triggers with persistence (23 tests)
+  - ✅ migrate-rules.js: Migration from old format to new (18 tests)
+  - ✅ background-integrated.js: Full integration with Chrome APIs
+  - ✅ All actions implemented: close, group, snooze, bookmark
+  - ✅ All triggers supported: immediate (debounced), repeat, once, manual
+  - ✅ Performance optimized with indices for 200+ tabs
 - ✅ Improved spacing and visual design in tree view
 - ✅ Moved rules engine to dashboard
 - ✅ Fixed critical issues from debugging session
@@ -296,6 +357,17 @@ Dashboard.js has grown to 4000+ lines and needs modular refactoring for maintain
 - ✅ Implemented category selection UI with checkboxes
 - ✅ Added sample rules for social media and shopping categories
 - ✅ Created SPEC-002 for unified time-based triggers
+- ✅ **COMPLETED RULES ENGINE 2.0 PHASE 2** (62 tests passing):
+  - ✅ Created dsl.js: Full DSL parser/serializer (665 lines)
+  - ✅ Implemented tokenizer for all DSL elements
+  - ✅ Built recursive parser for complex conditions
+  - ✅ Added bidirectional DSL ↔ JSON conversion
+  - ✅ Created dashboard integration with import/export
+  - ✅ Added DSL modal with validation and formatting
+  - ✅ Implemented syntax highlighting with overlay technique (342 lines)
+  - ✅ Wrote comprehensive documentation (DSL-SYNTAX.md)
+  - ✅ All DSL features: conditions, operators, grouping, actions, triggers, flags
+  - ✅ Safety features: validation, disabled imports, error reporting
 
 ## Recently Completed (Last Session)
 - ✅ Fixed console errors and CSP violations
