@@ -23,12 +23,19 @@ export class TabSimulator {
       openerTabId = undefined
     } = config;
 
+    // Determine which window to use
+    const targetWindowId = windowId || this.testMode.testWindow?.id;
+
+    if (!targetWindowId) {
+      throw new Error('No window ID available for tab creation. Test window may not be initialized.');
+    }
+
     // Create the tab
     const tab = await chrome.tabs.create({
       url,
       pinned,
       active,
-      windowId: windowId || this.testMode.testWindow?.id,
+      windowId: targetWindowId,
       index,
       openerTabId
     });
@@ -132,21 +139,26 @@ export class TabSimulator {
   async setTabAge(tabId, age) {
     const ageMs = this.parseAge(age);
     const now = Date.now();
-    
+
     const timeData = {
       created: now - ageMs,
       lastActive: now - ageMs,
       lastAccessed: now - Math.min(ageMs / 2, 30 * 60 * 1000) // Accessed more recently
     };
-    
+
     this.tabTimeData.set(tabId, timeData);
+    console.log(`Setting tab ${tabId} age to ${age} (${ageMs}ms ago)`, timeData);
 
     // Notify background script about the simulated time
-    await chrome.runtime.sendMessage({
+    const response = await chrome.runtime.sendMessage({
       action: 'setTestTabTime',
       tabId,
       timeData
     });
+
+    if (!response?.success) {
+      console.error('Failed to set test tab time:', response);
+    }
 
     return timeData;
   }

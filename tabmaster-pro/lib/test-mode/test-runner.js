@@ -82,15 +82,28 @@ export class TestRunner {
 
     // Ensure test window exists and is valid
     if (!this.testMode.testWindow?.id) {
-      throw new Error('Test window not initialized');
+      // Try to create test window if it doesn't exist
+      console.log('Test window not initialized, creating new window');
+      await this.testMode.createTestWindow();
+
+      if (!this.testMode.testWindow?.id) {
+        throw new Error('Failed to create test window');
+      }
     }
 
     // Check if test window still exists
+    let windowId = this.testMode.testWindow.id;
     try {
-      await chrome.windows.get(this.testMode.testWindow.id);
+      await chrome.windows.get(windowId);
     } catch (error) {
       // Window no longer exists, recreate it
+      console.log('Test window no longer exists, recreating');
       await this.testMode.createTestWindow();
+      windowId = this.testMode.testWindow.id;
+
+      if (!windowId) {
+        throw new Error('Failed to recreate test window');
+      }
     }
 
     for (let i = 0; i < count; i++) {
@@ -99,7 +112,7 @@ export class TestRunner {
         pinned,
         muted,
         active: active && i === 0, // Only first tab can be active
-        windowId: this.testMode.testWindow.id
+        windowId: windowId
       });
 
       // Simulate age if specified
@@ -130,10 +143,32 @@ export class TestRunner {
    */
   async executeCreateRule(step) {
     const { rule } = step;
-    
+
     // Build rule using RuleBuilder
     const builtRule = this.ruleBuilder.buildRule(rule);
-    
+
+    // If the rule contains bookmark actions, pre-create the folder
+    // (This ensures the folder exists but snapshot/restore handles cleanup)
+    if (builtRule.then) {
+      for (const action of builtRule.then) {
+        if (action.action === 'bookmark' && action.to) {
+          try {
+            const folders = await chrome.bookmarks.search({ title: action.to });
+            if (folders.length === 0 || folders[0].url) {
+              // Create the folder
+              const folder = await chrome.bookmarks.create({
+                title: action.to,
+                parentId: '1' // Bookmarks bar
+              });
+              console.log(`Created test bookmark folder: ${action.to} (${folder.id})`);
+            }
+          } catch (e) {
+            console.log(`Could not pre-create bookmark folder: ${e.message}`);
+          }
+        }
+      }
+    }
+
     // Send to background to create rule
     const response = await chrome.runtime.sendMessage({
       action: 'addRule',
@@ -159,6 +194,8 @@ export class TestRunner {
     const { ruleId, dryRun = false } = step;
     const startTime = performance.now();
 
+    console.log(`Executing rule ${ruleId}...`);
+
     const response = await chrome.runtime.sendMessage({
       action: 'executeRule',
       ruleId,
@@ -166,23 +203,29 @@ export class TestRunner {
       dryRun
     });
 
-    if (!response.success) {
-      throw new Error(`Failed to execute rule: ${response.error}`);
+    console.log(`Rule execution response:`, response);
+
+    if (!response || !response.success) {
+      const error = response?.error || 'No response from background';
+      console.error(`Rule execution failed:`, error);
+      throw new Error(`Failed to execute rule: ${error}`);
     }
 
     const executionTime = performance.now() - startTime;
     this.recordMetric('ruleExecution', {
       ruleId,
       executionTime,
-      matchCount: response.matchCount,
-      actionCount: response.actionCount
+      matchCount: response.matchCount || 0,
+      actionCount: response.actionCount || 0
     });
 
     return {
       ruleId,
-      matches: response.matches,
-      actions: response.actions,
-      executionTime
+      matches: response.matches || [],
+      actions: response.actions || [],
+      executionTime,
+      matchCount: response.matchCount || 0,
+      actionCount: response.actionCount || 0
     };
   }
 

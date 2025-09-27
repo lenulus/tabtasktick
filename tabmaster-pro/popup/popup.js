@@ -233,8 +233,8 @@ function updateSnoozedList(snoozedTabs) {
   elements.snoozedSection.style.display = 'block';
   elements.snoozedList.innerHTML = '';
   
-  // Sort by snooze time
-  snoozedTabs.sort((a, b) => a.snoozeUntil - b.snoozeUntil);
+  // Sort by wake time (backend uses wakeTime, not snoozeUntil)
+  snoozedTabs.sort((a, b) => (a.wakeTime || a.snoozeUntil || 0) - (b.wakeTime || b.snoozeUntil || 0));
   
   // Group tabs by time period
   const groups = groupSnoozedTabsByPeriod(snoozedTabs);
@@ -254,7 +254,7 @@ function updateSnoozedList(snoozedTabs) {
       const tabEl = document.createElement('div');
       tabEl.className = 'snoozed-tab';
       
-      const timeRemaining = getTimeRemaining(tab.snoozeUntil);
+      const timeRemaining = getTimeRemaining(tab.wakeTime || tab.snoozeUntil);
       const favicon = tab.favicon || '../icons/icon-16.png';
       
       tabEl.innerHTML = `
@@ -321,7 +321,7 @@ function groupSnoozedTabsByPeriod(tabs) {
   };
   
   tabs.forEach(tab => {
-    const diff = tab.snoozeUntil - now;
+    const diff = (tab.wakeTime || tab.snoozeUntil || 0) - now;
     const hours = diff / (1000 * 60 * 60);
     
     if (hours <= 1) {
@@ -498,7 +498,7 @@ async function rescheduleSnoozedTab(tab) {
       // Then create new snoozed entry with new time
       const newSnoozedTab = {
         ...tab,
-        snoozeUntil: snoozeData.timestamp,
+        wakeTime: snoozeData.timestamp,
         snoozeReason: snoozeData.presetId || 'custom'
       };
       

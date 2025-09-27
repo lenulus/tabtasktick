@@ -41,7 +41,9 @@ const scheduler = createChromeScheduler(chrome, async (trigger) => {
   console.log('Rule trigger fired:', trigger);
   const rule = state.rules.find(r => r.id === trigger.ruleId);
   if (rule && rule.enabled) {
-    await executeRule(rule.id, trigger.type);
+    // Check if we're in test mode
+    const { testModeActive } = await chrome.storage.local.get('testModeActive');
+    await executeRule(rule.id, trigger.type, testModeActive || false);
   }
 });
 
@@ -52,7 +54,7 @@ async function initializeScheduler() {
   // Setup all enabled rules
   for (const rule of state.rules) {
     if (rule.enabled) {
-      scheduler.setupRule(rule);
+      await scheduler.setupRule(rule);
     }
   }
 }
@@ -63,6 +65,78 @@ async function initializeScheduler() {
 
 // Track tab timestamps: tabId -> { created, lastActive, lastAccessed }
 const tabTimeData = new Map();
+
+// Store console logs for debugging
+const consoleLogs = [];
+const MAX_CONSOLE_LOGS = 500;
+
+// Capture console logs
+const originalLog = console.log;
+const originalError = console.error;
+const originalWarn = console.warn;
+
+console.log = function(...args) {
+  consoleLogs.push({
+    type: 'log',
+    timestamp: new Date().toLocaleTimeString(),
+    message: args.map(arg => {
+      if (typeof arg === 'object') {
+        try {
+          return JSON.stringify(arg);
+        } catch (e) {
+          return String(arg);
+        }
+      }
+      return String(arg);
+    }).join(' ')
+  });
+  if (consoleLogs.length > MAX_CONSOLE_LOGS) {
+    consoleLogs.shift();
+  }
+  originalLog.apply(console, args);
+};
+
+console.error = function(...args) {
+  consoleLogs.push({
+    type: 'error',
+    timestamp: new Date().toLocaleTimeString(),
+    message: args.map(arg => {
+      if (typeof arg === 'object') {
+        try {
+          return JSON.stringify(arg);
+        } catch (e) {
+          return String(arg);
+        }
+      }
+      return String(arg);
+    }).join(' ')
+  });
+  if (consoleLogs.length > MAX_CONSOLE_LOGS) {
+    consoleLogs.shift();
+  }
+  originalError.apply(console, args);
+};
+
+console.warn = function(...args) {
+  consoleLogs.push({
+    type: 'warn',
+    timestamp: new Date().toLocaleTimeString(),
+    message: args.map(arg => {
+      if (typeof arg === 'object') {
+        try {
+          return JSON.stringify(arg);
+        } catch (e) {
+          return String(arg);
+        }
+      }
+      return String(arg);
+    }).join(' ')
+  });
+  if (consoleLogs.length > MAX_CONSOLE_LOGS) {
+    consoleLogs.shift();
+  }
+  originalWarn.apply(console, args);
+};
 
 // Initialize time tracking for existing tabs on startup
 async function initializeTabTimeTracking() {
@@ -249,12 +323,15 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
     if (!state.testRuleExecutions) {
       state.testRuleExecutions = new Map();
     }
+    // Track by both ID and name for flexibility
     const executions = state.testRuleExecutions.get(rule.id) || [];
     executions.push({
       timestamp: Date.now(),
       triggerType
     });
     state.testRuleExecutions.set(rule.id, executions);
+    // Also track by name
+    state.testRuleExecutions.set(rule.name, executions);
   }
 
   try {
@@ -268,6 +345,15 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
       if (timeData) {
         tab.createdAt = timeData.created;
         tab.lastActivatedAt = timeData.lastActive;
+        // Log for debugging test tabs with age
+        if (testMode && timeData.created < Date.now() - 60 * 60 * 1000) {
+          console.log(`Test tab ${tab.id} has age data:`, {
+            url: tab.url,
+            createdAt: tab.createdAt,
+            age: Date.now() - tab.createdAt,
+            ageHours: (Date.now() - tab.createdAt) / (1000 * 60 * 60)
+          });
+        }
       }
       // Add category from domain mapping
       tab.category = getCategoryForDomain(tab.url);
@@ -660,7 +746,7 @@ async function addRule(rule) {
   
   // Setup triggers if enabled
   if (rule.enabled) {
-    scheduler.setupRule(rule);
+    await scheduler.setupRule(rule);
   }
   
   return { success: true, ruleId: rule.id };
@@ -681,7 +767,7 @@ async function updateRule(ruleId, updates) {
   // Update scheduler
   scheduler.removeRule(ruleId);
   if (newRule.enabled) {
-    scheduler.setupRule(newRule);
+    await scheduler.setupRule(newRule);
   }
   
   return { success: true };
@@ -833,7 +919,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           // Then setup the new/updated rules
           for (const rule of state.rules) {
             if (rule.enabled) {
-              scheduler.setupRule(rule);
+              await scheduler.setupRule(rule);
             }
           }
           
@@ -951,12 +1037,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const wakeAllResult = await wakeAllSnoozedTabs();
           sendResponse(wakeAllResult);
           break;
-          
+
+        case 'clearTestSnoozedTabs':
+          // Clear snoozed tabs matching test patterns without recreating them
+          const testPatterns = request.patterns || [];
+          const beforeCount = state.snoozedTabs.length;
+          state.snoozedTabs = state.snoozedTabs.filter(tab => {
+            return !testPatterns.some(pattern => tab.url?.includes(pattern));
+          });
+          const removedCount = beforeCount - state.snoozedTabs.length;
+          if (removedCount > 0) {
+            await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+            console.log(`Cleared ${removedCount} test snoozed tabs`);
+          }
+          sendResponse({ success: true, removedCount });
+          break;
+
         // Test Mode Operations
         case 'setTestTabTime':
           if (request.timeData) {
             tabTimeData.set(request.tabId, request.timeData);
+            console.log(`Set test tab ${request.tabId} time data:`, request.timeData);
             sendResponse({ success: true });
+          } else {
+            sendResponse({ success: false, error: 'No timeData provided' });
           }
           break;
           
@@ -980,10 +1084,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           state.testTabStates.set(request.tabId, { suspended: true });
           sendResponse({ success: true });
           break;
+
+        case 'getConsoleLogs':
+          // Return captured console logs
+          sendResponse({ logs: consoleLogs });
+          break;
           
         case 'getTestRuleExecutions':
-          // Return test rule execution history
-          const executions = state.testRuleExecutions?.get(request.ruleId) || [];
+          // Return test rule execution history (lookup by ID or name)
+          let executions = [];
+          if (state.testRuleExecutions) {
+            executions = state.testRuleExecutions.get(request.ruleId) || [];
+            // If not found by ID, try by name
+            if (executions.length === 0) {
+              // Find rule by name to get its ID
+              const rule = state.rules?.find(r => r.name === request.ruleId);
+              if (rule) {
+                executions = state.testRuleExecutions.get(rule.id) || [];
+              }
+            }
+          }
           sendResponse({ executions });
           break;
           

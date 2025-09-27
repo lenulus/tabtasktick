@@ -226,13 +226,13 @@ export function createScheduler(options = {}) {
    */
   async function saveTrigger(ruleId, time) {
     if (!storage) return;
-    
+
     // Remove any existing trigger for this rule
     scheduledTriggers = scheduledTriggers.filter(t => t.ruleId !== ruleId);
-    
-    // Add new trigger
-    scheduledTriggers.push({ ruleId, time });
-    
+
+    // Add new trigger with type
+    scheduledTriggers.push({ ruleId, time, type: 'once' });
+
     await storage.set({ scheduledTriggers });
   }
   
@@ -272,28 +272,31 @@ export function createScheduler(options = {}) {
   /**
    * Setup rule triggers based on rule configuration
    * @param {object} rule - Rule with trigger configuration
+   * @returns {Promise<void>}
    */
-  function setupRule(rule) {
+  async function setupRule(rule) {
     if (!rule.enabled || !rule.trigger) return;
-    
+
     const { trigger } = rule;
-    
+
     if (trigger.immediate) {
       // Will be triggered by tab events
       // No setup needed here
     }
-    
+
     if (trigger.on_action) {
       // Manual trigger, no setup needed
     }
-    
-    if (trigger.repeat_every) {
-      scheduleRepeat(rule.id, trigger.repeat_every);
+
+    // Handle both repeat_every and repeat formats
+    if (trigger.repeat_every || trigger.repeat) {
+      scheduleRepeat(rule.id, trigger.repeat_every || trigger.repeat);
     }
-    
-    if (trigger.once_at) {
-      // Schedule once is async but we don't need to wait for it here
-      scheduleOnce(rule.id, trigger.once_at);
+
+    // Handle both once_at and once formats
+    if (trigger.once_at || trigger.once) {
+      // Await to ensure scheduledTriggers is populated
+      await scheduleOnce(rule.id, trigger.once_at || trigger.once);
     }
   }
   
@@ -316,6 +319,7 @@ export function createScheduler(options = {}) {
     cancelAll,
     stopAll,
     getStatus,
+    getScheduledTriggers: () => [...scheduledTriggers],
     setupRule,
     removeRule,
     parseDuration

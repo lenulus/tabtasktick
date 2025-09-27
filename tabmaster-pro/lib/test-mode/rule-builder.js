@@ -243,6 +243,15 @@ export class RuleBuilder {
       };
     }
 
+    // Handle special FUTURE: markers for scheduled triggers
+    if (trigger && trigger.once && typeof trigger.once === 'string' && trigger.once.startsWith('FUTURE:')) {
+      const delayMs = parseInt(trigger.once.substring(7));
+      return {
+        ...trigger,
+        once: new Date(Date.now() + delayMs).toISOString()
+      };
+    }
+
     return trigger;
   }
 

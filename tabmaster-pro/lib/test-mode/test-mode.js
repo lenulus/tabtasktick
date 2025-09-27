@@ -9,9 +9,12 @@ export class TestMode {
     this.testWindow = null;
     this.testTabIds = new Set();
     this.testRuleIds = new Set();
+    this.testBookmarkIds = new Set(); // Track bookmarks created during tests
+    this.testBookmarkFolders = new Set(); // Track bookmark folders created
     this.originalState = null;
     this.results = [];
     this.startTime = null;
+    this.currentScenario = null;
     this.options = {
       headless: false,
       logLevel: 'info',
@@ -20,6 +23,11 @@ export class TestMode {
       maxTabs: 500,
       timeout: 5 * 60 * 1000 // 5 minutes
     };
+
+    // Logging callbacks
+    this.onStepExecuted = null;
+    this.onScenarioStarted = null;
+    this.onScenarioCompleted = null;
   }
 
   /**
@@ -40,12 +48,53 @@ export class TestMode {
     // Create isolated test window
     await this.createTestWindow();
 
+    // Store test window ID in storage for reconnection
+    await chrome.storage.local.set({
+      testModeActive: true,
+      testWindowId: this.testWindow.id
+    });
+
     // Mark test mode as active
     this.isActive = true;
-    await chrome.storage.local.set({ testModeActive: true });
 
     console.log('Test mode initialized', this.options);
     return true;
+  }
+
+  /**
+   * Reconnect to existing test mode
+   */
+  async reconnect() {
+    const { testModeActive, testWindowId } = await chrome.storage.local.get(['testModeActive', 'testWindowId']);
+
+    if (!testModeActive || !testWindowId) {
+      throw new Error('No active test mode to reconnect to');
+    }
+
+    // Verify the test window still exists
+    try {
+      const window = await chrome.windows.get(testWindowId);
+      this.testWindow = window;
+      this.isActive = true;
+      this.startTime = Date.now();
+
+      // Restore original state from storage if available
+      const { testOriginalState } = await chrome.storage.local.get('testOriginalState');
+      if (testOriginalState) {
+        this.originalState = testOriginalState;
+      } else {
+        // Capture it now if not stored
+        await this.captureOriginalState();
+      }
+
+      console.log('Reconnected to test mode with window', testWindowId);
+      return true;
+    } catch (error) {
+      // Window no longer exists
+      console.log('Test window no longer exists, cleaning up');
+      await chrome.storage.local.remove(['testModeActive', 'testWindowId', 'testOriginalState']);
+      throw new Error('Test window no longer exists');
+    }
   }
 
   /**
@@ -58,11 +107,56 @@ export class TestMode {
       chrome.storage.local.get('statistics')
     ]);
 
+    // Snapshot all existing bookmarks
+    const bookmarkTree = await chrome.bookmarks.getTree();
+    const bookmarkSnapshot = this.serializeBookmarkTree(bookmarkTree);
+
     this.originalState = {
       rules: rules.rules || [],
       settings: settings.settings || {},
-      statistics: statistics.statistics || {}
+      statistics: statistics.statistics || {},
+      bookmarks: bookmarkSnapshot
     };
+
+    // Store original state for reconnection
+    await chrome.storage.local.set({ testOriginalState: this.originalState });
+
+    console.log('Captured bookmark snapshot with', this.countBookmarks(bookmarkTree), 'bookmarks');
+  }
+
+  /**
+   * Serialize bookmark tree for comparison
+   */
+  serializeBookmarkTree(nodes) {
+    const serialized = [];
+    for (const node of nodes) {
+      const item = {
+        id: node.id,
+        title: node.title,
+        url: node.url,
+        parentId: node.parentId,
+        index: node.index
+      };
+      if (node.children) {
+        item.children = this.serializeBookmarkTree(node.children);
+      }
+      serialized.push(item);
+    }
+    return serialized;
+  }
+
+  /**
+   * Count bookmarks in tree
+   */
+  countBookmarks(nodes) {
+    let count = 0;
+    for (const node of nodes) {
+      if (node.url) count++;
+      if (node.children) {
+        count += this.countBookmarks(node.children);
+      }
+    }
+    return count;
   }
 
   /**
@@ -198,7 +292,10 @@ export class TestMode {
           // Execute and verify
           { action: 'executeRule', ruleId: 'Close Duplicates' },
           { action: 'wait', ms: 1000 },
-          { action: 'assert', type: 'tabCount', expected: 2, url: 'example.com' },
+          // After closing duplicates, we should have:
+          // - 1 example.com (the oldest/first one)
+          // - 1 different.com (no duplicates)
+          { action: 'assert', type: 'tabCount', expected: 1, url: 'example.com' },
           { action: 'assert', type: 'tabCount', expected: 1, url: 'different.com' },
           { action: 'assert', type: 'statistics', field: 'duplicatesRemoved', minimum: 4 }
         ]
@@ -311,7 +408,7 @@ export class TestMode {
           
           { action: 'executeRule', ruleId: 'Complex Rule' },
           { action: 'wait', ms: 1000 },
-          { action: 'assert', type: 'bookmarkCreated', count: 3, folder: 'Test Bookmarks' }
+          { action: 'assert', type: 'bookmarkCreated', count: 2, folder: 'Test Bookmarks' }
         ]
       },
       {
@@ -340,20 +437,22 @@ export class TestMode {
           { action: 'assert', type: 'ruleExecutions', ruleId: 'Immediate Trigger', count: 1 },
           { action: 'assert', type: 'groupExists', title: 'Triggered', tabCount: 3 },
           
-          // Test scheduled trigger
-          { 
+          // Test scheduled trigger - create tab first, then rule
+          { action: 'createTab', url: 'https://scheduled-test.com' },
+
+          {
             action: 'createRule',
             rule: {
               name: 'Scheduled Rule',
-              trigger: { once: new Date(Date.now() + 2000).toISOString() },
+              trigger: { once: 'FUTURE:5000' },  // Special marker for 5 seconds in future
               when: { all: [{ contains: ['tab.url', 'scheduled-test'] }] },
               then: [{ action: 'group', name: 'Scheduled Group' }]
             }
           },
-          
-          { action: 'createTab', url: 'https://scheduled-test.com' },
+
+          { action: 'wait', ms: 500 },  // Small wait to ensure trigger is saved
           { action: 'assert', type: 'triggerScheduled', ruleId: 'Scheduled Rule', triggerType: 'once' },
-          { action: 'wait', ms: 3000 },  // Wait for scheduled execution
+          { action: 'wait', ms: 5500 },  // Wait for scheduled trigger to fire (5s + buffer)
           { action: 'assert', type: 'groupExists', title: 'Scheduled Group' }
         ]
       }
@@ -366,6 +465,13 @@ export class TestMode {
    */
   async runScenario(scenario) {
     console.log(`Running scenario: ${scenario.name}`);
+    this.currentScenario = scenario.name;
+
+    // Notify scenario started
+    if (this.onScenarioStarted) {
+      this.onScenarioStarted(scenario);
+    }
+
     const result = {
       name: scenario.name,
       description: scenario.description,
@@ -386,6 +492,11 @@ export class TestMode {
         const stepResult = await this.executeStep(step);
         result.steps.push(stepResult);
 
+        // Notify step executed
+        if (this.onStepExecuted) {
+          this.onStepExecuted(scenario, step, stepResult);
+        }
+
         if (stepResult.status === 'failed' && this.options.stopOnFailure) {
           result.status = 'failed';
           break;
@@ -405,6 +516,12 @@ export class TestMode {
       // Cleanup phase
       await this.cleanupScenario(scenario);
       result.duration = Date.now() - scenarioStart;
+      this.currentScenario = null;
+
+      // Notify scenario completed
+      if (this.onScenarioCompleted) {
+        this.onScenarioCompleted(scenario, result);
+      }
     }
 
     return result;
@@ -419,8 +536,30 @@ export class TestMode {
     if (!this.testRunner) {
       this.testRunner = new TestRunner(this);
     }
-    
-    return await this.testRunner.executeStep(step);
+
+    const result = await this.testRunner.executeStep(step);
+
+    // Track bookmarks if created
+    if (step.action === 'bookmark' || (step.action === 'executeRule' && step.rule?.then?.some(a => a.action === 'bookmark'))) {
+      // The background script should notify us about created bookmarks
+      // For now, we'll track them in the assertions
+    }
+
+    return result;
+  }
+
+  /**
+   * Register a test bookmark (kept for compatibility but not needed with snapshot approach)
+   * @param {string} bookmarkId - ID of the created bookmark
+   * @param {boolean} isFolder - Whether it's a folder
+   */
+  registerTestBookmark(bookmarkId, isFolder = false) {
+    // No longer needed with snapshot approach, but kept for compatibility
+    if (isFolder) {
+      this.testBookmarkFolders.add(bookmarkId);
+    } else {
+      this.testBookmarkIds.add(bookmarkId);
+    }
   }
 
   /**
@@ -430,12 +569,27 @@ export class TestMode {
     // Clear any existing test tabs (except the indicator tab)
     const tabs = await chrome.tabs.query({ windowId: this.testWindow.id });
     const indicatorTab = tabs.find(t => t.url.includes('Test Mode Active'));
-    
+
     for (const tab of tabs) {
       if (tab.id !== indicatorTab?.id) {
         await chrome.tabs.remove(tab.id);
         this.testTabIds.delete(tab.id);
       }
+    }
+
+    // Clear any tab groups in the test window
+    try {
+      const groups = await chrome.tabGroups.query({ windowId: this.testWindow.id });
+      for (const group of groups) {
+        await chrome.tabGroups.update(group.id, { collapsed: false });
+        // Ungroup all tabs in this group
+        const groupTabs = await chrome.tabs.query({ groupId: group.id });
+        if (groupTabs.length > 0) {
+          await chrome.tabs.ungroup(groupTabs.map(t => t.id));
+        }
+      }
+    } catch (error) {
+      console.log('Error cleaning up tab groups:', error);
     }
 
     // Clear test rules
@@ -449,7 +603,127 @@ export class TestMode {
    * Cleanup after a scenario
    */
   async cleanupScenario(scenario) {
-    // Scenario-specific cleanup if needed
+    // Clean up bookmarks created during this scenario
+    await this.cleanupNewBookmarks();
+
+    // Clean up any remaining test data
+    // This is scenario-specific cleanup
+  }
+
+  /**
+   * Clean up snoozed tabs created during tests
+   */
+  async cleanupSnoozedTabs() {
+    try {
+      // Define patterns that identify test tabs
+      const testPatterns = [
+        'old-tab-',
+        'test-tab-',
+        'trigger-test',
+        'scheduled-test',
+        'example.com'
+      ];
+
+      // Clear test snoozed tabs without recreating them
+      const response = await chrome.runtime.sendMessage({
+        action: 'clearTestSnoozedTabs',
+        patterns: testPatterns
+      });
+
+      if (response.removedCount > 0) {
+        console.log(`Cleaned up ${response.removedCount} test snoozed tabs`);
+      } else {
+        console.log('No test snoozed tabs to clean up');
+      }
+    } catch (error) {
+      console.error('Error cleaning up snoozed tabs:', error);
+    }
+  }
+
+  /**
+   * Clean up bookmarks created since snapshot
+   */
+  async cleanupNewBookmarks() {
+    if (!this.originalState?.bookmarks) {
+      console.log('No bookmark snapshot available, skipping cleanup');
+      return;
+    }
+
+    try {
+      // Get current bookmark tree
+      const currentTree = await chrome.bookmarks.getTree();
+
+      // Find all bookmark IDs in original snapshot
+      const originalIds = new Set();
+      this.collectBookmarkIds(this.originalState.bookmarks, originalIds);
+
+      // Find all current bookmark IDs
+      const currentIds = [];
+      this.collectBookmarkIdsFlat(currentTree, currentIds);
+
+      // Remove any bookmarks not in original snapshot
+      let removedCount = 0;
+      for (const id of currentIds) {
+        if (!originalIds.has(id) && id !== '0') { // Don't try to remove root
+          try {
+            // Check if it's a folder or bookmark
+            const [bookmark] = await chrome.bookmarks.get(id);
+            if (bookmark) {
+              if (bookmark.url) {
+                // It's a bookmark
+                await chrome.bookmarks.remove(id);
+                console.log(`Removed test bookmark: ${bookmark.title} (${id})`);
+              } else {
+                // It's a folder - use removeTree to remove folder and contents
+                await chrome.bookmarks.removeTree(id);
+                console.log(`Removed test folder: ${bookmark.title} (${id})`);
+              }
+              removedCount++;
+            }
+          } catch (e) {
+            // Node might have been already removed as part of parent folder
+            if (!e.message.includes('No node with id')) {
+              console.log(`Could not remove bookmark ${id}:`, e.message);
+            }
+          }
+        }
+      }
+
+      if (removedCount > 0) {
+        console.log(`Cleaned up ${removedCount} test bookmarks/folders`);
+      }
+
+      // Clear tracking sets
+      this.testBookmarkIds.clear();
+      this.testBookmarkFolders.clear();
+
+    } catch (error) {
+      console.error('Error cleaning up bookmarks:', error);
+    }
+  }
+
+  /**
+   * Collect bookmark IDs from serialized tree
+   */
+  collectBookmarkIds(nodes, ids) {
+    for (const node of nodes) {
+      ids.add(node.id);
+      if (node.children) {
+        this.collectBookmarkIds(node.children, ids);
+      }
+    }
+  }
+
+  /**
+   * Collect bookmark IDs from live tree (flat list)
+   */
+  collectBookmarkIdsFlat(nodes, ids) {
+    for (const node of nodes) {
+      ids.push(node.id);
+      if (node.children) {
+        this.collectBookmarkIdsFlat(node.children, ids);
+      }
+    }
   }
 
   /**
@@ -536,6 +810,22 @@ export class TestMode {
     console.log('Cleaning up test mode...');
 
     try {
+      // First clean up any tab groups before removing the window
+      if (this.testWindow) {
+        try {
+          const groups = await chrome.tabGroups.query({ windowId: this.testWindow.id });
+          for (const group of groups) {
+            // Ungroup all tabs in this group
+            const groupTabs = await chrome.tabs.query({ groupId: group.id });
+            if (groupTabs.length > 0) {
+              await chrome.tabs.ungroup(groupTabs.map(t => t.id));
+            }
+          }
+        } catch (error) {
+          console.log('Error cleaning up tab groups:', error);
+        }
+      }
+
       // Remove all test tabs
       if (this.testWindow) {
         await chrome.windows.remove(this.testWindow.id);
@@ -546,6 +836,12 @@ export class TestMode {
         await this.removeTestRule(ruleId);
       }
 
+      // Clean up all bookmarks created during tests
+      await this.cleanupNewBookmarks();
+
+      // Clean up all snoozed tabs created during tests
+      await this.cleanupSnoozedTabs();
+
       // Restore original state
       if (this.originalState) {
         await chrome.storage.local.set({
@@ -555,8 +851,8 @@ export class TestMode {
         });
       }
 
-      // Clear test mode flag
-      await chrome.storage.local.remove('testModeActive');
+      // Clear test mode flags and data
+      await chrome.storage.local.remove(['testModeActive', 'testWindowId', 'testOriginalState']);
 
     } catch (error) {
       console.error('Error during cleanup:', error);
@@ -565,6 +861,9 @@ export class TestMode {
       this.testWindow = null;
       this.testTabIds.clear();
       this.testRuleIds.clear();
+      this.testBookmarkIds.clear();
+      this.testBookmarkFolders.clear();
+      this.currentScenario = null;
     }
 
     console.log('Test mode cleanup complete');

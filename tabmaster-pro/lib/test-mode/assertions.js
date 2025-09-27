@@ -598,15 +598,21 @@ export class Assertions {
    */
   async assertTriggerScheduled(params) {
     const { ruleId, triggerType, scheduled = true } = params;
-    
+
+    // First, try to resolve the actual rule ID if we were given a name
+    const rulesResponse = await chrome.runtime.sendMessage({ action: 'getRules' });
+    const rules = rulesResponse || [];
+    const rule = rules.find(r => r.id === ruleId || r.name === ruleId);
+    const actualRuleId = rule?.id || ruleId;
+
     const response = await chrome.runtime.sendMessage({
       action: 'getScheduledTriggers',
-      ruleId
+      ruleId: actualRuleId
     });
 
     const triggers = response?.triggers || [];
-    const hasTrigger = triggers.some(t => 
-      t.ruleId === ruleId && 
+    const hasTrigger = triggers.some(t =>
+      t.ruleId === actualRuleId &&
       (!triggerType || t.type === triggerType)
     );
 
