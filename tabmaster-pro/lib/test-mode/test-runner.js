@@ -80,6 +80,19 @@ export class TestRunner {
     const { url, count = 1, age, pinned = false, muted = false, active = false } = step;
     const tabIds = [];
 
+    // Ensure test window exists and is valid
+    if (!this.testMode.testWindow?.id) {
+      throw new Error('Test window not initialized');
+    }
+
+    // Check if test window still exists
+    try {
+      await chrome.windows.get(this.testMode.testWindow.id);
+    } catch (error) {
+      // Window no longer exists, recreate it
+      await this.testMode.createTestWindow();
+    }
+
     for (let i = 0; i < count; i++) {
       const tab = await this.tabSimulator.createTab({
         url: url || `https://test-tab-${Date.now()}-${i}.example.com`,
@@ -209,11 +222,13 @@ export class TestRunner {
       return { deletedTabId: tabId };
     } else if (url) {
       const tabs = await chrome.tabs.query({ 
-        windowId: this.testMode.testWindow.id,
-        url: url.includes('*') ? url : `*${url}*`
+        windowId: this.testMode.testWindow.id
       });
       
-      const tabIds = tabs.map(t => t.id);
+      // Filter by URL substring
+      const matchingTabs = tabs.filter(t => t.url.includes(url));
+      const tabIds = matchingTabs.map(t => t.id);
+      
       if (tabIds.length > 0) {
         await chrome.tabs.remove(tabIds);
         tabIds.forEach(id => this.testMode.testTabIds.delete(id));
@@ -235,13 +250,16 @@ export class TestRunner {
     
     if (!targetTabId && url) {
       const tabs = await chrome.tabs.query({ 
-        windowId: this.testMode.testWindow.id,
-        url: `*${url}*`
+        windowId: this.testMode.testWindow.id
       });
-      if (tabs.length === 0) {
+      
+      // Filter by URL substring
+      const matchingTabs = tabs.filter(t => t.url.includes(url));
+      
+      if (matchingTabs.length === 0) {
         throw new Error(`No tab found with url: ${url}`);
       }
-      targetTabId = tabs[0].id;
+      targetTabId = matchingTabs[0].id;
     }
 
     if (!targetTabId) {

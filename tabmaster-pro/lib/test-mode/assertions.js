@@ -75,13 +75,17 @@ export class Assertions {
     } else {
       query.windowId = this.testMode.testWindow?.id;
     }
-    if (url) {
-      query.url = url.includes('*') ? url : `*${url}*`;
-    }
-
+    
+    // Get tabs first, then filter by URL
     const tabs = await chrome.tabs.query(query);
-    const actual = tabs.length;
-
+    let filteredTabs = tabs;
+    
+    if (url) {
+      // Filter tabs by URL substring
+      filteredTabs = tabs.filter(tab => tab.url.includes(url));
+    }
+    
+    const actual = filteredTabs.length;
     const passed = this.evaluateCondition(actual, expected, condition);
 
     return {
@@ -92,7 +96,7 @@ export class Assertions {
       message: passed 
         ? `Tab count ${condition} ${expected}` 
         : `Expected tab count ${condition} ${expected}, but got ${actual}`,
-      tabs: tabs.map(t => ({ id: t.id, url: t.url, title: t.title }))
+      tabs: filteredTabs.map(t => ({ id: t.id, url: t.url, title: t.title }))
     };
   }
 
@@ -116,10 +120,11 @@ export class Assertions {
       }
     } else if (url) {
       const tabs = await chrome.tabs.query({ 
-        windowId: this.testMode.testWindow?.id,
-        url: url.includes('*') ? url : `*${url}*`
+        windowId: this.testMode.testWindow?.id
       });
-      tab = tabs[0];
+      // Filter by URL substring
+      const matchingTabs = tabs.filter(t => t.url.includes(url));
+      tab = matchingTabs[0];
     }
 
     if (!tab) {
@@ -168,17 +173,6 @@ export class Assertions {
   async assertTabSnoozed(params) {
     const { url, tabId } = params;
     
-    // First check if tab exists
-    const exists = await this.assertTabExists({ url, tabId });
-    
-    if (exists.passed) {
-      return {
-        passed: false,
-        message: 'Tab still exists, not snoozed',
-        actual: exists.actual
-      };
-    }
-
     // Check snoozed tabs
     const { snoozedTabs = [] } = await chrome.storage.local.get('snoozedTabs');
     const snoozedTab = snoozedTabs.find(t => {
@@ -186,6 +180,18 @@ export class Assertions {
       if (url && t.url.includes(url)) return true;
       return false;
     });
+
+    if (!snoozedTab) {
+      // Also check if tab still exists (not properly snoozed)
+      const exists = await this.assertTabExists({ url, tabId });
+      if (exists.passed) {
+        return {
+          passed: false,
+          message: 'Tab still exists and is not snoozed',
+          actual: exists.actual
+        };
+      }
+    }
 
     return {
       passed: !!snoozedTab,
@@ -525,10 +531,11 @@ export class Assertions {
       tab = await chrome.tabs.get(tabId);
     } else if (url) {
       const tabs = await chrome.tabs.query({
-        windowId: this.testMode.testWindow?.id,
-        url: `*${url}*`
+        windowId: this.testMode.testWindow?.id
       });
-      tab = tabs[0];
+      // Filter by URL substring
+      const matchingTabs = tabs.filter(t => t.url.includes(url));
+      tab = matchingTabs[0];
     }
 
     if (!tab) {
