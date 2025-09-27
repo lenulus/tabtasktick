@@ -291,16 +291,16 @@ export class Assertions {
    * Assert rule executions
    */
   async assertRuleExecutions(params) {
-    const { ruleId, count, condition = 'equals', timeWindow } = params;
-    
+    const { ruleId, count, minimum, maximum, condition = 'equals', timeWindow } = params;
+
     // Get execution history from test metrics
-    const response = await chrome.runtime.sendMessage({ 
+    const response = await chrome.runtime.sendMessage({
       action: 'getTestRuleExecutions',
-      ruleId 
+      ruleId
     });
-    
+
     let executions = response?.executions || [];
-    
+
     // Filter by time window if specified
     if (timeWindow) {
       const cutoff = Date.now() - this.parseTimeWindow(timeWindow);
@@ -308,16 +308,37 @@ export class Assertions {
     }
 
     const actual = executions.length;
-    const passed = this.evaluateCondition(actual, count, condition);
+
+    // Determine the expected value and condition based on parameters
+    let expectedValue, finalCondition, passed;
+
+    if (minimum !== undefined) {
+      expectedValue = minimum;
+      finalCondition = 'greaterThanOrEqual';
+      passed = actual >= minimum;
+    } else if (maximum !== undefined) {
+      expectedValue = maximum;
+      finalCondition = 'lessThanOrEqual';
+      passed = actual <= maximum;
+    } else if (count !== undefined) {
+      expectedValue = count;
+      finalCondition = condition;
+      passed = this.evaluateCondition(actual, count, condition);
+    } else {
+      // Default: at least 1 execution
+      expectedValue = 1;
+      finalCondition = 'greaterThanOrEqual';
+      passed = actual >= 1;
+    }
 
     return {
       passed,
       actual,
-      expected: count,
-      condition,
+      expected: expectedValue,
+      condition: finalCondition,
       message: passed
         ? `Rule ${ruleId} executed ${actual} times`
-        : `Expected rule ${ruleId} to execute ${condition} ${count} times, but executed ${actual} times`,
+        : `Expected rule ${ruleId} to execute ${finalCondition} ${expectedValue} times, but executed ${actual} times`,
       executions
     };
   }

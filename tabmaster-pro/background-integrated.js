@@ -39,11 +39,16 @@ const state = {
 // Create scheduler instance
 const scheduler = createChromeScheduler(chrome, async (trigger) => {
   console.log('Rule trigger fired:', trigger);
+  console.log('Current rules in state:', state.rules.map(r => ({ id: r.id, name: r.name, enabled: r.enabled })));
   const rule = state.rules.find(r => r.id === trigger.ruleId);
+  console.log('Found rule:', rule ? `${rule.name} (${rule.id})` : 'NOT FOUND');
   if (rule && rule.enabled) {
     // Check if we're in test mode
     const { testModeActive } = await chrome.storage.local.get('testModeActive');
+    console.log('Test mode active:', testModeActive);
     await executeRule(rule.id, trigger.type, testModeActive || false);
+  } else {
+    console.warn(`Rule not found or disabled for trigger: ${trigger.ruleId}`);
   }
 });
 
@@ -740,15 +745,16 @@ async function addRule(rule) {
   if (!rule.id) {
     rule.id = generateRuleId();
   }
-  
+
   state.rules.push(rule);
   await chrome.storage.local.set({ rules: state.rules });
-  
+
   // Setup triggers if enabled
   if (rule.enabled) {
+    console.log(`Setting up scheduler for rule: ${rule.name}, trigger:`, rule.trigger);
     await scheduler.setupRule(rule);
   }
-  
+
   return { success: true, ruleId: rule.id };
 }
 

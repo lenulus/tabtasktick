@@ -78,21 +78,29 @@ export function createScheduler(options = {}) {
    * @param {string|number} interval - Interval like '30m', '1h', '2d' or ms
    */
   function scheduleRepeat(ruleId, interval) {
+    console.log(`scheduleRepeat called for rule ${ruleId} with interval ${interval}`);
     // Cancel existing interval if any
     cancelRepeat(ruleId);
-    
+
     const ms = parseDuration(interval);
-    if (ms <= 0) return;
-    
+    console.log(`Parsed interval ${interval} to ${ms}ms`);
+    if (ms <= 0) {
+      console.warn(`Invalid interval ${interval} parsed to ${ms}ms`);
+      return;
+    }
+
     // Trigger immediately on start
+    console.log(`Triggering rule ${ruleId} immediately (repeat)`);
     handleTrigger(ruleId, 'repeat');
-    
+
     // Set up interval
     const intervalId = setInterval(() => {
+      console.log(`Interval trigger for rule ${ruleId} (repeat)`);
       handleTrigger(ruleId, 'repeat');
     }, ms);
-    
+
     intervals.set(ruleId, intervalId);
+    console.log(`Scheduled repeat trigger for rule ${ruleId} every ${ms}ms`);
   }
   
   /**
@@ -255,16 +263,17 @@ export function createScheduler(options = {}) {
   function parseDuration(duration) {
     if (typeof duration === 'number') return duration;
     if (typeof duration !== 'string') return 0;
-    
+
     const units = {
-      m: 60 * 1000,
-      h: 60 * 60 * 1000,
-      d: 24 * 60 * 60 * 1000
+      s: 1000,           // seconds
+      m: 60 * 1000,      // minutes
+      h: 60 * 60 * 1000, // hours
+      d: 24 * 60 * 60 * 1000 // days
     };
-    
-    const match = duration.match(/^(\d+)([mhd])$/);
+
+    const match = duration.match(/^(\d+)([smhd])$/);
     if (!match) return 0;
-    
+
     const [, num, unit] = match;
     return parseInt(num) * units[unit];
   }
@@ -275,27 +284,35 @@ export function createScheduler(options = {}) {
    * @returns {Promise<void>}
    */
   async function setupRule(rule) {
-    if (!rule.enabled || !rule.trigger) return;
+    console.log(`setupRule called for rule ${rule.name} (${rule.id}), enabled: ${rule.enabled}, trigger:`, rule.trigger);
+    if (!rule.enabled || !rule.trigger) {
+      console.log(`Rule ${rule.name} is disabled or has no trigger, skipping setup`);
+      return;
+    }
 
     const { trigger } = rule;
 
     if (trigger.immediate) {
       // Will be triggered by tab events
       // No setup needed here
+      console.log(`Rule ${rule.name} has immediate trigger`);
     }
 
     if (trigger.on_action) {
       // Manual trigger, no setup needed
+      console.log(`Rule ${rule.name} has manual trigger`);
     }
 
     // Handle both repeat_every and repeat formats
     if (trigger.repeat_every || trigger.repeat) {
+      console.log(`Setting up repeat trigger for rule ${rule.name}: ${trigger.repeat_every || trigger.repeat}`);
       scheduleRepeat(rule.id, trigger.repeat_every || trigger.repeat);
     }
 
     // Handle both once_at and once formats
     if (trigger.once_at || trigger.once) {
       // Await to ensure scheduledTriggers is populated
+      console.log(`Setting up once trigger for rule ${rule.name}: ${trigger.once_at || trigger.once}`);
       await scheduleOnce(rule.id, trigger.once_at || trigger.once);
     }
   }
