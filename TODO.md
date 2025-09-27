@@ -292,8 +292,18 @@ Dashboard.js has grown to 4000+ lines and needs modular refactoring for maintain
 - ✅ Test DSL round-trip conversion and error handling
 
 #### Phase 3: UI Enhancement
-- ❌ Create Session View with tests for bulk management
-- ❌ Build advanced conditions editor with input validation tests
+- ⚠️ Session View (Note: Existing dashboard tabs view already has bulk management)
+  - ✅ Created separate session.html page (may be redundant with existing tabs view)
+  - ❌ Consider integrating rules dry-run into existing tabs view instead
+- ✅ Build advanced conditions editor with input validation tests [Spec: SPEC-006]
+  - ✅ Created conditions-builder.js with visual condition builder
+  - ✅ Support for ALL/ANY/NONE junctions and nested groups
+  - ✅ Per-condition NOT toggle
+  - ✅ Dynamic operators based on subject type
+  - ✅ Smart value inputs (text, number, duration, boolean, category)
+  - ✅ Live preview of conditions
+  - ✅ Integrated with rule modal
+  - ✅ Validation before save
 - ❌ Add action ordering UI with drag-drop tests
 - ❌ Create categories manager with mapping tests
 - ❌ Add dry-run preview panel with rendering tests
@@ -327,26 +337,29 @@ Dashboard.js has grown to 4000+ lines and needs modular refactoring for maintain
 ---
 
 ## Recently Completed (Current Session)
-- ✅ Implemented tree view with full selection support
-- ✅ Added drag-and-drop between windows and groups
-- ✅ Created Move dialog for off-screen window targets
-- ✅ Fixed Clear button to properly deselect all items
-- ✅ Added suspended/muted/grouped filters
-- ✅ Implemented bulk action activity logging
-- ✅ Added tab event listeners for history tracking
-- ✅ Fixed tree view persistence and initial load issues
-- ✅ Added "go to tab" button in tree view
-- ✅ **COMPLETED RULES ENGINE 2.0 PHASE 1** (127 tests passing total):
-  - ✅ Created test infrastructure (chrome-mock.js, tab-factory.js, rule-factory.js, test-helpers.js)
-  - ✅ normalize.js: URL deduplication and domain extraction (32 tests)
-  - ✅ predicate.js: Condition compilation with all PRD operators (27 tests)
-  - ✅ engine.js: Rule evaluation, action execution, dry-run (27 tests)
-  - ✅ scheduler.js: Immediate/repeat/once triggers with persistence (23 tests)
-  - ✅ migrate-rules.js: Migration from old format to new (18 tests)
-  - ✅ background-integrated.js: Full integration with Chrome APIs
-  - ✅ All actions implemented: close, group, snooze, bookmark
-  - ✅ All triggers supported: immediate (debounced), repeat, once, manual
-  - ✅ Performance optimized with indices for 200+ tabs
+### Rules Engine 2.0 - Phase 3 UI Work:
+- ✅ **Implemented Advanced Conditions Editor** [Spec: SPEC-006]:
+  - ✅ Created conditions-builder.js module with full visual builder
+  - ✅ Support for ALL/ANY/NONE junctions with unlimited nesting  
+  - ✅ Per-condition NOT toggle for negation
+  - ✅ Dynamic operators based on subject type
+  - ✅ Smart value inputs (text, number, duration, boolean, category, etc.)
+  - ✅ Live preview showing human-readable conditions
+  - ✅ Full validation before save
+  - ✅ Integrated with rule modal (replaced old dropdown system)
+  - ✅ Added action management UI (add/remove/configure actions)
+  - ✅ Updated trigger UI for immediate/repeat/once/manual
+  - ✅ Created supporting CSS (conditions-builder.css, rules-modal.css)
+  - ✅ Conversion functions for old rule format to new format
+
+- ⚠️ **Session View Implementation**:
+  - ✅ Created separate session management page (session.html/js/css)
+  - Note: May be redundant since dashboard tabs view already has bulk management
+  - Recommendation: Integrate rules dry-run into existing tabs view instead
+
+### Previous Session Completions:
+- ✅ **COMPLETED RULES ENGINE 2.0 PHASE 1** (225 tests passing total)
+- ✅ **COMPLETED RULES ENGINE 2.0 PHASE 2** (DSL Support)
 - ✅ Improved spacing and visual design in tree view
 - ✅ Moved rules engine to dashboard
 - ✅ Fixed critical issues from debugging session

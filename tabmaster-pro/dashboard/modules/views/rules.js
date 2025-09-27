@@ -5,14 +5,25 @@ import state from '../core/state.js';
 import { showNotification } from '../core/shared-utils.js';
 import { parseDSL, serializeRuleToDSL, validateDSL, formatDSL } from '../../../lib/dsl.js';
 import { createHighlightedOverlay } from '../../../lib/dsl-highlighter.js';
+import { ConditionsBuilder } from '../../../lib/conditions-builder.js';
+import { 
+  validateActionList, 
+  getCompatibleActions, 
+  getIncompatibilityReason,
+  sortActionsByPriority 
+} from '../../../lib/action-validator.js';
 
 export async function loadRulesView() {
   console.log('Loading rules view...');
 
   try {
     // Load current rules from background
-    const rules = await sendMessage({ action: 'getRules' });
-    state.set('currentRules', rules || []);
+    const response = await sendMessage({ action: 'getRules' });
+    console.log('Rules response:', response);
+    
+    // Handle both old format (direct array) and new format (wrapped)
+    const rules = Array.isArray(response) ? response : (response?.rules || []);
+    state.set('currentRules', rules);
 
     // Initialize sample rules (not auto-enabled)
     state.set('sampleRules', getSampleRules());
@@ -33,8 +44,15 @@ function getSampleRules() {
       name: 'Close duplicate tabs',
       description: 'Automatically close duplicate tabs, keeping the first one',
       enabled: false,
-      conditions: { type: 'duplicate' },
-      actions: { type: 'close', keepFirst: true },
+      when: {
+        all: [
+          { subject: 'duplicate', operator: 'equals', value: true }
+        ]
+      },
+      then: [
+        { type: 'close' }
+      ],
+      trigger: { type: 'manual' },
       priority: 1,
     },
     {
@@ -139,7 +157,8 @@ export function updateRulesUI() {
   const emptyState = document.getElementById('rulesEmptyState');
 
   // Show/hide empty state
-  if (state.get('currentRules').length === 0) {
+  const rules = state.get('currentRules') || [];
+  if (rules.length === 0) {
     emptyState.style.display = 'flex';
     rulesList.style.display = 'none';
   } else {
@@ -148,7 +167,16 @@ export function updateRulesUI() {
     rulesList.innerHTML = '';
 
     // Sort rules by priority
-    const sortedRules = [...state.get('currentRules')].sort((a, b) => a.priority - b.priority);
+    const currentRules = state.get('currentRules') || [];
+    console.log('Current rules in updateRulesUI:', currentRules);
+    
+    // Ensure currentRules is an array
+    if (!Array.isArray(currentRules)) {
+      console.error('currentRules is not an array:', currentRules);
+      return;
+    }
+    
+    const sortedRules = [...currentRules].sort((a, b) => (a.priority || 999) - (b.priority || 999));
 
     sortedRules.forEach(rule => {
       const ruleCard = createRuleCard(rule);
@@ -186,7 +214,13 @@ function createRuleCard(rule) {
           <input type="checkbox" class="rule-toggle" data-action="toggle" data-rule-id="${rule.id}" ${rule.enabled ? 'checked' : ''}>
           <span class="slider"></span>
         </label>
-        <button class="btn-icon" data-action="test" title="Test this rule">
+        <button class="btn-icon" data-action="test" title="Test this rule (preview only)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+        <button class="btn-icon" data-action="run" title="Run this rule now">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
@@ -207,10 +241,10 @@ function createRuleCard(rule) {
     </div>
     <div class="rule-details">
       <div class="rule-condition">
-        <strong>When:</strong> ${getConditionDescription(rule.conditions)}
+        <strong>When:</strong> ${getConditionDescription(rule.when || rule.conditions)}
       </div>
       <div class="rule-action">
-        <strong>Then:</strong> ${getActionDescription(rule.actions)}
+        <strong>Then:</strong> ${getActionDescription(rule.then || rule.actions)}
       </div>
       ${rule.trigger && rule.trigger.type === 'periodic' ? `
       <div class="rule-trigger">
@@ -251,10 +285,60 @@ function updateSampleRulesDropdown() {
   }
 }
 
-function getConditionDescription(conditions) {
-  let description = '';
+// Helper to describe conditions in new format
+function getNewFormatConditionDescription(conditions) {
+  const junction = conditions.all ? 'all' : conditions.any ? 'any' : 'none';
+  const items = conditions[junction] || [];
   
-  // Base condition
+  if (items.length === 0) return 'No conditions';
+  
+  // Build description
+  const descriptions = items.map(item => {
+    if (item.subject) {
+      // Simple condition
+      const subjectLabels = {
+        url: 'URL',
+        title: 'Title',
+        domain: 'Domain',
+        duplicate: 'Is duplicate',
+        age: 'Tab age',
+        last_access: 'Last accessed',
+        pinned: 'Is pinned',
+        category: 'Category'
+      };
+      
+      const operatorLabels = {
+        equals: 'is',
+        contains: 'contains',
+        greater_than: 'more than',
+        less_than: 'less than',
+        in: 'in'
+      };
+      
+      const subject = subjectLabels[item.subject] || item.subject;
+      const operator = operatorLabels[item.operator] || item.operator;
+      const value = item.value === true ? 'yes' : item.value === false ? 'no' : item.value;
+      
+      return `${subject} ${operator} ${value}`;
+    } else {
+      // Nested condition group
+      return `(${getNewFormatConditionDescription(item)})`;
+    }
+  });
+  
+  return `${junction.toUpperCase()} of: ${descriptions.join(', ')}`;
+}
+
+function getConditionDescription(conditions) {
+  if (!conditions) return 'No conditions';
+  
+  // Handle new format (when: { all: [...] })
+  if (conditions.all || conditions.any || conditions.none) {
+    return getNewFormatConditionDescription(conditions);
+  }
+  
+  // Handle old format for backward compatibility
+  let description = '';
   switch (conditions.type) {
     case 'duplicate':
       description = 'Duplicate tabs';
@@ -311,6 +395,38 @@ function getConditionDescription(conditions) {
 }
 
 function getActionDescription(actions) {
+  // Handle new format (array of actions)
+  if (Array.isArray(actions)) {
+    if (actions.length === 0) return 'No actions';
+    
+    const actionDescriptions = actions.map(action => {
+      const actionLabels = {
+        close: 'Close tabs',
+        group: 'Group tabs',
+        snooze: 'Snooze tabs',
+        bookmark: 'Bookmark tabs',
+        move_to_window: 'Move to window',
+        pin: 'Pin tabs',
+        unpin: 'Unpin tabs',
+        mute: 'Mute tabs',
+        unmute: 'Unmute tabs'
+      };
+      
+      let desc = actionLabels[action.type] || action.type;
+      
+      // Add parameters
+      if (action.bookmark_first) desc += ' (bookmark first)';
+      if (action.group_by) desc += ` by ${action.group_by}`;
+      if (action.until) desc += ` for ${action.until}`;
+      if (action.folder) desc += ` to "${action.folder}"`;
+      
+      return desc;
+    });
+    
+    return actionDescriptions.join(', ');
+  }
+  
+  // Handle old format
   switch (actions.type) {
     case 'close':
       return `Close tabs ${actions.saveToBookmarks ? '(save to bookmarks)' : ''}`;
@@ -345,6 +461,13 @@ export function setupRulesEventListeners() {
     dropdownMenu.addEventListener('click', (e) => {
       e.stopPropagation();
     });
+  }
+  
+  // Purge All Rules button
+  const purgeBtn = document.getElementById('purgeAllRulesBtn');
+  if (purgeBtn && !purgeBtn.hasListener) {
+    purgeBtn.addEventListener('click', purgeAllRules);
+    purgeBtn.hasListener = true;
   }
 
   // Add custom rule button
@@ -416,43 +539,34 @@ export function setupRulesEventListeners() {
     saveBtn.hasListener = true;
   }
 
-  // Condition/Action selects
-  const conditionSelect = document.getElementById('ruleCondition');
-  const actionSelect = document.getElementById('ruleAction');
-
-  if (conditionSelect && !conditionSelect.hasListener) {
-    conditionSelect.addEventListener('change', updateConditionParams);
-    conditionSelect.hasListener = true;
+  // Add Action button
+  const addActionBtn = document.getElementById('addActionBtn');
+  if (addActionBtn && !addActionBtn.hasListener) {
+    addActionBtn.addEventListener('click', () => {
+      const actionModal = createActionModal();
+      document.body.appendChild(actionModal);
+      actionModal.classList.add('show');
+    });
+    addActionBtn.hasListener = true;
   }
 
-  if (actionSelect && !actionSelect.hasListener) {
-    actionSelect.addEventListener('change', updateActionParams);
-    actionSelect.hasListener = true;
+  // Actions container click handler
+  const actionsContainer = document.getElementById('actionsContainer');
+  if (actionsContainer && !actionsContainer.hasListener) {
+    actionsContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-action')) {
+        const index = parseInt(e.target.closest('.action-item').dataset.index);
+        currentActions.splice(index, 1);
+        updateActionsUI();
+      }
+    });
+    actionsContainer.hasListener = true;
   }
-
-  // Time criteria checkboxes
-  const timeCheckboxes = ['useInactive', 'useAge', 'useNotAccessed'];
-  timeCheckboxes.forEach(id => {
-    const checkbox = document.getElementById(id);
-    if (checkbox && !checkbox.hasListener) {
-      checkbox.addEventListener('change', (e) => {
-        const inputId = id.replace('use', '').toLowerCase() + 'Minutes';
-        const input = document.getElementById(inputId);
-        if (input) {
-          input.disabled = !e.target.checked;
-        }
-      });
-      checkbox.hasListener = true;
-    }
-  });
 
   // Trigger type select
   const triggerSelect = document.getElementById('triggerType');
   if (triggerSelect && !triggerSelect.hasListener) {
-    triggerSelect.addEventListener('change', (e) => {
-      const intervalDiv = document.getElementById('triggerInterval');
-      intervalDiv.style.display = e.target.value === 'periodic' ? 'block' : 'none';
-    });
+    triggerSelect.addEventListener('change', updateTriggerParams);
     triggerSelect.hasListener = true;
   }
 
@@ -521,6 +635,9 @@ export async function handleRuleAction(e) {
     case 'test':
       await testRule(ruleId);
       break;
+    case 'run':
+      await runRule(ruleId);
+      break;
     case 'edit':
       const rule = state.get('currentRules').find(r => r.id === ruleId);
       openRuleModal(rule);
@@ -549,7 +666,7 @@ export async function installSampleRule(sample) {
 
   // Save to background
   await sendMessage({
-    action: 'saveRules',
+    action: 'updateRules',
     rules: rules
   });
 
@@ -558,264 +675,620 @@ export async function installSampleRule(sample) {
   showNotification('Rule template installed successfully', 'success');
 }
 
+// Store the conditions builder instance
+let conditionsBuilder = null;
+let currentActions = [];
+
 export function openRuleModal(rule = null) {
   const modal = document.getElementById('ruleModal');
   const modalTitle = document.getElementById('ruleModalTitle');
-  const form = document.getElementById('ruleForm');
 
   // Update modal title
   modalTitle.textContent = rule ? 'Edit Rule' : 'Create New Rule';
 
   // Store editing state
   state.set('editingRuleId', rule?.id || null);
+  state.set('editingRule', rule);
 
-  // Reset form
-  form.reset();
-
-  // Initialize trigger type (default to event)
-  document.getElementById('triggerType').value = rule?.trigger?.type || 'event';
-  document.getElementById('triggerInterval').style.display = 
-    rule?.trigger?.type === 'periodic' ? 'block' : 'none';
-
-  if (rule) {
-    // Populate form with existing rule data
-    document.getElementById('ruleName').value = rule.name || '';
-    document.getElementById('ruleCondition').value = rule.conditions.type;
-    document.getElementById('ruleAction').value = rule.actions.type;
-
-    // Populate trigger data
-    if (rule.trigger) {
-      document.getElementById('triggerType').value = rule.trigger.type;
-      if (rule.trigger.type === 'periodic') {
-        document.getElementById('intervalMinutes').value = rule.trigger.interval;
-        document.getElementById('triggerInterval').style.display = 'block';
-      }
+  // Reset form elements
+  document.getElementById('ruleName').value = rule?.name || '';
+  document.getElementById('ruleEnabled').checked = rule ? rule.enabled : true;
+  
+  // Initialize conditions builder
+  const conditionsContainer = document.getElementById('conditionsContainer');
+  
+  // Convert old format to new format if needed
+  let conditions = { all: [] };
+  if (rule?.when) {
+    conditions = rule.when;
+  } else if (rule?.conditions) {
+    // Convert old conditions format to new format
+    conditions = convertOldConditionsToNew(rule.conditions);
+  }
+  
+  // Create new conditions builder instance
+  if (conditionsBuilder) {
+    conditionsBuilder = null;
+  }
+  
+  conditionsBuilder = new ConditionsBuilder(conditionsContainer, conditions, {
+    previewSelector: '#conditionPreview',
+    onChange: (newConditions) => {
+      console.log('Conditions changed:', newConditions);
     }
-
-    // Update condition/action parameters
-    updateConditionParams();
-    updateActionParams();
-
-    // Set specific values based on condition type
-    if (rule.conditions.minCount) {
-      document.getElementById('minTabCount').value = rule.conditions.minCount;
-    }
-    if (rule.conditions.pattern) {
-      document.getElementById('urlPattern').value = rule.conditions.pattern;
-    }
-    if (rule.conditions.domains) {
-      document.getElementById('domains').value = rule.conditions.domains.join(', ');
-    }
-    if (rule.conditions.urlPatterns) {
-      document.getElementById('urlPatterns').value = rule.conditions.urlPatterns.join(', ');
-    }
-    if (rule.conditions.categories) {
-      // Set checkboxes for categories
-      const checkboxes = document.querySelectorAll('#categoriesDiv input[type="checkbox"]');
-      checkboxes.forEach(cb => {
-        cb.checked = rule.conditions.categories.includes(cb.value);
-      });
-    }
-
-    // Set time criteria
-    const tc = rule.conditions.timeCriteria || {};
-    if (tc.inactive !== undefined || rule.conditions.inactiveMinutes) {
-      document.getElementById('useInactive').checked = true;
-      document.getElementById('inactiveMinutes').disabled = false;
-      document.getElementById('inactiveMinutes').value = tc.inactive || rule.conditions.inactiveMinutes || 60;
-    }
-    if (tc.age !== undefined || rule.conditions.ageMinutes) {
-      document.getElementById('useAge').checked = true;
-      document.getElementById('ageMinutes').disabled = false;
-      document.getElementById('ageMinutes').value = tc.age || rule.conditions.ageMinutes || 1440;
-    }
-    if (tc.notAccessed !== undefined) {
-      document.getElementById('useNotAccessed').checked = true;
-      document.getElementById('notaccessedMinutes').disabled = false;
-      document.getElementById('notaccessedMinutes').value = tc.notAccessed || 1440;
-    }
-
-    // Set action parameters
-    if (rule.actions.snoozeMinutes) {
-      document.getElementById('snoozeMinutes').value = rule.actions.snoozeMinutes;
-    }
-    if (rule.actions.groupBy) {
-      document.getElementById('groupBy').value = rule.actions.groupBy;
-    }
-    if (rule.actions.saveToBookmarks !== undefined) {
-      document.getElementById('saveToBookmarks').checked = rule.actions.saveToBookmarks;
-    }
-    if (rule.actions.excludePinned !== undefined) {
-      document.getElementById('excludePinned').checked = rule.actions.excludePinned;
+  });
+  
+  // Initialize actions
+  currentActions = [];
+  if (rule?.then) {
+    currentActions = Array.isArray(rule.then) ? rule.then : [rule.then];
+  } else if (rule?.actions) {
+    // Convert old actions format to new format
+    currentActions = [convertOldActionToNew(rule.actions)];
+  }
+  updateActionsUI();
+  
+  // Initialize trigger
+  const triggerType = document.getElementById('triggerType');
+  if (rule?.trigger) {
+    switch (rule.trigger.type) {
+      case 'immediate':
+        triggerType.value = 'immediate';
+        break;
+      case 'repeat':
+        triggerType.value = 'repeat';
+        break;
+      case 'once':
+        triggerType.value = 'once';
+        break;
+      default:
+        triggerType.value = 'manual';
     }
   } else {
-    // Default values for new rule
-    updateConditionParams();
-    updateActionParams();
+    triggerType.value = 'immediate';
   }
+  updateTriggerParams();
 
+  
   // Show modal
-  modal.style.display = 'block';
+  modal.classList.add('show');
+}
+
+// Convert old conditions format to new Rules Engine 2.0 format
+function convertOldConditionsToNew(oldConditions) {
+  if (!oldConditions) return { all: [] };
+  
+  const conditions = [];
+  
+  switch (oldConditions.type) {
+    case 'duplicate':
+      conditions.push({ subject: 'duplicate', operator: 'equals', value: true });
+      break;
+      
+    case 'domain_count':
+      if (oldConditions.minCount) {
+        conditions.push({ subject: 'tab_count', operator: 'greater_than_or_equal', value: oldConditions.minCount });
+      }
+      break;
+      
+    case 'inactive':
+      if (oldConditions.urlPatterns) {
+        conditions.push({
+          any: oldConditions.urlPatterns.map(pattern => ({
+            subject: 'domain', operator: 'contains', value: pattern
+          }))
+        });
+      }
+      if (oldConditions.timeCriteria?.inactive) {
+        conditions.push({
+          subject: 'last_access', 
+          operator: 'greater_than', 
+          value: `${oldConditions.timeCriteria.inactive}m`
+        });
+      }
+      break;
+      
+    case 'url_pattern':
+      if (oldConditions.pattern) {
+        conditions.push({ subject: 'url', operator: 'matches', value: oldConditions.pattern });
+      }
+      break;
+      
+    case 'age_and_domain':
+      if (oldConditions.domains) {
+        conditions.push({
+          any: oldConditions.domains.map(domain => ({
+            subject: 'domain', operator: 'equals', value: domain
+          }))
+        });
+      }
+      break;
+      
+    case 'category':
+      if (oldConditions.categories) {
+        conditions.push({ subject: 'category', operator: 'in', value: oldConditions.categories });
+      }
+      break;
+  }
+  
+  // Add time criteria
+  if (oldConditions.timeCriteria) {
+    if (oldConditions.timeCriteria.age) {
+      conditions.push({
+        subject: 'age',
+        operator: 'greater_than',
+        value: `${oldConditions.timeCriteria.age}m`
+      });
+    }
+    if (oldConditions.timeCriteria.notAccessed) {
+      conditions.push({
+        subject: 'last_access',
+        operator: 'greater_than',
+        value: `${oldConditions.timeCriteria.notAccessed}m`
+      });
+    }
+  }
+  
+  return conditions.length > 0 ? { all: conditions } : { all: [] };
+}
+
+// Convert old action format to new format
+function convertOldActionToNew(oldAction) {
+  if (!oldAction) return { type: 'close' };
+  
+  const action = { type: oldAction.type };
+  
+  switch (oldAction.type) {
+    case 'close':
+      if (oldAction.saveToBookmarks) action.bookmark_first = true;
+      break;
+    case 'group':
+      action.group_by = oldAction.groupBy || 'domain';
+      break;
+    case 'snooze':
+      action.until = `${oldAction.snoozeMinutes || 60}m`;
+      break;
+    case 'suspend':
+      if (oldAction.excludePinned) action.exclude_pinned = true;
+      break;
+  }
+  
+  return action;
+}
+
+// Update actions UI
+function updateActionsUI() {
+  const container = document.getElementById('actionsContainer');
+  container.innerHTML = '';
+  
+  // Check for validation issues
+  const validation = validateActionList(currentActions);
+  
+  // Update container class based on whether we have actions
+  if (currentActions.length > 0) {
+    container.classList.add('has-actions');
+  } else {
+    container.classList.remove('has-actions');
+  }
+  
+  currentActions.forEach((action, index) => {
+    const actionEl = createActionElement(action, index);
+    container.appendChild(actionEl);
+  });
+  
+  if (currentActions.length === 0) {
+    container.innerHTML = '<p class="text-muted">No actions defined. Click "Add Action" to add one.</p>';
+  } else if (!validation.valid) {
+    // Add warning about incompatible actions
+    const warning = document.createElement('div');
+    warning.className = 'compatibility-warning';
+    warning.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 22h20L12 2z M12 8v6 M12 18h.01"/>
+      </svg>
+      <span>${validation.errors[0]}</span>
+    `;
+    container.appendChild(warning);
+  }
+  
+  // Update Add Action button state
+  const addActionBtn = document.getElementById('addActionBtn');
+  if (addActionBtn) {
+    const compatibleActions = getCompatibleActions(currentActions);
+    addActionBtn.disabled = compatibleActions.length === 0;
+    if (compatibleActions.length === 0) {
+      addActionBtn.title = currentActions.some(a => a.type === 'close') 
+        ? 'Close action cannot be combined with other actions'
+        : 'No more compatible actions available';
+    } else {
+      addActionBtn.title = '';
+    }
+  }
+}
+
+// Create action element
+function createActionElement(action, index) {
+  const div = document.createElement('div');
+  div.className = 'action-item';
+  div.dataset.index = index;
+  
+  const actionLabels = {
+    close: 'Close tabs',
+    group: 'Group tabs',
+    snooze: 'Snooze tabs',
+    bookmark: 'Bookmark tabs',
+    move_to_window: 'Move to window',
+    pin: 'Pin tabs',
+    unpin: 'Unpin tabs',
+    mute: 'Mute tabs',
+    unmute: 'Unmute tabs'
+  };
+  
+  div.innerHTML = `
+    <div class="action-header">
+      <span class="action-number">${index + 1}.</span>
+      <span class="action-type">${actionLabels[action.type] || action.type}</span>
+      <button class="btn-icon remove-action" title="Remove">×</button>
+    </div>
+    <div class="action-params">
+      ${getActionParamsHTML(action)}
+    </div>
+  `;
+  
+  return div;
+}
+
+// Get action parameters HTML
+function getActionParamsHTML(action) {
+  switch (action.type) {
+    case 'close':
+      return `
+        <label>
+          <input type="checkbox" ${action.bookmark_first ? 'checked' : ''} 
+            onchange="updateActionParam(${currentActions.indexOf(action)}, 'bookmark_first', this.checked)">
+          Bookmark before closing
+        </label>
+      `;
+      
+    case 'group':
+      return `
+        <label>Group by:
+          <select onchange="updateActionParam(${currentActions.indexOf(action)}, 'group_by', this.value)">
+            <option value="domain" ${action.group_by === 'domain' ? 'selected' : ''}>Domain</option>
+            <option value="category" ${action.group_by === 'category' ? 'selected' : ''}>Category</option>
+            <option value="window" ${action.group_by === 'window' ? 'selected' : ''}>Window</option>
+          </select>
+        </label>
+        <label>Name:
+          <input type="text" value="${action.name || ''}" placeholder="Auto-generated"
+            onchange="updateActionParam(${currentActions.indexOf(action)}, 'name', this.value)">
+        </label>
+      `;
+      
+    case 'snooze':
+      const duration = parseDuration(action.until || '1h');
+      return `
+        <label>Snooze for:
+          <input type="number" value="${duration.value}" min="1"
+            onchange="updateSnoozeDuration(${currentActions.indexOf(action)}, this.value)">
+          <select onchange="updateSnoozeDurationUnit(${currentActions.indexOf(action)}, this.value)">
+            <option value="m" ${duration.unit === 'm' ? 'selected' : ''}>minutes</option>
+            <option value="h" ${duration.unit === 'h' ? 'selected' : ''}>hours</option>
+            <option value="d" ${duration.unit === 'd' ? 'selected' : ''}>days</option>
+          </select>
+        </label>
+      `;
+      
+    case 'move_to_window':
+      return `
+        <label>Target window:
+          <select onchange="updateActionParam(${currentActions.indexOf(action)}, 'window_id', this.value)">
+            <option value="new">New window</option>
+            <option value="current" ${action.window_id === 'current' ? 'selected' : ''}>Current window</option>
+          </select>
+        </label>
+      `;
+      
+    default:
+      return '';
+  }
+}
+
+// Parse duration string
+function parseDuration(duration) {
+  const match = duration.match(/^(\d+)([mhd])$/);
+  if (match) {
+    return { value: parseInt(match[1]), unit: match[2] };
+  }
+  return { value: 1, unit: 'h' };
+}
+
+// Update action parameter
+window.updateActionParam = function(index, param, value) {
+  if (currentActions[index]) {
+    currentActions[index][param] = value;
+  }
+};
+
+// Update snooze duration
+window.updateSnoozeDuration = function(index, value) {
+  if (currentActions[index]) {
+    const duration = parseDuration(currentActions[index].until || '1h');
+    currentActions[index].until = `${value}${duration.unit}`;
+  }
+};
+
+// Update snooze duration unit
+window.updateSnoozeDurationUnit = function(index, unit) {
+  if (currentActions[index]) {
+    const duration = parseDuration(currentActions[index].until || '1h');
+    currentActions[index].until = `${duration.value}${unit}`;
+  }
+};
+
+// Update trigger parameters
+function updateTriggerParams() {
+  const triggerType = document.getElementById('triggerType').value;
+  const paramsContainer = document.getElementById('triggerParams');
+  
+  paramsContainer.innerHTML = '';
+  
+  switch (triggerType) {
+    case 'repeat':
+      paramsContainer.innerHTML = `
+        <label>Repeat every:
+          <input type="number" id="repeatInterval" min="1" value="30">
+          <select id="repeatUnit">
+            <option value="m">minutes</option>
+            <option value="h">hours</option>
+            <option value="d">days</option>
+          </select>
+        </label>
+      `;
+      break;
+      
+    case 'once':
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 16);
+      paramsContainer.innerHTML = `
+        <label>Run at:
+          <input type="datetime-local" id="onceAt" value="${dateStr}" min="${dateStr}">
+        </label>
+      `;
+      break;
+      
+    case 'immediate':
+      paramsContainer.innerHTML = `
+        <label class="checkbox-with-help">
+          <input type="checkbox" id="debounce" checked>
+          <span>Debounce</span>
+          <span class="help-tooltip" title="When enabled, waits for a pause in tab activity before running the rule. This prevents the rule from running multiple times during burst activities like opening many tabs at once. For example, if you open 10 tabs quickly, the rule runs once after you're done instead of 10 times.">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.5 9a3 3 0 0 1 5 0c0 2-3 3-3 3"></path>
+              <circle cx="12" cy="17" r="1"></circle>
+            </svg>
+          </span>
+        </label>
+      `;
+      break;
+  }
+}
+
+// Create action modal
+function createActionModal() {
+  // Get compatible actions based on current actions
+  const compatibleActions = getCompatibleActions(currentActions);
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal action-modal';
+  
+  // If no compatible actions, show message
+  if (compatibleActions.length === 0) {
+    modal.innerHTML = `
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h3>Add Action</h3>
+          <button class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted">No more actions can be added. Current actions are not compatible with additional actions.</p>
+          ${currentActions.some(a => a.type === 'close') ? '<p class="text-muted"><strong>Note:</strong> Close action cannot be combined with other actions.</p>' : ''}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary close-action">Close</button>
+        </div>
+      </div>
+    `;
+    
+    modal.querySelector('.close-action').addEventListener('click', () => {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 300);
+    });
+    
+    modal.querySelector('.close-btn').addEventListener('click', () => {
+      modal.classList.remove('show');
+      setTimeout(() => modal.remove(), 300);
+    });
+    
+    return modal;
+  }
+  
+  const actionLabels = {
+    close: 'Close tabs',
+    group: 'Group tabs',
+    snooze: 'Snooze tabs',
+    bookmark: 'Bookmark tabs',
+    move_to_window: 'Move to window',
+    pin: 'Pin tabs',
+    unpin: 'Unpin tabs',
+    mute: 'Mute tabs',
+    unmute: 'Unmute tabs'
+  };
+  
+  // Build options for compatible actions
+  const optionsHTML = compatibleActions
+    .map(action => `<option value="${action}">${actionLabels[action] || action}</option>`)
+    .join('');
+  
+  modal.innerHTML = `
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h3>Add Action</h3>
+        <button class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label>Action Type:</label>
+        <select id="newActionType" class="form-select">
+          ${optionsHTML}
+        </select>
+        ${currentActions.length > 0 ? '<p class="text-muted" style="margin-top: 10px; font-size: 13px;">Only showing actions compatible with existing actions.</p>' : ''}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary cancel-action">Cancel</button>
+        <button class="btn btn-primary add-action-confirm">Add Action</button>
+      </div>
+    </div>
+  `;
+  
+  // Event listeners
+  modal.querySelector('.close-btn').addEventListener('click', () => {
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 300);
+  });
+  
+  modal.querySelector('.cancel-action').addEventListener('click', () => {
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 300);
+  });
+  
+  modal.querySelector('.add-action-confirm').addEventListener('click', () => {
+    const type = modal.querySelector('#newActionType').value;
+    const action = { type };
+    
+    // Add default parameters based on type
+    switch (type) {
+      case 'snooze':
+        action.until = '1h';
+        break;
+      case 'group':
+        action.group_by = 'domain';
+        break;
+    }
+    
+    currentActions.push(action);
+    updateActionsUI();
+    
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 300);
+  });
+  
+  return modal;
 }
 
 export function closeRuleModal() {
   const modal = document.getElementById('ruleModal');
-  modal.style.display = 'none';
+  modal.classList.remove('show');
   state.set('editingRuleId', null);
-}
-
-export function updateConditionParams() {
-  const conditionType = document.getElementById('ruleCondition').value;
-  const allParams = document.querySelectorAll('.condition-params');
+  state.set('editingRule', null);
   
-  // Hide all parameter sections
-  allParams.forEach(p => p.style.display = 'none');
-  
-  // Show relevant parameters
-  switch (conditionType) {
-    case 'domain_count':
-      document.getElementById('domainCountParams').style.display = 'block';
-      break;
-    case 'inactive':
-      document.getElementById('inactiveParams').style.display = 'block';
-      break;
-    case 'url_pattern':
-      document.getElementById('urlPatternParams').style.display = 'block';
-      break;
-    case 'age_and_domain':
-      document.getElementById('ageDomainParams').style.display = 'block';
-      break;
-    case 'category':
-      document.getElementById('categoryParams').style.display = 'block';
-      break;
+  // Clean up conditions builder
+  if (conditionsBuilder) {
+    conditionsBuilder = null;
   }
   
-  // Always show time criteria section (optional for all conditions)
-  document.getElementById('timeCriteriaSection').style.display = 'block';
+  // Reset actions
+  currentActions = [];
 }
 
-export function updateActionParams() {
-  const actionType = document.getElementById('ruleAction').value;
-  const allParams = document.querySelectorAll('.action-params');
-  
-  // Hide all parameter sections
-  allParams.forEach(p => p.style.display = 'none');
-  
-  // Show relevant parameters
-  switch (actionType) {
-    case 'snooze':
-      document.getElementById('snoozeParams').style.display = 'block';
-      break;
-    case 'group':
-      document.getElementById('groupParams').style.display = 'block';
-      break;
-    case 'close':
-      document.getElementById('closeParams').style.display = 'block';
-      break;
-    case 'suspend':
-      document.getElementById('suspendParams').style.display = 'block';
-      break;
-  }
-}
 
 export async function saveRule() {
-  const form = document.getElementById('ruleForm');
   const editingId = state.get('editingRuleId');
   
   // Get form values
   const name = document.getElementById('ruleName').value.trim();
-  const conditionType = document.getElementById('ruleCondition').value;
-  const actionType = document.getElementById('ruleAction').value;
-  const triggerType = document.getElementById('triggerType').value;
   
   if (!name) {
     alert('Please enter a rule name');
     return;
   }
   
-  // Build conditions object
-  const conditions = { type: conditionType };
+  // Validate conditions
+  if (!conditionsBuilder) {
+    alert('Conditions not properly initialized');
+    return;
+  }
   
-  // Add condition-specific parameters
-  switch (conditionType) {
-    case 'domain_count':
-      conditions.minCount = parseInt(document.getElementById('minTabCount').value) || 3;
+  const conditions = conditionsBuilder.getConditions();
+  const validation = conditionsBuilder.validate();
+  if (!validation.valid) {
+    alert(`Invalid conditions: ${validation.error}`);
+    return;
+  }
+  
+  // Validate actions
+  if (currentActions.length === 0) {
+    alert('Please add at least one action');
+    return;
+  }
+  
+  // Validate action compatibility
+  const actionValidation = validateActionList(currentActions);
+  if (!actionValidation.valid) {
+    alert(`Invalid actions: ${actionValidation.errors.join(', ')}`);
+    return;
+  }
+  
+  // Sort actions by priority for optimal execution
+  const sortedActions = sortActionsByPriority(currentActions);
+  
+  // Build trigger
+  const triggerType = document.getElementById('triggerType').value;
+  let trigger = { type: 'manual' };
+  
+  switch (triggerType) {
+    case 'immediate':
+      trigger = {
+        type: 'immediate',
+        debounce: document.getElementById('debounce')?.checked ?? true
+      };
       break;
-    case 'url_pattern':
-      conditions.pattern = document.getElementById('urlPattern').value.trim();
-      if (!conditions.pattern) {
-        alert('Please enter a URL pattern');
-        return;
+      
+    case 'repeat':
+      const interval = document.getElementById('repeatInterval')?.value || '30';
+      const unit = document.getElementById('repeatUnit')?.value || 'm';
+      trigger = {
+        type: 'repeat',
+        every: `${interval}${unit}`
+      };
+      break;
+      
+    case 'once':
+      const dateTime = document.getElementById('onceAt')?.value;
+      if (dateTime) {
+        trigger = {
+          type: 'once',
+          at: new Date(dateTime).toISOString()
+        };
       }
       break;
-    case 'inactive':
-      const urlPatternsValue = document.getElementById('urlPatterns').value.trim();
-      if (urlPatternsValue) {
-        conditions.urlPatterns = urlPatternsValue.split(',').map(p => p.trim());
-      }
-      break;
-    case 'age_and_domain':
-      const domainsValue = document.getElementById('domains').value.trim();
-      if (!domainsValue) {
-        alert('Please enter at least one domain');
-        return;
-      }
-      conditions.domains = domainsValue.split(',').map(d => d.trim());
-      break;
-    case 'category':
-      const selectedCategories = Array.from(
-        document.querySelectorAll('#categoriesDiv input:checked')
-      ).map(cb => cb.value);
-      if (selectedCategories.length === 0) {
-        alert('Please select at least one category');
-        return;
-      }
-      conditions.categories = selectedCategories;
-      break;
   }
   
-  // Add time criteria if any are checked
-  const timeCriteria = {};
-  if (document.getElementById('useInactive').checked) {
-    timeCriteria.inactive = parseInt(document.getElementById('inactiveMinutes').value) || 60;
-  }
-  if (document.getElementById('useAge').checked) {
-    timeCriteria.age = parseInt(document.getElementById('ageMinutes').value) || 1440;
-  }
-  if (document.getElementById('useNotAccessed').checked) {
-    timeCriteria.notAccessed = parseInt(document.getElementById('notaccessedMinutes').value) || 1440;
-  }
+  // Build complete rule in new format
+  const rule = {
+    id: editingId || `rule_${Date.now()}`,
+    name: name,
+    enabled: document.getElementById('ruleEnabled').checked,
+    when: conditions,
+    then: sortedActions,
+    trigger: trigger,
+    priority: 999, // Will be updated based on position
+    createdAt: editingId ? state.get('editingRule')?.createdAt : Date.now(),
+    updatedAt: Date.now()
+  };
   
-  if (Object.keys(timeCriteria).length > 0) {
-    conditions.timeCriteria = timeCriteria;
-  }
   
-  // Build actions object
-  const actions = { type: actionType };
-  
-  // Add action-specific parameters
-  switch (actionType) {
-    case 'snooze':
-      actions.snoozeMinutes = parseInt(document.getElementById('snoozeMinutes').value) || 60;
-      break;
-    case 'group':
-      actions.groupBy = document.getElementById('groupBy').value;
-      break;
-    case 'close':
-      actions.saveToBookmarks = document.getElementById('saveToBookmarks').checked;
-      break;
-    case 'suspend':
-      actions.excludePinned = document.getElementById('excludePinned').checked;
-      break;
-  }
-  
-  // Build trigger object
-  const trigger = { type: triggerType };
-  if (triggerType === 'periodic') {
-    trigger.interval = parseInt(document.getElementById('intervalMinutes').value) || 15;
-  }
-  
-  // Create or update rule
+  // Update existing or create new rule
   let rules = state.get('currentRules');
   
   if (editingId) {
@@ -823,33 +1296,20 @@ export async function saveRule() {
     const index = rules.findIndex(r => r.id === editingId);
     if (index >= 0) {
       rules[index] = {
-        ...rules[index],
-        name,
-        conditions,
-        actions,
-        trigger,
-        updatedAt: Date.now()
+        ...rule,
+        priority: rules[index].priority // Keep existing priority
       };
     }
   } else {
-    // Create new rule
-    const newRule = {
-      id: `rule_${Date.now()}`,
-      name,
-      conditions,
-      actions,
-      trigger,
-      enabled: true,
-      priority: rules.length + 1,
-      createdAt: Date.now()
-    };
-    rules.push(newRule);
+    // Create new rule with correct priority
+    rule.priority = rules.length + 1;
+    rules.push(rule);
   }
   
   // Save rules
   state.set('currentRules', rules);
   await sendMessage({
-    action: 'saveRules',
+    action: 'updateRules',
     rules: rules
   });
   
@@ -859,6 +1319,7 @@ export async function saveRule() {
   showNotification(editingId ? 'Rule updated successfully' : 'Rule created successfully', 'success');
 }
 
+
 export async function toggleRule(ruleId) {
   const rules = state.get('currentRules');
   const rule = rules.find(r => r.id === ruleId);
@@ -866,7 +1327,7 @@ export async function toggleRule(ruleId) {
   if (rule) {
     rule.enabled = !rule.enabled;
     await sendMessage({
-      action: 'saveRules',
+      action: 'updateRules',
       rules: rules
     });
     updateRulesUI();
@@ -879,12 +1340,42 @@ export async function deleteRule(ruleId) {
   
   state.set('currentRules', rules);
   await sendMessage({
-    action: 'saveRules',
+    action: 'updateRules',
     rules: rules
   });
   
   updateRulesUI();
   showNotification('Rule deleted', 'success');
+}
+
+// Purge all rules
+async function purgeAllRules() {
+  const confirmMsg = 'Are you sure you want to delete ALL rules? This action cannot be undone.';
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+  
+  try {
+    // Get all rules
+    const rules = state.get('currentRules') || [];
+    
+    // Delete each rule
+    for (const rule of rules) {
+      await sendMessage({ action: 'deleteRule', ruleId: rule.id });
+    }
+    
+    // Clear storage directly as well to be sure
+    await chrome.storage.local.set({ rules: [] });
+    
+    // Clear local state
+    state.set('currentRules', []);
+    
+    showNotification('All rules have been purged', 'success');
+    updateRulesUI();
+  } catch (error) {
+    console.error('Failed to purge rules:', error);
+    showNotification('Failed to purge rules', 'error');
+  }
 }
 
 export async function toggleAllRules(enabled) {
@@ -893,12 +1384,52 @@ export async function toggleAllRules(enabled) {
   
   state.set('currentRules', rules);
   await sendMessage({
-    action: 'saveRules',
+    action: 'updateRules',
     rules: rules
   });
   
   updateRulesUI();
   showNotification(enabled ? 'All rules enabled' : 'All rules disabled', 'success');
+}
+
+export async function runRule(ruleId) {
+  const rule = state.get('currentRules').find(r => r.id === ruleId);
+  if (!rule) return;
+  
+  const btn = document.querySelector(`[data-rule-id="${ruleId}"] button[data-action="run"]`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="spinner" width="16" height="16" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5"></circle></svg>';
+  }
+  
+  try {
+    const result = await sendMessage({
+      action: 'executeRule',
+      ruleId: ruleId
+    });
+    
+    if (result.success) {
+      showNotification(
+        `Rule executed successfully`, 
+        'success'
+      );
+      
+      // Refresh the view to show updated tab counts
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      showNotification(`Rule execution failed: ${result.error}`, 'error');
+    }
+  } catch (error) {
+    showNotification(`Error executing rule: ${error.message}`, 'error');
+  }
+  
+  // Restore button
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+  }
 }
 
 export async function testRule(ruleId) {
@@ -913,11 +1444,15 @@ export async function testRule(ruleId) {
   
   try {
     const result = await sendMessage({
-      action: 'testRule',
-      rule: rule
+      action: 'previewRule',
+      ruleId: ruleId
     });
     
+    console.log('Preview result:', result);
+    
+    // Handle both old and new response formats
     if (result.success) {
+      // New format
       showNotification(
         `Rule tested: ${result.affectedCount} tab(s) would be affected`, 
         'info'
@@ -925,9 +1460,26 @@ export async function testRule(ruleId) {
       
       if (result.affectedTabs && result.affectedTabs.length > 0) {
         console.log('Affected tabs:', result.affectedTabs);
+        // Pass the rule from the result if available, otherwise use the original
+        showTestResultsModal(result.affectedTabs, result.rule || rule);
       }
-    } else {
+    } else if (result.matchingTabs !== undefined) {
+      // Old format from background.js
+      const count = result.matchingTabs.length;
+      showNotification(
+        `Rule tested: ${count} tab(s) would be affected`, 
+        'info'
+      );
+      
+      if (count > 0) {
+        console.log('Matching tabs:', result.matchingTabs);
+      }
+    } else if (result.error) {
       showNotification(`Rule test failed: ${result.error}`, 'error');
+    } else {
+      // Unexpected format
+      console.error('Unexpected preview result format:', result);
+      showNotification('Unable to preview rule', 'error');
     }
   } catch (error) {
     showNotification(`Error testing rule: ${error.message}`, 'error');
@@ -959,8 +1511,8 @@ export async function testAllRules() {
   for (const rule of enabledRules) {
     try {
       const result = await sendMessage({
-        action: 'testRule',
-        rule: rule
+        action: 'previewRule',
+        ruleId: rule.id
       });
       
       if (result.success) {
@@ -1086,7 +1638,7 @@ export async function updateRulePriorities() {
   // Save updated rules
   state.set('currentRules', rules);
   await sendMessage({
-    action: 'saveRules',
+    action: 'updateRules',
     rules: rules
   });
   
@@ -1097,6 +1649,117 @@ export async function updateRulePriorities() {
 async function sendMessage(message) {
   return chrome.runtime.sendMessage(message);
 }
+
+// Show test results in a modal
+function showTestResultsModal(tabs, rule) {
+  // Remove any existing modal
+  const existingModal = document.getElementById('testResultsModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  // Create modal HTML
+  const modal = document.createElement('div');
+  modal.id = 'testResultsModal';
+  modal.className = 'modal-overlay';
+  modal.style.cssText = 'display: flex; align-items: center; justify-content: center; z-index: 10000;';
+  
+  // Import escapeHtml if not available
+  const escapeHtml = (str) => {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  };
+  
+  // Create a default icon as base64 to avoid escaping issues
+  const defaultIcon = 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>');
+  
+  const tabsList = tabs.map(tab => {
+    const iconUrl = tab.favIconUrl || defaultIcon;
+    return `
+      <div style="padding: 10px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+        <img src="${iconUrl}" 
+             style="width: 16px; height: 16px; flex-shrink: 0;"
+             onerror="this.style.display='none'">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(tab.title || 'Untitled')}</div>
+          <div style="font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(tab.url)}</div>
+          ${tab.isDupe ? '<span style="font-size: 11px; color: #dc3545; font-weight: 500;">[DUPLICATE]</span>' : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 600px; max-height: 80vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h2>Test Results: ${escapeHtml(rule.name)}</h2>
+        <button class="modal-close" id="testResultsCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0; flex: 1; overflow-y: auto;">
+        <div style="padding: 16px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0;">
+          <strong>${tabs.length} tab${tabs.length !== 1 ? 's' : ''} would be affected:</strong>
+        </div>
+        <div>
+          ${tabsList}
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 16px; display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn btn-secondary" id="testResultsCancelBtn">Close</button>
+        <button class="btn btn-primary" id="testResultsExecuteBtn" data-rule-id="${rule.id}">Execute Rule</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Add event listeners properly
+  document.getElementById('testResultsCloseBtn').addEventListener('click', () => {
+    modal.remove();
+  });
+  
+  document.getElementById('testResultsCancelBtn').addEventListener('click', () => {
+    modal.remove();
+  });
+  
+  document.getElementById('testResultsExecuteBtn').addEventListener('click', (e) => {
+    const ruleId = e.target.dataset.ruleId;
+    modal.remove();
+    window.executeRuleFromTest(ruleId);
+  });
+  
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
+  
+  // Close on escape
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      modal.remove();
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+}
+
+// Make executeRule available globally for the modal
+window.executeRuleFromTest = async (ruleId) => {
+  console.log('Executing rule:', ruleId);
+  const result = await sendMessage({ action: 'executeRule', ruleId });
+  console.log('Execute result:', JSON.stringify(result, null, 2));
+  if (result.success) {
+    showNotification(`Rule executed: ${result.actionCount || 0} actions performed`, 'success');
+    // Add a small delay before refreshing to allow tabs to close
+    setTimeout(async () => {
+      await loadRulesView();
+    }, 500);
+  } else {
+    showNotification(`Failed to execute rule: ${result.error}`, 'error');
+  }
+};
 
 // DSL Import/Export Functions
 export function exportRulesAsDSL() {
@@ -1206,7 +1869,7 @@ export async function handleDSLImport() {
     // Save rules
     state.set('currentRules', allRules);
     await sendMessage({
-      action: 'saveRules',
+      action: 'updateRules',
       rules: allRules
     });
 

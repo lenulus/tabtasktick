@@ -23,7 +23,8 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background-integrated.js",
+    "type": "module"
   },
   "action": {
     "default_popup": "popup/popup.html",

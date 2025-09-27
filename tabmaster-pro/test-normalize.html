@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Normalize Function</title>
+    <script type="module">
+        import { normalizeUrl, generateDupeKey } from './lib/normalize.js';
+        
+        const testUrls = [
+            'https://www.cnn.com/',
+            'https://www.cnn.com',
+            'https://cnn.com/',
+            'https://cnn.com',
+            'http://www.cnn.com/',
+            'http://cnn.com'
+        ];
+        
+        console.log('Testing URL normalization:');
+        testUrls.forEach(url => {
+            const normalized = normalizeUrl(url);
+            const dupeKey = generateDupeKey(url);
+            console.log(`URL: ${url}`);
+            console.log(`  Normalized: ${normalized}`);
+            console.log(`  DupeKey: ${dupeKey}`);
+        });
+    </script>
+</head>
+<body>
+    <h1>Check Console for Test Results</h1>
+</body>
+</html>

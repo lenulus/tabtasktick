@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="../components/snooze-modal.css">
   <link rel="stylesheet" href="../components/fab.css">
   <link rel="stylesheet" href="../lib/preview.css">
+  <link rel="stylesheet" href="../lib/conditions-builder.css">
+  <link rel="stylesheet" href="../lib/rules-modal.css">
   <script src="../lib/chart.min.js"></script>
 </head>
 <body>
@@ -362,6 +364,15 @@
               </svg>
               Export DSL
             </button>
+            <button class="btn btn-danger" id="purgeAllRulesBtn" title="Delete all rules" style="margin-left: 10px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+              Purge All
+            </button>
             <button class="btn btn-secondary" id="importDSLBtn" title="Import rules from DSL">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -530,7 +541,7 @@
 
   <!-- Rule Editor Modal -->
   <div class="modal" id="ruleModal">
-    <div class="modal-content">
+    <div class="modal-content modal-lg">
       <div class="modal-header">
         <h3 id="ruleModalTitle">Add New Rule</h3>
         <button class="close-btn" id="closeRuleModal">&times;</button>
@@ -541,73 +552,43 @@
           <input type="text" id="ruleName" placeholder="Enter a descriptive name for this rule">
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="ruleCondition">When tabs match</label>
-            <select id="ruleCondition">
-              <option value="duplicate">Duplicate URLs</option>
-              <option value="domain_count">Same domain count</option>
-              <option value="inactive">Inactive duration</option>
-              <option value="age_and_domain">Age and specific domains</option>
-              <option value="url_pattern">URL pattern matches</option>
-              <option value="category">Site categories</option>
-            </select>
+        <div class="form-group">
+          <label>Conditions</label>
+          <div id="conditionsContainer">
+            <!-- Conditions builder will be initialized here -->
           </div>
-
-          <div class="form-group">
-            <label for="ruleAction">Then do this</label>
-            <select id="ruleAction">
-              <option value="close">Close tabs</option>
-              <option value="group">Group tabs</option>
-              <option value="snooze">Snooze tabs</option>
-              <option value="suspend">Suspend tabs</option>
-            </select>
+          <div class="condition-preview">
+            <h4>Preview</h4>
+            <div class="preview-text" id="conditionPreview">
+              Match ALL tabs where URL contains "example.com"
+            </div>
           </div>
         </div>
 
-        <div class="form-group condition-params" id="conditionParams">
-          <!-- Dynamic condition parameters -->
-        </div>
-
-        <div class="form-group time-criteria" id="timeCriteriaSection">
-          <label>Time Criteria (optional)</label>
-          <div class="time-options">
-            <label class="time-option">
-              <input type="checkbox" id="useInactive">
-              <span>Inactive for</span>
-              <input type="number" id="inactiveMinutes" min="5" value="60" class="time-input"> minutes
-            </label>
-            <label class="time-option">
-              <input type="checkbox" id="useAge">
-              <span>Older than</span>
-              <input type="number" id="ageMinutes" min="5" value="180" class="time-input"> minutes
-            </label>
-            <label class="time-option">
-              <input type="checkbox" id="useNotAccessed">
-              <span>Not accessed for</span>
-              <input type="number" id="notAccessedMinutes" min="5" value="120" class="time-input"> minutes
-            </label>
+        <div class="form-group">
+          <label>Actions (in order)</label>
+          <div id="actionsContainer" class="actions-list">
+            <!-- Actions will be listed here -->
           </div>
+          <button class="btn btn-secondary" id="addActionBtn">+ Add Action</button>
         </div>
 
         <div class="form-group trigger-type" id="triggerSection">
-          <label for="triggerType">When to check</label>
+          <label for="triggerType">When to apply</label>
           <select id="triggerType">
-            <option value="event">On tab events (immediate)</option>
-            <option value="periodic">Periodically</option>
+            <option value="immediate">On tab events (immediate)</option>
+            <option value="repeat">Repeat periodically</option>
+            <option value="once">Once at specific time</option>
+            <option value="manual">Manual only</option>
           </select>
-          <div id="triggerInterval" style="display:none;">
-            <label>Check every <input type="number" id="intervalMinutes" min="1" value="15" class="time-input"> minutes</label>
+          <div id="triggerParams" class="trigger-params">
+            <!-- Dynamic trigger parameters -->
           </div>
-        </div>
-
-        <div class="form-group action-params" id="actionParams">
-          <!-- Dynamic action parameters -->
         </div>
 
         <div class="form-group">
           <label for="ruleEnabled">
-            <input type="checkbox" id="ruleEnabled">
+            <input type="checkbox" id="ruleEnabled" checked>
             Enable rule immediately
           </label>
           <p class="help-text">You can test the rule before enabling it</p>

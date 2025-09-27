@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Session Manager - TabMaster Pro</title>
+  <link rel="stylesheet" href="../dashboard/dashboard.css">
+  <link rel="stylesheet" href="session.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <h1>Session Manager</h1>
+        <nav class="dashboard-nav">
+          <a href="../dashboard/dashboard.html">← Back to Dashboard</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="session-view">
+      <!-- Toolbar -->
+      <div class="session-toolbar">
+        <button id="snapshotSession" class="btn btn-secondary">
+          📸 Snapshot
+        </button>
+        <button id="importSession" class="btn btn-secondary">
+          📥 Import
+        </button>
+        <button id="exportSession" class="btn btn-secondary">
+          📤 Export
+        </button>
+        <button id="refreshSession" class="btn btn-secondary">
+          🔄 Refresh
+        </button>
+        <div class="toolbar-spacer"></div>
+        <div class="view-controls">
+          <button id="expandAll" class="btn btn-icon" title="Expand All">⊞</button>
+          <button id="collapseAll" class="btn btn-icon" title="Collapse All">⊟</button>
+        </div>
+      </div>
+      
+      <!-- Main Content Area -->
+      <div class="session-content">
+        <!-- Tree Panel (Left) -->
+        <div class="session-tree-panel">
+          <div class="search-container">
+            <input type="search" 
+                   id="sessionSearch" 
+                   class="search-input"
+                   placeholder="Search tabs..."
+                   autocomplete="off">
+            <span class="search-count" id="searchCount"></span>
+          </div>
+          <div id="sessionTree" class="tree-container">
+            <!-- Tree will be rendered here -->
+          </div>
+        </div>
+        
+        <!-- Actions Panel (Right) -->
+        <div class="session-actions-panel">
+          <!-- Selection Summary -->
+          <div class="selection-summary">
+            <h3>Selected: <span id="selectedCount">0</span> tabs</h3>
+            <button id="clearSelection" class="btn btn-link">Clear</button>
+          </div>
+          
+          <!-- Action Groups -->
+          <div class="action-groups">
+            <!-- Quick Actions -->
+            <div class="action-group quick-actions">
+              <h4>Quick Actions</h4>
+              <div class="action-buttons">
+                <button class="btn btn-primary" data-action="close" disabled>
+                  ❌ Close
+                </button>
+                <button class="btn btn-primary" data-action="group" disabled>
+                  📁 Group
+                </button>
+                <button class="btn btn-primary" data-action="snooze" disabled>
+                  ⏰ Snooze
+                </button>
+                <button class="btn btn-primary" data-action="bookmark" disabled>
+                  ⭐ Bookmark
+                </button>
+                <button class="btn btn-primary" data-action="move" disabled>
+                  ↔️ Move
+                </button>
+              </div>
+            </div>
+            
+            <!-- Smart Actions -->
+            <div class="action-group smart-actions">
+              <h4>Smart Actions</h4>
+              <div class="action-buttons">
+                <button class="btn btn-secondary" data-action="dedupe" disabled>
+                  🔍 Dedupe <span class="count"></span>
+                </button>
+                <button class="btn btn-secondary" data-action="close-solos" disabled>
+                  🎯 Close Solos <span class="count"></span>
+                </button>
+                <button class="btn btn-secondary" data-action="group-by-domain" disabled>
+                  🌐 Group by Domain
+                </button>
+                <button class="btn btn-secondary" data-action="archive-old" disabled>
+                  📦 Archive Old
+                </button>
+              </div>
+            </div>
+            
+            <!-- Rule Actions -->
+            <div class="action-group rule-actions">
+              <h4>Apply Rule</h4>
+              <div class="rule-controls">
+                <select id="ruleSelector" class="form-select">
+                  <option value="">Select a rule...</option>
+                </select>
+                <button id="dryRunRule" class="btn btn-warning" disabled>
+                  🔬 Dry Run
+                </button>
+                <button id="applyRule" class="btn btn-danger" disabled>
+                  ⚡ Apply
+                </button>
+              </div>
+              <div id="dryRunResults" class="dry-run-results hidden"></div>
+            </div>
+          </div>
+          
+          <!-- Selection Details -->
+          <div class="selection-details">
+            <h4>Selection Details</h4>
+            <ul id="selectionStats">
+              <li>No tabs selected</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+  </div>
+
+  <script type="module" src="session.js"></script>
+</body>
+</html>

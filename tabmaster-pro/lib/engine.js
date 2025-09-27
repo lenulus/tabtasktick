@@ -3,6 +3,8 @@
 
 import { compile, checkIsDupe } from './predicate.js';
 import { normalizeUrl, extractDomain, generateDupeKey, extractOrigin } from './normalize.js';
+import { validateActionList, sortActionsByPriority } from './action-validator.js';
+import { transformConditions } from './condition-transformer.js';
 
 /**
  * Build indices for efficient rule evaluation
@@ -50,7 +52,25 @@ export function evaluateRule(rule, context, options = {}) {
   
   if (!rule.enabled) return matches;
   
-  const predicate = compile(rule.when);
+  // Transform conditions from UI format to predicate format (or pass through if already in predicate format)
+  const transformedConditions = transformConditions(rule.when);
+  
+  // Check for empty conditions
+  if (transformedConditions.all && transformedConditions.all.length === 0) {
+    console.warn('Rule has empty conditions, will not match any tabs');
+    return matches;
+  }
+  
+  const predicate = compile(transformedConditions);
+  
+  // Debug: Log duplicate groups
+  console.log('Duplicate groups:', Object.keys(context.idx.byDupeKey).filter(key => 
+    context.idx.byDupeKey[key].length > 1
+  ).map(key => ({
+    dupeKey: key,
+    count: context.idx.byDupeKey[key].length,
+    tabs: context.idx.byDupeKey[key].map(t => ({ id: t.id, url: t.url }))
+  })));
   
   for (const tab of context.tabs) {
     // Skip pinned tabs if configured
@@ -62,18 +82,30 @@ export function evaluateRule(rule, context, options = {}) {
     const window = context.windows?.find(w => w.id === tab.windowId) || {};
     
     // Build evaluation context for this tab
+    const isDupe = checkIsDupe(tab, context);
     const evalContext = {
       tab: {
         ...tab,
-        isDupe: checkIsDupe(tab, context)
+        isDupe
       },
       window,
       idx: context.idx
     };
     
+    // Log tabs for debugging
+    if (tab.url && tab.url.includes('cnn.com')) {
+      console.log('CNN Tab:', tab.url, 'isDupe:', isDupe, 'dupeKey:', tab.dupeKey, 'id:', tab.id);
+    }
+    
     // Evaluate predicate
-    if (predicate(evalContext)) {
-      matches.push(tab);
+    try {
+      const result = predicate(evalContext);
+      if (result) {
+        console.log('Tab matches:', tab.url, 'isDupe:', evalContext.tab.isDupe);
+        matches.push(tab);
+      }
+    } catch (error) {
+      console.error('Error evaluating tab:', tab.url, error);
     }
   }
   
@@ -89,10 +121,26 @@ export function evaluateRule(rule, context, options = {}) {
  * @returns {Array} Array of execution results
  */
 export async function executeActions(actions, tabs, context, dryRun = false) {
+  console.log('executeActions called with:', { actions, tabCount: tabs.length, dryRun });
+  
+  // Ensure actions is an array
+  const actionArray = Array.isArray(actions) ? actions : [actions];
+  
+  // Validate action compatibility
+  const validation = validateActionList(actionArray);
+  if (!validation.valid && !dryRun) {
+    console.warn('Invalid action combination:', validation.errors);
+    // In production, we might want to throw an error or handle this differently
+  }
+  
+  // Sort actions by priority for optimal execution order
+  const sortedActions = sortActionsByPriority(actionArray);
+  console.log('Sorted actions:', sortedActions);
+  
   const results = [];
   const processedTabs = new Set();
   
-  for (const action of actions) {
+  for (const action of sortedActions) {
     const actionResults = [];
     
     for (const tab of tabs) {
@@ -149,10 +197,23 @@ export async function executeActions(actions, tabs, context, dryRun = false) {
  * @returns {object} Execution result
  */
 async function executeAction(action, tab, context, dryRun) {
-  switch (action.action) {
+  console.log('executeAction called with action:', action);
+  
+  // Handle both 'action' and 'type' field names for backwards compatibility
+  const actionType = action.action || action.type;
+  console.log('Action type resolved to:', actionType);
+  
+  switch (actionType) {
     case 'close':
+      console.log(`Executing close action for tab ${tab.id}: ${tab.url}`);
       if (!dryRun && context.chrome?.tabs) {
-        await context.chrome.tabs.remove(tab.id);
+        try {
+          await context.chrome.tabs.remove(tab.id);
+          console.log(`Successfully closed tab ${tab.id}`);
+        } catch (error) {
+          console.error(`Failed to close tab ${tab.id}:`, error);
+          return { success: false, error: error.message };
+        }
       }
       return { success: true, details: { closed: tab.id } };
       
@@ -246,7 +307,7 @@ async function executeAction(action, tab, context, dryRun) {
       return { success: true, details: { bookmarked: tab.id, folder: action.to } };
       
     default:
-      return { success: false, error: `Unknown action: ${action.action}` };
+      return { success: false, error: `Unknown action: ${actionType}` };
   }
 }
 
@@ -281,9 +342,18 @@ export async function runRules(rules, context, options = {}) {
       const matches = evaluateRule(rule, context, options);
       
       if (matches.length > 0) {
+        // Get actions from rule (handle both old and new formats)
+        const ruleActions = rule.then || rule.actions;
+        console.log(`Rule ${rule.name} has ${matches.length} matches and actions:`, ruleActions);
+        
+        if (!ruleActions || (Array.isArray(ruleActions) && ruleActions.length === 0)) {
+          console.warn(`Rule ${rule.name} has no actions defined`);
+          continue;
+        }
+        
         // Execute actions
         const actions = await executeActions(
-          rule.then, 
+          ruleActions, 
           matches, 
           context, 
           options.dryRun

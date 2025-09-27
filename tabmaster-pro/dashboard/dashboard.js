@@ -49,7 +49,7 @@ import {
   filterTabs,
   sortAndRenderTabs 
 } from './modules/views/tabs.js';
-import { loadOverviewData } from './modules/views/overview.js';
+import { loadOverviewData, cleanupCharts } from './modules/views/overview.js';
 import { 
   loadRulesView, 
   updateRulesUI, 
@@ -58,8 +58,6 @@ import {
   installSampleRule,
   openRuleModal,
   closeRuleModal,
-  updateConditionParams,
-  updateActionParams,
   saveRule,
   toggleRule,
   deleteRule,
@@ -165,6 +163,13 @@ function setupNavigation() {
 
 function switchView(view) {
   console.log('Switching to view:', view);
+  
+  // Cleanup previous view
+  const previousView = state.get('currentView');
+  if (previousView === 'overview' && view !== 'overview') {
+    // Cleanup charts when leaving overview
+    cleanupCharts();
+  }
   
   // Hide all views
   const allViews = document.querySelectorAll('.view');

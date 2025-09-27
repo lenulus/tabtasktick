@@ -4,6 +4,26 @@
 import { getTimeAgo, getActivityIcon } from '../core/utils.js';
 import state from '../core/state.js';
 
+// Store chart instances globally to ensure proper cleanup
+let chartInstances = {
+  activity: null,
+  domains: null
+};
+
+// Cleanup function to destroy all charts
+export function cleanupCharts() {
+  Object.keys(chartInstances).forEach(key => {
+    if (chartInstances[key]) {
+      try {
+        chartInstances[key].destroy();
+        chartInstances[key] = null;
+      } catch (e) {
+        console.error(`Error destroying ${key} chart:`, e);
+      }
+    }
+  });
+}
+
 export async function loadOverviewData() {
   console.log('Loading overview data...');
   try {
@@ -55,10 +75,13 @@ function updateNextWakeTime(snoozedCount) {
 
 export async function updateRecentActivity(filter = 'all') {
   // Get real activity log from background
-  const activities = await sendMessage({ action: 'getActivityLog' });
+  const response = await sendMessage({ action: 'getActivityLog' });
+  
+  // Handle both old and new response formats
+  const activities = response.activityLog || response || [];
   
   // Filter activities if needed
-  let filteredActivities = activities || [];
+  let filteredActivities = Array.isArray(activities) ? activities : [];
   if (filter !== 'all') {
     filteredActivities = filteredActivities.filter(a => a.source === filter);
   }
@@ -146,17 +169,23 @@ export function updateActivityChart() {
   const ctx = document.getElementById('activityChart');
   if (!ctx) return;
 
+  // Destroy existing chart if it exists
+  if (chartInstances.activity) {
+    try {
+      chartInstances.activity.destroy();
+      chartInstances.activity = null;
+    } catch (e) {
+      console.error('Error destroying activity chart:', e);
+    }
+  }
+
   // Get activity data from storage or background
   chrome.storage.local.get(['tabHistory'], (result) => {
     const history = result.tabHistory || [];
     const last7Days = getActivityDataForLast7Days(history);
 
-    const existingChart = state.get('activityChart');
-    if (existingChart && typeof existingChart.destroy === 'function') {
-      existingChart.destroy();
-    }
-
-    state.set('activityChart', new Chart(ctx, {
+    // Create new chart
+    chartInstances.activity = new Chart(ctx, {
       type: 'line',
       data: {
         labels: last7Days.labels,
@@ -188,7 +217,7 @@ export function updateActivityChart() {
           }
         }
       }
-    }));
+    });
   });
 }
 
@@ -261,15 +290,21 @@ function renderDomainsChart(domainData) {
   const ctx = document.getElementById('domainsChart');
   if (!ctx) return;
 
-  const existingChart = state.get('domainsChart');
-  if (existingChart && typeof existingChart.destroy === 'function') {
-    existingChart.destroy();
+  // Destroy existing chart if it exists
+  if (chartInstances.domains) {
+    try {
+      chartInstances.domains.destroy();
+      chartInstances.domains = null;
+    } catch (e) {
+      console.error('Error destroying domains chart:', e);
+    }
   }
 
   const labels = domainData.map(d => Array.isArray(d) ? d[0] : d.domain);
   const data = domainData.map(d => Array.isArray(d) ? d[1] : d.count);
 
-  state.set('domainsChart', new Chart(ctx, {
+  // Create new chart
+  chartInstances.domains = new Chart(ctx, {
     type: 'doughnut',
     data: {
       labels: labels,
@@ -294,7 +329,7 @@ function renderDomainsChart(domainData) {
         }
       }
     }
-  }));
+  });
 }
 
 // Helper function for sendMessage

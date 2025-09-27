@@ -1,8 +1,9 @@
 // Background Service Worker for TabMaster Pro
 // Integrated with new Rules Engine 2.0 (engine.js + scheduler.js)
 
-import { runRules, previewRule as previewRuleEngine } from './lib/engine.js';
+import { runRules, previewRule as previewRuleEngine, buildIndices } from './lib/engine.js';
 import { createChromeScheduler } from './lib/scheduler.js';
+import { checkIsDupe } from './lib/predicate.js';
 
 console.log('Background service worker loaded with Rules Engine 2.0');
 
@@ -219,6 +220,8 @@ async function loadRules() {
   const { rules } = await chrome.storage.local.get('rules');
   if (rules) {
     state.rules = rules;
+  } else {
+    state.rules = [];
   }
 }
 
@@ -231,10 +234,15 @@ async function loadSettings() {
 
 // Execute rules using the new engine
 async function executeRule(ruleId, triggerType = 'manual') {
-  const rule = state.rules.find(r => r.id === ruleId);
+  const rule = state.rules.find(r => r.id === ruleId || r.id === String(ruleId));
   if (!rule || !rule.enabled) {
+    console.error('executeRule - Rule not found or disabled:', ruleId);
+    console.error('Available rules:', state.rules.map(r => ({ id: r.id, enabled: r.enabled })));
     return { success: false, error: 'Rule not found or disabled' };
   }
+  
+  console.log('Executing rule:', rule.name, 'with actions:', JSON.stringify(rule.then || rule.actions));
+  console.log('Full rule object:', JSON.stringify(rule, null, 2));
 
   try {
     // Get current tabs and windows
@@ -252,18 +260,26 @@ async function executeRule(ruleId, triggerType = 'manual') {
       tab.category = getCategoryForDomain(tab.url);
     });
     
+    // Build indices to enhance tabs with dupeKeys and other fields
+    const idx = buildIndices(tabs);
+    
     // Build context for engine
     const context = {
       tabs,
       windows,
-      chrome
+      chrome,
+      idx
     };
+    
+    console.log('Running rule with dryRun=false');
     
     // Run the single rule
     const results = await runRules([rule], context, {
       dryRun: false,
       skipPinned: rule.flags?.skipPinned !== false
     });
+    
+    console.log('runRules results:', JSON.stringify(results, null, 2));
     
     // Log activity
     const totalActions = results.totalActions || 0;
@@ -319,8 +335,9 @@ async function executeRule(ruleId, triggerType = 'manual') {
 
 // Preview rule using the new engine
 async function previewRule(ruleId) {
-  const rule = state.rules.find(r => r.id === ruleId);
+  const rule = state.rules.find(r => r.id === ruleId || r.id === String(ruleId));
   if (!rule) {
+    console.error('Rule not found:', ruleId);
     return { error: 'Rule not found' };
   }
 
@@ -339,11 +356,15 @@ async function previewRule(ruleId) {
       tab.category = getCategoryForDomain(tab.url);
     });
     
+    // Build indices to enhance tabs with dupeKeys and other fields
+    const idx = buildIndices(tabs);
+    
     // Build context
     const context = {
       tabs,
       windows,
-      chrome
+      chrome,
+      idx
     };
     
     // Use engine's preview function
@@ -351,12 +372,132 @@ async function previewRule(ruleId) {
       skipPinned: rule.flags?.skipPinned !== false
     });
     
-    return preview;
+    // Transform to match frontend expectations
+    const result = {
+      success: true,
+      affectedCount: preview.totalMatches || 0,
+      affectedTabs: preview.matches || [],
+      rule: preview.rule,
+      // Also include the old format for backwards compatibility
+      matchingTabs: preview.matches || []
+    };
+    
+    return result;
     
   } catch (error) {
     console.error('Error previewing rule:', error);
     return { error: error.message };
   }
+}
+
+// Estimate memory usage
+async function estimateMemoryUsage(tabs) {
+  try {
+    // Try to get actual system memory info
+    if (chrome.system && chrome.system.memory) {
+      const memoryInfo = await chrome.system.memory.getInfo();
+      const totalMemoryGB = (memoryInfo.capacity / (1024 * 1024 * 1024)).toFixed(2);
+      const availableMemoryGB = (memoryInfo.availableCapacity / (1024 * 1024 * 1024)).toFixed(2);
+      const usedMemoryGB = totalMemoryGB - availableMemoryGB;
+      const usagePercentage = ((usedMemoryGB / totalMemoryGB) * 100).toFixed(1);
+      
+      // Estimate Chrome's portion (rough estimate)
+      const chromeMemoryMB = Math.round((usedMemoryGB * 1024) * 0.35);
+      const perTabEstimate = tabs.length > 0 ? Math.round(chromeMemoryMB / tabs.length) : 0;
+      
+      return {
+        estimatedMB: chromeMemoryMB,
+        percentage: parseFloat(usagePercentage),
+        totalSystemGB: parseFloat(totalMemoryGB),
+        availableSystemGB: parseFloat(availableMemoryGB),
+        perTabMB: perTabEstimate,
+        isRealData: true
+      };
+    }
+  } catch (error) {
+    console.log('System memory API not available, using estimates');
+  }
+  
+  // Fallback estimation
+  const baseMemoryMB = 150;
+  const memoryPerTab = tabs.length < 50 ? 50 : 30;
+  const estimatedMB = baseMemoryMB + (tabs.length * memoryPerTab);
+  
+  return {
+    estimatedMB: estimatedMB,
+    percentage: Math.min(95, estimatedMB / 100),
+    totalSystemGB: 0,
+    availableSystemGB: 0,
+    perTabMB: memoryPerTab,
+    isRealData: false
+  };
+}
+
+// Get statistics for popup and dashboard
+async function getStatistics() {
+  const tabs = await chrome.tabs.query({});
+  const windows = await chrome.windows.getAll({ populate: true });
+  
+  // Count grouped tabs
+  const groupedTabs = tabs.filter(tab => tab.groupId && tab.groupId !== -1);
+  
+  // Count by domain
+  const domainCounts = {};
+  for (const tab of tabs) {
+    try {
+      const domain = new URL(tab.url).hostname;
+      domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+    } catch {
+      // Skip invalid URLs
+    }
+  }
+  
+  // Get top domains
+  const topDomains = Object.entries(domainCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([domain, count]) => ({ domain, count }));
+  
+  // Find duplicates using the new engine
+  const context = { tabs, windows, idx: buildIndices(tabs) };
+  const duplicates = tabs.filter(tab => checkIsDupe(tab, context));
+  
+  return {
+    totalTabs: tabs.length,
+    totalWindows: windows.length,
+    groupedTabs: groupedTabs.length,
+    pinnedTabs: tabs.filter(t => t.pinned).length,
+    snoozedTabs: state.snoozedTabs?.length || 0,
+    duplicates: duplicates.length,
+    topDomains,
+    statistics: state.statistics,
+    memoryEstimate: await estimateMemoryUsage(tabs)
+  };
+}
+
+// Get tab info for the current window
+async function getTabInfo() {
+  const tabs = await chrome.tabs.query({ currentWindow: true });
+  const groups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
+  
+  return {
+    tabs: tabs.map(tab => ({
+      id: tab.id,
+      title: tab.title,
+      url: tab.url,
+      favicon: tab.favIconUrl,
+      pinned: tab.pinned,
+      groupId: tab.groupId,
+      active: tab.active,
+      audible: tab.audible
+    })),
+    groups: groups.map(group => ({
+      id: group.id,
+      title: group.title,
+      color: group.color,
+      collapsed: group.collapsed
+    }))
+  };
 }
 
 // Execute all enabled rules
@@ -378,11 +519,15 @@ async function executeAllRules() {
       tab.category = getCategoryForDomain(tab.url);
     });
     
+    // Build indices to enhance tabs with dupeKeys and other fields
+    const idx = buildIndices(tabs);
+    
     // Build context
     const context = {
       tabs,
       windows,
-      chrome
+      chrome,
+      idx
     };
     
     // Run all rules
@@ -626,7 +771,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           
         // Rule operations
         case 'getRules':
-          sendResponse({ rules: state.rules });
+          // Always reload rules from storage to ensure we have the latest
+          await loadRules();
+          sendResponse(state.rules || []);
           break;
           
         case 'addRule':
@@ -639,12 +786,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse(updateResult);
           break;
           
+        case 'updateRules':
+          // Bulk update all rules (used by dashboard)
+          state.rules = request.rules || [];
+          await chrome.storage.local.set({ rules: state.rules });
+          
+          // Re-setup scheduler for all rules
+          // First, remove all existing scheduled triggers
+          for (const rule of state.rules) {
+            scheduler.removeRule(rule.id);
+          }
+          
+          // Then setup the new/updated rules
+          for (const rule of state.rules) {
+            if (rule.enabled) {
+              scheduler.setupRule(rule);
+            }
+          }
+          
+          sendResponse({ success: true });
+          break;
+          
         case 'deleteRule':
           const deleteResult = await deleteRule(request.ruleId);
           sendResponse(deleteResult);
           break;
           
         case 'previewRule':
+          // Ensure rules are loaded before preview
+          await loadRules();
           const preview = await previewRule(request.ruleId);
           sendResponse(preview);
           break;
@@ -666,7 +836,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           
         // Activity log
         case 'getActivityLog':
-          sendResponse({ activityLog: state.activityLog });
+          sendResponse(state.activityLog || []);
           break;
           
         case 'clearActivityLog':
@@ -688,7 +858,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           
         // Statistics
         case 'getStatistics':
-          sendResponse({ statistics: state.statistics });
+          const stats = await getStatistics();
+          sendResponse(stats);
+          break;
+          
+        case 'getTabInfo':
+          const tabInfo = await getTabInfo();
+          sendResponse(tabInfo);
           break;
           
         // Tab operations
@@ -703,13 +879,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'snoozeTabs':
-          await snoozeTabs(request.tabIds, request.duration);
+          // Convert minutes to milliseconds
+          const duration = request.minutes ? request.minutes * 60 * 1000 : request.duration;
+          await snoozeTabs(request.tabIds, duration);
           sendResponse({ success: true });
           break;
           
         case 'bookmarkTabs':
           await bookmarkTabs(request.tabIds, request.folder);
           sendResponse({ success: true });
+          break;
+          
+        case 'closeDuplicates':
+          const closedCount = await findAndCloseDuplicates();
+          sendResponse(closedCount);
+          break;
+          
+        case 'groupByDomain':
+          const groupResult = await groupTabsByDomain();
+          sendResponse(groupResult);
+          break;
+          
+        case 'snoozeCurrent':
+          const snoozeResult = await quickSnoozeCurrent(request.minutes);
+          sendResponse(snoozeResult);
+          break;
+          
+        case 'getSnoozedTabs':
+          sendResponse(state.snoozedTabs || []);
+          break;
+          
+        case 'wakeSnoozedTab':
+          const wakeResult = await restoreSnoozedTab(request.tabId);
+          sendResponse(wakeResult);
+          break;
+          
+        case 'wakeAllSnoozed':
+          const wakeAllResult = await wakeAllSnoozedTabs();
+          sendResponse(wakeAllResult);
           break;
           
         default:
@@ -733,6 +940,158 @@ async function closeTabs(tabIds) {
   state.statistics.tabsClosed += tabIds.length;
   await chrome.storage.local.set({ statistics: state.statistics });
   logActivity('close', `Closed ${tabIds.length} tabs`, 'manual');
+}
+
+// Find and close duplicate tabs
+async function findAndCloseDuplicates() {
+  const tabs = await chrome.tabs.query({});
+  const context = { tabs, windows: await chrome.windows.getAll(), idx: buildIndices(tabs) };
+  const duplicates = [];
+  const seenUrls = new Set();
+  
+  // Find duplicates - keep the first instance of each URL
+  for (const tab of tabs) {
+    if (tab.pinned) continue;
+    
+    // Normalize URL by removing trailing slashes and fragments
+    const normalizedUrl = tab.url.replace(/\/$/, '').split('#')[0];
+    
+    if (seenUrls.has(normalizedUrl)) {
+      duplicates.push(tab.id);
+      state.statistics.duplicatesRemoved++;
+    } else {
+      seenUrls.add(normalizedUrl);
+    }
+  }
+  
+  // Close duplicate tabs
+  if (duplicates.length > 0) {
+    await chrome.tabs.remove(duplicates);
+    await chrome.storage.local.set({ statistics: state.statistics });
+    
+    // Log activity
+    logActivity('close', `Closed ${duplicates.length} duplicate tab${duplicates.length > 1 ? 's' : ''}`, 'manual');
+    
+    // Track history
+    for (let i = 0; i < duplicates.length; i++) {
+      await trackTabHistory('closed');
+    }
+  }
+  
+  return duplicates.length;
+}
+
+// Group tabs by domain
+async function groupTabsByDomain() {
+  const tabs = await chrome.tabs.query({ currentWindow: true });
+  const domainMap = new Map();
+  
+  // Group tabs by domain
+  for (const tab of tabs) {
+    if (tab.groupId > 0) continue; // Skip already grouped tabs
+    
+    try {
+      const url = new URL(tab.url);
+      const domain = url.hostname;
+      
+      if (!domainMap.has(domain)) {
+        domainMap.set(domain, []);
+      }
+      domainMap.get(domain).push(tab.id);
+    } catch {
+      // Skip invalid URLs
+    }
+  }
+  
+  // Create groups for domains with multiple tabs
+  let groupsCreated = 0;
+  let totalTabsGrouped = 0;
+  const colors = ['blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange'];
+  let colorIndex = 0;
+  
+  for (const [domain, tabIds] of domainMap) {
+    if (tabIds.length >= 2) {
+      const groupId = await chrome.tabs.group({ tabIds });
+      
+      await chrome.tabGroups.update(groupId, {
+        title: domain,
+        color: colors[colorIndex % colors.length],
+        collapsed: false
+      });
+      
+      colorIndex++;
+      groupsCreated++;
+      totalTabsGrouped += tabIds.length;
+      state.statistics.tabsGrouped += tabIds.length;
+    }
+  }
+  
+  await chrome.storage.local.set({ statistics: state.statistics });
+  
+  // Log activity
+  if (groupsCreated > 0) {
+    logActivity('group', `Created ${groupsCreated} groups with ${totalTabsGrouped} tabs`, 'manual');
+  }
+  
+  return { groupsCreated, totalTabsGrouped };
+}
+
+// Quick snooze current tab
+async function quickSnoozeCurrent(minutes = 120) {
+  const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (activeTab) {
+    await snoozeTabs([activeTab.id], minutes * 60 * 1000);
+    return { success: true, tabId: activeTab.id };
+  }
+  return { success: false, error: 'No active tab' };
+}
+
+// Restore a snoozed tab
+async function restoreSnoozedTab(tabId) {
+  const tabIndex = state.snoozedTabs.findIndex(t => t.id === tabId);
+  if (tabIndex === -1) {
+    return { success: false, error: 'Tab not found' };
+  }
+  
+  const snoozedTab = state.snoozedTabs[tabIndex];
+  
+  // Create the tab
+  await chrome.tabs.create({
+    url: snoozedTab.url,
+    active: false
+  });
+  
+  // Remove from snoozed list
+  state.snoozedTabs.splice(tabIndex, 1);
+  await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+  
+  logActivity('snooze', `Restored snoozed tab: ${snoozedTab.title}`, 'manual');
+  
+  return { success: true };
+}
+
+// Wake all snoozed tabs
+async function wakeAllSnoozedTabs() {
+  const count = state.snoozedTabs.length;
+  if (count === 0) {
+    return { success: true, count: 0 };
+  }
+  
+  // Create all tabs
+  for (const snoozedTab of state.snoozedTabs) {
+    await chrome.tabs.create({
+      url: snoozedTab.url,
+      active: false
+    });
+  }
+  
+  // Clear snoozed list
+  state.snoozedTabs = [];
+  await chrome.storage.local.set({ snoozedTabs: [] });
+  
+  logActivity('snooze', `Restored all ${count} snoozed tabs`, 'manual');
+  
+  return { success: true, count };
 }
 
 async function groupTabs(tabIds, groupName) {
@@ -1035,6 +1394,18 @@ function migrateActions(oldActions) {
 async function startMonitoring() {
   console.log('TabMaster Pro monitoring started');
 }
+
+// Initialize state on script load
+(async function initializeOnLoad() {
+  try {
+    await loadRules();
+    await loadSettings();
+    await loadActivityLog();
+    console.log('Initial state loaded');
+  } catch (error) {
+    console.error('Error loading initial state:', error);
+  }
+})();
 
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {
