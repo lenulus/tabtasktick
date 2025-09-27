@@ -523,41 +523,90 @@ export class Assertions {
    * Assert tab property
    */
   async assertTabProperty(params) {
-    const { tabId, url, property, expected, condition = 'equals' } = params;
-    
-    // Find the tab
-    let tab;
+    const {
+      tabId,
+      url,
+      property,
+      expected,
+      value,  // Alternative to expected for clarity
+      condition = 'equals',
+      count,  // Expected number of tabs with this property value
+      minimum,  // Minimum number of tabs with this property value
+      maximum  // Maximum number of tabs with this property value
+    } = params;
+
+    // Use value if provided, otherwise fall back to expected
+    const expectedValue = value !== undefined ? value : expected;
+
+    // Find the tab(s)
+    let tabs = [];
     if (tabId) {
-      tab = await chrome.tabs.get(tabId);
+      const tab = await chrome.tabs.get(tabId);
+      tabs = [tab];
     } else if (url) {
-      const tabs = await chrome.tabs.query({
+      const allTabs = await chrome.tabs.query({
         windowId: this.testMode.testWindow?.id
       });
       // Filter by URL substring
-      const matchingTabs = tabs.filter(t => t.url.includes(url));
-      tab = matchingTabs[0];
+      tabs = allTabs.filter(t => t.url.includes(url));
     }
 
-    if (!tab) {
+    if (tabs.length === 0) {
       return {
         passed: false,
-        message: 'Tab not found',
+        message: 'No tabs found matching criteria',
         actual: null
       };
     }
 
-    const actual = this.getNestedValue(tab, property);
-    const passed = this.evaluateCondition(actual, expected, condition);
+    // Check property value for each tab
+    const matchingTabs = tabs.filter(tab => {
+      const actual = this.getNestedValue(tab, property);
+      return this.evaluateCondition(actual, expectedValue, condition);
+    });
+
+    // Determine if assertion passes based on count expectations
+    let passed = false;
+    let message = '';
+
+    if (count !== undefined) {
+      passed = matchingTabs.length === count;
+      message = passed
+        ? `${matchingTabs.length} tab(s) have ${property} = ${expectedValue}`
+        : `Expected ${count} tab(s) with ${property} = ${expectedValue}, found ${matchingTabs.length}`;
+    } else if (minimum !== undefined || maximum !== undefined) {
+      if (minimum !== undefined && maximum !== undefined) {
+        passed = matchingTabs.length >= minimum && matchingTabs.length <= maximum;
+        message = passed
+          ? `${matchingTabs.length} tab(s) have ${property} = ${expectedValue}`
+          : `Expected ${minimum}-${maximum} tab(s) with ${property} = ${expectedValue}, found ${matchingTabs.length}`;
+      } else if (minimum !== undefined) {
+        passed = matchingTabs.length >= minimum;
+        message = passed
+          ? `${matchingTabs.length} tab(s) have ${property} = ${expectedValue}`
+          : `Expected at least ${minimum} tab(s) with ${property} = ${expectedValue}, found ${matchingTabs.length}`;
+      } else {
+        passed = matchingTabs.length <= maximum;
+        message = passed
+          ? `${matchingTabs.length} tab(s) have ${property} = ${expectedValue}`
+          : `Expected at most ${maximum} tab(s) with ${property} = ${expectedValue}, found ${matchingTabs.length}`;
+      }
+    } else {
+      // Default: all matching tabs should have the property value
+      passed = matchingTabs.length === tabs.length;
+      const actual = tabs[0] ? this.getNestedValue(tabs[0], property) : null;
+      message = passed
+        ? `Tab property ${property} = ${expectedValue}`
+        : `Expected ${property} = ${expectedValue}, got ${actual}`;
+    }
 
     return {
       passed,
-      actual,
-      expected,
-      property,
-      message: passed
-        ? `Tab ${property} ${condition} ${expected}`
-        : `Tab ${property} is ${actual}, expected ${condition} ${expected}`,
-      tab
+      actual: matchingTabs.length,
+      expected: expectedValue,
+      message,
+      matchingCount: matchingTabs.length,
+      totalCount: tabs.length
     };
   }
 

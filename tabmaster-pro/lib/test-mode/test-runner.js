@@ -31,7 +31,9 @@ export class TestRunner {
       deleteTab: this.executeDeleteTab.bind(this),
       updateTab: this.executeUpdateTab.bind(this),
       measurePerformance: this.executeMeasurePerformance.bind(this),
-      captureState: this.executeCaptureState.bind(this)
+      captureState: this.executeCaptureState.bind(this),
+      ungroupTabs: this.executeUngroupTabs.bind(this),
+      deleteRule: this.executeDeleteRule.bind(this)
     };
   }
 
@@ -406,6 +408,79 @@ export class TestRunner {
    */
   wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Execute ungroupTabs step
+   */
+  async executeUngroupTabs(step) {
+    const { url, groupId, tabId } = step;
+
+    // Get tabs to ungroup
+    let tabsToUngroup = [];
+
+    if (tabId) {
+      // Ungroup specific tab
+      tabsToUngroup = [tabId];
+    } else if (groupId) {
+      // Ungroup all tabs in a specific group
+      const tabs = await chrome.tabs.query({ groupId, windowId: this.testMode.testWindow.id });
+      tabsToUngroup = tabs.map(t => t.id);
+    } else if (url) {
+      // Ungroup tabs matching URL pattern
+      const tabs = await chrome.tabs.query({ windowId: this.testMode.testWindow.id });
+      const matchingTabs = tabs.filter(t => t.url.includes(url) && t.groupId !== -1);
+      tabsToUngroup = matchingTabs.map(t => t.id);
+    } else {
+      // Ungroup all tabs in test window
+      const tabs = await chrome.tabs.query({ windowId: this.testMode.testWindow.id });
+      const groupedTabs = tabs.filter(t => t.groupId !== -1);
+      tabsToUngroup = groupedTabs.map(t => t.id);
+    }
+
+    // Ungroup the tabs
+    if (tabsToUngroup.length > 0) {
+      await chrome.tabs.ungroup(tabsToUngroup);
+    }
+
+    return {
+      ungroupedCount: tabsToUngroup.length,
+      tabIds: tabsToUngroup
+    };
+  }
+
+  /**
+   * Execute deleteRule step
+   */
+  async executeDeleteRule(step) {
+    const { ruleId } = step;
+
+    // First get the actual rule ID if we were given a name
+    const rulesResponse = await chrome.runtime.sendMessage({ action: 'getRules' });
+    const rules = rulesResponse || [];
+    const rule = rules.find(r => r.id === ruleId || r.name === ruleId);
+
+    if (!rule) {
+      throw new Error(`Rule not found: ${ruleId}`);
+    }
+
+    // Delete the rule
+    const response = await chrome.runtime.sendMessage({
+      action: 'deleteRule',
+      ruleId: rule.id
+    });
+
+    if (!response.success) {
+      throw new Error(`Failed to delete rule: ${response.error}`);
+    }
+
+    // Remove from tracked test rules
+    this.testMode.testRuleIds.delete(rule.id);
+
+    return {
+      deletedRuleId: rule.id,
+      ruleName: rule.name
+    };
   }
 
   /**

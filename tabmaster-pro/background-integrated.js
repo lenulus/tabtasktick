@@ -939,6 +939,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'executeRule':
+          // Ensure scheduler is set up for the rule if it has triggers
+          if (request.testMode) {
+            const rule = state.rules.find(r => r.id === request.ruleId);
+            if (rule && rule.trigger && (rule.trigger.repeat || rule.trigger.repeat_every)) {
+              console.log(`Setting up scheduler for repeat rule: ${rule.name}`);
+              await scheduler.setupRule(rule);
+            }
+          }
           const execResult = await executeRule(request.ruleId, 'manual', request.testMode);
           sendResponse(execResult);
           break;

@@ -455,6 +455,143 @@ export class TestMode {
           { action: 'wait', ms: 5500 },  // Wait for scheduled trigger to fire (5s + buffer)
           { action: 'assert', type: 'groupExists', title: 'Scheduled Group' }
         ]
+      },
+      {
+        name: 'tab-state-actions',
+        description: 'Test pin, mute, and suspend actions',
+        steps: [
+          // Create various tabs for testing
+          { action: 'createTab', url: 'https://important-doc.com', count: 2 },
+          { action: 'createTab', url: 'https://video-site.com/watch', count: 2 },
+          { action: 'createTab', url: 'https://news-site.com', count: 3 },
+          { action: 'createTab', url: 'https://work-app.com', pinned: true },
+
+          // Test PIN action
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Pin Important Tabs',
+              when: {
+                all: [
+                  { contains: ['tab.url', 'important'] },
+                  { eq: ['tab.isPinned', false] }
+                ]
+              },
+              then: [{ action: 'pin' }]
+            }
+          },
+          { action: 'executeRule', ruleId: 'Pin Important Tabs' },
+          { action: 'wait', ms: 500 },
+          { action: 'assert', type: 'tabProperty', url: 'important-doc.com', property: 'pinned', value: true, count: 2 },
+
+          // Test MUTE action
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Mute Video Tabs',
+              when: { contains: ['tab.url', 'video-site.com'] },
+              then: [{ action: 'mute' }]
+            }
+          },
+          { action: 'executeRule', ruleId: 'Mute Video Tabs' },
+          { action: 'wait', ms: 500 },
+          { action: 'assert', type: 'tabProperty', url: 'video-site.com', property: 'mutedInfo.muted', value: true, count: 2 },
+
+          // Test UNMUTE action
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Unmute Important',
+              when: {
+                all: [
+                  { eq: ['tab.isMuted', true] },
+                  { contains: ['tab.url', 'important'] }
+                ]
+              },
+              then: [{ action: 'unmute' }]
+            }
+          },
+
+          // Test SUSPEND action (using discard as Chrome's suspend mechanism)
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Suspend News Tabs',
+              when: {
+                all: [
+                  { contains: ['tab.url', 'news-site'] },
+                  { eq: ['tab.isPinned', false] }
+                ]
+              },
+              then: [{ action: 'suspend' }]
+            }
+          },
+          { action: 'executeRule', ruleId: 'Suspend News Tabs' },
+          { action: 'wait', ms: 1000 },
+          { action: 'assert', type: 'tabProperty', url: 'news-site.com', property: 'discarded', value: true, minimum: 1 },
+
+          // Test UNPIN action
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Unpin Work Tabs',
+              when: {
+                all: [
+                  { contains: ['tab.url', 'work-app'] },
+                  { eq: ['tab.isPinned', true] }
+                ]
+              },
+              then: [{ action: 'unpin' }]
+            }
+          },
+          { action: 'executeRule', ruleId: 'Unpin Work Tabs' },
+          { action: 'wait', ms: 500 },
+          { action: 'assert', type: 'tabProperty', url: 'work-app.com', property: 'pinned', value: false }
+        ]
+      },
+      {
+        name: 'repeat-triggers',
+        description: 'Test repeating trigger execution',
+        steps: [
+          // Create tabs for repeat testing
+          { action: 'createTab', url: 'https://repeat-test.com/1' },
+          { action: 'createTab', url: 'https://repeat-test.com/2' },
+          { action: 'createTab', url: 'https://repeat-test.com/3' },
+
+          // Create rule with repeat trigger (every 3 seconds)
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Repeat Rule',
+              trigger: { repeat: '3s' },  // Repeat every 3 seconds
+              when: {
+                all: [
+                  { contains: ['tab.url', 'repeat-test'] },
+                  { eq: ['tab.groupId', -1] }  // Not in a group
+                ]
+              },
+              then: [{ action: 'group', name: 'Repeated Group' }]
+            }
+          },
+
+          // First execution should happen immediately
+          { action: 'wait', ms: 500 },
+          { action: 'assert', type: 'ruleExecutions', ruleId: 'Repeat Rule', count: 1 },
+          { action: 'assert', type: 'groupExists', title: 'Repeated Group' },
+
+          // Ungroup tabs to test repeat
+          { action: 'ungroupTabs', url: 'repeat-test.com' },
+          { action: 'wait', ms: 3500 },  // Wait for next repeat (3s + buffer)
+          { action: 'assert', type: 'ruleExecutions', ruleId: 'Repeat Rule', minimum: 2 },
+
+          // Ungroup again and wait for third execution
+          { action: 'ungroupTabs', url: 'repeat-test.com' },
+          { action: 'wait', ms: 3500 },  // Wait for another repeat
+          { action: 'assert', type: 'ruleExecutions', ruleId: 'Repeat Rule', minimum: 3 },
+
+          // Clean up - remove the repeat rule to stop it
+          { action: 'deleteRule', ruleId: 'Repeat Rule' }
+        ]
       }
     ];
   }

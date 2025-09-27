@@ -309,7 +309,7 @@ async function executeAction(action, tab, context, dryRun) {
         // Find or create folder
         const bookmarkTree = await context.chrome.bookmarks.getTree();
         let folderId = findBookmarkFolder(bookmarkTree[0], folder);
-        
+
         if (!folderId) {
           // Create in Other Bookmarks
           const created = await context.chrome.bookmarks.create({
@@ -318,16 +318,88 @@ async function executeAction(action, tab, context, dryRun) {
           });
           folderId = created.id;
         }
-        
+
         await context.chrome.bookmarks.create({
           parentId: folderId,
           title: tab.title,
           url: tab.url
         });
       }
-      
+
       return { success: true, details: { bookmarked: tab.id, folder: action.to } };
-      
+
+    case 'pin':
+      console.log(`Executing pin action for tab ${tab.id}`);
+      if (!dryRun && context.chrome?.tabs) {
+        try {
+          await context.chrome.tabs.update(tab.id, { pinned: true });
+          console.log(`Successfully pinned tab ${tab.id}`);
+        } catch (error) {
+          console.error(`Failed to pin tab ${tab.id}:`, error);
+          return { success: false, error: error.message };
+        }
+      }
+      return { success: true, details: { pinned: tab.id } };
+
+    case 'unpin':
+      console.log(`Executing unpin action for tab ${tab.id}`);
+      if (!dryRun && context.chrome?.tabs) {
+        try {
+          await context.chrome.tabs.update(tab.id, { pinned: false });
+          console.log(`Successfully unpinned tab ${tab.id}`);
+        } catch (error) {
+          console.error(`Failed to unpin tab ${tab.id}:`, error);
+          return { success: false, error: error.message };
+        }
+      }
+      return { success: true, details: { unpinned: tab.id } };
+
+    case 'mute':
+      console.log(`Executing mute action for tab ${tab.id}`);
+      if (!dryRun && context.chrome?.tabs) {
+        try {
+          await context.chrome.tabs.update(tab.id, { muted: true });
+          console.log(`Successfully muted tab ${tab.id}`);
+        } catch (error) {
+          console.error(`Failed to mute tab ${tab.id}:`, error);
+          return { success: false, error: error.message };
+        }
+      }
+      return { success: true, details: { muted: tab.id } };
+
+    case 'unmute':
+      console.log(`Executing unmute action for tab ${tab.id}`);
+      if (!dryRun && context.chrome?.tabs) {
+        try {
+          await context.chrome.tabs.update(tab.id, { muted: false });
+          console.log(`Successfully unmuted tab ${tab.id}`);
+        } catch (error) {
+          console.error(`Failed to unmute tab ${tab.id}:`, error);
+          return { success: false, error: error.message };
+        }
+      }
+      return { success: true, details: { unmuted: tab.id } };
+
+    case 'suspend':
+    case 'discard':
+      console.log(`Executing suspend/discard action for tab ${tab.id}`);
+      if (!dryRun && context.chrome?.tabs) {
+        try {
+          // Don't discard active tabs
+          if (!tab.active) {
+            await context.chrome.tabs.discard(tab.id);
+            console.log(`Successfully suspended tab ${tab.id}`);
+          } else {
+            console.log(`Skipping suspend for active tab ${tab.id}`);
+            return { success: false, error: 'Cannot suspend active tab' };
+          }
+        } catch (error) {
+          console.error(`Failed to suspend tab ${tab.id}:`, error);
+          return { success: false, error: error.message };
+        }
+      }
+      return { success: true, details: { suspended: tab.id } };
+
     default:
       return { success: false, error: `Unknown action: ${actionType}` };
   }
