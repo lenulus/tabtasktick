@@ -233,16 +233,29 @@ async function loadSettings() {
 }
 
 // Execute rules using the new engine
-async function executeRule(ruleId, triggerType = 'manual') {
-  const rule = state.rules.find(r => r.id === ruleId || r.id === String(ruleId));
+async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
+  const rule = state.rules.find(r => r.id === ruleId || r.id === String(ruleId) || r.name === ruleId);
   if (!rule || !rule.enabled) {
     console.error('executeRule - Rule not found or disabled:', ruleId);
-    console.error('Available rules:', state.rules.map(r => ({ id: r.id, enabled: r.enabled })));
+    console.error('Available rules:', state.rules.map(r => ({ id: r.id, name: r.name, enabled: r.enabled })));
     return { success: false, error: 'Rule not found or disabled' };
   }
   
-  console.log('Executing rule:', rule.name, 'with actions:', JSON.stringify(rule.then || rule.actions));
-  console.log('Full rule object:', JSON.stringify(rule, null, 2));
+  console.log(`Executing rule: ${rule.name} (${triggerType})${testMode ? ' [TEST MODE]' : ''}`);
+  console.log('Rule actions:', JSON.stringify(rule.then || rule.actions));
+  
+  // Track test mode executions
+  if (testMode) {
+    if (!state.testRuleExecutions) {
+      state.testRuleExecutions = new Map();
+    }
+    const executions = state.testRuleExecutions.get(rule.id) || [];
+    executions.push({
+      timestamp: Date.now(),
+      triggerType
+    });
+    state.testRuleExecutions.set(rule.id, executions);
+  }
 
   try {
     // Get current tabs and windows
@@ -273,13 +286,33 @@ async function executeRule(ruleId, triggerType = 'manual') {
     
     console.log('Running rule with dryRun=false');
     
+    // Track performance for test mode
+    const startTime = performance.now();
+    
     // Run the single rule
     const results = await runRules([rule], context, {
       dryRun: false,
       skipPinned: rule.flags?.skipPinned !== false
     });
     
+    const executionTime = performance.now() - startTime;
     console.log('runRules results:', JSON.stringify(results, null, 2));
+    
+    // Update test metrics
+    if (testMode) {
+      if (!state.testMetrics) {
+        state.testMetrics = { totalExecutions: 0, totalTime: 0, avgExecutionTime: 0 };
+      }
+      state.testMetrics.totalExecutions++;
+      state.testMetrics.totalTime += executionTime;
+      state.testMetrics.avgExecutionTime = state.testMetrics.totalTime / state.testMetrics.totalExecutions;
+      
+      // Track performance metrics for assertions
+      if (!state.performanceMetrics) {
+        state.performanceMetrics = {};
+      }
+      state.performanceMetrics[rule.name] = executionTime;
+    }
     
     // Log activity
     const totalActions = results.totalActions || 0;
@@ -820,7 +853,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'executeRule':
-          const execResult = await executeRule(request.ruleId, 'manual');
+          const execResult = await executeRule(request.ruleId, 'manual', request.testMode);
           sendResponse(execResult);
           break;
           
@@ -917,6 +950,95 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'wakeAllSnoozed':
           const wakeAllResult = await wakeAllSnoozedTabs();
           sendResponse(wakeAllResult);
+          break;
+          
+        // Test Mode Operations
+        case 'setTestTabTime':
+          if (request.timeData) {
+            tabTimeData.set(request.tabId, request.timeData);
+            sendResponse({ success: true });
+          }
+          break;
+          
+        case 'setTestTabOrigin':
+          // Store test tab origin info for testing
+          if (!state.testTabOrigins) {
+            state.testTabOrigins = new Map();
+          }
+          state.testTabOrigins.set(request.tabId, {
+            origin: request.origin,
+            referrer: request.referrer
+          });
+          sendResponse({ success: true });
+          break;
+          
+        case 'markTestTabSuspended':
+          // Mark tab as suspended in test mode
+          if (!state.testTabStates) {
+            state.testTabStates = new Map();
+          }
+          state.testTabStates.set(request.tabId, { suspended: true });
+          sendResponse({ success: true });
+          break;
+          
+        case 'getTestRuleExecutions':
+          // Return test rule execution history
+          const executions = state.testRuleExecutions?.get(request.ruleId) || [];
+          sendResponse({ executions });
+          break;
+          
+        case 'getTestMetrics':
+          // Return test performance metrics
+          const metrics = {
+            avgExecutionTime: state.testMetrics?.avgExecutionTime || 0,
+            totalExecutions: state.testMetrics?.totalExecutions || 0
+          };
+          sendResponse(metrics);
+          break;
+          
+        case 'getPerformanceMetrics':
+          // Return performance metrics for assertions
+          const perfMetrics = state.performanceMetrics || {};
+          sendResponse(perfMetrics);
+          break;
+          
+        case 'analyzeDuplicates':
+          // Analyze duplicates for test assertions
+          const testTabs = request.tabs || await chrome.tabs.query({});
+          const testIndices = buildIndices(testTabs);
+          const dupeGroups = [];
+          
+          for (const [dupeKey, tabs] of Object.entries(testIndices.byDupeKey)) {
+            if (tabs.length > 1) {
+              dupeGroups.push({
+                dupeKey,
+                count: tabs.length,
+                tabs: tabs.map(t => ({ id: t.id, url: t.url }))
+              });
+            }
+          }
+          
+          sendResponse({ groups: dupeGroups });
+          break;
+          
+        case 'getScheduledTriggers':
+          // Return scheduled triggers for a rule
+          const triggers = [];
+          if (scheduler && scheduler.getScheduledTriggers) {
+            const allTriggers = scheduler.getScheduledTriggers();
+            if (request.ruleId) {
+              triggers.push(...allTriggers.filter(t => t.ruleId === request.ruleId));
+            } else {
+              triggers.push(...allTriggers);
+            }
+          }
+          sendResponse({ triggers });
+          break;
+          
+        case 'getRule':
+          // Get a specific rule by ID
+          const rule = state.rules.find(r => r.id === request.ruleId || r.name === request.ruleId);
+          sendResponse({ success: !!rule, rule });
           break;
           
         default:
@@ -1173,6 +1295,38 @@ async function bookmarkTabs(tabIds, folderName = 'TabMaster Bookmarks') {
   
   logActivity('bookmark', `Bookmarked ${tabIds.length} tabs`, 'manual');
 }
+
+// ============================================================================
+// Command Handlers
+// ============================================================================
+
+chrome.commands.onCommand.addListener(async (command) => {
+  console.log('Command received:', command);
+  
+  switch (command) {
+    case 'open_test_panel':
+      // Note: sidePanel.open() requires user gesture, can't be triggered from keyboard shortcut
+      // Users should click the Test button in the popup or use browser's side panel button
+      console.log('Use the Test button in the popup to open the test panel');
+      break;
+      
+    case 'open_command_palette':
+      // TODO: Implement command palette
+      break;
+      
+    case 'quick_snooze':
+      await quickSnoozeCurrent();
+      break;
+      
+    case 'group_by_domain':
+      await groupTabsByDomain();
+      break;
+      
+    case 'close_duplicates':
+      await findAndCloseDuplicates();
+      break;
+  }
+});
 
 // ============================================================================
 // Context Menus

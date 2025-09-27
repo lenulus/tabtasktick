@@ -356,6 +356,29 @@ function setupEventListeners() {
   elements.dashboard.addEventListener('click', openDashboard);
   elements.export.addEventListener('click', handleExport);
   elements.help.addEventListener('click', openHelp);
+  
+  // Test panel button
+  document.getElementById('testPanel')?.addEventListener('click', async () => {
+    try {
+      // Get the current window ID
+      const currentWindow = await chrome.windows.getCurrent();
+      
+      // Open side panel with proper options
+      await chrome.sidePanel.open({ windowId: currentWindow.id });
+      
+      // Close popup after opening side panel
+      window.close();
+    } catch (error) {
+      console.error('Failed to open test panel:', error);
+      // Fallback: try without options
+      try {
+        await chrome.sidePanel.open({});
+        window.close();
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+      }
+    }
+  });
 }
 
 // ============================================================================

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TabMaster Pro - Test Runner</title>
+  <link rel="stylesheet" href="test-panel.css">
+</head>
+<body>
+  <div class="test-panel">
+    <header class="panel-header">
+      <h1>Test Runner</h1>
+      <div class="header-actions">
+        <button id="toggleTestMode" class="btn-toggle" title="Toggle test mode">
+          <span class="toggle-icon">⚡</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="test-status" id="testStatus">
+      <div class="status-indicator inactive">
+        <span class="status-icon">●</span>
+        <span class="status-text">Test Mode Inactive</span>
+      </div>
+    </div>
+
+    <div class="test-controls">
+      <button id="runAllTests" class="btn btn-primary" disabled>
+        <span class="btn-icon">▶</span> Run All Tests
+      </button>
+      <button id="runSelectedTest" class="btn btn-secondary" disabled>
+        <span class="btn-icon">▶</span> Run Selected
+      </button>
+      <button id="stopTests" class="btn btn-danger" disabled>
+        <span class="btn-icon">■</span> Stop
+      </button>
+    </div>
+
+    <div class="scenario-list">
+      <h2>Test Scenarios</h2>
+      <div class="scenarios" id="scenarioList">
+        <div class="scenario-item" data-scenario="duplicate-detection">
+          <input type="checkbox" id="scenario-duplicate" class="scenario-checkbox">
+          <label for="scenario-duplicate">
+            <span class="scenario-name">Duplicate Detection</span>
+            <span class="scenario-status"></span>
+          </label>
+          <div class="scenario-description">Tests duplicate tab detection and removal</div>
+        </div>
+
+        <div class="scenario-item" data-scenario="domain-grouping">
+          <input type="checkbox" id="scenario-grouping" class="scenario-checkbox">
+          <label for="scenario-grouping">
+            <span class="scenario-name">Domain Grouping</span>
+            <span class="scenario-status"></span>
+          </label>
+          <div class="scenario-description">Tests grouping tabs by domain</div>
+        </div>
+
+        <div class="scenario-item" data-scenario="time-based-rules">
+          <input type="checkbox" id="scenario-time" class="scenario-checkbox">
+          <label for="scenario-time">
+            <span class="scenario-name">Time-based Rules</span>
+            <span class="scenario-status"></span>
+          </label>
+          <div class="scenario-description">Tests time-based conditions and triggers</div>
+        </div>
+
+        <div class="scenario-item" data-scenario="complex-conditions">
+          <input type="checkbox" id="scenario-complex" class="scenario-checkbox">
+          <label for="scenario-complex">
+            <span class="scenario-name">Complex Conditions</span>
+            <span class="scenario-status"></span>
+          </label>
+          <div class="scenario-description">Tests complex nested conditions</div>
+        </div>
+
+        <div class="scenario-item" data-scenario="trigger-mechanisms">
+          <input type="checkbox" id="scenario-triggers" class="scenario-checkbox">
+          <label for="scenario-triggers">
+            <span class="scenario-name">Trigger Mechanisms</span>
+            <span class="scenario-status"></span>
+          </label>
+          <div class="scenario-description">Tests immediate, repeat, and once triggers</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-progress" id="testProgress" style="display: none;">
+      <h3>Test Progress</h3>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">0 / 0</div>
+    </div>
+
+    <div class="test-results" id="testResults" style="display: none;">
+      <h3>Test Results</h3>
+      <div class="results-summary" id="resultsSummary"></div>
+      <div class="results-details" id="resultsDetails"></div>
+    </div>
+
+    <div class="test-logs">
+      <h3>Test Logs</h3>
+      <div class="log-controls">
+        <select id="logLevel" class="log-filter">
+          <option value="all">All Logs</option>
+          <option value="info">Info</option>
+          <option value="warning">Warning</option>
+          <option value="error">Error</option>
+        </select>
+        <button id="clearLogs" class="btn btn-small">Clear</button>
+        <button id="downloadLogs" class="btn btn-small">Download</button>
+      </div>
+      <div class="log-content" id="logContent"></div>
+    </div>
+  </div>
+
+  <script type="module" src="test-panel.js"></script>
+</body>
+</html>

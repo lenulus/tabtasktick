@@ -17,7 +17,8 @@
     "notifications",
     "windows",
     "activeTab",
-    "processes"
+    "processes",
+    "sidePanel"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -74,5 +75,8 @@
       },
       "description": "Close duplicate tabs"
     }
+  },
+  "side_panel": {
+    "default_path": "test-panel/test-panel.html"
   }
 }

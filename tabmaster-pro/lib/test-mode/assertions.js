@@ -1,0 +1,694 @@
+// Assertions - Validates test outcomes and states
+
+export class Assertions {
+  constructor(testMode) {
+    this.testMode = testMode;
+    this.assertionTypes = this.initializeAssertionTypes();
+  }
+
+  /**
+   * Initialize assertion type handlers
+   */
+  initializeAssertionTypes() {
+    return {
+      tabCount: this.assertTabCount.bind(this),
+      tabExists: this.assertTabExists.bind(this),
+      tabNotExists: this.assertTabNotExists.bind(this),
+      tabSnoozed: this.assertTabSnoozed.bind(this),
+      tabActive: this.assertTabActive.bind(this),
+      groupExists: this.assertGroupExists.bind(this),
+      groupNotExists: this.assertGroupNotExists.bind(this),
+      ruleExecutions: this.assertRuleExecutions.bind(this),
+      statistics: this.assertStatistics.bind(this),
+      bookmarkCreated: this.assertBookmarkCreated.bind(this),
+      memory: this.assertMemory.bind(this),
+      performance: this.assertPerformance.bind(this),
+      duplicatesFound: this.assertDuplicatesFound.bind(this),
+      tabProperty: this.assertTabProperty.bind(this),
+      ruleEnabled: this.assertRuleEnabled.bind(this),
+      triggerScheduled: this.assertTriggerScheduled.bind(this)
+    };
+  }
+
+  /**
+   * Execute an assertion
+   * @param {string} type - Assertion type
+   * @param {object} params - Assertion parameters
+   * @returns {object} Assertion result
+   */
+  async assert(type, params) {
+    const assertionFunc = this.assertionTypes[type];
+    if (!assertionFunc) {
+      throw new Error(`Unknown assertion type: ${type}`);
+    }
+
+    try {
+      const result = await assertionFunc(params);
+      return {
+        type,
+        params,
+        ...result,
+        timestamp: Date.now()
+      };
+    } catch (error) {
+      return {
+        type,
+        params,
+        passed: false,
+        message: error.message,
+        error: true,
+        timestamp: Date.now()
+      };
+    }
+  }
+
+  /**
+   * Assert tab count
+   */
+  async assertTabCount(params) {
+    const { expected, url, windowId, condition = 'equals' } = params;
+    
+    // Build query
+    const query = {};
+    if (windowId !== undefined) {
+      query.windowId = windowId === 'test' ? this.testMode.testWindow?.id : windowId;
+    } else {
+      query.windowId = this.testMode.testWindow?.id;
+    }
+    if (url) {
+      query.url = url.includes('*') ? url : `*${url}*`;
+    }
+
+    const tabs = await chrome.tabs.query(query);
+    const actual = tabs.length;
+
+    const passed = this.evaluateCondition(actual, expected, condition);
+
+    return {
+      passed,
+      actual,
+      expected,
+      condition,
+      message: passed 
+        ? `Tab count ${condition} ${expected}` 
+        : `Expected tab count ${condition} ${expected}, but got ${actual}`,
+      tabs: tabs.map(t => ({ id: t.id, url: t.url, title: t.title }))
+    };
+  }
+
+  /**
+   * Assert tab exists
+   */
+  async assertTabExists(params) {
+    const { url, tabId, properties = {} } = params;
+    
+    let tab;
+    
+    if (tabId) {
+      try {
+        tab = await chrome.tabs.get(tabId);
+      } catch (e) {
+        return {
+          passed: false,
+          message: `Tab with ID ${tabId} does not exist`,
+          actual: null
+        };
+      }
+    } else if (url) {
+      const tabs = await chrome.tabs.query({ 
+        windowId: this.testMode.testWindow?.id,
+        url: url.includes('*') ? url : `*${url}*`
+      });
+      tab = tabs[0];
+    }
+
+    if (!tab) {
+      return {
+        passed: false,
+        message: `Tab not found with criteria: ${JSON.stringify(params)}`,
+        actual: null
+      };
+    }
+
+    // Check properties
+    for (const [prop, expected] of Object.entries(properties)) {
+      if (tab[prop] !== expected) {
+        return {
+          passed: false,
+          message: `Tab property ${prop} is ${tab[prop]}, expected ${expected}`,
+          actual: tab
+        };
+      }
+    }
+
+    return {
+      passed: true,
+      message: 'Tab exists with expected properties',
+      actual: tab
+    };
+  }
+
+  /**
+   * Assert tab does not exist
+   */
+  async assertTabNotExists(params) {
+    const exists = await this.assertTabExists(params);
+    return {
+      passed: !exists.passed,
+      message: exists.passed 
+        ? `Tab exists but was expected not to exist` 
+        : 'Tab does not exist as expected',
+      actual: exists.actual
+    };
+  }
+
+  /**
+   * Assert tab is snoozed
+   */
+  async assertTabSnoozed(params) {
+    const { url, tabId } = params;
+    
+    // First check if tab exists
+    const exists = await this.assertTabExists({ url, tabId });
+    
+    if (exists.passed) {
+      return {
+        passed: false,
+        message: 'Tab still exists, not snoozed',
+        actual: exists.actual
+      };
+    }
+
+    // Check snoozed tabs
+    const { snoozedTabs = [] } = await chrome.storage.local.get('snoozedTabs');
+    const snoozedTab = snoozedTabs.find(t => {
+      if (tabId && t.id === tabId) return true;
+      if (url && t.url.includes(url)) return true;
+      return false;
+    });
+
+    return {
+      passed: !!snoozedTab,
+      message: snoozedTab 
+        ? 'Tab is snoozed' 
+        : 'Tab is not in snoozed list',
+      actual: snoozedTab
+    };
+  }
+
+  /**
+   * Assert tab is active (not snoozed)
+   */
+  async assertTabActive(params) {
+    const snoozed = await this.assertTabSnoozed(params);
+    const exists = await this.assertTabExists(params);
+    
+    return {
+      passed: !snoozed.passed && exists.passed,
+      message: exists.passed
+        ? 'Tab is active'
+        : 'Tab does not exist',
+      actual: exists.actual
+    };
+  }
+
+  /**
+   * Assert group exists
+   */
+  async assertGroupExists(params) {
+    const { title, tabCount, groupId, color } = params;
+    
+    const groups = await chrome.tabGroups.query({});
+    let group;
+    
+    if (groupId) {
+      group = groups.find(g => g.id === groupId);
+    } else if (title) {
+      group = groups.find(g => g.title === title);
+    }
+
+    if (!group) {
+      return {
+        passed: false,
+        message: `Group not found with criteria: ${JSON.stringify(params)}`,
+        actual: null,
+        allGroups: groups
+      };
+    }
+
+    // Check additional properties
+    if (color && group.color !== color) {
+      return {
+        passed: false,
+        message: `Group color is ${group.color}, expected ${color}`,
+        actual: group
+      };
+    }
+
+    // Check tab count
+    if (tabCount !== undefined) {
+      const tabs = await chrome.tabs.query({ groupId: group.id });
+      const actualCount = tabs.length;
+      
+      if (actualCount !== tabCount) {
+        return {
+          passed: false,
+          message: `Group has ${actualCount} tabs, expected ${tabCount}`,
+          actual: group,
+          tabs
+        };
+      }
+    }
+
+    return {
+      passed: true,
+      message: 'Group exists with expected properties',
+      actual: group
+    };
+  }
+
+  /**
+   * Assert group does not exist
+   */
+  async assertGroupNotExists(params) {
+    const exists = await this.assertGroupExists(params);
+    return {
+      passed: !exists.passed,
+      message: exists.passed
+        ? 'Group exists but was expected not to exist'
+        : 'Group does not exist as expected',
+      actual: exists.actual
+    };
+  }
+
+  /**
+   * Assert rule executions
+   */
+  async assertRuleExecutions(params) {
+    const { ruleId, count, condition = 'equals', timeWindow } = params;
+    
+    // Get execution history from test metrics
+    const response = await chrome.runtime.sendMessage({ 
+      action: 'getTestRuleExecutions',
+      ruleId 
+    });
+    
+    let executions = response?.executions || [];
+    
+    // Filter by time window if specified
+    if (timeWindow) {
+      const cutoff = Date.now() - this.parseTimeWindow(timeWindow);
+      executions = executions.filter(e => e.timestamp >= cutoff);
+    }
+
+    const actual = executions.length;
+    const passed = this.evaluateCondition(actual, count, condition);
+
+    return {
+      passed,
+      actual,
+      expected: count,
+      condition,
+      message: passed
+        ? `Rule ${ruleId} executed ${actual} times`
+        : `Expected rule ${ruleId} to execute ${condition} ${count} times, but executed ${actual} times`,
+      executions
+    };
+  }
+
+  /**
+   * Assert statistics
+   */
+  async assertStatistics(params) {
+    const { field, expected, condition = 'equals', minimum, maximum } = params;
+    
+    const stats = await chrome.runtime.sendMessage({ action: 'getStatistics' });
+    const actual = this.getNestedValue(stats, field);
+
+    if (minimum !== undefined && actual < minimum) {
+      return {
+        passed: false,
+        actual,
+        expected: `>= ${minimum}`,
+        message: `${field} is ${actual}, expected at least ${minimum}`
+      };
+    }
+
+    if (maximum !== undefined && actual > maximum) {
+      return {
+        passed: false,
+        actual,
+        expected: `<= ${maximum}`,
+        message: `${field} is ${actual}, expected at most ${maximum}`
+      };
+    }
+
+    if (expected !== undefined) {
+      const passed = this.evaluateCondition(actual, expected, condition);
+      return {
+        passed,
+        actual,
+        expected,
+        condition,
+        message: passed
+          ? `${field} ${condition} ${expected}`
+          : `${field} is ${actual}, expected ${condition} ${expected}`
+      };
+    }
+
+    return {
+      passed: true,
+      actual,
+      message: `${field} is ${actual}`
+    };
+  }
+
+  /**
+   * Assert bookmark created
+   */
+  async assertBookmarkCreated(params) {
+    const { count, folder, url } = params;
+    
+    // Search bookmarks
+    let bookmarks;
+    if (url) {
+      bookmarks = await chrome.bookmarks.search({ url });
+    } else {
+      // Get recent bookmarks
+      const tree = await chrome.bookmarks.getTree();
+      bookmarks = this.flattenBookmarkTree(tree);
+      
+      // Filter by test time window (last 5 minutes)
+      const cutoff = Date.now() - (5 * 60 * 1000);
+      bookmarks = bookmarks.filter(b => b.dateAdded > cutoff);
+    }
+
+    // Filter by folder if specified
+    if (folder && bookmarks.length > 0) {
+      const folderBookmarks = [];
+      for (const bookmark of bookmarks) {
+        const parent = await chrome.bookmarks.get(bookmark.parentId);
+        if (parent[0].title === folder) {
+          folderBookmarks.push(bookmark);
+        }
+      }
+      bookmarks = folderBookmarks;
+    }
+
+    const actual = bookmarks.length;
+    const passed = count === undefined ? actual > 0 : actual === count;
+
+    return {
+      passed,
+      actual,
+      expected: count || 'any',
+      message: passed
+        ? `Found ${actual} bookmarks`
+        : `Expected ${count || 'some'} bookmarks, found ${actual}`,
+      bookmarks
+    };
+  }
+
+  /**
+   * Assert memory usage
+   */
+  async assertMemory(params) {
+    const { maxUsage, condition = 'lessThan' } = params;
+    
+    let memoryUsage = 0;
+    
+    if (chrome.system?.memory) {
+      const info = await chrome.system.memory.getInfo();
+      memoryUsage = info.capacity - info.availableCapacity;
+    } else if (performance.memory) {
+      memoryUsage = performance.memory.usedJSHeapSize;
+    }
+
+    const passed = this.evaluateCondition(memoryUsage, maxUsage, condition);
+
+    return {
+      passed,
+      actual: memoryUsage,
+      expected: maxUsage,
+      condition,
+      message: passed
+        ? `Memory usage ${condition} ${this.formatBytes(maxUsage)}`
+        : `Memory usage is ${this.formatBytes(memoryUsage)}, expected ${condition} ${this.formatBytes(maxUsage)}`
+    };
+  }
+
+  /**
+   * Assert performance metrics
+   */
+  async assertPerformance(params) {
+    const { metric, maxDuration, operation } = params;
+    
+    const metrics = await chrome.runtime.sendMessage({ 
+      action: 'getPerformanceMetrics',
+      metric,
+      operation
+    });
+
+    const actual = metrics?.[metric] || 0;
+    const passed = actual <= maxDuration;
+
+    return {
+      passed,
+      actual,
+      expected: maxDuration,
+      message: passed
+        ? `${operation || metric} completed in ${actual}ms`
+        : `${operation || metric} took ${actual}ms, expected <= ${maxDuration}ms`,
+      metrics
+    };
+  }
+
+  /**
+   * Assert duplicates found
+   */
+  async assertDuplicatesFound(params) {
+    const { minGroups, minTotal, exactGroups } = params;
+    
+    const stats = await chrome.runtime.sendMessage({ action: 'getStatistics' });
+    const duplicates = stats.duplicates || 0;
+    
+    // For detailed duplicate analysis
+    const tabs = await chrome.tabs.query({ windowId: this.testMode.testWindow?.id });
+    const response = await chrome.runtime.sendMessage({
+      action: 'analyzeDuplicates',
+      tabs
+    });
+    
+    const duplicateGroups = response?.groups || [];
+    const groupCount = duplicateGroups.length;
+
+    let passed = true;
+    let message = '';
+
+    if (exactGroups !== undefined) {
+      passed = groupCount === exactGroups;
+      message = passed
+        ? `Found exactly ${exactGroups} duplicate groups`
+        : `Found ${groupCount} duplicate groups, expected ${exactGroups}`;
+    } else if (minGroups !== undefined) {
+      passed = groupCount >= minGroups;
+      message = passed
+        ? `Found ${groupCount} duplicate groups (>= ${minGroups})`
+        : `Found ${groupCount} duplicate groups, expected at least ${minGroups}`;
+    } else if (minTotal !== undefined) {
+      passed = duplicates >= minTotal;
+      message = passed
+        ? `Found ${duplicates} duplicate tabs (>= ${minTotal})`
+        : `Found ${duplicates} duplicate tabs, expected at least ${minTotal}`;
+    }
+
+    return {
+      passed,
+      actual: {
+        totalDuplicates: duplicates,
+        groupCount,
+        groups: duplicateGroups
+      },
+      message
+    };
+  }
+
+  /**
+   * Assert tab property
+   */
+  async assertTabProperty(params) {
+    const { tabId, url, property, expected, condition = 'equals' } = params;
+    
+    // Find the tab
+    let tab;
+    if (tabId) {
+      tab = await chrome.tabs.get(tabId);
+    } else if (url) {
+      const tabs = await chrome.tabs.query({
+        windowId: this.testMode.testWindow?.id,
+        url: `*${url}*`
+      });
+      tab = tabs[0];
+    }
+
+    if (!tab) {
+      return {
+        passed: false,
+        message: 'Tab not found',
+        actual: null
+      };
+    }
+
+    const actual = this.getNestedValue(tab, property);
+    const passed = this.evaluateCondition(actual, expected, condition);
+
+    return {
+      passed,
+      actual,
+      expected,
+      property,
+      message: passed
+        ? `Tab ${property} ${condition} ${expected}`
+        : `Tab ${property} is ${actual}, expected ${condition} ${expected}`,
+      tab
+    };
+  }
+
+  /**
+   * Assert rule is enabled/disabled
+   */
+  async assertRuleEnabled(params) {
+    const { ruleId, enabled = true } = params;
+    
+    const response = await chrome.runtime.sendMessage({
+      action: 'getRule',
+      ruleId
+    });
+
+    if (!response.success || !response.rule) {
+      return {
+        passed: false,
+        message: `Rule ${ruleId} not found`,
+        actual: null
+      };
+    }
+
+    const actual = response.rule.enabled;
+    const passed = actual === enabled;
+
+    return {
+      passed,
+      actual,
+      expected: enabled,
+      message: passed
+        ? `Rule ${ruleId} is ${enabled ? 'enabled' : 'disabled'}`
+        : `Rule ${ruleId} is ${actual ? 'enabled' : 'disabled'}, expected ${enabled ? 'enabled' : 'disabled'}`
+    };
+  }
+
+  /**
+   * Assert trigger is scheduled
+   */
+  async assertTriggerScheduled(params) {
+    const { ruleId, triggerType, scheduled = true } = params;
+    
+    const response = await chrome.runtime.sendMessage({
+      action: 'getScheduledTriggers',
+      ruleId
+    });
+
+    const triggers = response?.triggers || [];
+    const hasTrigger = triggers.some(t => 
+      t.ruleId === ruleId && 
+      (!triggerType || t.type === triggerType)
+    );
+
+    const passed = hasTrigger === scheduled;
+
+    return {
+      passed,
+      message: passed
+        ? `Trigger ${scheduled ? 'is' : 'is not'} scheduled for rule ${ruleId}`
+        : `Expected trigger to be ${scheduled ? 'scheduled' : 'not scheduled'} for rule ${ruleId}`,
+      triggers
+    };
+  }
+
+  // Helper methods
+
+  /**
+   * Evaluate a condition
+   */
+  evaluateCondition(actual, expected, condition) {
+    switch (condition) {
+      case 'equals':
+        return actual === expected;
+      case 'notEquals':
+        return actual !== expected;
+      case 'greaterThan':
+        return actual > expected;
+      case 'greaterThanOrEquals':
+        return actual >= expected;
+      case 'lessThan':
+        return actual < expected;
+      case 'lessThanOrEquals':
+        return actual <= expected;
+      case 'contains':
+        return String(actual).includes(String(expected));
+      case 'notContains':
+        return !String(actual).includes(String(expected));
+      default:
+        return actual === expected;
+    }
+  }
+
+  /**
+   * Get nested value from object
+   */
+  getNestedValue(obj, path) {
+    return path.split('.').reduce((current, part) => current?.[part], obj);
+  }
+
+  /**
+   * Parse time window string
+   */
+  parseTimeWindow(window) {
+    const units = {
+      s: 1000,
+      m: 60 * 1000,
+      h: 60 * 60 * 1000,
+      d: 24 * 60 * 60 * 1000
+    };
+    
+    const match = window.match(/^(\d+)([smhd])$/);
+    if (!match) return 5 * 60 * 1000; // Default 5 minutes
+    
+    const [, num, unit] = match;
+    return parseInt(num) * units[unit];
+  }
+
+  /**
+   * Format bytes
+   */
+  formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+  }
+
+  /**
+   * Flatten bookmark tree
+   */
+  flattenBookmarkTree(nodes, bookmarks = []) {
+    for (const node of nodes) {
+      if (node.url) {
+        bookmarks.push(node);
+      }
+      if (node.children) {
+        this.flattenBookmarkTree(node.children, bookmarks);
+      }
+    }
+    return bookmarks;
+  }
+}
