@@ -1049,6 +1049,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse(wakeAllResult);
           break;
 
+        case 'deleteSnoozedTab':
+          // Delete a single snoozed tab by ID or URL
+          const tabIdToDelete = request.tabId;
+          const beforeDeleteCount = state.snoozedTabs.length;
+
+          // Find and remove the tab
+          state.snoozedTabs = state.snoozedTabs.filter(tab => {
+            // Match by either ID or URL
+            return tab.id !== tabIdToDelete && tab.url !== tabIdToDelete;
+          });
+
+          if (state.snoozedTabs.length < beforeDeleteCount) {
+            await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+            sendResponse({ success: true });
+          } else {
+            sendResponse({ success: false, error: 'Tab not found' });
+          }
+          break;
+
         case 'clearTestSnoozedTabs':
           // Clear snoozed tabs matching test patterns without recreating them
           const testPatterns = request.patterns || [];
