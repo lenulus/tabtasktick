@@ -137,43 +137,6 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Memory Usage */
-.memory-usage {
-  padding: 0 20px 20px;
-  background: white;
-}
-
-.memory-label {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: #6c757d;
-}
-
-.memory-bar {
-  height: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.memory-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 4px;
-  transition: width 0.3s ease;
-  width: 0%;
-}
-
-.memory-fill.caution {
-  background: linear-gradient(90deg, #f39c12 0%, #e67e22 100%);
-}
-
-.memory-fill.warning {
-  background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);
-}
-
 /* Sections */
 section {
   padding: 20px;

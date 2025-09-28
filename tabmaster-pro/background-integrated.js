@@ -545,49 +545,6 @@ async function previewRule(ruleId) {
   }
 }
 
-// Estimate memory usage
-async function estimateMemoryUsage(tabs) {
-  try {
-    // Try to get actual system memory info
-    if (chrome.system && chrome.system.memory) {
-      const memoryInfo = await chrome.system.memory.getInfo();
-      const totalMemoryGB = (memoryInfo.capacity / (1024 * 1024 * 1024)).toFixed(2);
-      const availableMemoryGB = (memoryInfo.availableCapacity / (1024 * 1024 * 1024)).toFixed(2);
-      const usedMemoryGB = totalMemoryGB - availableMemoryGB;
-      const usagePercentage = ((usedMemoryGB / totalMemoryGB) * 100).toFixed(1);
-      
-      // Estimate Chrome's portion (rough estimate)
-      const chromeMemoryMB = Math.round((usedMemoryGB * 1024) * 0.35);
-      const perTabEstimate = tabs.length > 0 ? Math.round(chromeMemoryMB / tabs.length) : 0;
-      
-      return {
-        estimatedMB: chromeMemoryMB,
-        percentage: parseFloat(usagePercentage),
-        totalSystemGB: parseFloat(totalMemoryGB),
-        availableSystemGB: parseFloat(availableMemoryGB),
-        perTabMB: perTabEstimate,
-        isRealData: true
-      };
-    }
-  } catch (error) {
-    console.log('System memory API not available, using estimates');
-  }
-  
-  // Fallback estimation
-  const baseMemoryMB = 150;
-  const memoryPerTab = tabs.length < 50 ? 50 : 30;
-  const estimatedMB = baseMemoryMB + (tabs.length * memoryPerTab);
-  
-  return {
-    estimatedMB: estimatedMB,
-    percentage: Math.min(95, estimatedMB / 100),
-    totalSystemGB: 0,
-    availableSystemGB: 0,
-    perTabMB: memoryPerTab,
-    isRealData: false
-  };
-}
-
 // Get statistics for popup and dashboard
 async function getStatistics() {
   const tabs = await chrome.tabs.query({});
@@ -625,8 +582,7 @@ async function getStatistics() {
     snoozedTabs: state.snoozedTabs?.length || 0,
     duplicates: duplicates.length,
     topDomains,
-    statistics: state.statistics,
-    memoryEstimate: await estimateMemoryUsage(tabs)
+    statistics: state.statistics
   };
 }
 
@@ -1405,7 +1361,17 @@ async function groupTabs(tabIds, groupName) {
 }
 
 async function snoozeTabs(tabIds, duration) {
-  const tabs = await chrome.tabs.query({ id: tabIds });
+  // Get tab details for each ID
+  const tabs = [];
+  for (const tabId of tabIds) {
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      tabs.push(tab);
+    } catch (e) {
+      console.error(`Failed to get tab ${tabId}:`, e);
+    }
+  }
+
   const wakeTime = Date.now() + duration;
   
   for (const tab of tabs) {
@@ -1458,8 +1424,17 @@ async function bookmarkTabs(tabIds, folderName = 'TabMaster Bookmarks') {
     folderId = folder.id;
   }
   
-  // Bookmark tabs
-  const tabs = await chrome.tabs.query({ id: tabIds });
+  // Bookmark tabs - get tab details for each ID
+  const tabs = [];
+  for (const tabId of tabIds) {
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      tabs.push(tab);
+    } catch (e) {
+      console.error(`Failed to get tab ${tabId}:`, e);
+    }
+  }
+
   for (const tab of tabs) {
     await chrome.bookmarks.create({
       parentId: folderId,

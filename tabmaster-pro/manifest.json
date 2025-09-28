@@ -12,7 +12,6 @@
     "contextMenus",
     "webNavigation",
     "idle",
-    "system.memory",
     "downloads",
     "notifications",
     "windows",

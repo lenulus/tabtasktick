@@ -10,8 +10,6 @@ const elements = {
   groupedTabs: document.getElementById('groupedTabs'),
   snoozedTabs: document.getElementById('snoozedTabs'),
   duplicates: document.getElementById('duplicates'),
-  memoryValue: document.getElementById('memoryValue'),
-  memoryFill: document.getElementById('memoryFill'),
   
   // Action Buttons
   closeDuplicates: document.getElementById('closeDuplicates'),
@@ -106,30 +104,6 @@ async function loadStatistics() {
       elements.duplicateBadge.classList.add('show');
     } else {
       elements.duplicateBadge.classList.remove('show');
-    }
-    
-    // Update memory usage
-    const memory = stats.memoryEstimate;
-    if (memory.isRealData) {
-      // Show real system memory data
-      elements.memoryValue.textContent = `${memory.estimatedMB} MB (System: ${memory.percentage}%)`;
-      elements.memoryFill.style.width = `${memory.percentage}%`;
-      
-      // Add title tooltip with more details
-      elements.memoryFill.parentElement.title = `Chrome: ~${memory.estimatedMB}MB\nSystem: ${memory.totalSystemGB}GB total, ${memory.availableSystemGB}GB free\nPer tab: ~${memory.perTabMB}MB`;
-    } else {
-      // Show estimation
-      elements.memoryValue.textContent = `~${memory.estimatedMB} MB (est.)`;
-      elements.memoryFill.style.width = `${memory.percentage}%`;
-      elements.memoryFill.parentElement.title = `Estimated based on ${stats.totalTabs} tabs\nPer tab: ~${memory.perTabMB}MB`;
-    }
-    
-    if (memory.percentage > 80) {
-      elements.memoryFill.classList.add('warning');
-    } else if (memory.percentage > 60) {
-      elements.memoryFill.classList.add('caution');
-    } else {
-      elements.memoryFill.classList.remove('warning', 'caution');
     }
     
     // Update top domains
@@ -821,18 +795,6 @@ async function copyDebugInfo() {
       debugInfo.diagnostics.recentBackgroundLogs = 'Not available';
     }
 
-    // Memory usage
-    try {
-      if (performance.memory) {
-        debugInfo.diagnostics.memory = {
-          usedJSHeapSize: (performance.memory.usedJSHeapSize / 1048576).toFixed(2) + ' MB',
-          totalJSHeapSize: (performance.memory.totalJSHeapSize / 1048576).toFixed(2) + ' MB',
-          jsHeapSizeLimit: (performance.memory.jsHeapSizeLimit / 1048576).toFixed(2) + ' MB'
-        };
-      }
-    } catch (e) {
-      debugInfo.errors.push({ context: 'performance.memory', error: e.message });
-    }
 
     // Format as JSON
     const debugText = JSON.stringify(debugInfo, null, 2);
