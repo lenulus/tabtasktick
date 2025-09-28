@@ -104,11 +104,6 @@ window.addEventListener('load', async () => {
     console.error('SnoozeModal class not found after window load');
   }
   
-  // Initialize Floating Action Button
-  if (typeof FloatingActionButton !== 'undefined') {
-    const fab = new FloatingActionButton(document.body);
-  }
-  
   // Initialize preview card
   if (typeof TabPreviewCard !== 'undefined') {
     const previewCard = new TabPreviewCard(document.body);

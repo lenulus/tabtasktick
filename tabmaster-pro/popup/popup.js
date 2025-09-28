@@ -65,9 +65,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize snooze modal
   snoozeModal = new SnoozeModal();
   
-  // Initialize Floating Action Button
-  const fab = new FloatingActionButton(document.body);
-  
   // Initialize preview card
   previewCard = new TabPreviewCard(document.body);
   window.previewCard = previewCard; // Make available globally for other components
