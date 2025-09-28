@@ -24,8 +24,8 @@ export function cleanupCharts() {
   });
 }
 
-export async function loadOverviewData() {
-  console.log('Loading overview data...');
+export async function loadOverviewData(filter = null) {
+  console.log('Loading overview data...', filter ? `with filter: ${filter}` : '');
   try {
     const startTime = Date.now();
     const stats = await sendMessage({ action: 'getStatistics' });

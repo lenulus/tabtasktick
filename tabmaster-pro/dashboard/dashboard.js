@@ -92,7 +92,10 @@ window.addEventListener('load', async () => {
   await initializeDashboard();
   setupEventListeners();
   setupNavigation();
-  
+
+  // Handle deep linking from URL parameters
+  handleDeepLink();
+
   // Initialize snooze modal - should be available after window load
   if (typeof SnoozeModal !== 'undefined') {
     console.log('Initializing SnoozeModal');
@@ -148,13 +151,13 @@ async function initializeDashboard() {
 
 function setupNavigation() {
   const navItems = document.querySelectorAll('.nav-item');
-  
+
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const view = item.dataset.view;
       switchView(view);
-      
+
       // Update active state
       navItems.forEach(nav => nav.classList.remove('active'));
       item.classList.add('active');
@@ -162,8 +165,33 @@ function setupNavigation() {
   });
 }
 
-function switchView(view) {
-  console.log('Switching to view:', view);
+function handleDeepLink() {
+  // Get filter from URL params (e.g., ?filter=duplicates)
+  const urlParams = new URLSearchParams(window.location.search);
+  const filter = urlParams.get('filter');
+
+  // Get view from URL hash (e.g., #groups)
+  const hash = window.location.hash.substring(1);
+
+  // Switch to the specified view if provided
+  if (hash) {
+    console.log('Deep link detected - view:', hash, 'filter:', filter);
+    switchView(hash, filter);
+
+    // Update nav active state
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(nav => {
+      if (nav.dataset.view === hash) {
+        nav.classList.add('active');
+      } else {
+        nav.classList.remove('active');
+      }
+    });
+  }
+}
+
+function switchView(view, filter = null) {
+  console.log('Switching to view:', view, 'with filter:', filter);
   
   // Cleanup previous view
   const previousView = state.get('currentView');
@@ -189,10 +217,10 @@ function switchView(view) {
   // Load view-specific data
   switch(view) {
     case 'overview':
-      loadOverviewData();
+      loadOverviewData(filter);
       break;
     case 'tabs':
-      loadTabsView();
+      loadTabsView(filter);
       break;
     case 'groups':
       loadGroupsView();

@@ -60,7 +60,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadSnoozedTabs();
   await loadCurrentTab();
   setupEventListeners();
-  
+  setupStatCardLinks();
+
   // Initialize snooze modal
   snoozeModal = new SnoozeModal();
   
@@ -348,7 +349,7 @@ function setupEventListeners() {
   elements.groupByDomain.addEventListener('click', handleGroupByDomain);
   elements.snoozeCurrent.addEventListener('click', handleSnoozeCurrentToggle);
   elements.suspendInactive.addEventListener('click', handleSuspendInactive);
-  
+
   // Header Actions
   elements.settingsBtn.addEventListener('click', openSettings);
   elements.debugBtn?.addEventListener('click', copyDebugInfo);
@@ -358,7 +359,7 @@ function setupEventListeners() {
 
   // Footer Actions
   elements.commandPalette.addEventListener('click', openCommandPalette);
-  elements.dashboard.addEventListener('click', openDashboard);
+  elements.dashboard.addEventListener('click', () => openDashboard());
   elements.export.addEventListener('click', handleExport);
   elements.help.addEventListener('click', openHelp);
   
@@ -383,6 +384,17 @@ function setupEventListeners() {
         console.error('Fallback also failed:', fallbackError);
       }
     }
+  });
+}
+
+function setupStatCardLinks() {
+  // Add click handlers to stat cards for dashboard deep links
+  document.querySelectorAll('.stat-card.clickable').forEach(card => {
+    card.addEventListener('click', () => {
+      const view = card.dataset.dashboardView;
+      const filter = card.dataset.filter;
+      openDashboard(view, filter);
+    });
   });
 }
 
@@ -867,8 +879,20 @@ function openSettings() {
   chrome.runtime.openOptionsPage();
 }
 
-function openDashboard() {
-  chrome.tabs.create({ url: chrome.runtime.getURL('dashboard/dashboard.html') });
+function openDashboard(view = 'overview', filter = null) {
+  let url = chrome.runtime.getURL('dashboard/dashboard.html');
+
+  // Add filter parameter first (before hash)
+  if (filter) {
+    url += `?filter=${filter}`;
+  }
+
+  // Add view parameter after query params
+  if (view) {
+    url += `#${view}`;
+  }
+
+  chrome.tabs.create({ url });
 }
 
 function openCommandPalette() {

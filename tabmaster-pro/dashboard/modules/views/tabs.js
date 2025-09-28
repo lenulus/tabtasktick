@@ -38,16 +38,17 @@ import {
   updateBulkToolbar 
 } from '../core/shared-utils.js';
 
-export async function loadTabsView() {
+export async function loadTabsView(filter = null) {
   // Store current filter values before they are potentially cleared
   const searchInput = document.getElementById('searchTabs');
   const filterInput = document.getElementById('filterTabs');
   const windowInput = document.getElementById('windowFilter');
   const sortInput = document.getElementById('sortTabs');
-  
+
+  // If a filter is passed from deep link, use it; otherwise preserve current state
   const preservedFilterState = {
     searchTerm: searchInput ? searchInput.value : '',
-    filterType: filterInput ? filterInput.value : 'all',
+    filterType: filter === 'duplicates' ? 'duplicates' : (filterInput ? filterInput.value : 'all'),
     windowId: windowInput ? windowInput.value : 'all',
     sortType: sortInput ? sortInput.value : 'default'
   };
