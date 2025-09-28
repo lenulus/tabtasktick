@@ -1050,14 +1050,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
 
         case 'deleteSnoozedTab':
-          // Delete a single snoozed tab by ID or URL
+          // Delete a snoozed tab record from storage
           const tabIdToDelete = request.tabId;
           const beforeDeleteCount = state.snoozedTabs.length;
 
-          // Find and remove the tab
+          // Remove the record matching by ID or URL
           state.snoozedTabs = state.snoozedTabs.filter(tab => {
-            // Match by either ID or URL
-            return tab.id !== tabIdToDelete && tab.url !== tabIdToDelete;
+            // Compare IDs as strings since HTML data attributes are strings
+            return String(tab.id) !== String(tabIdToDelete) && tab.url !== tabIdToDelete;
           });
 
           if (state.snoozedTabs.length < beforeDeleteCount) {

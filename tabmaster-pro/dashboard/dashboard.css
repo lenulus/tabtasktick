@@ -589,6 +589,18 @@ body {
   border-color: var(--primary-color);
 }
 
+.btn-small.delete-btn {
+  background: #fee;
+  color: #d00;
+  border-color: #fcc;
+}
+
+.btn-small.delete-btn:hover {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
 .tab-card.grouped {
   border-left: 3px solid var(--warning-color);
   padding-left: 13px;

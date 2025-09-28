@@ -54,12 +54,13 @@ function renderSnoozedTimeline(snoozedTabs) {
             </div>
             <div class="tab-url">${tab.url}</div>
             <div class="tab-meta">
-              <span class="wake-time">🕐 ${getExactWakeTime(tab.snoozeUntil)}</span>
+              <span class="wake-time">🕐 ${getExactWakeTime(tab.snoozeUntil || tab.wakeTime)}</span>
               ${tab.groupId ? '<span class="group-indicator">📁 Grouped</span>' : ''}
               <span class="snooze-reason">${tab.snoozeReason || 'manual'}</span>
             </div>
             <div class="tab-actions">
-              <button class="btn-small" data-tab-id="${tab.id}">Wake Now</button>
+              <button class="btn-small wake-btn" data-tab-id="${tab.id}">Wake Now</button>
+              <button class="btn-small delete-btn" data-tab-id="${tab.id}" data-tab-url="${tab.url}" title="Delete snoozed tab">Delete</button>
             </div>
           </div>
         `).join('')}
@@ -75,7 +76,7 @@ function groupSnoozedByTime(tabs) {
   const now = Date.now();
   
   tabs.forEach(tab => {
-    const diff = tab.snoozeUntil - now;
+    const diff = (tab.snoozeUntil || tab.wakeTime) - now;
     let label;
     
     if (diff <= 3600000) { // 1 hour
@@ -150,15 +151,43 @@ async function wakeTab(tabId) {
   }
 }
 
+async function deleteTab(tabId, tabUrl) {
+  try {
+    const result = await sendMessage({
+      action: 'deleteSnoozedTab',
+      tabId: tabId || tabUrl
+    });
+    if (result && result.success) {
+      // Reload the snoozed view
+      await loadSnoozedView();
+    } else {
+      console.error('Failed to delete tab:', result?.error || 'Unknown error');
+    }
+  } catch (error) {
+    console.error('Failed to delete tab:', error);
+  }
+}
+
 function setupSnoozedEventListeners() {
   const timeline = document.getElementById('snoozedTimeline');
-  
-  // Event delegation for Wake Now buttons
+
+  if (!timeline) {
+    console.error('Snoozed timeline element not found');
+    return;
+  }
+
+  // Event delegation for Wake Now and Delete buttons
   timeline.addEventListener('click', async (e) => {
-    if (e.target.classList.contains('btn-small')) {
+    if (e.target.classList.contains('wake-btn')) {
       const tabId = e.target.dataset.tabId;
       if (tabId) {
         await wakeTab(tabId);
+      }
+    } else if (e.target.classList.contains('delete-btn')) {
+      const tabId = e.target.dataset.tabId;
+      const tabUrl = e.target.dataset.tabUrl;
+      if (confirm('Delete this snoozed tab?')) {
+        await deleteTab(tabId, tabUrl);
       }
     }
   });
