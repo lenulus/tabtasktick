@@ -60,94 +60,132 @@ function getSampleRules() {
       name: 'Group tabs by domain',
       description: 'Group tabs from the same domain when you have 3 or more',
       enabled: false,
-      conditions: { type: 'domain_count', minCount: 3 },
-      actions: { type: 'group', groupBy: 'domain' },
+      when: {
+        all: [
+          { subject: 'domainCount', operator: 'greater_than_or_equal', value: 3 }
+        ]
+      },
+      then: [
+        { type: 'group', group_by: 'domain' }
+      ],
+      trigger: { type: 'immediate' },
       priority: 2,
     },
     {
       id: 'sample_3',
       name: 'Snooze inactive articles',
-      description: 'Snooze unread articles after 60 minutes of inactivity',
+      description: 'Snooze unread articles after 30 minutes',
       enabled: false,
-      conditions: {
-        type: 'inactive',
-        urlPatterns: ['medium.com', 'dev.to', 'hackernews', 'reddit.com'],
-        timeCriteria: { inactive: 60 }
+      when: {
+        all: [
+          {
+            any: [
+              { subject: 'domain', operator: 'contains', value: 'medium.com' },
+              { subject: 'domain', operator: 'contains', value: 'dev.to' },
+              { subject: 'domain', operator: 'contains', value: 'hackernews' },
+              { subject: 'domain', operator: 'contains', value: 'reddit.com' }
+            ]
+          },
+          { subject: 'age', operator: 'greater_than', value: 30 * 60 * 1000 }  // 30 minutes in ms
+        ]
       },
-      actions: { type: 'snooze', snoozeMinutes: 1440 },
+      then: [
+        { type: 'snooze', for: '24h' }
+      ],
+      trigger: { type: 'repeat', repeat_every: '15m' },
       priority: 3,
-      trigger: { type: 'event' }
     },
     {
       id: 'sample_4',
       name: 'Clean up inactive Chrome pages',
-      description: 'Close common Chrome internal pages after 30 minutes of inactivity',
+      description: 'Close Chrome internal pages after 30 minutes',
       enabled: false,
-      conditions: {
-        type: 'url_pattern',
-        pattern: '^chrome://(extensions|downloads|settings|flags|history|bookmarks|newtab)',
-        timeCriteria: { inactive: 30 }
+      when: {
+        all: [
+          { subject: 'url', operator: 'matches', value: '^chrome://(extensions|downloads|settings|flags|history|bookmarks|newtab)' },
+          { subject: 'age', operator: 'greater_than', value: 30 * 60 * 1000 }  // 30 minutes in ms
+        ]
       },
-      actions: { type: 'close', saveToBookmarks: false },
+      then: [
+        { type: 'close' }
+      ],
+      trigger: { type: 'repeat', repeat_every: '15m' },
       priority: 4,
-      trigger: { type: 'event' }
     },
     {
       id: 'sample_5',
       name: 'Close inactive social media tabs',
-      description: 'Close social media tabs after 60 minutes of inactivity',
+      description: 'Close social media tabs after 60 minutes',
       enabled: false,
-      conditions: {
-        type: 'category',
-        categories: ['social'],
-        timeCriteria: { inactive: 60 }
+      when: {
+        all: [
+          { subject: 'category', operator: 'in', value: ['social'] },
+          { subject: 'age', operator: 'greater_than', value: 60 * 60 * 1000 }  // 60 minutes in ms
+        ]
       },
-      actions: { type: 'close', saveToBookmarks: false },
+      then: [
+        { type: 'close' }
+      ],
+      trigger: { type: 'repeat', repeat_every: '15m' },
       priority: 5,
-      trigger: { type: 'periodic', interval: 15 }
     },
     {
       id: 'sample_6',
       name: 'Group shopping tabs together',
       description: 'Automatically group all shopping sites into one tab group',
       enabled: false,
-      conditions: {
-        type: 'category',
-        categories: ['shopping']
+      when: {
+        all: [
+          { subject: 'category', operator: 'in', value: ['shopping'] }
+        ]
       },
-      actions: { type: 'group', groupBy: 'category' },
+      then: [
+        { type: 'group', name: 'Shopping' }
+      ],
+      trigger: { type: 'immediate' },
       priority: 6,
-      trigger: { type: 'event' }
     },
     {
       id: 'sample_7',
-      name: 'Archive old research tabs',
-      description: 'Close tabs older than 7 days that haven\'t been accessed in 24 hours',
+      name: 'Archive old tabs',
+      description: 'Bookmark and close tabs older than 7 days',
       enabled: false,
-      conditions: {
-        type: 'duplicate',  // Match all tabs
-        timeCriteria: { 
-          age: 10080,  // 7 days
-          notAccessed: 1440  // 24 hours
-        }
+      when: {
+        all: [
+          { subject: 'age', operator: 'greater_than', value: 7 * 24 * 60 * 60 * 1000 }  // 7 days in ms
+        ]
       },
-      actions: { type: 'close', saveToBookmarks: true },
+      then: [
+        { type: 'bookmark', to: 'Archived Tabs' },
+        { type: 'close' }
+      ],
+      trigger: { type: 'repeat', repeat_every: '1h' },
       priority: 7,
-      trigger: { type: 'periodic', interval: 60 }  // Check hourly
     },
     {
       id: 'sample_8',
-      name: 'Suspend memory-heavy tabs',
-      description: 'Suspend tabs from specific domains after 2 hours of inactivity',
+      name: 'Discard memory-heavy video tabs',
+      description: 'Discard video streaming tabs after 30 minutes of inactivity',
       enabled: false,
-      conditions: {
-        type: 'age_and_domain',
-        domains: ['youtube.com', 'netflix.com', 'twitch.tv', 'spotify.com'],
-        timeCriteria: { inactive: 120 }  // 2 hours
+      when: {
+        all: [
+          {
+            any: [
+              { subject: 'domain', operator: 'contains', value: 'youtube.com' },
+              { subject: 'domain', operator: 'contains', value: 'netflix.com' },
+              { subject: 'domain', operator: 'contains', value: 'twitch.tv' },
+              { subject: 'domain', operator: 'contains', value: 'spotify.com' }
+            ]
+          },
+          { subject: 'active', operator: 'equals', value: false },
+          { subject: 'age', operator: 'greater_than', value: 30 * 60 * 1000 }  // 30 minutes in ms
+        ]
       },
-      actions: { type: 'suspend', excludePinned: true },
+      then: [
+        { type: 'discard' }
+      ],
+      trigger: { type: 'repeat', repeat_every: '30m' },
       priority: 8,
-      trigger: { type: 'periodic', interval: 30 }  // Check every 30 minutes
     }
   ];
 }

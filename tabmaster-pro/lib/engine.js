@@ -5,6 +5,7 @@ import { compile, checkIsDupe } from './predicate.js';
 import { normalizeUrl, extractDomain, generateDupeKey, extractOrigin } from './normalize.js';
 import { validateActionList, sortActionsByPriority } from './action-validator.js';
 import { transformConditions } from './condition-transformer.js';
+import { getCategoriesForDomain } from './domain-categories.js';
 
 /**
  * Build indices for efficient rule evaluation
@@ -22,7 +23,11 @@ export function buildIndices(tabs) {
     tab.domain = tab.domain || extractDomain(tab.url);
     tab.dupeKey = tab.dupeKey || generateDupeKey(tab.url);
     tab.origin = tab.origin || extractOrigin(tab.referrer || '');
-    tab.category = tab.category || 'unknown';
+
+    // Get categories for this domain
+    const categories = getCategoriesForDomain(tab.domain);
+    tab.category = categories.length > 0 ? categories[0] : 'unknown';
+    tab.categories = categories; // Store all categories for multi-category support
     
     // Calculate age if createdAt is available
     if (tab.createdAt) {
