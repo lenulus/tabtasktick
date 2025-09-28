@@ -230,7 +230,7 @@ function createRuleCard(rule) {
   const card = document.createElement('div');
   card.className = `rule-card ${!rule.enabled ? 'disabled' : ''}`;
   card.dataset.ruleId = rule.id;
-  card.draggable = true;
+  card.draggable = false; // Will be set dynamically on mousedown
 
   card.innerHTML = `
     <div class="rule-header">
@@ -1601,26 +1601,43 @@ export async function testAllRules() {
 export function setupRuleDragAndDrop() {
   let draggedElement = null;
   let placeholder = null;
-  
+
   const rulesList = document.getElementById('rulesList');
   if (!rulesList || rulesList.hasDragHandler) return;
-  
+
   rulesList.hasDragHandler = true;
-  
+
   // Create placeholder element
   placeholder = document.createElement('div');
   placeholder.className = 'rule-card-placeholder';
+
+  // Enable dragging only when mousedown on handle
+  rulesList.addEventListener('mousedown', (e) => {
+    const handle = e.target.closest('.rule-drag-handle');
+    if (handle) {
+      const card = handle.closest('.rule-card');
+      if (card) {
+        card.draggable = true;
+      }
+    }
+  });
+
+  // Disable dragging on mouseup
+  rulesList.addEventListener('mouseup', (e) => {
+    const cards = rulesList.querySelectorAll('.rule-card');
+    cards.forEach(card => {
+      card.draggable = false;
+    });
+  });
   
   rulesList.addEventListener('dragstart', (e) => {
     const ruleCard = e.target.closest('.rule-card');
-    if (!ruleCard || !e.target.closest('.rule-drag-handle')) {
-      e.preventDefault();
-      return;
-    }
-    
+    if (!ruleCard) return;
+
     draggedElement = ruleCard;
     ruleCard.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', ''); // Firefox requires this
   });
   
   rulesList.addEventListener('dragend', (e) => {

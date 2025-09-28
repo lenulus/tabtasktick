@@ -1894,6 +1894,15 @@ body {
   cursor: grabbing;
 }
 
+.rule-card-placeholder {
+  height: 80px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0.2;
+  border-radius: 8px;
+  border: 2px dashed #667eea;
+}
+
 .rule-card.drag-over-top {
   border-top: 3px solid #007bff;
 }
