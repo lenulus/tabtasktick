@@ -2,17 +2,17 @@
   {
     "domain": "google.com",
     "rank": 1,
-    "categories": ["productivity_tools", "search"]
+    "categories": ["productivity", "search"]
   },
   {
     "domain": "youtube.com",
     "rank": 2,
-    "categories": ["streaming_entertainment"]
+    "categories": ["video"]
   },
   {
     "domain": "microsoft.com",
     "rank": 3,
-    "categories": ["productivity_tools", "tech_dev"]
+    "categories": ["productivity", "dev"]
   },
   {
     "domain": "facebook.com",
@@ -27,22 +27,22 @@
   {
     "domain": "netflix.com",
     "rank": 6,
-    "categories": ["streaming_entertainment"]
+    "categories": ["video"]
   },
   {
     "domain": "wikipedia.org",
     "rank": 7,
-    "categories": ["reference_research"]
+    "categories": ["reference"]
   },
   {
     "domain": "cloudflare.com",
     "rank": 8,
-    "categories": ["tech_dev"]
+    "categories": ["dev"]
   },
   {
     "domain": "apple.com",
     "rank": 10,
-    "categories": ["shopping", "tech_dev"]
+    "categories": ["shopping", "dev"]
   },
   {
     "domain": "instagram.com",
@@ -62,7 +62,7 @@
   {
     "domain": "reddit.com",
     "rank": 23,
-    "categories": ["social", "reference_research"]
+    "categories": ["social", "reference"]
   },
   {
     "domain": "pinterest.com",
@@ -77,57 +77,57 @@
   {
     "domain": "office.com",
     "rank": 15,
-    "categories": ["productivity_tools"]
+    "categories": ["productivity"]
   },
   {
     "domain": "docs.google.com",
     "rank": 38,
-    "categories": ["productivity_tools"]
+    "categories": ["productivity"]
   },
   {
     "domain": "github.com",
     "rank": 45,
-    "categories": ["tech_dev", "productivity_tools"]
+    "categories": ["dev", "productivity"]
   },
   {
     "domain": "stackoverflow.com",
     "rank": 60,
-    "categories": ["tech_dev", "reference_research"]
+    "categories": ["dev", "reference"]
   },
   {
     "domain": "twitch.tv",
     "rank": 35,
-    "categories": ["streaming_entertainment", "gaming"]
+    "categories": ["video", "gaming"]
   },
   {
     "domain": "spotify.com",
     "rank": 50,
-    "categories": ["music", "streaming_entertainment"]
+    "categories": ["music", "video"]
   },
   {
     "domain": "cnn.com",
     "rank": 70,
-    "categories": ["news_media"]
+    "categories": ["news"]
   },
   {
     "domain": "bbc.com",
     "rank": 75,
-    "categories": ["news_media"]
+    "categories": ["news"]
   },
   {
     "domain": "nytimes.com",
     "rank": 80,
-    "categories": ["news_media"]
+    "categories": ["news"]
   },
   {
     "domain": "medium.com",
     "rank": 90,
-    "categories": ["reference_research", "entertainment"]
+    "categories": ["reference", "entertainment"]
   },
   {
     "domain": "quora.com",
     "rank": 80,
-    "categories": ["social", "reference_research"]
+    "categories": ["social", "reference"]
   },
   {
     "domain": "discord.com",
@@ -137,22 +137,22 @@
   {
     "domain": "zoom.us",
     "rank": 55,
-    "categories": ["communication", "productivity_tools"]
+    "categories": ["communication", "productivity"]
   },
   {
     "domain": "slack.com",
     "rank": 65,
-    "categories": ["communication", "productivity_tools"]
+    "categories": ["communication", "productivity"]
   },
   {
     "domain": "dropbox.com",
     "rank": 125,
-    "categories": ["productivity_tools"]
+    "categories": ["productivity"]
   },
   {
     "domain": "adobe.com",
     "rank": 100,
-    "categories": ["productivity_tools", "tech_dev"]
+    "categories": ["productivity", "dev"]
   },
   {
     "domain": "paypal.com",
@@ -187,7 +187,7 @@
   {
     "domain": "bestbuy.com",
     "rank": 160,
-    "categories": ["shopping", "tech_dev"]
+    "categories": ["shopping", "dev"]
   },
   {
     "domain": "homedepot.com",
@@ -227,7 +227,7 @@
   {
     "domain": "tripadvisor.com",
     "rank": 145,
-    "categories": ["travel", "reference_research"]
+    "categories": ["travel", "reference"]
   },
   {
     "domain": "uber.com",
@@ -247,52 +247,52 @@
   {
     "domain": "yelp.com",
     "rank": 185,
-    "categories": ["reference_research", "food_delivery"]
+    "categories": ["reference", "food_delivery"]
   },
   {
     "domain": "espn.com",
     "rank": 190,
-    "categories": ["sports", "news_media"]
+    "categories": ["sports", "news"]
   },
   {
     "domain": "weather.com",
     "rank": 85,
-    "categories": ["reference_research", "news_media"]
+    "categories": ["reference", "news"]
   },
   {
     "domain": "imdb.com",
     "rank": 65,
-    "categories": ["reference_research", "entertainment"]
+    "categories": ["reference", "entertainment"]
   },
   {
     "domain": "fandom.com",
     "rank": 75,
-    "categories": ["reference_research", "entertainment"]
+    "categories": ["reference", "entertainment"]
   },
   {
     "domain": "hulu.com",
     "rank": 85,
-    "categories": ["streaming_entertainment"]
+    "categories": ["video"]
   },
   {
     "domain": "disneyplus.com",
     "rank": 95,
-    "categories": ["streaming_entertainment"]
+    "categories": ["video"]
   },
   {
     "domain": "hbomax.com",
     "rank": 105,
-    "categories": ["streaming_entertainment"]
+    "categories": ["video"]
   },
   {
     "domain": "paramount.com",
     "rank": 115,
-    "categories": ["streaming_entertainment"]
+    "categories": ["video"]
   },
   {
     "domain": "peacocktv.com",
     "rank": 125,
-    "categories": ["streaming_entertainment"]
+    "categories": ["video"]
   },
   {
     "domain": "steam.com",
