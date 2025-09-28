@@ -700,7 +700,23 @@ export function openRuleModal(rule = null) {
   // Convert old format to new format if needed
   let conditions = { all: [] };
   if (rule?.when) {
-    conditions = rule.when;
+    // Check if this is in predicate format (has strings as values in arrays)
+    const isPredicateFormat = (obj) => {
+      if (!obj || typeof obj !== 'object') return false;
+      // Check for predicate operators like 'eq', 'gt', 'contains', etc.
+      const predicateOps = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'contains', 'not_contains',
+                           'starts_with', 'ends_with', 'regex', 'not_regex', 'in', 'not_in', 'is'];
+      return Object.keys(obj).some(key => predicateOps.includes(key));
+    };
+
+    // If it's in predicate format, convert to UI format (not supported yet, use empty conditions)
+    if (isPredicateFormat(rule.when) ||
+        (rule.when.all && Array.isArray(rule.when.all) && rule.when.all.some(item => typeof item === 'string' || isPredicateFormat(item)))) {
+      console.warn('Rule uses predicate format conditions which cannot be edited in UI yet:', rule.when);
+      conditions = { all: [] }; // Start fresh for UI editing
+    } else {
+      conditions = rule.when;
+    }
   } else if (rule?.conditions) {
     // Convert old conditions format to new format
     conditions = convertOldConditionsToNew(rule.conditions);

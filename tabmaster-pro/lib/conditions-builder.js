@@ -41,6 +41,7 @@ export class ConditionsBuilder {
       { value: 'url', label: 'URL', type: 'string' },
       { value: 'title', label: 'Title', type: 'string' },
       { value: 'domain', label: 'Domain', type: 'string' },
+      { value: 'domainCount', label: 'Domain Tab Count', type: 'number' },
       { value: 'origin', label: 'Origin', type: 'origin' },
       { value: 'age', label: 'Tab Age', type: 'duration' },
       { value: 'last_access', label: 'Last Accessed', type: 'duration' },
@@ -169,7 +170,12 @@ export class ConditionsBuilder {
   }
 
   isCondition(item) {
-    return item && 'subject' in item;
+    // Check if item is an object and has a 'subject' property
+    // Also handle string conditions from old format
+    if (!item || typeof item !== 'object') {
+      return false;
+    }
+    return 'subject' in item;
   }
 
   createConditionRow(condition) {

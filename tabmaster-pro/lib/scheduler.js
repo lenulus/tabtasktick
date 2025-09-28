@@ -62,13 +62,13 @@ export function createScheduler(options = {}) {
     if (debounceTimers.has(ruleId)) {
       clearTimeout(debounceTimers.get(ruleId));
     }
-    
+
     // Set new debounce timer
     const timerId = setTimeout(() => {
       debounceTimers.delete(ruleId);
       handleTrigger(ruleId, 'immediate');
     }, immediateDebounceMs);
-    
+
     debounceTimers.set(ruleId, timerId);
   }
   
@@ -292,7 +292,7 @@ export function createScheduler(options = {}) {
 
     const { trigger } = rule;
 
-    if (trigger.immediate) {
+    if (trigger.immediate || trigger.type === 'immediate') {
       // Will be triggered by tab events
       // No setup needed here
       console.log(`Rule ${rule.name} has immediate trigger`);

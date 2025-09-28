@@ -714,10 +714,10 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 
 // Check for rules with immediate triggers
 function checkImmediateTriggers(event) {
-  const immediateRules = state.rules.filter(r => 
-    r.enabled && r.trigger?.immediate
+  const immediateRules = state.rules.filter(r =>
+    r.enabled && (r.trigger?.immediate || r.trigger?.type === 'immediate')
   );
-  
+
   for (const rule of immediateRules) {
     scheduler.scheduleImmediate(rule.id);
   }

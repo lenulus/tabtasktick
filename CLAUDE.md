@@ -226,3 +226,4 @@ tabmaster-pro/
 - Dashboard load: < 500ms
 
 Remember: Keep it simple, performant, and user-focused!
+- Don't commit unit asked

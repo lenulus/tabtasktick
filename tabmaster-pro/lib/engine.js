@@ -54,13 +54,13 @@ export function evaluateRule(rule, context, options = {}) {
   
   // Transform conditions from UI format to predicate format (or pass through if already in predicate format)
   const transformedConditions = transformConditions(rule.when);
-  
+
   // Check for empty conditions
   if (transformedConditions.all && transformedConditions.all.length === 0) {
     console.warn('Rule has empty conditions, will not match any tabs');
     return matches;
   }
-  
+
   const predicate = compile(transformedConditions);
   
   // Debug: Log duplicate groups
@@ -83,11 +83,14 @@ export function evaluateRule(rule, context, options = {}) {
     
     // Build evaluation context for this tab
     const isDupe = checkIsDupe(tab, context);
+    // Calculate domain count for this tab's domain
+    const domainCount = context.idx.byDomain[tab.domain] ? context.idx.byDomain[tab.domain].length : 1;
 
     // Map Chrome tab properties to expected names
     const mappedTab = {
       ...tab,
       isDupe,
+      domainCount,
       // Map Chrome properties to expected names
       isPinned: tab.pinned,
       isMuted: tab.mutedInfo ? tab.mutedInfo.muted : false,
@@ -246,7 +249,8 @@ async function executeAction(action, tab, context, dryRun) {
         let groupName = action.name;
 
         // If grouping by domain, derive the group name from the tab URL
-        if (!groupName && action.by === 'domain') {
+        // Check both action.by and action.group_by for compatibility
+        if (!groupName && (action.by === 'domain' || action.group_by === 'domain')) {
           try {
             const url = new URL(tab.url);
             groupName = url.hostname;
