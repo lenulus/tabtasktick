@@ -37,6 +37,9 @@ const elements = {
   
   // Badge
   duplicateBadge: document.getElementById('duplicateBadge'),
+
+  // Snoozed tabs
+  wakeAllBtn: document.getElementById('wakeAllBtn'),
 };
 
 // ============================================================================
@@ -200,14 +203,19 @@ function updateDomainsList(domains) {
 function updateSnoozedList(snoozedTabs) {
   // Update count
   elements.snoozedCount.textContent = snoozedTabs.length;
-  
-  // Show/hide section
+
+  // Show/hide section and wake all button
   if (snoozedTabs.length === 0) {
     elements.snoozedSection.style.display = 'none';
     return;
   }
-  
+
   elements.snoozedSection.style.display = 'block';
+
+  // Show/hide wake all button
+  if (elements.wakeAllBtn) {
+    elements.wakeAllBtn.style.display = snoozedTabs.length > 0 ? 'flex' : 'none';
+  }
   elements.snoozedList.innerHTML = '';
   
   // Sort by wake time (backend uses wakeTime, not snoozeUntil)
@@ -344,6 +352,9 @@ function setupEventListeners() {
   // Header Actions
   elements.settingsBtn.addEventListener('click', openSettings);
   elements.debugBtn?.addEventListener('click', copyDebugInfo);
+
+  // Snoozed tabs actions
+  elements.wakeAllBtn?.addEventListener('click', handleWakeAll);
 
   // Footer Actions
   elements.commandPalette.addEventListener('click', openCommandPalette);
@@ -519,6 +530,25 @@ function getSelectedTabs() {
 function clearSelection() {
   // Not needed in popup context
   // Dashboard handles its own selection clearing
+}
+
+async function handleWakeAll() {
+  try {
+    const result = await sendMessage({ action: 'wakeAllSnoozed' });
+    const count = result.count || 0;
+
+    if (count > 0) {
+      showNotification(`Restored ${count} snoozed tab${count === 1 ? '' : 's'}`, 'success');
+      // Refresh the snoozed tabs list
+      await loadSnoozedTabs();
+      await loadStatistics();
+    } else {
+      showNotification('No snoozed tabs to restore', 'info');
+    }
+  } catch (error) {
+    console.error('Failed to wake all snoozed tabs:', error);
+    showNotification('Failed to wake snoozed tabs', 'error');
+  }
 }
 
 async function handleSuspendInactive() {

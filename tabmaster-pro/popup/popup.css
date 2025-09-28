@@ -153,6 +153,44 @@ section h2 {
   gap: 8px;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+}
+
+.wake-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: #667eea;
+  background: transparent;
+  border: 1px solid #667eea;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wake-all-btn:hover {
+  background: #667eea;
+  color: white;
+}
+
+.wake-all-btn:hover svg {
+  stroke: white;
+}
+
+.wake-all-btn svg {
+  stroke-width: 2;
+}
+
 section h3 {
   font-size: 13px;
   font-weight: 500;

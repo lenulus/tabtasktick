@@ -1238,15 +1238,24 @@ async function findAndCloseDuplicates() {
 async function groupTabsByDomain() {
   const tabs = await chrome.tabs.query({ currentWindow: true });
   const domainMap = new Map();
-  
-  // Group tabs by domain
+  const existingGroups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
+
+  // Build a map of existing groups by domain title
+  const groupsByDomain = new Map();
+  for (const group of existingGroups) {
+    if (group.title) {
+      groupsByDomain.set(group.title, group.id);
+    }
+  }
+
+  // Group ungrouped tabs by domain
   for (const tab of tabs) {
     if (tab.groupId > 0) continue; // Skip already grouped tabs
-    
+
     try {
       const url = new URL(tab.url);
       const domain = url.hostname;
-      
+
       if (!domainMap.has(domain)) {
         domainMap.set(domain, []);
       }
@@ -1255,38 +1264,59 @@ async function groupTabsByDomain() {
       // Skip invalid URLs
     }
   }
-  
-  // Create groups for domains with multiple tabs
+
+  // Add tabs to existing groups or create new ones
   let groupsCreated = 0;
+  let groupsReused = 0;
   let totalTabsGrouped = 0;
   const colors = ['blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange'];
-  let colorIndex = 0;
-  
+  let colorIndex = existingGroups.length; // Start color index after existing groups
+
   for (const [domain, tabIds] of domainMap) {
-    if (tabIds.length >= 2) {
-      const groupId = await chrome.tabs.group({ tabIds });
-      
-      await chrome.tabGroups.update(groupId, {
-        title: domain,
-        color: colors[colorIndex % colors.length],
-        collapsed: false
-      });
-      
-      colorIndex++;
-      groupsCreated++;
+    if (tabIds.length >= 2 || (tabIds.length === 1 && groupsByDomain.has(domain))) {
+      let groupId;
+
+      // Check if a group with this domain already exists
+      if (groupsByDomain.has(domain)) {
+        // Add tabs to existing group
+        groupId = groupsByDomain.get(domain);
+        await chrome.tabs.group({
+          tabIds: tabIds,
+          groupId: groupId
+        });
+        groupsReused++;
+      } else if (tabIds.length >= 2) {
+        // Create new group only if we have multiple tabs
+        groupId = await chrome.tabs.group({ tabIds });
+
+        await chrome.tabGroups.update(groupId, {
+          title: domain,
+          color: colors[colorIndex % colors.length],
+          collapsed: false
+        });
+
+        colorIndex++;
+        groupsCreated++;
+        groupsByDomain.set(domain, groupId); // Track for potential reuse
+      } else {
+        // Single tab with no existing group - skip
+        continue;
+      }
+
       totalTabsGrouped += tabIds.length;
       state.statistics.tabsGrouped += tabIds.length;
     }
   }
-  
+
   await chrome.storage.local.set({ statistics: state.statistics });
-  
+
   // Log activity
-  if (groupsCreated > 0) {
-    logActivity('group', `Created ${groupsCreated} groups with ${totalTabsGrouped} tabs`, 'manual');
+  if (groupsCreated > 0 || groupsReused > 0) {
+    const message = `Created ${groupsCreated} new groups, reused ${groupsReused} existing groups with ${totalTabsGrouped} tabs`;
+    logActivity('group', message, 'manual');
   }
-  
-  return { groupsCreated, totalTabsGrouped };
+
+  return { groupsCreated, groupsReused, totalTabsGrouped };
 }
 
 // Quick snooze current tab
@@ -1299,27 +1329,59 @@ async function quickSnoozeCurrent(minutes = 120) {
   return { success: false, error: 'No active tab' };
 }
 
+// Helper function to restore a tab to its original group if it exists
+async function restoreTabToGroup(newTabId, originalGroupId) {
+  if (!originalGroupId || originalGroupId <= 0) {
+    return false;
+  }
+
+  try {
+    // Check if the group still exists by querying all groups
+    const groups = await chrome.tabGroups.query({});
+    const groupExists = groups.some(g => g.id === originalGroupId);
+
+    if (groupExists) {
+      // Group still exists, add tab to it
+      await chrome.tabs.group({
+        tabIds: [newTabId],
+        groupId: originalGroupId
+      });
+      return true;
+    } else {
+      console.log(`Group ${originalGroupId} no longer exists for restored tab`);
+      return false;
+    }
+  } catch (error) {
+    // Error adding to group, tab stays ungrouped
+    console.error(`Error restoring tab to group ${originalGroupId}:`, error);
+    return false;
+  }
+}
+
 // Restore a snoozed tab
 async function restoreSnoozedTab(tabId) {
   const tabIndex = state.snoozedTabs.findIndex(t => t.id === tabId);
   if (tabIndex === -1) {
     return { success: false, error: 'Tab not found' };
   }
-  
+
   const snoozedTab = state.snoozedTabs[tabIndex];
-  
+
   // Create the tab
-  await chrome.tabs.create({
+  const newTab = await chrome.tabs.create({
     url: snoozedTab.url,
     active: false
   });
-  
+
+  // Restore group association if the group still exists
+  await restoreTabToGroup(newTab.id, snoozedTab.groupId);
+
   // Remove from snoozed list
   state.snoozedTabs.splice(tabIndex, 1);
   await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
-  
+
   logActivity('snooze', `Restored snoozed tab: ${snoozedTab.title}`, 'manual');
-  
+
   return { success: true };
 }
 
@@ -1329,21 +1391,24 @@ async function wakeAllSnoozedTabs() {
   if (count === 0) {
     return { success: true, count: 0 };
   }
-  
-  // Create all tabs
+
+  // Create all tabs and restore group associations
   for (const snoozedTab of state.snoozedTabs) {
-    await chrome.tabs.create({
+    const newTab = await chrome.tabs.create({
       url: snoozedTab.url,
       active: false
     });
+
+    // Restore group association if the group still exists
+    await restoreTabToGroup(newTab.id, snoozedTab.groupId);
   }
-  
+
   // Clear snoozed list
   state.snoozedTabs = [];
   await chrome.storage.local.set({ snoozedTabs: [] });
-  
+
   logActivity('snooze', `Restored all ${count} snoozed tabs`, 'manual');
-  
+
   return { success: true, count };
 }
 
@@ -1382,6 +1447,7 @@ async function snoozeTabs(tabIds, duration) {
       favIconUrl: tab.favIconUrl,
       windowId: tab.windowId,
       index: tab.index,
+      groupId: tab.groupId || -1,  // Preserve group association
       wakeTime
     });
   }
