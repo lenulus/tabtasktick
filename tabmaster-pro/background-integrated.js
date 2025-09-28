@@ -687,13 +687,13 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   await trackTabHistory('created');
   
   // Check immediate triggers
-  checkImmediateTriggers('tab.created');
+  await checkImmediateTriggers('tab.created');
 });
 
 // Handle tab updates
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete') {
-    checkImmediateTriggers('tab.updated');
+    await checkImmediateTriggers('tab.updated');
   }
 });
 
@@ -713,10 +713,21 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 });
 
 // Check for rules with immediate triggers
-function checkImmediateTriggers(event) {
-  const immediateRules = state.rules.filter(r =>
-    r.enabled && (r.trigger?.immediate || r.trigger?.type === 'immediate')
-  );
+async function checkImmediateTriggers(event) {
+  // Check if we're in test mode
+  const { testModeActive } = await chrome.storage.local.get('testModeActive');
+
+  const immediateRules = state.rules.filter(r => {
+    // Skip non-test rules during test mode
+    if (testModeActive && !r.flags?.test) {
+      return false;
+    }
+    // Skip test rules when not in test mode
+    if (!testModeActive && r.flags?.test) {
+      return false;
+    }
+    return r.enabled && (r.trigger?.immediate || r.trigger?.type === 'immediate');
+  });
 
   for (const rule of immediateRules) {
     scheduler.scheduleImmediate(rule.id);
@@ -2651,6 +2662,66 @@ async function startMonitoring() {
     console.error('Error loading initial state:', error);
   }
 })();
+
+// Listen for test mode changes
+chrome.storage.onChanged.addListener(async (changes, namespace) => {
+  if (namespace === 'local' && changes.testModeActive) {
+    const testModeActive = changes.testModeActive.newValue;
+    const wasActive = changes.testModeActive.oldValue;
+
+    if (testModeActive && !wasActive) {
+      // Entering test mode - snapshot and disable production rules
+      console.log('Entering test mode - disabling production rules');
+
+      // Save snapshot of current rules state
+      const rulesSnapshot = state.rules.map(r => ({
+        id: r.id,
+        enabled: r.enabled
+      }));
+      await chrome.storage.local.set({ rulesSnapshot });
+
+      // Disable all non-test rules
+      for (const rule of state.rules) {
+        if (!rule.flags?.test && rule.enabled) {
+          console.log(`Disabling production rule: ${rule.name}`);
+          rule.enabled = false;
+          // Remove from scheduler
+          scheduler.removeRule(rule.id);
+        }
+      }
+
+      // Save the disabled state
+      await chrome.storage.local.set({ rules: state.rules });
+
+    } else if (!testModeActive && wasActive) {
+      // Exiting test mode - restore production rules
+      console.log('Exiting test mode - restoring production rules');
+
+      // Get the snapshot
+      const { rulesSnapshot } = await chrome.storage.local.get('rulesSnapshot');
+
+      if (rulesSnapshot) {
+        // Restore original enabled states
+        for (const snapshot of rulesSnapshot) {
+          const rule = state.rules.find(r => r.id === snapshot.id);
+          if (rule && rule.enabled !== snapshot.enabled) {
+            console.log(`Restoring rule ${rule.name} enabled state to ${snapshot.enabled}`);
+            rule.enabled = snapshot.enabled;
+
+            // Re-setup scheduler if rule is enabled
+            if (rule.enabled) {
+              await scheduler.setupRule(rule);
+            }
+          }
+        }
+
+        // Save restored state and clean up
+        await chrome.storage.local.set({ rules: state.rules });
+        await chrome.storage.local.remove('rulesSnapshot');
+      }
+    }
+  }
+});
 
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {

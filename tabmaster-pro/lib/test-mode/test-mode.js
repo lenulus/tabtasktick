@@ -1043,6 +1043,9 @@ export class TestMode {
       // Remove all test tabs
       if (this.testWindow) {
         await chrome.windows.remove(this.testWindow.id);
+        // Wait a bit to ensure the window and its tabs are fully removed
+        // This prevents suspended tabs from reloading and triggering production rules
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       // Remove all test rules
@@ -1065,7 +1068,8 @@ export class TestMode {
         });
       }
 
-      // Clear test mode flags and data
+      // Clear test mode flags and data - do this LAST to prevent race conditions
+      // The storage change listener will restore production rules when testModeActive is removed
       await chrome.storage.local.remove(['testModeActive', 'testWindowId', 'testOriginalState']);
 
     } catch (error) {
