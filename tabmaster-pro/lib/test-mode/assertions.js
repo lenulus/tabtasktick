@@ -295,21 +295,43 @@ export class Assertions {
    * Assert specific number of groups with given title exist
    */
   async assertGroupCount(params) {
-    const { title, expected } = params;
+    const { title, expected, count } = params;
 
     const groups = await chrome.tabGroups.query({});
-    const matchingGroups = groups.filter(g => g.title === title);
-    const actual = matchingGroups.length;
 
-    return {
-      passed: actual === expected,
-      message: actual === expected
-        ? `Found expected ${expected} group(s) with title '${title}'`
-        : `Expected ${expected} group(s) with title '${title}', but found ${actual}`,
-      expected,
-      actual,
-      groups: matchingGroups.map(g => ({ id: g.id, title: g.title, tabCount: g.id }))
-    };
+    // If title is specified, count groups with that title
+    // Otherwise, count total groups
+    let actual, matchingGroups, expectedCount;
+
+    if (title) {
+      matchingGroups = groups.filter(g => g.title === title);
+      actual = matchingGroups.length;
+      expectedCount = expected || count;
+
+      return {
+        passed: actual === expectedCount,
+        message: actual === expectedCount
+          ? `Found expected ${expectedCount} group(s) with title '${title}'`
+          : `Expected ${expectedCount} group(s) with title '${title}', but found ${actual}`,
+        expected: expectedCount,
+        actual,
+        groups: matchingGroups.map(g => ({ id: g.id, title: g.title, tabCount: g.id }))
+      };
+    } else {
+      // Total group count assertion
+      actual = groups.length;
+      expectedCount = count || expected;
+
+      return {
+        passed: actual === expectedCount,
+        message: actual === expectedCount
+          ? `Found expected ${expectedCount} total group(s)`
+          : `Expected ${expectedCount} total group(s), but found ${actual}`,
+        expected: expectedCount,
+        actual,
+        groups: groups.map(g => ({ id: g.id, title: g.title, color: g.color }))
+      };
+    }
   }
 
   /**
