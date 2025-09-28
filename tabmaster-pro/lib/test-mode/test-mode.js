@@ -263,6 +263,18 @@ export class TestMode {
   }
 
   /**
+   * Get available test scenarios (for UI display)
+   */
+  async getAvailableScenarios() {
+    const scenarios = await this.loadScenarios();
+    return scenarios.map(s => ({
+      name: s.name,
+      description: s.description,
+      stepCount: s.steps ? s.steps.length : 0
+    }));
+  }
+
+  /**
    * Load test scenarios
    */
   async loadScenarios() {
@@ -328,6 +340,50 @@ export class TestMode {
           { action: 'assert', type: 'groupNotExists', title: 'google.com' },
 
           // Cleanup: Remove the groups created during this test
+          { action: 'deleteGroup', useCaptured: 'githubGroupId' },
+          { action: 'deleteGroup', useCaptured: 'stackGroupId' }
+        ]
+      },
+      {
+        name: 'domain-grouping-reuse',
+        description: 'Test that Group by Domain adds tabs to existing groups',
+        steps: [
+          // Create initial tabs and group them
+          { action: 'createTab', url: 'https://github.com/repo1', count: 2 },
+          { action: 'createTab', url: 'https://stackoverflow.com/q1', count: 2 },
+
+          // Create rule and execute to create initial groups
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Group by Domain Reuse',
+              when: { all: [{ gte: ['tab.countPerOrigin:domain', 2] }] },
+              then: [{ action: 'group', by: 'domain' }]
+            }
+          },
+
+          { action: 'executeRule', ruleId: 'Group by Domain Reuse' },
+          { action: 'wait', ms: 1000 },
+
+          // Verify initial groups were created
+          { action: 'assert', type: 'groupExists', title: 'github.com', tabCount: 2, captureAs: 'githubGroupId' },
+          { action: 'assert', type: 'groupExists', title: 'stackoverflow.com', tabCount: 2, captureAs: 'stackGroupId' },
+          { action: 'assert', type: 'groupCount', count: 2, message: 'Should have exactly 2 groups initially' },
+
+          // Create new ungrouped tabs from same domains
+          { action: 'createTab', url: 'https://github.com/repo3', count: 1 },
+          { action: 'createTab', url: 'https://stackoverflow.com/q3', count: 2 },
+
+          // Execute rule again - should add to existing groups, not create new ones
+          { action: 'executeRule', ruleId: 'Group by Domain Reuse' },
+          { action: 'wait', ms: 1000 },
+
+          // Verify tabs were added to existing groups (not new groups created)
+          { action: 'assert', type: 'groupExists', title: 'github.com', tabCount: 3, message: 'GitHub group should now have 3 tabs' },
+          { action: 'assert', type: 'groupExists', title: 'stackoverflow.com', tabCount: 4, message: 'Stack Overflow group should now have 4 tabs' },
+          { action: 'assert', type: 'groupCount', count: 2, message: 'Should still have exactly 2 groups (no duplicates created)' },
+
+          // Cleanup: Remove the groups
           { action: 'deleteGroup', useCaptured: 'githubGroupId' },
           { action: 'deleteGroup', useCaptured: 'stackGroupId' }
         ]

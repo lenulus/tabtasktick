@@ -87,6 +87,10 @@ async function activateTestMode(initialize = true) {
 
     isTestModeActive = true;
     updateUI('active');
+
+    // Load and display available scenarios
+    await loadScenarios();
+
     log('Test mode activated', 'info');
   } catch (error) {
     log(`Failed to activate test mode: ${error.message}`, 'error');
@@ -248,17 +252,61 @@ function updateUI(state) {
   }
 }
 
+// Dynamically load and display available scenarios
+async function loadScenarios() {
+  if (!testMode) return;
+
+  try {
+    const scenarios = await testMode.getAvailableScenarios();
+
+    // Clear existing scenario list
+    elements.scenarioList.innerHTML = '';
+
+    // Create scenario items dynamically
+    scenarios.forEach((scenario, index) => {
+      const scenarioDiv = document.createElement('div');
+      scenarioDiv.className = 'scenario-item';
+      scenarioDiv.dataset.scenario = scenario.name;
+
+      const checkboxId = `scenario-${scenario.name.replace(/[^a-z0-9]/gi, '-')}`;
+
+      scenarioDiv.innerHTML = `
+        <input type="checkbox" id="${checkboxId}" class="scenario-checkbox">
+        <label for="${checkboxId}">
+          <span class="scenario-name">${formatScenarioName(scenario.name)}</span>
+          <span class="scenario-status"></span>
+        </label>
+        <div class="scenario-description">${scenario.description}</div>
+      `;
+
+      elements.scenarioList.appendChild(scenarioDiv);
+    });
+
+    log(`Loaded ${scenarios.length} test scenarios`, 'info');
+  } catch (error) {
+    log(`Failed to load scenarios: ${error.message}`, 'error');
+  }
+}
+
+// Format scenario name for display
+function formatScenarioName(name) {
+  return name
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 function getSelectedScenarios() {
   const selected = [];
   const checkboxes = elements.scenarioList.querySelectorAll('.scenario-checkbox:checked');
-  
+
   checkboxes.forEach(checkbox => {
     const scenarioItem = checkbox.closest('.scenario-item');
     if (scenarioItem) {
       selected.push(scenarioItem.dataset.scenario);
     }
   });
-  
+
   return selected;
 }
 
@@ -316,7 +364,7 @@ function displayResults(results) {
     
     resultItem.innerHTML = `
       <div class="result-header">
-        <span class="result-name">${scenario.name}</span>
+        <span class="result-name">${formatScenarioName(scenario.name)}</span>
         <span class="result-duration">${scenario.duration}ms</span>
       </div>
       ${errorDetails}
