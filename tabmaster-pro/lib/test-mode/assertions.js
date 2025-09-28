@@ -269,7 +269,8 @@ export class Assertions {
     return {
       passed: true,
       message: 'Group exists with expected properties',
-      actual: group
+      actual: group,
+      groupId: group.id  // Return the group ID for later reference
     };
   }
 

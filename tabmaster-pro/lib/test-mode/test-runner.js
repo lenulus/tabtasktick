@@ -16,6 +16,8 @@ export class TestRunner {
       tabOperations: [],
       memorySnapshots: []
     };
+    this.capturedData = {};  // Store captured IDs and data from assertions
+    this.createdGroupIds = new Set();  // Track all groups created during this test run
   }
 
   /**
@@ -33,7 +35,10 @@ export class TestRunner {
       measurePerformance: this.executeMeasurePerformance.bind(this),
       captureState: this.executeCaptureState.bind(this),
       ungroupTabs: this.executeUngroupTabs.bind(this),
-      deleteRule: this.executeDeleteRule.bind(this)
+      deleteRule: this.executeDeleteRule.bind(this),
+      deleteGroup: this.executeDeleteGroup.bind(this),
+      removeAllGroups: this.executeRemoveAllGroups.bind(this),
+      removeTestGroups: this.executeRemoveTestGroups.bind(this)
     };
   }
 
@@ -198,6 +203,12 @@ export class TestRunner {
 
     console.log(`Executing rule ${ruleId}...`);
 
+    // Get existing groups before execution
+    const groupsBefore = await chrome.tabGroups.query({
+      windowId: this.testMode.testWindow?.id
+    });
+    const groupIdsBefore = new Set(groupsBefore.map(g => g.id));
+
     const response = await chrome.runtime.sendMessage({
       action: 'executeRule',
       ruleId,
@@ -211,6 +222,19 @@ export class TestRunner {
       const error = response?.error || 'No response from background';
       console.error(`Rule execution failed:`, error);
       throw new Error(`Failed to execute rule: ${error}`);
+    }
+
+    // Check for new groups after execution
+    const groupsAfter = await chrome.tabGroups.query({
+      windowId: this.testMode.testWindow?.id
+    });
+
+    for (const group of groupsAfter) {
+      if (!groupIdsBefore.has(group.id)) {
+        // This is a new group created by the rule
+        this.createdGroupIds.add(group.id);
+        console.log(`Tracked new group created by rule: ${group.id} (${group.title})`);
+      }
     }
 
     const executionTime = performance.now() - startTime;
@@ -235,12 +259,22 @@ export class TestRunner {
    * Execute assert step
    */
   async executeAssert(step) {
-    const { type, ...params } = step;
-    
+    const { type, captureAs, ...params } = step;
+
     const assertion = await this.assertions.assert(type, params);
-    
+
     if (!assertion.passed) {
       throw new Error(`Assertion failed: ${assertion.message}`);
+    }
+
+    // Store captured data for later reference
+    if (assertion.groupId) {
+      // Track this group as created during the test
+      this.createdGroupIds.add(assertion.groupId);
+
+      if (captureAs) {
+        this.capturedData[captureAs] = assertion.groupId;
+      }
     }
 
     return assertion;
@@ -251,7 +285,28 @@ export class TestRunner {
    */
   async executeWait(step) {
     const { ms = 1000 } = step;
+
+    // Get groups before waiting (for tracking delayed group creation)
+    const groupsBefore = await chrome.tabGroups.query({
+      windowId: this.testMode.testWindow?.id
+    });
+    const groupIdsBefore = new Set(groupsBefore.map(g => g.id));
+
     await this.wait(ms);
+
+    // Check for new groups after waiting (could be from scheduled triggers)
+    const groupsAfter = await chrome.tabGroups.query({
+      windowId: this.testMode.testWindow?.id
+    });
+
+    for (const group of groupsAfter) {
+      if (!groupIdsBefore.has(group.id)) {
+        // This is a new group created during the wait (likely from a trigger)
+        this.createdGroupIds.add(group.id);
+        console.log(`Tracked new group created during wait: ${group.id} (${group.title})`);
+      }
+    }
+
     return { waited: ms };
   }
 
@@ -504,7 +559,7 @@ export class TestRunner {
     return {
       ruleExecutions: {
         count: ruleExecutions.length,
-        avgDuration: ruleExecutions.length > 0 
+        avgDuration: ruleExecutions.length > 0
           ? ruleExecutions.reduce((sum, r) => sum + r.executionTime, 0) / ruleExecutions.length
           : 0,
         totalMatches: ruleExecutions.reduce((sum, r) => sum + (r.matchCount || 0), 0),
@@ -516,6 +571,167 @@ export class TestRunner {
           .filter(op => op.operation === 'create')
           .reduce((sum, op) => sum + (op.count || 0), 0)
       }
+    };
+  }
+
+  /**
+   * Execute deleteGroup step
+   */
+  async executeDeleteGroup(step) {
+    const { groupId, title, useCaptured } = step;
+
+    // Use captured ID if specified
+    let actualGroupId = groupId;
+    if (useCaptured && this.capturedData[useCaptured]) {
+      actualGroupId = this.capturedData[useCaptured];
+    }
+
+    // Find the group to delete
+    const groups = await chrome.tabGroups.query({});
+    let targetGroup;
+
+    if (actualGroupId) {
+      targetGroup = groups.find(g => g.id === actualGroupId);
+    } else if (title) {
+      targetGroup = groups.find(g => g.title === title);
+    }
+
+    if (!targetGroup) {
+      throw new Error(`Group not found: ${actualGroupId || title}`);
+    }
+
+    // Get all tabs in this group
+    const tabs = await chrome.tabs.query({ groupId: targetGroup.id });
+    const tabIds = tabs.map(t => t.id);
+
+    // Ungroup the tabs (which removes the group)
+    if (tabIds.length > 0) {
+      await chrome.tabs.ungroup(tabIds);
+    }
+
+    // Remove from our tracking set
+    this.createdGroupIds.delete(targetGroup.id);
+
+    return {
+      deletedGroupId: targetGroup.id,
+      groupTitle: targetGroup.title,
+      ungroupedTabCount: tabIds.length
+    };
+  }
+
+  /**
+   * Execute removeAllGroups step - WARNING: removes ALL groups in window
+   * @deprecated Use removeTestGroups instead for safer cleanup
+   */
+  async executeRemoveAllGroups(step) {
+    const { windowId } = step;
+
+    console.warn('removeAllGroups is deprecated - use removeTestGroups for safer cleanup');
+
+    // Query groups in the specified window or test window
+    const targetWindowId = windowId || this.testMode.testWindow?.id;
+
+    if (!targetWindowId) {
+      throw new Error('No window specified for removeAllGroups');
+    }
+
+    const groups = await chrome.tabGroups.query({ windowId: targetWindowId });
+    let totalUngroupedTabs = 0;
+    const removedGroups = [];
+
+    for (const group of groups) {
+      // Get all tabs in this group
+      const tabs = await chrome.tabs.query({ groupId: group.id });
+      const tabIds = tabs.map(t => t.id);
+
+      // Ungroup the tabs
+      if (tabIds.length > 0) {
+        await chrome.tabs.ungroup(tabIds);
+        totalUngroupedTabs += tabIds.length;
+      }
+
+      removedGroups.push({
+        id: group.id,
+        title: group.title,
+        tabCount: tabIds.length
+      });
+    }
+
+    return {
+      removedGroupCount: removedGroups.length,
+      totalUngroupedTabs,
+      removedGroups
+    };
+  }
+
+  /**
+   * Execute removeTestGroups step - removes only groups created during this test
+   */
+  async executeRemoveTestGroups(step) {
+    const { windowId, forceCleanAll } = step;
+
+    // Query groups in the specified window or test window
+    const targetWindowId = windowId || this.testMode.testWindow?.id;
+
+    if (!targetWindowId) {
+      throw new Error('No window specified for removeTestGroups');
+    }
+
+    // Get ALL groups in the test window
+    const groups = await chrome.tabGroups.query({ windowId: targetWindowId });
+    let totalUngroupedTabs = 0;
+    const removedGroups = [];
+    const skippedGroups = [];
+
+    // If forceCleanAll is true, remove ALL groups in the test window
+    // This is useful at the end of tests where tracking might have been lost
+    const shouldRemoveAll = forceCleanAll || this.createdGroupIds.size === 0;
+
+    for (const group of groups) {
+      // Remove if we tracked this group OR if we're forcing cleanup of all test window groups
+      if (this.createdGroupIds.has(group.id) || shouldRemoveAll) {
+        // Get all tabs in this group
+        const tabs = await chrome.tabs.query({ groupId: group.id });
+        const tabIds = tabs.map(t => t.id);
+
+        // Ungroup the tabs
+        if (tabIds.length > 0) {
+          await chrome.tabs.ungroup(tabIds);
+          totalUngroupedTabs += tabIds.length;
+        }
+
+        removedGroups.push({
+          id: group.id,
+          title: group.title,
+          tabCount: tabIds.length
+        });
+
+        // Remove from tracking
+        this.createdGroupIds.delete(group.id);
+      } else {
+        skippedGroups.push({
+          id: group.id,
+          title: group.title
+        });
+      }
+    }
+
+    if (skippedGroups.length > 0 && !shouldRemoveAll) {
+      console.log(`Skipped ${skippedGroups.length} groups not created by test:`,
+        skippedGroups.map(g => g.title));
+    }
+
+    if (shouldRemoveAll && removedGroups.length > 0) {
+      console.log(`Force cleaned ${removedGroups.length} groups from test window:`,
+        removedGroups.map(g => g.title));
+    }
+
+    return {
+      removedGroupCount: removedGroups.length,
+      totalUngroupedTabs,
+      removedGroups,
+      skippedGroups,
+      forceCleanedAll: shouldRemoveAll
     };
   }
 }

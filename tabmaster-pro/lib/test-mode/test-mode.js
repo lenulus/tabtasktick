@@ -323,9 +323,13 @@ export class TestMode {
           
           { action: 'executeRule', ruleId: 'Group by Domain' },
           { action: 'wait', ms: 1000 },
-          { action: 'assert', type: 'groupExists', title: 'github.com', tabCount: 5 },
-          { action: 'assert', type: 'groupExists', title: 'stackoverflow.com', tabCount: 3 },
-          { action: 'assert', type: 'groupNotExists', title: 'google.com' }
+          { action: 'assert', type: 'groupExists', title: 'github.com', tabCount: 5, captureAs: 'githubGroupId' },
+          { action: 'assert', type: 'groupExists', title: 'stackoverflow.com', tabCount: 3, captureAs: 'stackGroupId' },
+          { action: 'assert', type: 'groupNotExists', title: 'google.com' },
+
+          // Cleanup: Remove the groups created during this test
+          { action: 'deleteGroup', useCaptured: 'githubGroupId' },
+          { action: 'deleteGroup', useCaptured: 'stackGroupId' }
         ]
       },
       {
@@ -433,9 +437,9 @@ export class TestMode {
           { action: 'wait', ms: 500 },
           { action: 'createTab', url: 'https://trigger-test.com/3' },
           { action: 'wait', ms: 3000 },  // Wait for debounce to expire
-          
+
           { action: 'assert', type: 'ruleExecutions', ruleId: 'Immediate Trigger', count: 1 },
-          { action: 'assert', type: 'groupExists', title: 'Triggered', tabCount: 3 },
+          { action: 'assert', type: 'groupExists', title: 'Triggered', tabCount: 3, captureAs: 'triggeredGroupId' },
           
           // Test scheduled trigger - create tab first, then rule
           { action: 'createTab', url: 'https://scheduled-test.com' },
@@ -453,7 +457,11 @@ export class TestMode {
           { action: 'wait', ms: 500 },  // Small wait to ensure trigger is saved
           { action: 'assert', type: 'triggerScheduled', ruleId: 'Scheduled Rule', triggerType: 'once' },
           { action: 'wait', ms: 5500 },  // Wait for scheduled trigger to fire (5s + buffer)
-          { action: 'assert', type: 'groupExists', title: 'Scheduled Group' }
+          { action: 'assert', type: 'groupExists', title: 'Scheduled Group', captureAs: 'scheduledGroupId' },
+
+          // Cleanup: Remove the groups created during this test
+          { action: 'deleteGroup', useCaptured: 'triggeredGroupId' },
+          { action: 'deleteGroup', useCaptured: 'scheduledGroupId' }
         ]
       },
       {
@@ -577,20 +585,26 @@ export class TestMode {
           // First execution should happen immediately
           { action: 'wait', ms: 500 },
           { action: 'assert', type: 'ruleExecutions', ruleId: 'Repeat Rule', count: 1 },
-          { action: 'assert', type: 'groupExists', title: 'Repeated Group' },
+          { action: 'assert', type: 'groupExists', title: 'Repeated Group', tabCount: 3, captureAs: 'repeatedGroupId' },
 
           // Ungroup tabs to test repeat
           { action: 'ungroupTabs', url: 'repeat-test.com' },
           { action: 'wait', ms: 3500 },  // Wait for next repeat (3s + buffer)
           { action: 'assert', type: 'ruleExecutions', ruleId: 'Repeat Rule', minimum: 2 },
+          { action: 'assert', type: 'groupExists', title: 'Repeated Group', tabCount: 3 },
 
           // Ungroup again and wait for third execution
           { action: 'ungroupTabs', url: 'repeat-test.com' },
           { action: 'wait', ms: 3500 },  // Wait for another repeat
           { action: 'assert', type: 'ruleExecutions', ruleId: 'Repeat Rule', minimum: 3 },
+          { action: 'assert', type: 'groupExists', title: 'Repeated Group', tabCount: 3 },
 
           // Clean up - remove the repeat rule to stop it
-          { action: 'deleteRule', ruleId: 'Repeat Rule' }
+          { action: 'deleteRule', ruleId: 'Repeat Rule' },
+
+          // Try to clean up the group we expect to exist
+          // This will FAIL if multiple groups were created (exposing the bug)
+          { action: 'deleteGroup', title: 'Repeated Group' }
         ]
       }
     ];

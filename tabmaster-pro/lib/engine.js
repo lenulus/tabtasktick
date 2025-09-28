@@ -242,21 +242,42 @@ async function executeAction(action, tab, context, dryRun) {
     case 'group':
       if (!dryRun && context.chrome?.tabs) {
         let groupId;
-        
+        let createdNewGroup = false;
+
         if (action.name) {
-          // Create or find named group
-          const existingGroups = await context.chrome.tabGroups.query({ 
-            windowId: tab.windowId 
-          });
-          const existingGroup = existingGroups.find(g => g.title === action.name);
-          
-          if (existingGroup) {
-            groupId = existingGroup.id;
-          } else if (action.createIfMissing !== false) {
-            groupId = await context.chrome.tabs.group({ tabIds: [tab.id] });
-            await context.chrome.tabGroups.update(groupId, { title: action.name });
-            return { success: true, details: { groupId, created: true } };
+          // Initialize groupMap if needed to track groups created in this batch
+          if (!context.groupMap) {
+            context.groupMap = {};
           }
+
+          // Check if we already created this named group in this batch
+          const groupKey = `name:${action.name}`;
+          groupId = context.groupMap[groupKey];
+
+          if (!groupId) {
+            // Not in our batch cache, check existing groups in the window
+            const existingGroups = await context.chrome.tabGroups.query({
+              windowId: tab.windowId
+            });
+            const existingGroup = existingGroups.find(g => g.title === action.name);
+
+            if (existingGroup) {
+              // Found existing group, use it
+              groupId = existingGroup.id;
+              // Cache it for other tabs in this batch
+              context.groupMap[groupKey] = groupId;
+            } else if (action.createIfMissing !== false) {
+              // Need to create new group with the first tab
+              groupId = await context.chrome.tabs.group({ tabIds: [tab.id] });
+              await context.chrome.tabGroups.update(groupId, { title: action.name });
+              // Cache for other tabs in this batch
+              context.groupMap[groupKey] = groupId;
+              createdNewGroup = true;
+              // Note: The first tab is already added to the group by the create call
+              // Continue to the return logic below
+            }
+          }
+          // groupId is now set to either existing or newly created group
         } else if (action.by) {
           // Group by attribute (origin, domain, etc)
           const groupKey = getGroupKey(tab, action.by);
@@ -268,12 +289,21 @@ async function executeAction(action, tab, context, dryRun) {
               context.groupMap[groupKey] = groupId;
             }
             await context.chrome.tabGroups.update(groupId, { title: groupKey });
-            return { success: true, details: { groupId, key: groupKey, created: true } };
+            // Note: First tab is already in the group from the create call above
+            // Don't return early - let it fall through
           }
         }
         
         if (groupId && tab.groupId !== groupId) {
           await context.chrome.tabs.group({ groupId, tabIds: [tab.id] });
+          return { success: true, details: { grouped: tab.id, groupId } };
+        } else if (groupId && tab.groupId === groupId) {
+          // Tab is already in the correct group (e.g., first tab that created the group)
+          const details = { grouped: tab.id, groupId };
+          if (createdNewGroup) {
+            details.created = true;
+          }
+          return { success: true, details };
         }
       }
       return { success: true, details: { grouped: tab.id } };

@@ -8,6 +8,37 @@ import { checkIsDupe } from './lib/predicate.js';
 console.log('Background service worker loaded with Rules Engine 2.0');
 
 // ============================================================================
+// Console Log Capturing for Debug
+// ============================================================================
+
+// Capture recent console logs for debugging
+const recentLogs = [];
+const originalConsole = {
+  log: console.log,
+  error: console.error,
+  warn: console.warn
+};
+
+// Override console methods to capture logs
+console.log = function(...args) {
+  recentLogs.push({ type: 'log', timestamp: Date.now(), message: args.join(' ') });
+  if (recentLogs.length > 50) recentLogs.shift();
+  originalConsole.log.apply(console, args);
+};
+
+console.error = function(...args) {
+  recentLogs.push({ type: 'error', timestamp: Date.now(), message: args.join(' ') });
+  if (recentLogs.length > 50) recentLogs.shift();
+  originalConsole.error.apply(console, args);
+};
+
+console.warn = function(...args) {
+  recentLogs.push({ type: 'warn', timestamp: Date.now(), message: args.join(' ') });
+  if (recentLogs.length > 50) recentLogs.shift();
+  originalConsole.warn.apply(console, args);
+};
+
+// ============================================================================
 // State Management
 // ============================================================================
 
@@ -999,7 +1030,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const tabInfo = await getTabInfo();
           sendResponse(tabInfo);
           break;
-          
+
+        case 'getRecentLogs':
+          // Return recent console logs for debugging
+          sendResponse({
+            logs: recentLogs.map(log => ({
+              ...log,
+              time: new Date(log.timestamp).toLocaleTimeString()
+            }))
+          });
+          break;
+
         // Tab operations
         case 'closeTabs':
           await closeTabs(request.tabIds);

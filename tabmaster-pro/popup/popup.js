@@ -27,8 +27,11 @@ const elements = {
   snoozedSection: document.getElementById('snoozedSection'),
   snoozedCount: document.getElementById('snoozedCount'),
   
-  // Footer
+  // Header
   settingsBtn: document.getElementById('settingsBtn'),
+  debugBtn: document.getElementById('debugBtn'),
+
+  // Footer
   commandPalette: document.getElementById('commandPalette'),
   dashboard: document.getElementById('dashboard'),
   export: document.getElementById('export'),
@@ -276,21 +279,35 @@ function updateSnoozedList(snoozedTabs) {
               <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
             </svg>
           </button>
+          <button class="snoozed-action delete-btn" data-tab-id="${tab.id}" title="Delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
       `;
       
       // Add action event listeners
       const wakeBtn = tabEl.querySelector('.wake-btn');
       const rescheduleBtn = tabEl.querySelector('.reschedule-btn');
-      
+      const deleteBtn = tabEl.querySelector('.delete-btn');
+
       wakeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        restoreSnoozedTab(tab.id);
+        restoreSnoozedTab(tab.id || tab.url); // Use URL as fallback ID
       });
-      
+
       rescheduleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         rescheduleSnoozedTab(tab);
+      });
+
+      deleteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (confirm(`Delete snoozed tab "${tab.title}"?`)) {
+          await deleteSnoozedTab(tab.id || tab.url);
+        }
       });
       
       // Add preview hover handlers
@@ -350,8 +367,11 @@ function setupEventListeners() {
   elements.snoozeCurrent.addEventListener('click', handleSnoozeCurrentToggle);
   elements.suspendInactive.addEventListener('click', handleSuspendInactive);
   
-  // Footer Actions
+  // Header Actions
   elements.settingsBtn.addEventListener('click', openSettings);
+  elements.debugBtn?.addEventListener('click', copyDebugInfo);
+
+  // Footer Actions
   elements.commandPalette.addEventListener('click', openCommandPalette);
   elements.dashboard.addEventListener('click', openDashboard);
   elements.export.addEventListener('click', handleExport);
@@ -489,21 +509,23 @@ async function handleSnoozeTabs(snoozeData) {
 async function rescheduleSnoozedTab(tab) {
   // Show modal for rescheduling
   snoozeModal.show([tab]);
-  
+
   snoozeModal.onSnooze = async (snoozeData) => {
     try {
-      // First restore the tab without opening it
-      await sendMessage({ action: 'removeSnoozedTab', tabId: tab.id });
-      
+      // First remove the tab without opening it
+      const tabId = tab.id || tab.url; // Use URL as fallback ID
+      await sendMessage({ action: 'removeSnoozedTab', tabId });
+
       // Then create new snoozed entry with new time
       const newSnoozedTab = {
         ...tab,
+        id: tab.id || Math.random().toString(36).substr(2, 9), // Ensure it has an ID
         wakeTime: snoozeData.timestamp,
         snoozeReason: snoozeData.presetId || 'custom'
       };
-      
+
       await sendMessage({ action: 'addSnoozedTab', tab: newSnoozedTab });
-      
+
       showNotification('Tab rescheduled', 'success');
       await loadSnoozedTabs();
     } catch (error) {
@@ -571,13 +593,278 @@ async function toggleRule(ruleId) {
 
 async function restoreSnoozedTab(tabId) {
   try {
-    await sendMessage({ action: 'restoreSnoozedTab', tabId });
-    await loadSnoozedTabs();
-    showNotification('Tab restored', 'success');
+    console.log('Attempting to restore snoozed tab:', tabId);
+    const response = await sendMessage({ action: 'restoreSnoozedTab', tabId });
+    console.log('Restore response:', response);
+
+    if (response && response.success) {
+      await loadSnoozedTabs();
+      showNotification('Tab restored', 'success');
+    } else {
+      console.error('Restore failed:', response);
+      showNotification(`Failed to restore tab: ${response?.error || 'Unknown error'}`, 'error');
+    }
   } catch (error) {
     console.error('Failed to restore tab:', error);
     showNotification('Failed to restore tab', 'error');
   }
+}
+
+async function deleteSnoozedTab(tabId) {
+  try {
+    console.log('Attempting to delete snoozed tab:', tabId);
+    const response = await sendMessage({ action: 'deleteSnoozedTab', tabId });
+    console.log('Delete response:', response);
+
+    if (response && response.success) {
+      await loadSnoozedTabs();
+      showNotification('Snoozed tab deleted', 'success');
+    } else {
+      console.error('Delete failed:', response);
+      showNotification(`Failed to delete tab: ${response?.error || 'Unknown error'}`, 'error');
+    }
+  } catch (error) {
+    console.error('Failed to delete tab:', error);
+    showNotification('Failed to delete tab', 'error');
+  }
+}
+
+// ============================================================================
+// Debug Information
+// ============================================================================
+
+async function copyDebugInfo() {
+  try {
+    // Collect all debug information
+    const debugInfo = {
+      timestamp: new Date().toISOString(),
+      browser: {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        manifest: chrome.runtime.getManifest()
+      },
+      permissions: {},
+      state: {},
+      errors: [],
+      diagnostics: {}
+    };
+
+    // Check permissions
+    try {
+      const permissions = await chrome.permissions.getAll();
+      debugInfo.permissions = permissions;
+    } catch (e) {
+      debugInfo.errors.push({ context: 'permissions', error: e.message });
+    }
+
+    // Get snoozed tabs with full details
+    try {
+      const snoozedTabs = await sendMessage({ action: 'getSnoozedTabs' });
+      debugInfo.state.snoozedTabs = {
+        count: snoozedTabs?.length || 0,
+        tabs: snoozedTabs?.map(tab => ({
+          id: tab.id,
+          url: tab.url,
+          title: tab.title,
+          wakeTime: tab.wakeTime,
+          snoozeUntil: tab.snoozeUntil,
+          wakeInto: tab.wakeInto,
+          snoozeReason: tab.snoozeReason,
+          favicon: tab.favicon || tab.favIconUrl,
+          hasId: !!tab.id,
+          hasWakeTime: !!tab.wakeTime,
+          hasSnoozeUntil: !!tab.snoozeUntil,
+          wakeTimeDate: tab.wakeTime ? new Date(tab.wakeTime).toISOString() : null,
+          snoozeUntilDate: tab.snoozeUntil ? new Date(tab.snoozeUntil).toISOString() : null,
+          isOverdue: tab.wakeTime ? tab.wakeTime < Date.now() : false
+        }))
+      };
+    } catch (e) {
+      debugInfo.errors.push({ context: 'getSnoozedTabs', error: e.message, stack: e.stack });
+    }
+
+    // Get current tabs with details
+    try {
+      const tabs = await chrome.tabs.query({});
+      const windows = await chrome.windows.getAll();
+      const groups = await chrome.tabGroups?.query({}) || [];
+
+      debugInfo.state.tabs = {
+        total: tabs.length,
+        byWindow: tabs.reduce((acc, tab) => {
+          acc[tab.windowId] = (acc[tab.windowId] || 0) + 1;
+          return acc;
+        }, {}),
+        byStatus: {
+          active: tabs.filter(t => t.active).length,
+          pinned: tabs.filter(t => t.pinned).length,
+          muted: tabs.filter(t => t.mutedInfo?.muted).length,
+          discarded: tabs.filter(t => t.discarded).length,
+          audible: tabs.filter(t => t.audible).length,
+          grouped: tabs.filter(t => t.groupId !== -1).length
+        },
+        windows: windows.map(w => ({
+          id: w.id,
+          type: w.type,
+          state: w.state,
+          focused: w.focused,
+          tabsCount: w.tabs?.length
+        })),
+        groups: groups.map(g => ({
+          id: g.id,
+          title: g.title,
+          color: g.color,
+          collapsed: g.collapsed,
+          windowId: g.windowId
+        })),
+        duplicates: await getDuplicateTabsCount(tabs)
+      };
+    } catch (e) {
+      debugInfo.errors.push({ context: 'chrome.tabs.query', error: e.message, stack: e.stack });
+    }
+
+    // Get storage data with sizes
+    try {
+      const storage = await chrome.storage.local.get(null);
+      debugInfo.state.storage = {
+        keys: Object.keys(storage),
+        sizes: {},
+        rules: {
+          count: storage.rules?.length || 0,
+          enabled: storage.rules?.filter(r => r.enabled).length || 0,
+          withTriggers: storage.rules?.filter(r => r.trigger).length || 0
+        },
+        snoozedTabsInStorage: storage.snoozedTabs?.length || 0,
+        activityLog: storage.activityLog?.length || 0,
+        statistics: storage.statistics,
+        settings: storage.settings,
+        testModeActive: storage.testModeActive || false,
+        scheduledTriggers: storage.scheduledTriggers?.length || 0
+      };
+
+      // Calculate approximate sizes
+      for (const key of Object.keys(storage)) {
+        try {
+          debugInfo.state.storage.sizes[key] = JSON.stringify(storage[key]).length;
+        } catch (e) {
+          debugInfo.state.storage.sizes[key] = 'Error calculating size';
+        }
+      }
+
+      // Get total storage usage
+      if (chrome.storage.local.getBytesInUse) {
+        debugInfo.state.storage.totalBytes = await chrome.storage.local.getBytesInUse();
+        debugInfo.state.storage.quotaBytes = chrome.storage.local.QUOTA_BYTES;
+        debugInfo.state.storage.usagePercent = ((debugInfo.state.storage.totalBytes / chrome.storage.local.QUOTA_BYTES) * 100).toFixed(2) + '%';
+      }
+    } catch (e) {
+      debugInfo.errors.push({ context: 'chrome.storage.local', error: e.message, stack: e.stack });
+    }
+
+    // Test various message handlers
+    debugInfo.diagnostics.messageTests = {};
+
+    // Test ping
+    try {
+      const pingStart = Date.now();
+      const testResult = await sendMessage({ action: 'ping' });
+      debugInfo.diagnostics.messageTests.ping = {
+        success: !!testResult,
+        responseTime: Date.now() - pingStart,
+        response: testResult
+      };
+    } catch (e) {
+      debugInfo.diagnostics.messageTests.ping = { error: e.message };
+    }
+
+    // Test getRules
+    try {
+      const rulesResult = await sendMessage({ action: 'getRules' });
+      debugInfo.diagnostics.messageTests.getRules = {
+        success: true,
+        count: rulesResult?.length || 0
+      };
+    } catch (e) {
+      debugInfo.diagnostics.messageTests.getRules = { error: e.message };
+    }
+
+    // Test getStatistics
+    try {
+      const statsResult = await sendMessage({ action: 'getStatistics' });
+      debugInfo.diagnostics.messageTests.getStatistics = {
+        success: true,
+        hasData: !!statsResult
+      };
+    } catch (e) {
+      debugInfo.diagnostics.messageTests.getStatistics = { error: e.message };
+    }
+
+    // Check for alarms
+    try {
+      const alarms = await chrome.alarms.getAll();
+      debugInfo.state.alarms = alarms.map(a => ({
+        name: a.name,
+        scheduledTime: new Date(a.scheduledTime).toISOString(),
+        periodInMinutes: a.periodInMinutes
+      }));
+    } catch (e) {
+      debugInfo.errors.push({ context: 'chrome.alarms', error: e.message });
+    }
+
+    // Get recent console errors from background
+    try {
+      const logsResult = await sendMessage({ action: 'getRecentLogs' });
+      debugInfo.diagnostics.recentBackgroundLogs = logsResult?.logs || [];
+    } catch (e) {
+      // Background might not have this handler, which is OK
+      debugInfo.diagnostics.recentBackgroundLogs = 'Not available';
+    }
+
+    // Memory usage
+    try {
+      if (performance.memory) {
+        debugInfo.diagnostics.memory = {
+          usedJSHeapSize: (performance.memory.usedJSHeapSize / 1048576).toFixed(2) + ' MB',
+          totalJSHeapSize: (performance.memory.totalJSHeapSize / 1048576).toFixed(2) + ' MB',
+          jsHeapSizeLimit: (performance.memory.jsHeapSizeLimit / 1048576).toFixed(2) + ' MB'
+        };
+      }
+    } catch (e) {
+      debugInfo.errors.push({ context: 'performance.memory', error: e.message });
+    }
+
+    // Format as JSON
+    const debugText = JSON.stringify(debugInfo, null, 2);
+
+    // Copy to clipboard
+    await navigator.clipboard.writeText(debugText);
+
+    showNotification('Debug info copied to clipboard', 'success');
+    console.log('Debug info:', debugInfo);
+
+  } catch (error) {
+    console.error('Failed to collect debug info:', error);
+    showNotification('Failed to copy debug info', 'error');
+  }
+}
+
+// Helper function to count duplicate tabs
+async function getDuplicateTabsCount(tabs) {
+  const urlCounts = {};
+  let duplicates = 0;
+
+  for (const tab of tabs) {
+    if (!tab.url || tab.pinned) continue;
+    const normalizedUrl = tab.url.replace(/\/$/, '').split('#')[0];
+    urlCounts[normalizedUrl] = (urlCounts[normalizedUrl] || 0) + 1;
+  }
+
+  for (const count of Object.values(urlCounts)) {
+    if (count > 1) duplicates += (count - 1);
+  }
+
+  return duplicates;
 }
 
 // ============================================================================
