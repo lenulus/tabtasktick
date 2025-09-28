@@ -41,6 +41,9 @@ const elements = {
 
   // Snoozed tabs
   wakeAllBtn: document.getElementById('wakeAllBtn'),
+
+  // Rules management
+  manageRulesBtn: document.getElementById('manageRulesBtn'),
 };
 
 // ============================================================================
@@ -159,18 +162,15 @@ function updateRulesList(rules) {
         <div class="rule-indicator ${!rule.enabled ? 'inactive' : ''}"></div>
         <span>${rule.name}</span>
       </div>
-      <button class="rule-toggle" data-rule-id="${rule.id}" title="${rule.enabled ? 'Disable' : 'Enable'}">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          ${rule.enabled ? 
-            '<rect x="2" y="10" width="20" height="4" rx="2"></rect>' : 
-            '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line>'}
-        </svg>
-      </button>
+      <label class="toggle-switch">
+        <input type="checkbox" data-rule-id="${rule.id}" ${rule.enabled ? 'checked' : ''}>
+        <span class="toggle-slider"></span>
+      </label>
     `;
-    
+
     // Add toggle event listener
-    const toggleBtn = ruleEl.querySelector('.rule-toggle');
-    toggleBtn.addEventListener('click', () => toggleRule(rule.id));
+    const toggleInput = ruleEl.querySelector('input[type="checkbox"]');
+    toggleInput.addEventListener('change', () => toggleRule(rule.id));
     
     elements.rulesList.appendChild(ruleEl);
   });
@@ -354,6 +354,9 @@ function setupEventListeners() {
 
   // Snoozed tabs actions
   elements.wakeAllBtn?.addEventListener('click', handleWakeAll);
+
+  // Rules management
+  elements.manageRulesBtn?.addEventListener('click', openRulesManager);
 
   // Footer Actions
   elements.commandPalette.addEventListener('click', openCommandPalette);
@@ -642,7 +645,7 @@ async function toggleRule(ruleId) {
   try {
     await sendMessage({ action: 'toggleRule', ruleId });
     await loadRules();
-    showNotification('Rule updated', 'success');
+    // Silently update - no notification needed for toggle
   } catch (error) {
     console.error('Failed to toggle rule:', error);
     showNotification('Failed to update rule', 'error');
@@ -935,6 +938,11 @@ function openDashboard(view = 'overview', filter = null) {
   }
 
   chrome.tabs.create({ url });
+}
+
+function openRulesManager() {
+  // Open dashboard directly to the rules view
+  openDashboard('rules');
 }
 
 function openCommandPalette() {

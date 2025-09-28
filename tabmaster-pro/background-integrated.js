@@ -766,6 +766,24 @@ async function updateRule(ruleId, updates) {
   return { success: true };
 }
 
+async function toggleRule(ruleId) {
+  const rule = state.rules.find(r => r.id === ruleId);
+  if (!rule) {
+    return { success: false, error: 'Rule not found' };
+  }
+
+  rule.enabled = !rule.enabled;
+  await chrome.storage.local.set({ rules: state.rules });
+
+  // Update scheduler
+  scheduler.removeRule(ruleId);
+  if (rule.enabled) {
+    await scheduler.setupRule(rule);
+  }
+
+  return { success: true, rule };
+}
+
 async function deleteRule(ruleId) {
   const ruleIndex = state.rules.findIndex(r => r.id === ruleId);
   if (ruleIndex === -1) {
@@ -897,7 +915,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const updateResult = await updateRule(request.ruleId, request.updates);
           sendResponse(updateResult);
           break;
-          
+
+        case 'toggleRule':
+          const toggleResult = await toggleRule(request.ruleId);
+          sendResponse(toggleResult);
+          break;
+
         case 'updateRules':
           // Bulk update all rules (used by dashboard)
           state.rules = request.rules || [];
