@@ -6,7 +6,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "google.com",
     rank: 1,
-    categories: ["productivity_tools", "search"]
+    categories: ["productivity", "search"]
   },
   {
     domain: "mail.ru",
@@ -16,7 +16,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "microsoft.com",
     rank: 3,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "facebook.com",
@@ -26,32 +26,32 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "googleapis.com",
     rank: 5,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "dzen.ru",
     rank: 6,
-    categories: ["entertainment", "news_media"]
+    categories: ["entertainment", "news"]
   },
   {
     domain: "cloudflare.com",
     rank: 7,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "amazonaws.com",
     rank: 8,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "youtube.com",
     rank: 9,
-    categories: ["social", "streaming_entertainment"]
+    categories: ["social", "video"]
   },
   {
     domain: "apple.com",
     rank: 10,
-    categories: ["shopping", "tech_dev"]
+    categories: ["shopping", "dev"]
   },
   {
     domain: "instagram.com",
@@ -61,12 +61,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "gstatic.com",
     rank: 12,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "akamai.net",
     rank: 13,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "twitter.com",
@@ -76,7 +76,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "office.com",
     rank: 15,
-    categories: ["productivity_tools"]
+    categories: ["productivity"]
   },
   {
     domain: "live.com",
@@ -96,12 +96,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "googlevideo.com",
     rank: 19,
-    categories: ["streaming_entertainment"]
+    categories: ["video"]
   },
   {
     domain: "googletagmanager.com",
     rank: 20,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "fbcdn.net",
@@ -141,7 +141,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "wikipedia.org",
     rank: 28,
-    categories: ["reference_research"]
+    categories: ["reference"]
   },
   {
     domain: "windowsupdate.com",
@@ -151,7 +151,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "googleusercontent.com",
     rank: 30,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "workers.dev",
@@ -161,7 +161,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "doubleclick.net",
     rank: 32,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "t-msedge.net",
@@ -176,7 +176,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "github.com",
     rank: 35,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "whatsapp.net",
@@ -191,12 +191,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "fastly.net",
     rank: 38,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "netflix.com",
     rank: 39,
-    categories: ["streaming_entertainment"]
+    categories: ["video"]
   },
   {
     domain: "e2ro.com",
@@ -206,7 +206,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "wordpress.org",
     rank: 41,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "appsflyersdk.com",
@@ -266,7 +266,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "yahoo.com",
     rank: 53,
-    categories: ["news_media", "search"]
+    categories: ["news", "search"]
   },
   {
     domain: "googlesyndication.com",
@@ -311,7 +311,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "tiktok.com",
     rank: 62,
-    categories: ["social", "streaming_entertainment"]
+    categories: ["social", "video"]
   },
   {
     domain: "msn.com",
@@ -321,12 +321,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "adobe.com",
     rank: 64,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "spotify.com",
     rank: 65,
-    categories: ["music", "streaming_entertainment"]
+    categories: ["music", "video"]
   },
   {
     domain: "nic.ru",
@@ -336,7 +336,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "vimeo.com",
     rank: 67,
-    categories: ["streaming_entertainment"]
+    categories: ["video"]
   },
   {
     domain: "x.com",
@@ -361,7 +361,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "cloudfront.net",
     rank: 72,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "akam.net",
@@ -391,7 +391,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "office365.com",
     rank: 78,
-    categories: ["productivity_tools"]
+    categories: ["productivity"]
   },
   {
     domain: "yandex.net",
@@ -401,7 +401,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "zoom.us",
     rank: 80,
-    categories: ["productivity_tools", "communication"]
+    categories: ["productivity", "communication"]
   },
   {
     domain: "qq.com",
@@ -416,12 +416,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "cloudflare.net",
     rank: 83,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "wordpress.com",
     rank: 84,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "samsung.com",
@@ -431,7 +431,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "google-analytics.com",
     rank: 86,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "baidu.com",
@@ -441,7 +441,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "cloudflare-dns.com",
     rank: 88,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "windows.com",
@@ -491,7 +491,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "reddit.com",
     rank: 98,
-    categories: ["reference_research", "social"]
+    categories: ["reference", "social"]
   },
   {
     domain: "googledomains.com",
@@ -651,12 +651,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "dropbox.com",
     rank: 130,
-    categories: ["productivity_tools"]
+    categories: ["productivity"]
   },
   {
     domain: "outlook.com",
     rank: 131,
-    categories: ["productivity_tools", "communication"]
+    categories: ["productivity", "communication"]
   },
   {
     domain: "xiaomi.com",
@@ -736,7 +736,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "archive.org",
     rank: 147,
-    categories: ["reference_research"]
+    categories: ["reference"]
   },
   {
     domain: "epicgames.com",
@@ -761,7 +761,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "nih.gov",
     rank: 152,
-    categories: ["reference_research", "government", "health_fitness"]
+    categories: ["reference", "government", "health_fitness"]
   },
   {
     domain: "rbxcdn.com",
@@ -781,7 +781,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "nytimes.com",
     rank: 156,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "amazon.dev",
@@ -846,7 +846,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "shopify.com",
     rank: 169,
-    categories: ["productivity_tools", "shopping"]
+    categories: ["productivity", "shopping"]
   },
   {
     domain: "miui.com",
@@ -856,7 +856,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "medium.com",
     rank: 171,
-    categories: ["reference_research", "tech_dev"]
+    categories: ["reference", "dev"]
   },
   {
     domain: "shifen.com",
@@ -866,7 +866,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "soundcloud.com",
     rank: 173,
-    categories: ["music", "streaming_entertainment"]
+    categories: ["music", "video"]
   },
   {
     domain: "l-msedge.net",
@@ -886,7 +886,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "cnn.com",
     rank: 177,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "lencr.org",
@@ -941,7 +941,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "theguardian.com",
     rank: 188,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "t.co",
@@ -981,7 +981,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "godaddy.com",
     rank: 196,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "myfritz.net",
@@ -1006,7 +1006,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "forbes.com",
     rank: 201,
-    categories: ["finance", "news_media"]
+    categories: ["finance", "news"]
   },
   {
     domain: "pubmatic.com",
@@ -1031,7 +1031,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "twitch.tv",
     rank: 206,
-    categories: ["gaming", "streaming_entertainment"]
+    categories: ["gaming", "video"]
   },
   {
     domain: "creativecommons.org",
@@ -1061,12 +1061,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "bbc.co.uk",
     rank: 212,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "bbc.com",
     rank: 213,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "akamaized.net",
@@ -1101,7 +1101,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "salesforce.com",
     rank: 220,
-    categories: ["productivity_tools"]
+    categories: ["productivity"]
   },
   {
     domain: "roku.com",
@@ -1131,7 +1131,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "slack.com",
     rank: 226,
-    categories: ["productivity_tools", "communication"]
+    categories: ["productivity", "communication"]
   },
   {
     domain: "ksyuncdn.com",
@@ -1141,7 +1141,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "oracle.com",
     rank: 228,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "comcast.net",
@@ -1191,7 +1191,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "canva.com",
     rank: 238,
-    categories: ["productivity_tools", "entertainment"]
+    categories: ["productivity", "entertainment"]
   },
   {
     domain: "cisco.com",
@@ -1396,12 +1396,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "stripe.com",
     rank: 279,
-    categories: ["finance", "tech_dev"]
+    categories: ["finance", "dev"]
   },
   {
     domain: "dailymotion.com",
     rank: 280,
-    categories: ["streaming_entertainment"]
+    categories: ["video"]
   },
   {
     domain: "static.microsoft",
@@ -1516,7 +1516,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "jsdelivr.net",
     rank: 303,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "php.net",
@@ -1526,12 +1526,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "tradingview.com",
     rank: 305,
-    categories: ["finance", "reference_research"]
+    categories: ["finance", "reference"]
   },
   {
     domain: "reuters.com",
     rank: 306,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "alibaba.com",
@@ -1656,7 +1656,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "washingtonpost.com",
     rank: 331,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "adsafeprotected.com",
@@ -1701,17 +1701,17 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "azureedge.net",
     rank: 340,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "dailymail.co.uk",
     rank: 341,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "wsj.com",
     rank: 342,
-    categories: ["finance", "news_media"]
+    categories: ["finance", "news"]
   },
   {
     domain: "samsungcloudsolution.com",
@@ -1766,7 +1766,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "akamaihd.net",
     rank: 353,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "vkuser.net",
@@ -1796,12 +1796,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "bloomberg.com",
     rank: 359,
-    categories: ["finance", "news_media"]
+    categories: ["finance", "news"]
   },
   {
     domain: "telegraph.co.uk",
     rank: 360,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "imgsmail.ru",
@@ -1836,7 +1836,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "rambler.ru",
     rank: 367,
-    categories: ["portal", "news_media"]
+    categories: ["portal", "news"]
   },
   {
     domain: "mi.com",
@@ -1876,12 +1876,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "tripadvisor.com",
     rank: 375,
-    categories: ["travel", "reference_research"]
+    categories: ["travel", "reference"]
   },
   {
     domain: "espn.com",
     rank: 376,
-    categories: ["sports", "news_media"]
+    categories: ["sports", "news"]
   },
   {
     domain: "tp-link.com",
@@ -1916,7 +1916,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "sohu.com",
     rank: 383,
-    categories: ["portal", "news_media"]
+    categories: ["portal", "news"]
   },
   {
     domain: "ibyteimg.com",
@@ -1941,7 +1941,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "bilibili.com",
     rank: 388,
-    categories: ["social", "streaming_entertainment"]
+    categories: ["social", "video"]
   },
   {
     domain: "vivoglobal.com",
@@ -1951,7 +1951,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "businessinsider.com",
     rank: 390,
-    categories: ["finance", "news_media"]
+    categories: ["finance", "news"]
   },
   {
     domain: "indeed.com",
@@ -1961,7 +1961,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "nasa.gov",
     rank: 392,
-    categories: ["government", "reference_research"]
+    categories: ["government", "reference"]
   },
   {
     domain: "tds.net",
@@ -2071,7 +2071,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "quora.com",
     rank: 415,
-    categories: ["reference_research", "social"]
+    categories: ["reference", "social"]
   },
   {
     domain: "plesk.com",
@@ -2131,7 +2131,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "foxnews.com",
     rank: 427,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "amazon.de",
@@ -2211,7 +2211,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "cnbc.com",
     rank: 444,
-    categories: ["finance", "news_media"]
+    categories: ["finance", "news"]
   },
   {
     domain: "wb.ru",
@@ -2246,7 +2246,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "npr.org",
     rank: 451,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "addtoany.com",
@@ -2411,7 +2411,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "usatoday.com",
     rank: 485,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "amzn.to",
@@ -2491,12 +2491,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "stackoverflow.com",
     rank: 501,
-    categories: ["reference_research", "tech_dev"]
+    categories: ["reference", "dev"]
   },
   {
     domain: "gitlab.com",
     rank: 502,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "expireddomains.com",
@@ -2526,7 +2526,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "wix.com",
     rank: 508,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "deviantart.com",
@@ -2601,12 +2601,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "nypost.com",
     rank: 523,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "atlassian.com",
     rank: 524,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "patreon.com",
@@ -2621,7 +2621,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "ft.com",
     rank: 527,
-    categories: ["finance", "news_media"]
+    categories: ["finance", "news"]
   },
   {
     domain: "intel.com",
@@ -2631,7 +2631,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "163.com",
     rank: 529,
-    categories: ["portal", "news_media"]
+    categories: ["portal", "news"]
   },
   {
     domain: "imgur.com",
@@ -2736,7 +2736,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "sina.com.cn",
     rank: 550,
-    categories: ["portal", "news_media"]
+    categories: ["portal", "news"]
   },
   {
     domain: "360safe.com",
@@ -2761,7 +2761,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "docker.com",
     rank: 555,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "gdemoideti.ru",
@@ -2811,7 +2811,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "buzzfeed.com",
     rank: 565,
-    categories: ["entertainment", "news_media"]
+    categories: ["entertainment", "news"]
   },
   {
     domain: "hotjar.com",
@@ -2821,7 +2821,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "squarespace.com",
     rank: 567,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "force.com",
@@ -2876,7 +2876,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "yelp.com",
     rank: 578,
-    categories: ["reference_research", "food_delivery"]
+    categories: ["reference", "food_delivery"]
   },
   {
     domain: "entrust.net",
@@ -2896,7 +2896,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "britannica.com",
     rank: 582,
-    categories: ["education", "reference_research"]
+    categories: ["education", "reference"]
   },
   {
     domain: "onetrust.com",
@@ -2966,7 +2966,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "ted.com",
     rank: 596,
-    categories: ["education", "reference_research"]
+    categories: ["education", "reference"]
   },
   {
     domain: "ozone.ru",
@@ -3201,12 +3201,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "w3schools.com",
     rank: 643,
-    categories: ["education", "reference_research", "tech_dev"]
+    categories: ["education", "reference", "dev"]
   },
   {
     domain: "noaa.gov",
     rank: 644,
-    categories: ["government", "reference_research"]
+    categories: ["government", "reference"]
   },
   {
     domain: "pinimg.com",
@@ -3361,7 +3361,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "spiegel.de",
     rank: 676,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "nel.goog",
@@ -3391,7 +3391,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "lemonde.fr",
     rank: 682,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "rackspace.net",
@@ -3436,7 +3436,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "rbc.ru",
     rank: 691,
-    categories: ["finance", "news_media"]
+    categories: ["finance", "news"]
   },
   {
     domain: "redhat.com",
@@ -3446,7 +3446,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "box.com",
     rank: 693,
-    categories: ["productivity_tools"]
+    categories: ["productivity"]
   },
   {
     domain: "onelink.me",
@@ -3521,7 +3521,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "tencent.com",
     rank: 709,
-    categories: ["gaming", "tech_dev"]
+    categories: ["gaming", "dev"]
   },
   {
     domain: "rackspace.com",
@@ -3626,7 +3626,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "webmd.com",
     rank: 730,
-    categories: ["reference_research", "health_fitness"]
+    categories: ["reference", "health_fitness"]
   },
   {
     domain: "google.cn",
@@ -3661,7 +3661,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "latimes.com",
     rank: 737,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "discordapp.com",
@@ -3706,7 +3706,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "bestbuy.com",
     rank: 746,
-    categories: ["shopping", "tech_dev"]
+    categories: ["shopping", "dev"]
   },
   {
     domain: "mozgcp.net",
@@ -3821,7 +3821,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "merriam-webster.com",
     rank: 771,
-    categories: ["reference_research"]
+    categories: ["reference"]
   },
   {
     domain: "recaptcha.net",
@@ -3881,7 +3881,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "lefigaro.fr",
     rank: 783,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "freepik.com",
@@ -3901,7 +3901,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "primevideo.com",
     rank: 787,
-    categories: ["streaming_entertainment"]
+    categories: ["video"]
   },
   {
     domain: "allegro.pl",
@@ -3911,12 +3911,12 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "mayoclinic.org",
     rank: 789,
-    categories: ["reference_research", "health_fitness"]
+    categories: ["reference", "health_fitness"]
   },
   {
     domain: "disneyplus.com",
     rank: 790,
-    categories: ["streaming_entertainment"]
+    categories: ["video"]
   },
   {
     domain: "xbox.com",
@@ -3946,7 +3946,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "digitalocean.com",
     rank: 796,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "adjust.com",
@@ -3956,7 +3956,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "unpkg.com",
     rank: 798,
-    categories: ["tech_dev"]
+    categories: ["dev"]
   },
   {
     domain: "appspot.com",
@@ -3971,7 +3971,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "apnews.com",
     rank: 801,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "academia.edu",
@@ -4011,7 +4011,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "healthline.com",
     rank: 809,
-    categories: ["reference_research", "health_fitness"]
+    categories: ["reference", "health_fitness"]
   },
   {
     domain: "welt.de",
@@ -4021,7 +4021,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "huffpost.com",
     rank: 811,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "typeform.com",
@@ -4121,7 +4121,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "genius.com",
     rank: 832,
-    categories: ["reference_research", "music"]
+    categories: ["reference", "music"]
   },
   {
     domain: "usda.gov",
@@ -4186,7 +4186,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "bild.de",
     rank: 845,
-    categories: ["news_media"]
+    categories: ["news"]
   },
   {
     domain: "networkadvertising.org",
@@ -4221,7 +4221,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "figma.com",
     rank: 852,
-    categories: ["productivity_tools", "tech_dev"]
+    categories: ["productivity", "dev"]
   },
   {
     domain: "bankofamerica.com",
@@ -4261,7 +4261,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "discogs.com",
     rank: 860,
-    categories: ["reference_research", "music"]
+    categories: ["reference", "music"]
   },
   {
     domain: "btloader.com",
@@ -4786,7 +4786,7 @@ export const CATEGORIZED_DOMAINS = [
   {
     domain: "pandora.com",
     rank: 967,
-    categories: ["music", "streaming_entertainment"]
+    categories: ["music", "video"]
   },
   {
     domain: "onedrive.com",

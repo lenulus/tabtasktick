@@ -669,6 +669,102 @@ export class TestMode {
           // This will FAIL if multiple groups were created (exposing the bug)
           { action: 'deleteGroup', title: 'Repeated Group' }
         ]
+      },
+
+      // Test category matching
+      {
+        name: 'category-matching',
+        description: 'Test category-based rules for news, shopping, and social sites',
+        steps: [
+          // Create tabs from different categories
+          { action: 'createTab', url: 'https://nytimes.com/article1', count: 2 },
+          { action: 'createTab', url: 'https://cnn.com/news1', count: 2 },
+          { action: 'createTab', url: 'https://bbc.com/story1', count: 1 },
+          { action: 'createTab', url: 'https://amazon.com/product1', count: 2 },
+          { action: 'createTab', url: 'https://ebay.com/item1', count: 1 },
+          { action: 'createTab', url: 'https://reddit.com/r/test', count: 2 },
+          { action: 'createTab', url: 'https://twitter.com/user1', count: 1 },
+          { action: 'createTab', url: 'https://github.com/test/repo', count: 2 },
+
+          // Rule to group news sites
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Group News Sites',
+              when: { eq: ['tab.category', 'news'] },
+              then: [{ action: 'group', name: 'News' }]
+            }
+          },
+          { action: 'executeRule', ruleId: 'Group News Sites' },
+          { action: 'wait', ms: 500 },
+          { action: 'assert', type: 'groupExists', title: 'News', tabCount: 5 },
+
+          // Rule to group shopping sites
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Group Shopping Sites',
+              when: { eq: ['tab.category', 'shopping'] },
+              then: [{ action: 'group', name: 'Shopping' }]
+            }
+          },
+          { action: 'executeRule', ruleId: 'Group Shopping Sites' },
+          { action: 'wait', ms: 500 },
+          { action: 'assert', type: 'groupExists', title: 'Shopping', tabCount: 3 },
+
+          // Rule to group social sites
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Group Social Sites',
+              when: { eq: ['tab.category', 'social'] },
+              then: [{ action: 'group', name: 'Social' }]
+            }
+          },
+          { action: 'executeRule', ruleId: 'Group Social Sites' },
+          { action: 'wait', ms: 500 },
+          { action: 'assert', type: 'groupExists', title: 'Social', tabCount: 3 },
+
+          // Rule to close tabs from a specific category
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Close Dev Tabs',
+              when: { eq: ['tab.category', 'dev'] },
+              then: [{ action: 'close' }]
+            }
+          },
+          { action: 'executeRule', ruleId: 'Close Dev Tabs' },
+          { action: 'wait', ms: 500 },
+          { action: 'assert', type: 'tabNotExists', url: 'github.com' },
+
+          // Test ANY condition with multiple categories
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Group Content Sites',
+              when: {
+                any: [
+                  { eq: ['tab.category', 'news'] },
+                  { eq: ['tab.category', 'social'] }
+                ]
+              },
+              then: [{ action: 'group', name: 'Content' }]
+            }
+          },
+
+          // First ungroup the existing groups
+          { action: 'ungroupTabs', url: 'nytimes.com' },
+          { action: 'ungroupTabs', url: 'cnn.com' },
+          { action: 'ungroupTabs', url: 'bbc.com' },
+          { action: 'ungroupTabs', url: 'reddit.com' },
+          { action: 'ungroupTabs', url: 'twitter.com' },
+          { action: 'wait', ms: 500 },
+
+          { action: 'executeRule', ruleId: 'Group Content Sites' },
+          { action: 'wait', ms: 500 },
+          { action: 'assert', type: 'groupExists', title: 'Content', minimum: 8 }
+        ]
       }
     ];
   }

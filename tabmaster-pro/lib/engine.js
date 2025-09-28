@@ -100,7 +100,9 @@ export function evaluateRule(rule, context, options = {}) {
       isPinned: tab.pinned,
       isMuted: tab.mutedInfo ? tab.mutedInfo.muted : false,
       isAudible: tab.audible,
-      isActive: tab.active
+      isActive: tab.active,
+      // Ensure category is explicitly included
+      category: tab.category || 'unknown'
     };
 
     const evalContext = {
@@ -109,26 +111,11 @@ export function evaluateRule(rule, context, options = {}) {
       idx: context.idx
     };
     
-    // Log tabs for debugging
-    if (tab.url && tab.url.includes('cnn.com')) {
-      console.log('CNN Tab:', tab.url, 'isDupe:', isDupe, 'dupeKey:', tab.dupeKey, 'id:', tab.id);
-    }
     
     // Evaluate predicate
     try {
       const result = predicate(evalContext);
 
-      // Debug logging for test mode
-      if (tab.url && (tab.url.includes('test-tab') || tab.url.includes('youtube.com') || tab.url.includes('docs.google.com'))) {
-        console.log('Evaluating test tab:', {
-          url: tab.url,
-          age: evalContext.tab.age,
-          isPinned: evalContext.tab.isPinned,
-          isMuted: evalContext.tab.isMuted,
-          isDupe: evalContext.tab.isDupe,
-          result
-        });
-      }
 
       if (result) {
         console.log('Tab matches:', tab.url, 'isDupe:', evalContext.tab.isDupe);

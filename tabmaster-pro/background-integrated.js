@@ -391,8 +391,7 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
           });
         }
       }
-      // Add category from domain mapping
-      tab.category = getCategoryForDomain(tab.url);
+      // Category will be assigned by engine.js using domain-categories.js data
     });
     
     // Build indices to enhance tabs with dupeKeys and other fields
@@ -821,61 +820,17 @@ function generateRuleId() {
 // Domain Categories
 // ============================================================================
 
-let domainCategories = {};
+// Domain categories now handled by engine.js
 
 async function loadDomainCategories() {
-  const { domainCategories: saved } = await chrome.storage.local.get('domainCategories');
-  if (saved) {
-    domainCategories = saved;
-  } else {
-    // Initialize with default categories
-    domainCategories = {
-      'youtube.com': 'video',
-      'netflix.com': 'video',
-      'twitch.tv': 'video',
-      'github.com': 'dev',
-      'stackoverflow.com': 'dev',
-      'reddit.com': 'social',
-      'twitter.com': 'social',
-      'x.com': 'social',
-      'facebook.com': 'social',
-      'instagram.com': 'social',
-      'linkedin.com': 'social',
-      'gmail.com': 'email',
-      'outlook.com': 'email',
-      'nytimes.com': 'news',
-      'cnn.com': 'news',
-      'bbc.com': 'news',
-      'amazon.com': 'shopping',
-      'ebay.com': 'shopping'
-    };
-    await chrome.storage.local.set({ domainCategories });
-  }
+  // This is now handled by engine.js using domain-categories.js
+  // Keeping this function for compatibility
 }
 
 function getCategoryForDomain(url) {
-  try {
-    const urlObj = new URL(url);
-    const domain = urlObj.hostname.replace('www.', '');
-    
-    // Check exact match
-    if (domainCategories[domain]) {
-      return domainCategories[domain];
-    }
-    
-    // Check parent domain
-    const parts = domain.split('.');
-    if (parts.length > 2) {
-      const parentDomain = parts.slice(-2).join('.');
-      if (domainCategories[parentDomain]) {
-        return domainCategories[parentDomain];
-      }
-    }
-    
-    return 'unknown';
-  } catch (e) {
-    return 'unknown';
-  }
+  // This is now handled by engine.js using domain-categories.js
+  // Keeping this stub for compatibility
+  return 'unknown';
 }
 
 // ============================================================================
@@ -2657,6 +2612,7 @@ async function startMonitoring() {
     await loadRules();
     await loadSettings();
     await loadActivityLog();
+    await loadDomainCategories();
     console.log('Initial state loaded');
   } catch (error) {
     console.error('Error loading initial state:', error);
