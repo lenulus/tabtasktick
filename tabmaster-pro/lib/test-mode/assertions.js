@@ -26,7 +26,10 @@ export class Assertions {
       duplicatesFound: this.assertDuplicatesFound.bind(this),
       tabProperty: this.assertTabProperty.bind(this),
       ruleEnabled: this.assertRuleEnabled.bind(this),
-      triggerScheduled: this.assertTriggerScheduled.bind(this)
+      triggerScheduled: this.assertTriggerScheduled.bind(this),
+      groupCount: this.assertGroupCount.bind(this),
+      tabNotExists: this.assertTabNotExists.bind(this),
+      bookmarkExists: this.assertBookmarkExists.bind(this)
     };
   }
 
@@ -286,6 +289,97 @@ export class Assertions {
         : 'Group does not exist as expected',
       actual: exists.actual
     };
+  }
+
+  /**
+   * Assert specific number of groups with given title exist
+   */
+  async assertGroupCount(params) {
+    const { title, expected } = params;
+
+    const groups = await chrome.tabGroups.query({});
+    const matchingGroups = groups.filter(g => g.title === title);
+    const actual = matchingGroups.length;
+
+    return {
+      passed: actual === expected,
+      message: actual === expected
+        ? `Found expected ${expected} group(s) with title '${title}'`
+        : `Expected ${expected} group(s) with title '${title}', but found ${actual}`,
+      expected,
+      actual,
+      groups: matchingGroups.map(g => ({ id: g.id, title: g.title, tabCount: g.id }))
+    };
+  }
+
+  /**
+   * Assert tab does not exist
+   */
+  async assertTabNotExists(params) {
+    const exists = await this.assertTabExists(params);
+    return {
+      passed: !exists.passed,
+      message: exists.passed
+        ? `Tab exists but was expected not to exist (url: ${params.url})`
+        : `Tab does not exist as expected (url: ${params.url})`,
+      actual: exists.actual
+    };
+  }
+
+  /**
+   * Assert bookmark exists
+   */
+  async assertBookmarkExists(params) {
+    const { url, folder } = params;
+
+    try {
+      // Search for bookmarks with the given URL
+      const bookmarks = await chrome.bookmarks.search({ url });
+
+      if (!bookmarks || bookmarks.length === 0) {
+        return {
+          passed: false,
+          message: `No bookmark found for URL: ${url}`,
+          expected: { url, folder },
+          actual: null
+        };
+      }
+
+      // If folder is specified, check if bookmark is in that folder
+      if (folder) {
+        for (const bookmark of bookmarks) {
+          // Get parent folder
+          const parent = await chrome.bookmarks.get(bookmark.parentId);
+          if (parent && parent[0] && parent[0].title === folder) {
+            return {
+              passed: true,
+              message: `Bookmark found in folder '${folder}' for URL: ${url}`,
+              actual: bookmark
+            };
+          }
+        }
+
+        return {
+          passed: false,
+          message: `Bookmark found but not in folder '${folder}' for URL: ${url}`,
+          expected: { url, folder },
+          actual: bookmarks[0]
+        };
+      }
+
+      // Just check if bookmark exists regardless of folder
+      return {
+        passed: true,
+        message: `Bookmark found for URL: ${url}`,
+        actual: bookmarks[0]
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Error checking bookmark: ${error.message}`,
+        error: true
+      };
+    }
   }
 
   /**

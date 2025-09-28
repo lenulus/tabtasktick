@@ -361,6 +361,9 @@ export class TestMode {
           { action: 'wait', ms: 1000 },
           { action: 'assert', type: 'tabSnoozed', url: 'old-tab-1.com' },
           { action: 'assert', type: 'tabSnoozed', url: 'old-tab-2.com' },
+          { action: 'assert', type: 'tabExists', url: 'recent-tab.com' },  // Should not be snoozed (< 1h old)
+          { action: 'assert', type: 'tabExists', url: 'new-tab.com' },  // Should not be snoozed (brand new)
+          { action: 'assert', type: 'tabCount', expected: 3 },  // 2 tabs + test window tab
           { action: 'assert', type: 'tabActive', url: 'recent-tab.com' },
           { action: 'assert', type: 'tabActive', url: 'new-tab.com' },
           { action: 'assert', type: 'statistics', field: 'tabsSnoozed', minimum: 2 }
@@ -412,7 +415,9 @@ export class TestMode {
           
           { action: 'executeRule', ruleId: 'Complex Rule' },
           { action: 'wait', ms: 1000 },
+          // Should bookmark: youtube/789 (not pinned, not muted) and github PR (> 1d old)
           { action: 'assert', type: 'bookmarkCreated', count: 2, folder: 'Test Bookmarks' }
+          // Note: Can't verify exact URLs due to redirects (youtube adds www, docs.google redirects)
         ]
       },
       {
@@ -440,6 +445,7 @@ export class TestMode {
 
           { action: 'assert', type: 'ruleExecutions', ruleId: 'Immediate Trigger', count: 1 },
           { action: 'assert', type: 'groupExists', title: 'Triggered', tabCount: 3, captureAs: 'triggeredGroupId' },
+          { action: 'assert', type: 'groupCount', title: 'Triggered', expected: 1 },  // Verify only ONE group created
           
           // Test scheduled trigger - create tab first, then rule
           { action: 'createTab', url: 'https://scheduled-test.com' },
@@ -457,7 +463,8 @@ export class TestMode {
           { action: 'wait', ms: 500 },  // Small wait to ensure trigger is saved
           { action: 'assert', type: 'triggerScheduled', ruleId: 'Scheduled Rule', triggerType: 'once' },
           { action: 'wait', ms: 5500 },  // Wait for scheduled trigger to fire (5s + buffer)
-          { action: 'assert', type: 'groupExists', title: 'Scheduled Group', captureAs: 'scheduledGroupId' },
+          { action: 'assert', type: 'groupExists', title: 'Scheduled Group', tabCount: 1, captureAs: 'scheduledGroupId' },
+          { action: 'assert', type: 'groupCount', title: 'Scheduled Group', expected: 1 },  // Verify only ONE group created
 
           // Cleanup: Remove the groups created during this test
           { action: 'deleteGroup', useCaptured: 'triggeredGroupId' },
