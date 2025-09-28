@@ -1190,7 +1190,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const rule = state.rules.find(r => r.id === request.ruleId || r.name === request.ruleId);
           sendResponse({ success: !!rule, rule });
           break;
-          
+
+        // Export/Import Operations
+        case 'exportData':
+          const exportResult = await exportData(request.options);
+          sendResponse(exportResult);
+          break;
+
+        case 'importData':
+          const importResult = await importData(request.data, request.options);
+          sendResponse(importResult);
+          break;
+
         default:
           sendResponse({ error: 'Unknown action' });
       }
@@ -1774,6 +1785,828 @@ function migrateActions(oldActions) {
   }
   
   return actions;
+}
+
+// ============================================================================
+// Export/Import Functions
+// ============================================================================
+
+async function exportData(options = {}) {
+  const {
+    scope = 'all-windows', // 'current-window' or 'all-windows'
+    format = 'json', // 'json', 'csv', or 'markdown'
+    includeRules = true,
+    includeSnoozed = true,
+    includeSettings = true,
+    includeStatistics = true,
+    currentWindowId = null
+  } = options;
+
+  // Get tabs based on scope
+  const query = scope === 'current-window' && currentWindowId
+    ? { windowId: currentWindowId }
+    : {};
+
+  const tabs = await chrome.tabs.query(query);
+  const windows = scope === 'current-window' && currentWindowId
+    ? await chrome.windows.get(currentWindowId)
+    : await chrome.windows.getAll();
+  const groups = await chrome.tabGroups.query(query);
+
+  // Build export based on format
+  switch (format) {
+    case 'json':
+      return await buildJSONExport(tabs, windows, groups, options);
+    case 'csv':
+      return buildCSVExport(tabs, groups);
+    case 'markdown':
+      return buildMarkdownExport(tabs, windows, groups, options);
+    default:
+      return await buildJSONExport(tabs, windows, groups, options);
+  }
+}
+
+async function buildJSONExport(tabs, windows, groups, options) {
+  const now = new Date();
+  const exportDate = now.toISOString();
+  const exportDateReadable = now.toLocaleString();
+
+  // Build session data with human-readable fields
+  const windowsArray = Array.isArray(windows) ? windows : [windows];
+  const sessionWindows = windowsArray.map(window => ({
+    id: `w${window.id}`,
+    windowId: window.id, // Keep original ID for reference
+    title: `Window ${window.id} - ${tabs.filter(t => t.windowId === window.id).length} tabs`,
+    focused: window.focused,
+    state: window.state,
+    type: window.type,
+    tabCount: tabs.filter(t => t.windowId === window.id).length,
+    tabs: tabs.filter(t => t.windowId === window.id).map(t => `t${t.id}`)
+  }));
+
+  // Get current time for relative time calculations
+  const currentTime = Date.now();
+
+  const sessionTabs = tabs.map(tab => {
+    const group = groups.find(g => g.id === tab.groupId);
+    const timeData = tabTimeData.get(tab.id) || {};
+
+    // Calculate human-readable times
+    const createdAt = timeData.created || currentTime;
+    const lastAccessedAt = timeData.lastAccessed || currentTime;
+    const createdAgo = getTimeAgo(createdAt, currentTime);
+    const lastAccessedAgo = getTimeAgo(lastAccessedAt, currentTime);
+
+    // Extract domain from URL
+    let domain = '';
+    try {
+      const url = new URL(tab.url);
+      domain = url.hostname;
+    } catch (e) {
+      domain = tab.url.split('/')[0];
+    }
+
+    return {
+      id: `t${tab.id}`,
+      tabId: tab.id, // Keep original ID for reference
+      windowId: `w${tab.windowId}`,
+      groupId: tab.groupId !== -1 ? `g${tab.groupId}` : null,
+      groupName: group ? group.title : null,
+      url: tab.url,
+      title: tab.title,
+      domain: domain,
+      favicon: tab.favIconUrl || '',
+      pinned: tab.pinned,
+      position: tab.index,
+      active: tab.active,
+      audible: tab.audible,
+      muted: tab.mutedInfo ? tab.mutedInfo.muted : false,
+      createdAt: new Date(createdAt).toISOString(),
+      createdReadable: createdAgo,
+      lastAccessedAt: new Date(lastAccessedAt).toISOString(),
+      lastAccessedReadable: lastAccessedAgo
+    };
+  });
+
+  const sessionGroups = groups.map(group => {
+    const window = windowsArray.find(w => w.id === group.windowId);
+    const groupTabs = tabs.filter(t => t.groupId === group.id);
+
+    return {
+      id: `g${group.id}`,
+      groupId: group.id, // Keep original ID for reference
+      windowId: `w${group.windowId}`,
+      windowTitle: window ? `Window ${window.id}` : 'Unknown Window',
+      name: group.title || 'Unnamed Group',
+      color: group.color,
+      colorHex: getColorHex(group.color),
+      collapsed: group.collapsed,
+      tabCount: groupTabs.length,
+      tabIds: groupTabs.map(t => `t${t.id}`)
+    };
+  });
+
+  // Build the full export data
+  const exportData = {
+    format: 'TabMaster Export v2.0',
+    created: exportDate,
+    createdReadable: exportDateReadable,
+    scope: options.scope || 'all-windows',
+    description: `${tabs.length} tabs across ${windowsArray.length} window${windowsArray.length > 1 ? 's' : ''}`,
+    browser: navigator.userAgent,
+    extension: {
+      name: 'TabMaster Pro',
+      version: chrome.runtime.getManifest().version
+    },
+    session: {
+      summary: `${windowsArray.length} window${windowsArray.length > 1 ? 's' : ''}, ${tabs.length} tabs, ${groups.length} groups`,
+      windows: sessionWindows,
+      tabs: sessionTabs,
+      groups: sessionGroups
+    },
+    extensionData: {}
+  };
+
+  // Add extension data (never scoped - always all)
+  if (options.includeRules !== false) {
+    exportData.extensionData.rules = state.rules.map(rule => ({
+      ...rule,
+      conditionsReadable: getConditionsReadable(rule.conditions),
+      actionsReadable: getActionsReadable(rule.actions)
+    }));
+  }
+
+  if (options.includeSnoozed !== false) {
+    exportData.extensionData.snoozedTabs = state.snoozedTabs.map(tab => ({
+      ...tab,
+      wakeTimeReadable: tab.wakeTime ? getTimeUntil(tab.wakeTime, currentTime) : 'Unknown',
+      snoozedReadable: tab.snoozedAt ? getTimeAgo(tab.snoozedAt, currentTime) : 'Unknown'
+    }));
+  }
+
+  if (options.includeSettings !== false) {
+    exportData.extensionData.settings = state.settings;
+  }
+
+  if (options.includeStatistics !== false) {
+    exportData.extensionData.statistics = state.statistics;
+  }
+
+  return exportData;
+}
+
+function buildCSVExport(tabs, groups) {
+  // CSV header
+  const headers = ['Window', 'Group', 'Position', 'Title', 'URL', 'Domain', 'Pinned', 'Active', 'Created', 'Last Accessed'];
+  const rows = [headers];
+
+  // Add tab data
+  tabs.forEach(tab => {
+    const group = groups.find(g => g.id === tab.groupId);
+    const timeData = tabTimeData.get(tab.id) || {};
+
+    // Extract domain
+    let domain = '';
+    try {
+      const url = new URL(tab.url);
+      domain = url.hostname;
+    } catch (e) {
+      domain = tab.url.split('/')[0];
+    }
+
+    const row = [
+      `Window ${tab.windowId}`,
+      group ? group.title : '',
+      tab.index.toString(),
+      tab.title.replace(/"/g, '""'), // Escape quotes for CSV
+      tab.url,
+      domain,
+      tab.pinned ? 'true' : 'false',
+      tab.active ? 'true' : 'false',
+      timeData.created ? new Date(timeData.created).toLocaleString() : '',
+      timeData.lastAccessed ? new Date(timeData.lastAccessed).toLocaleString() : ''
+    ];
+
+    rows.push(row);
+  });
+
+  // Convert to CSV string
+  const csv = rows.map(row =>
+    row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+
+  return { csv, format: 'csv' };
+}
+
+function buildMarkdownExport(tabs, windows, groups, options) {
+  const windowsArray = Array.isArray(windows) ? windows : [windows];
+  let markdown = '# TabMaster Export - ' + new Date().toLocaleDateString() + '\n\n';
+
+  // Summary section
+  markdown += '## Summary\n';
+  markdown += `- **Total Tabs**: ${tabs.length} across ${windowsArray.length} window${windowsArray.length > 1 ? 's' : ''}\n`;
+  markdown += `- **Tab Groups**: ${groups.length} groups\n`;
+  if (options.includeSnoozed !== false && state.snoozedTabs.length > 0) {
+    markdown += `- **Snoozed Tabs**: ${state.snoozedTabs.length} tabs\n`;
+  }
+  if (options.includeRules !== false && state.rules.length > 0) {
+    markdown += `- **Active Rules**: ${state.rules.filter(r => r.enabled).length} rules\n`;
+  }
+  markdown += '\n';
+
+  // Windows section
+  markdown += '## Windows\n\n';
+
+  windowsArray.forEach(window => {
+    const windowTabs = tabs.filter(t => t.windowId === window.id);
+    const windowGroups = groups.filter(g => g.windowId === window.id);
+
+    markdown += `### Window ${window.id} (${windowTabs.length} tabs)\n`;
+
+    if (windowGroups.length > 0) {
+      const groupNames = windowGroups.map(g => `${g.title} (${windowTabs.filter(t => t.groupId === g.id).length})`);
+      const ungroupedCount = windowTabs.filter(t => t.groupId === -1).length;
+      if (ungroupedCount > 0) {
+        groupNames.push(`Ungrouped (${ungroupedCount})`);
+      }
+      markdown += `**Groups**: ${groupNames.join(', ')}\n\n`;
+    }
+
+    // List tabs by group
+    windowGroups.forEach(group => {
+      const groupTabs = windowTabs.filter(t => t.groupId === group.id);
+      if (groupTabs.length > 0) {
+        markdown += `#### ${group.title} Group\n`;
+        groupTabs.forEach((tab, index) => {
+          const pinned = tab.pinned ? ' 📌' : '';
+          markdown += `${index + 1}. [${tab.title}](${tab.url})${pinned}\n`;
+        });
+        markdown += '\n';
+      }
+    });
+
+    // Ungrouped tabs
+    const ungroupedTabs = windowTabs.filter(t => t.groupId === -1);
+    if (ungroupedTabs.length > 0) {
+      markdown += '#### Ungrouped Tabs\n';
+      ungroupedTabs.forEach((tab, index) => {
+        const pinned = tab.pinned ? ' 📌' : '';
+        markdown += `${index + 1}. [${tab.title}](${tab.url})${pinned}\n`;
+      });
+      markdown += '\n';
+    }
+  });
+
+  // Snoozed tabs section
+  if (options.includeSnoozed !== false && state.snoozedTabs.length > 0) {
+    markdown += '## Snoozed Tabs\n';
+    markdown += '| Title | URL | Wake Time | Reason |\n';
+    markdown += '|-------|-----|-----------|--------|\n';
+
+    state.snoozedTabs.forEach(tab => {
+      const wakeTime = tab.wakeTime ? new Date(tab.wakeTime).toLocaleString() : 'Unknown';
+      markdown += `| ${tab.title} | ${tab.url} | ${wakeTime} | ${tab.reason || 'No reason'} |\n`;
+    });
+    markdown += '\n';
+  }
+
+  // Active rules section
+  if (options.includeRules !== false && state.rules.length > 0) {
+    const activeRules = state.rules.filter(r => r.enabled);
+    if (activeRules.length > 0) {
+      markdown += '## Active Rules\n';
+      activeRules.forEach((rule, index) => {
+        markdown += `${index + 1}. **${rule.name}** - ${rule.description || 'No description'}\n`;
+      });
+    }
+  }
+
+  return { markdown, format: 'markdown' };
+}
+
+// Helper functions for human-readable formatting
+function getTimeAgo(timestamp, now) {
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  return 'Just now';
+}
+
+function getTimeUntil(timestamp, now) {
+  const diff = timestamp - now;
+  if (diff <= 0) return 'Now';
+
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `In ${days} day${days > 1 ? 's' : ''}`;
+  if (hours > 0) return `In ${hours} hour${hours > 1 ? 's' : ''}`;
+  if (minutes > 0) return `In ${minutes} minute${minutes > 1 ? 's' : ''}`;
+  return 'Soon';
+}
+
+function getColorHex(colorName) {
+  const colors = {
+    'grey': '#5f6368',
+    'blue': '#1a73e8',
+    'red': '#ea4335',
+    'yellow': '#fbbc04',
+    'green': '#34a853',
+    'pink': '#ff6d91',
+    'purple': '#9334e6',
+    'cyan': '#00bcd4',
+    'orange': '#ff9800'
+  };
+  return colors[colorName] || '#5f6368';
+}
+
+function getConditionsReadable(conditions) {
+  // Simple readable format for conditions
+  if (!conditions) return 'No conditions';
+
+  if (conditions.all && Array.isArray(conditions.all)) {
+    return 'All conditions must be met';
+  }
+  if (conditions.any && Array.isArray(conditions.any)) {
+    return 'Any condition must be met';
+  }
+  if (conditions.is && Array.isArray(conditions.is)) {
+    return `Check: ${conditions.is[0]}`;
+  }
+  return 'Custom conditions';
+}
+
+function getActionsReadable(actions) {
+  // Simple readable format for actions
+  if (!actions || !Array.isArray(actions)) return 'No actions';
+
+  return actions.map(action => {
+    switch (action.type) {
+      case 'close': return 'Close tab';
+      case 'group': return `Group into "${action.group || 'unnamed'}"`;
+      case 'snooze': return `Snooze for ${action.duration || 'default time'}`;
+      case 'pin': return 'Pin tab';
+      case 'unpin': return 'Unpin tab';
+      case 'mute': return 'Mute tab';
+      case 'unmute': return 'Unmute tab';
+      default: return action.type;
+    }
+  }).join(', ');
+}
+
+// ============================================================================
+// Import Functions
+// ============================================================================
+
+async function importData(data, options = {}) {
+  const {
+    scope = 'new-windows', // 'new-windows', 'current-window', or 'replace-all'
+    importGroups = true,
+    shouldImportRules = true,
+    shouldImportSnoozed = true,
+    importSettings = false
+  } = options;
+
+  const result = {
+    success: false,
+    imported: {
+      windows: 0,
+      tabs: 0,
+      groups: 0,
+      rules: 0,
+      snoozed: 0
+    },
+    errors: [],
+    warnings: []
+  };
+
+  try {
+    // Validate data structure
+    if (!data || !data.session) {
+      throw new Error('Invalid import data: missing session information');
+    }
+
+    // Handle different import scopes
+    switch (scope) {
+      case 'replace-all':
+        // Close all existing windows except the current one
+        const currentWindow = await chrome.windows.getCurrent();
+        const allWindows = await chrome.windows.getAll();
+        for (const window of allWindows) {
+          if (window.id !== currentWindow.id) {
+            try {
+              await chrome.windows.remove(window.id);
+            } catch (e) {
+              result.warnings.push(`Could not close window ${window.id}`);
+            }
+          }
+        }
+        break;
+
+      case 'current-window':
+        // Import will append to current window
+        break;
+
+      case 'new-windows':
+      default:
+        // Import will create new windows
+        break;
+    }
+
+    // Import tabs and groups
+    if (data.session && data.session.tabs && data.session.tabs.length > 0) {
+      console.log(`Importing ${data.session.tabs.length} tabs with scope: ${scope}`);
+      const importResult = await importTabsAndGroups(
+        data.session.tabs,
+        data.session.groups || [],
+        data.session.windows || [],
+        scope,
+        importGroups
+      );
+
+      result.imported.tabs = importResult.tabCount;
+      result.imported.groups = importResult.groupCount;
+      result.imported.windows = importResult.windowCount;
+
+      if (importResult.errors.length > 0) {
+        result.errors.push(...importResult.errors);
+      }
+    } else {
+      console.log('No tabs to import:', {
+        hasSession: !!data.session,
+        hasTabs: data.session ? !!data.session.tabs : false,
+        tabCount: data.session && data.session.tabs ? data.session.tabs.length : 0
+      });
+    }
+
+    // Import rules
+    if (shouldImportRules && data.extensionData && data.extensionData.rules) {
+      const rulesResult = await importRules(data.extensionData.rules);
+      result.imported.rules = rulesResult.imported;
+      if (rulesResult.errors.length > 0) {
+        result.errors.push(...rulesResult.errors);
+      }
+    }
+
+    // Import snoozed tabs
+    if (shouldImportSnoozed && data.extensionData && data.extensionData.snoozedTabs) {
+      const snoozedResult = await importSnoozedTabs(data.extensionData.snoozedTabs);
+      result.imported.snoozed = snoozedResult.imported;
+      if (snoozedResult.errors.length > 0) {
+        result.errors.push(...snoozedResult.errors);
+      }
+    }
+
+    // Import settings
+    if (importSettings && data.extensionData && data.extensionData.settings) {
+      try {
+        state.settings = { ...state.settings, ...data.extensionData.settings };
+        await chrome.storage.local.set({ settings: state.settings });
+      } catch (e) {
+        result.errors.push('Failed to import settings: ' + e.message);
+      }
+    }
+
+    result.success = true;
+
+  } catch (error) {
+    console.error('Import failed:', error);
+    result.success = false;
+    result.errors.push(error.message);
+  }
+
+  return result;
+}
+
+async function importTabsAndGroups(tabs, groups, windows, scope, importGroups) {
+  const result = {
+    tabCount: 0,
+    groupCount: 0,
+    windowCount: 0,
+    errors: []
+  };
+
+  try {
+    let targetWindowId;
+    const windowIdMap = new Map(); // Map old window IDs to new ones
+    const groupIdMap = new Map(); // Map old group IDs to new ones
+    const newWindowIds = []; // Track new windows for cleanup
+
+    // Determine target window(s)
+    if (scope === 'current-window' || scope === 'replace-all') {
+      const currentWindow = await chrome.windows.getCurrent();
+      targetWindowId = currentWindow.id;
+
+      // Map all old window IDs to current window
+      windows.forEach(window => {
+        const oldId = window.windowId || parseInt(window.id.replace('w', ''));
+        windowIdMap.set(oldId, targetWindowId);
+      });
+    } else {
+      // Create new windows
+
+      for (const windowData of windows) {
+        try {
+          const newWindow = await chrome.windows.create({
+            focused: windows.indexOf(windowData) === 0, // Focus first window
+            state: windowData.state || 'normal'
+          });
+
+          const oldId = windowData.windowId || parseInt(windowData.id.replace('w', ''));
+          windowIdMap.set(oldId, newWindow.id);
+          newWindowIds.push(newWindow.id); // Track for cleanup
+          result.windowCount++;
+
+          // Don't remove tabs yet - we'll do it after creating our tabs
+          // Store the window for later cleanup
+          targetWindowId = newWindow.id;
+        } catch (e) {
+          console.error('Failed to create window:', e);
+          result.errors.push(`Failed to create window: ${e.message}`);
+        }
+      }
+
+      // If no windows in data, create one
+      if (windows.length === 0 && tabs.length > 0) {
+        const newWindow = await chrome.windows.create({ focused: true });
+        targetWindowId = newWindow.id;
+        result.windowCount = 1;
+
+        // Remove default tab
+        const defaultTabs = await chrome.tabs.query({ windowId: newWindow.id });
+        for (const tab of defaultTabs) {
+          try {
+            await chrome.tabs.remove(tab.id);
+          } catch (e) {
+            // Ignore
+          }
+        }
+      }
+    }
+
+    // Create groups first if importing groups
+    if (importGroups && groups.length > 0) {
+      for (const groupData of groups) {
+        try {
+          const oldWindowId = groupData.windowId ? parseInt(groupData.windowId.replace('w', '')) : null;
+          const newWindowId = oldWindowId ? windowIdMap.get(oldWindowId) : targetWindowId;
+
+          if (!newWindowId) continue;
+
+          // We'll create the group when we create tabs with groupId
+          // Store the mapping for later use
+          const oldGroupId = groupData.groupId || parseInt(groupData.id.replace('g', ''));
+          groupIdMap.set(oldGroupId, {
+            windowId: newWindowId,
+            title: groupData.name || groupData.title,
+            color: groupData.color,
+            collapsed: groupData.collapsed
+          });
+        } catch (e) {
+          result.errors.push(`Failed to prepare group ${groupData.name}: ${e.message}`);
+        }
+      }
+    }
+
+    // Create tabs in batches to avoid overwhelming the browser
+    const BATCH_SIZE = 10;
+    const tabsToCreate = [];
+
+    for (const tabData of tabs) {
+      // Skip restricted URLs
+      if (tabData.url && (
+        tabData.url.startsWith('chrome://') ||
+        tabData.url.startsWith('edge://') ||
+        tabData.url.startsWith('about:') ||
+        tabData.url.startsWith('chrome-extension://')
+      )) {
+        result.errors.push(`Skipped restricted URL: ${tabData.url}`);
+        continue;
+      }
+
+      // Determine target window
+      const oldWindowId = tabData.windowId ? parseInt(tabData.windowId.replace('w', '')) : null;
+      const newWindowId = oldWindowId ? windowIdMap.get(oldWindowId) : targetWindowId;
+
+      if (!newWindowId) {
+        continue;
+      }
+
+      tabsToCreate.push({
+        url: tabData.url || 'about:blank',
+        windowId: newWindowId,
+        pinned: tabData.pinned || false,
+        active: false, // We'll activate the right tab later
+        groupId: tabData.groupId,
+        groupData: groupIdMap.get(parseInt((tabData.groupId || '-1').toString().replace('g', ''))),
+        originalData: tabData
+      });
+    }
+
+    if (tabsToCreate.length === 0) {
+      return result;
+    }
+
+    // Create tabs in batches
+    const createdGroups = new Map(); // Track created groups per window
+
+    for (let i = 0; i < tabsToCreate.length; i += BATCH_SIZE) {
+      const batch = tabsToCreate.slice(i, i + BATCH_SIZE);
+
+      const batchPromises = batch.map(async (tabInfo) => {
+        try {
+          const createProps = {
+            url: tabInfo.url,
+            windowId: tabInfo.windowId,
+            pinned: tabInfo.pinned,
+            active: false
+          };
+
+          const newTab = await chrome.tabs.create(createProps);
+          result.tabCount++;
+
+          // Add to group if needed
+          if (importGroups && tabInfo.groupData) {
+            const groupKey = `${tabInfo.windowId}-${tabInfo.groupData.title}`;
+
+            if (!createdGroups.has(groupKey)) {
+              // Create new group
+              const groupId = await chrome.tabs.group({
+                tabIds: [newTab.id],
+                createProperties: {
+                  windowId: tabInfo.windowId
+                }
+              });
+
+              // Update group properties
+              await chrome.tabGroups.update(groupId, {
+                title: tabInfo.groupData.title,
+                color: tabInfo.groupData.color,
+                collapsed: tabInfo.groupData.collapsed
+              });
+
+              createdGroups.set(groupKey, groupId);
+              result.groupCount++;
+            } else {
+              // Add to existing group
+              const groupId = createdGroups.get(groupKey);
+              await chrome.tabs.group({
+                tabIds: [newTab.id],
+                groupId: groupId
+              });
+            }
+          }
+
+          return newTab;
+        } catch (e) {
+          result.errors.push(`Failed to create tab: ${e.message}`);
+          return null;
+        }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+
+      // Small delay between batches to avoid overwhelming the browser
+      if (i + BATCH_SIZE < tabsToCreate.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    // Clean up default "New Tab" pages in new windows
+    if (scope === 'new-windows' && newWindowIds && newWindowIds.length > 0) {
+      for (const windowId of newWindowIds) {
+        try {
+          const windowTabs = await chrome.tabs.query({ windowId: windowId });
+          // Find and remove any "New Tab" pages (chrome://newtab/)
+          for (const tab of windowTabs) {
+            if (tab.url === 'chrome://newtab/' ||
+                (tab.url === '' && tab.title === 'New Tab') ||
+                (tab.pendingUrl === 'chrome://newtab/')) {
+              try {
+                await chrome.tabs.remove(tab.id);
+              } catch (e) {
+                // Can't remove if it's the last tab, which is fine
+              }
+            }
+          }
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }
+    }
+
+  } catch (error) {
+    console.error('Failed to import tabs and groups:', error);
+    result.errors.push(error.message);
+  }
+
+  return result;
+}
+
+async function importRules(rules) {
+  const result = { imported: 0, errors: [] };
+
+  try {
+    // Load current rules
+    await loadRules();
+
+    for (const ruleData of rules) {
+      try {
+        // Check if rule with same name exists
+        const existingRule = state.rules.find(r => r.name === ruleData.name);
+
+        if (existingRule) {
+          // Update existing rule
+          const updatedRule = {
+            ...existingRule,
+            ...ruleData,
+            id: existingRule.id, // Keep original ID
+            updatedAt: Date.now()
+          };
+
+          const index = state.rules.findIndex(r => r.id === existingRule.id);
+          state.rules[index] = updatedRule;
+        } else {
+          // Add new rule
+          const newRule = {
+            ...ruleData,
+            id: `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          };
+
+          state.rules.push(newRule);
+        }
+
+        result.imported++;
+      } catch (e) {
+        result.errors.push(`Failed to import rule "${ruleData.name}": ${e.message}`);
+      }
+    }
+
+    // Save updated rules
+    await chrome.storage.local.set({ rules: state.rules });
+
+    // Update scheduler for all rules
+    for (const rule of state.rules) {
+      if (rule.enabled) {
+        await scheduler.setupRule(rule);
+      }
+    }
+
+  } catch (error) {
+    console.error('Failed to import rules:', error);
+    result.errors.push(error.message);
+  }
+
+  return result;
+}
+
+async function importSnoozedTabs(snoozedTabs) {
+  const result = { imported: 0, errors: [] };
+
+  try {
+    for (const tabData of snoozedTabs) {
+      try {
+        // Skip if URL is restricted
+        if (tabData.url && (
+          tabData.url.startsWith('chrome://') ||
+          tabData.url.startsWith('edge://') ||
+          tabData.url.startsWith('about:')
+        )) {
+          result.errors.push(`Skipped restricted snoozed URL: ${tabData.url}`);
+          continue;
+        }
+
+        // Add to snoozed tabs
+        const snoozedTab = {
+          ...tabData,
+          id: `snoozed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          snoozedAt: Date.now()
+        };
+
+        state.snoozedTabs.push(snoozedTab);
+        result.imported++;
+      } catch (e) {
+        result.errors.push(`Failed to import snoozed tab: ${e.message}`);
+      }
+    }
+
+    // Save snoozed tabs
+    await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+
+  } catch (error) {
+    console.error('Failed to import snoozed tabs:', error);
+    result.errors.push(error.message);
+  }
+
+  return result;
 }
 
 // ============================================================================

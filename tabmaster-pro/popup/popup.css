@@ -32,6 +32,11 @@ body {
   overflow-y: auto;
 }
 
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
 .container {
   padding: 0;
   background: white;

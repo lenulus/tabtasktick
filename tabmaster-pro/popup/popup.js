@@ -33,6 +33,7 @@ const elements = {
   commandPalette: document.getElementById('commandPalette'),
   dashboard: document.getElementById('dashboard'),
   export: document.getElementById('export'),
+  import: document.getElementById('import'),
   help: document.getElementById('help'),
   
   // Badge
@@ -357,8 +358,52 @@ function setupEventListeners() {
   // Footer Actions
   elements.commandPalette.addEventListener('click', openCommandPalette);
   elements.dashboard.addEventListener('click', () => openDashboard());
-  elements.export.addEventListener('click', handleExport);
+  elements.export.addEventListener('click', openExportModal);
+  elements.import.addEventListener('click', openImportModal);
   elements.help.addEventListener('click', openHelp);
+
+  // Export modal event listeners
+  document.getElementById('closeExportModal').addEventListener('click', closeExportModal);
+  document.getElementById('cancelExport').addEventListener('click', closeExportModal);
+  document.getElementById('confirmExport').addEventListener('click', handleExport);
+  document.getElementById('exportBackdrop').addEventListener('click', closeExportModal);
+
+  // Import modal event listeners
+  document.getElementById('closeImportModal').addEventListener('click', closeImportModal);
+  document.getElementById('cancelImport').addEventListener('click', closeImportModal);
+  document.getElementById('confirmImport').addEventListener('click', handleImport);
+  document.getElementById('importBackdrop').addEventListener('click', closeImportModal);
+
+  // File drop zone
+  const fileDropZone = document.getElementById('fileDropZone');
+  const fileInput = document.getElementById('importFile');
+
+  fileDropZone.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFileSelect(e.target.files[0]);
+    }
+  });
+
+  // Drag and drop support
+  fileDropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    fileDropZone.classList.add('drag-over');
+  });
+
+  fileDropZone.addEventListener('dragleave', () => {
+    fileDropZone.classList.remove('drag-over');
+  });
+
+  fileDropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileDropZone.classList.remove('drag-over');
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  });
   
   // Test panel button
   document.getElementById('testPanel')?.addEventListener('click', async () => {
@@ -898,40 +943,243 @@ function openCommandPalette() {
   window.close();
 }
 
+// ============================================================================
+// Export/Import Modal Functions
+// ============================================================================
+
+async function openExportModal() {
+  // Open dashboard with export/import view
+  const dashboardUrl = chrome.runtime.getURL('dashboard/dashboard.html#export-import');
+  chrome.tabs.create({ url: dashboardUrl });
+  window.close();
+}
+
+function closeExportModal() {
+  document.body.classList.remove('modal-open');
+  document.getElementById('exportBackdrop').style.display = 'none';
+  document.getElementById('exportModal').style.display = 'none';
+}
+
 async function handleExport() {
   try {
-    // Show what's being exported
-    showNotification('Exporting tabs, settings, and rules...', 'info');
-    
-    const data = await sendMessage({ action: 'exportData' });
-    
+    const scope = document.querySelector('input[name="exportScope"]:checked').value;
+    const format = document.querySelector('input[name="exportFormat"]:checked').value;
+
+    // Get current window ID if needed
+    let currentWindowId = null;
+    if (scope === 'current-window') {
+      const currentWindow = await chrome.windows.getCurrent();
+      currentWindowId = currentWindow.id;
+    }
+
+    // Prepare options
+    const options = {
+      scope,
+      format,
+      currentWindowId,
+      includeRules: document.getElementById('includeRules').checked,
+      includeSnoozed: document.getElementById('includeSnoozed').checked,
+      includeSettings: document.getElementById('includeSettings').checked,
+      includeStatistics: document.getElementById('includeStatistics').checked
+    };
+
+    showNotification(`Exporting as ${format.toUpperCase()}...`, 'info');
+
+    const data = await sendMessage({ action: 'exportData', options });
+
+    // Determine file extension and MIME type
+    let fileExtension, mimeType, content;
+
+    switch (format) {
+      case 'csv':
+        fileExtension = 'csv';
+        mimeType = 'text/csv';
+        content = data.csv;
+        break;
+      case 'markdown':
+        fileExtension = 'md';
+        mimeType = 'text/markdown';
+        content = data.markdown;
+        break;
+      case 'json':
+      default:
+        fileExtension = 'json';
+        mimeType = 'application/json';
+        content = JSON.stringify(data, null, 2);
+        break;
+    }
+
     // Create download
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
-    const filename = `tabmaster-export-${new Date().toISOString().split('T')[0]}.json`;
-    
+    const filename = `tabmaster-export-${new Date().toISOString().split('T')[0]}.${fileExtension}`;
+
     await chrome.downloads.download({
       url: url,
       filename: filename,
       saveAs: true
     });
-    
-    // Show summary of what was exported
-    const summary = [];
-    if (data.currentSession) {
-      summary.push(`${data.currentSession.tabCount} tabs`);
+
+    // Show summary
+    if (format === 'json') {
+      const summary = [];
+      if (data.session) {
+        summary.push(`${data.session.tabs.length} tabs`);
+      }
+      if (data.extensionData && data.extensionData.rules) {
+        summary.push(`${data.extensionData.rules.length} rules`);
+      }
+      if (data.extensionData && data.extensionData.snoozedTabs) {
+        summary.push(`${data.extensionData.snoozedTabs.length} snoozed tabs`);
+      }
+      showNotification(`Exported: ${summary.join(', ')}`, 'success');
+    } else {
+      showNotification(`Exported as ${format.toUpperCase()}`, 'success');
     }
-    if (data.extension.rules) {
-      summary.push(`${data.extension.rules.length} rules`);
-    }
-    if (data.extension.snoozedTabs) {
-      summary.push(`${data.extension.snoozedTabs.length} snoozed tabs`);
-    }
-    
-    showNotification(`Exported: ${summary.join(', ')}`, 'success');
+
+    closeExportModal();
   } catch (error) {
     console.error('Failed to export data:', error);
     showNotification('Export failed: ' + (error.message || 'Unknown error'), 'error');
+  }
+}
+
+// Import Modal Functions
+async function openImportModal() {
+  // Open dashboard with export/import view
+  const dashboardUrl = chrome.runtime.getURL('dashboard/dashboard.html#export-import');
+  chrome.tabs.create({ url: dashboardUrl });
+  window.close();
+}
+
+function closeImportModal() {
+  document.body.classList.remove('modal-open');
+  document.getElementById('importBackdrop').style.display = 'none';
+  document.getElementById('importModal').style.display = 'none';
+}
+
+let importedData = null;
+
+async function handleFileSelect(file) {
+  try {
+    // Validate file type
+    if (!file.name.endsWith('.json')) {
+      showNotification('Please select a JSON file', 'error');
+      return;
+    }
+
+    // Check file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showNotification('File too large (max 10MB)', 'error');
+      return;
+    }
+
+    // Read and parse file
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    // Validate structure
+    if (!data.format || !data.session) {
+      showNotification('Invalid TabMaster export file', 'error');
+      return;
+    }
+
+    importedData = data;
+
+    // Display file info
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('fileFormat').textContent = data.format || 'Unknown';
+    document.getElementById('fileInfo').style.display = 'block';
+
+    // Display preview
+    const summaryList = document.getElementById('importSummaryList');
+    summaryList.innerHTML = '';
+
+    if (data.session) {
+      const items = [];
+      if (data.session.tabs) items.push(`${data.session.tabs.length} tabs in ${data.session.windows ? data.session.windows.length : 1} window(s)`);
+      if (data.session.groups) items.push(`${data.session.groups.length} tab groups`);
+      if (data.extensionData) {
+        if (data.extensionData.rules) items.push(`${data.extensionData.rules.length} rules`);
+        if (data.extensionData.snoozedTabs) items.push(`${data.extensionData.snoozedTabs.length} snoozed tabs`);
+      }
+
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        summaryList.appendChild(li);
+      });
+    }
+
+    document.getElementById('importPreview').style.display = 'block';
+    document.getElementById('importOptions').style.display = 'block';
+
+    // Update warning
+    const tabCount = data.session?.tabs?.length || 0;
+    const warning = document.getElementById('importWarning');
+    if (tabCount > 50) {
+      warning.textContent = `⚠️ This will open ${tabCount} tabs. Consider importing in smaller batches.`;
+      warning.style.display = 'block';
+    } else if (tabCount > 0) {
+      warning.textContent = `This will open ${tabCount} tabs.`;
+      warning.style.display = 'block';
+    } else {
+      warning.style.display = 'none';
+    }
+
+    // Enable import button
+    document.getElementById('confirmImport').disabled = false;
+
+  } catch (error) {
+    console.error('Failed to process file:', error);
+    showNotification('Failed to read file: ' + error.message, 'error');
+  }
+}
+
+async function handleImport() {
+  if (!importedData) {
+    showNotification('No file selected', 'error');
+    return;
+  }
+
+  try {
+    const options = {
+      scope: document.querySelector('input[name="importScope"]:checked').value,
+      importGroups: document.getElementById('importGroups').checked,
+      importRules: document.getElementById('importRules').checked,
+      importSnoozed: document.getElementById('importSnoozed').checked,
+      importSettings: document.getElementById('importSettings').checked
+    };
+
+    showNotification('Importing data...', 'info');
+
+    const result = await sendMessage({
+      action: 'importData',
+      data: importedData,
+      options
+    });
+
+    if (result.success) {
+      const imported = result.imported || {};
+      const summary = [];
+      if (imported.tabs) summary.push(`${imported.tabs} tabs`);
+      if (imported.groups) summary.push(`${imported.groups} groups`);
+      if (imported.rules) summary.push(`${imported.rules} rules`);
+
+      showNotification(`Successfully imported: ${summary.join(', ')}`, 'success');
+      closeImportModal();
+
+      // Refresh the popup display
+      await updateStatistics();
+    } else {
+      showNotification('Import failed: ' + (result.error || 'Unknown error'), 'error');
+    }
+
+  } catch (error) {
+    console.error('Failed to import data:', error);
+    showNotification('Import failed: ' + error.message, 'error');
   }
 }
 

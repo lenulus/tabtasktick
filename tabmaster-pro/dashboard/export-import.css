@@ -1,0 +1,271 @@
+/* Export/Import View Styles */
+
+.export-import-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.data-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.data-section h2 {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+  font-size: 20px;
+}
+
+.section-description {
+  color: #6c757d;
+  margin: 0 0 24px 0;
+  font-size: 14px;
+}
+
+/* Option Groups */
+.option-group {
+  margin-bottom: 24px;
+}
+
+.option-group h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Radio and Checkbox Styles */
+.radio-group,
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-option,
+.checkbox-option {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: 2px solid transparent;
+}
+
+.radio-option:hover,
+.checkbox-option:hover {
+  background: #e9ecef;
+}
+
+.radio-option:has(input:checked),
+.checkbox-option:has(input:checked) {
+  background: #e8eeff;
+  border-color: #667eea;
+}
+
+.radio-option input[type="radio"],
+.checkbox-option input[type="checkbox"] {
+  margin-right: 10px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.radio-option span,
+.checkbox-option span {
+  flex: 1;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.radio-option small,
+.checkbox-option small {
+  display: block;
+  color: #6c757d;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* File Drop Zone */
+.file-drop-zone {
+  border: 2px dashed #dee2e6;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: #f8f9fa;
+  margin-bottom: 24px;
+}
+
+.file-drop-zone:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.file-drop-zone.drag-over {
+  border-color: #667eea;
+  background: #e8eeff;
+  transform: scale(1.01);
+}
+
+.file-drop-zone svg {
+  color: #6c757d;
+  margin-bottom: 16px;
+}
+
+.file-drop-zone p {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.file-drop-zone .file-hint {
+  margin: 0;
+  color: #6c757d;
+  font-size: 13px;
+  font-weight: normal;
+}
+
+/* File Info */
+.file-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.file-info h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  gap: 8px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.info-item span:last-child {
+  color: #2c3e50;
+  font-size: 13px;
+}
+
+/* Import Preview */
+.import-preview {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.import-preview h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.summary-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summary-list li {
+  padding: 6px 0;
+  font-size: 13px;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+}
+
+.summary-list li::before {
+  content: "•";
+  color: #667eea;
+  font-weight: bold;
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+/* Import Settings */
+.import-settings {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+/* Import Warning */
+.import-warning {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #856404;
+}
+
+.import-warning.error {
+  background: #f8d7da;
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+/* Import Actions */
+.import-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Large Button */
+.btn-large {
+  padding: 12px 24px;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-large svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .export-import-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .data-section {
+    margin-bottom: 0;
+  }
+}
+

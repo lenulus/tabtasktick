@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../lib/preview.css">
   <link rel="stylesheet" href="../lib/conditions-builder.css">
   <link rel="stylesheet" href="../lib/rules-modal.css">
+  <link rel="stylesheet" href="export-import.css">
   <script src="../lib/chart.min.js"></script>
 </head>
 <body>
@@ -68,6 +69,16 @@
             <path d="M3 3h18v18H3zM12 8v8m-4-4h8"></path>
           </svg>
           Rules Engine
+        </a>
+
+        <a href="#" class="nav-item" data-view="export-import">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+            <polyline points="17 8 12 3 7 8"></polyline>
+          </svg>
+          Export/Import
         </a>
       </nav>
       
@@ -450,6 +461,204 @@
           </div>
         </div>
       </div>
+
+      <!-- Export/Import View -->
+      <div class="view" id="export-import">
+        <div class="view-header">
+          <h1>Export & Import Data</h1>
+        </div>
+
+        <div class="view-content">
+          <div class="export-import-container">
+            <!-- Export Section -->
+            <div class="data-section">
+              <h2>Export Your Data</h2>
+              <p class="section-description">Create a backup of your tabs, groups, rules, and settings.</p>
+
+              <div class="export-options">
+                <div class="option-group">
+                  <h3>Scope</h3>
+                  <div class="radio-group">
+                    <label class="radio-option">
+                      <input type="radio" name="exportScope" value="current-window" id="scopeCurrentWindow">
+                      <span>Current Window (<span id="currentWindowTabCount">0</span> tabs)</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="exportScope" value="all-windows" id="scopeAllWindows" checked>
+                      <span>All Windows (<span id="allWindowsTabCount">0</span> tabs)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="option-group">
+                  <h3>Include</h3>
+                  <div class="checkbox-group">
+                    <label class="checkbox-option">
+                      <input type="checkbox" id="includeGroups" checked>
+                      <span>Tab Groups & Organization</span>
+                    </label>
+                    <label class="checkbox-option">
+                      <input type="checkbox" id="includeRules" checked>
+                      <span>Rules & Automation</span>
+                    </label>
+                    <label class="checkbox-option">
+                      <input type="checkbox" id="includeSnoozed" checked>
+                      <span>Snoozed Tabs</span>
+                    </label>
+                    <label class="checkbox-option">
+                      <input type="checkbox" id="includeSettings" checked>
+                      <span>Settings & Preferences</span>
+                    </label>
+                    <label class="checkbox-option">
+                      <input type="checkbox" id="includeStatistics" checked>
+                      <span>Usage Statistics</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="option-group">
+                  <h3>Export Format</h3>
+                  <div class="radio-group">
+                    <label class="radio-option">
+                      <input type="radio" name="exportFormat" value="json" id="formatJSON" checked>
+                      <span>TabMaster JSON (.json)</span>
+                      <small>Full backup/restore capability</small>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="exportFormat" value="csv" id="formatCSV">
+                      <span>CSV - Tabs only (.csv)</span>
+                      <small>For spreadsheet analysis</small>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="exportFormat" value="markdown" id="formatMarkdown">
+                      <span>Markdown - Documentation (.md)</span>
+                      <small>Human-readable documentation</small>
+                    </label>
+                  </div>
+                </div>
+
+                <button class="btn btn-primary btn-large" id="exportDataBtn">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Export Data
+                </button>
+              </div>
+            </div>
+
+            <!-- Import Section -->
+            <div class="data-section">
+              <h2>Import Your Data</h2>
+              <p class="section-description">Restore tabs, groups, rules, and settings from a backup.</p>
+
+              <div class="import-options">
+                <!-- File Drop Zone -->
+                <div class="file-drop-zone" id="fileDropZone">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <p>Drop file here or click to browse</p>
+                  <p class="file-hint">Accepts .json files exported from TabMaster Pro</p>
+                  <input type="file" id="importFile" accept=".json" style="display: none;">
+                </div>
+
+                <!-- File Info (Hidden by default) -->
+                <div class="file-info" id="fileInfo" style="display: none;">
+                  <h3>File Information</h3>
+                  <div class="info-grid">
+                    <div class="info-item">
+                      <span class="info-label">File:</span>
+                      <span id="fileName">-</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Size:</span>
+                      <span id="fileSize">-</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Format:</span>
+                      <span id="fileFormat">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Import Preview (Hidden by default) -->
+                <div class="import-preview" id="importPreview" style="display: none;">
+                  <h3>Import Preview</h3>
+                  <ul id="importSummaryList" class="summary-list">
+                    <!-- Dynamically populated -->
+                  </ul>
+                </div>
+
+                <!-- Import Options (Hidden by default) -->
+                <div class="import-settings" id="importSettings" style="display: none;">
+                  <div class="option-group">
+                    <h3>Import To</h3>
+                    <div class="radio-group">
+                      <label class="radio-option">
+                        <input type="radio" name="importScope" value="new-windows" id="importNewWindows" checked>
+                        <span>New Window(s)</span>
+                        <small>Safest - Creates new windows</small>
+                      </label>
+                      <label class="radio-option">
+                        <input type="radio" name="importScope" value="current-window" id="importCurrentWindow">
+                        <span>Current Window</span>
+                        <small>Append to current window</small>
+                      </label>
+                      <label class="radio-option">
+                        <input type="radio" name="importScope" value="replace-all" id="importReplaceAll">
+                        <span>Replace All Windows</span>
+                        <small>⚠️ Closes all existing windows</small>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="option-group">
+                    <h3>Options</h3>
+                    <div class="checkbox-group">
+                      <label class="checkbox-option">
+                        <input type="checkbox" id="importGroups" checked>
+                        <span>Import tab groups</span>
+                      </label>
+                      <label class="checkbox-option">
+                        <input type="checkbox" id="importRules" checked>
+                        <span>Import rules (merge)</span>
+                      </label>
+                      <label class="checkbox-option">
+                        <input type="checkbox" id="importSnoozed" checked>
+                        <span>Import snoozed tabs</span>
+                      </label>
+                      <label class="checkbox-option">
+                        <input type="checkbox" id="importSettings">
+                        <span>Import settings (override)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="import-warning" id="importWarning" style="display: none;">
+                    <!-- Dynamically populated -->
+                  </div>
+
+                  <div class="import-actions">
+                    <button class="btn btn-secondary" id="cancelImport">Cancel</button>
+                    <button class="btn btn-primary" id="confirmImport" disabled>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                      </svg>
+                      Import Data
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -619,6 +828,7 @@
   <script src="../lib/chart.min.js"></script>
   <script src="../components/snooze-modal.js"></script>
   <script src="../lib/preview.js"></script>
+  <script src="export-import.js"></script>
   <script type="module" src="dashboard.js"></script>
 </body>
 </html>
