@@ -1582,33 +1582,164 @@ chrome.commands.onCommand.addListener(async (command) => {
 
 async function setupContextMenus() {
   chrome.contextMenus.removeAll();
-  
+
+  // Snooze menu
   chrome.contextMenus.create({
     id: 'snooze-tab',
     title: 'Snooze Tab',
     contexts: ['page']
   });
-  
+
   chrome.contextMenus.create({
     id: 'snooze-1h',
     parentId: 'snooze-tab',
     title: 'For 1 hour',
     contexts: ['page']
   });
-  
+
   chrome.contextMenus.create({
     id: 'snooze-3h',
     parentId: 'snooze-tab',
     title: 'For 3 hours',
     contexts: ['page']
   });
-  
+
   chrome.contextMenus.create({
     id: 'snooze-tomorrow',
     parentId: 'snooze-tab',
     title: 'Until tomorrow',
     contexts: ['page']
   });
+
+  // Rules menu
+  chrome.contextMenus.create({
+    id: 'rules',
+    title: 'Rules',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'create-rule-for-domain',
+    parentId: 'rules',
+    title: 'Create Rule for this Domain',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'create-rule-for-url',
+    parentId: 'rules',
+    title: 'Create Rule for this URL',
+    contexts: ['page']
+  });
+}
+
+/**
+ * Create a rule template for tabs matching the given tab's domain or URL
+ * Opens the dashboard with a pre-filled rule for the user to customize
+ * @param {object} tab - The tab to create a rule for
+ * @param {string} mode - Either 'domain' or 'url'
+ */
+async function createRuleForTab(tab, mode = 'domain') {
+  try {
+    // Extract domain and path from tab URL
+    const url = new URL(tab.url);
+    const domain = url.hostname;
+    const pathname = url.pathname;
+
+    // Remove trailing slash for cleaner URLs
+    const fullPath = pathname === '/' ? domain : domain + pathname;
+
+    // Create a rule template based on mode
+    // Use UI format for conditions (subject, operator, value)
+    let ruleTemplate;
+
+    if (mode === 'url') {
+      // Match the full URL path (domain + path)
+      ruleTemplate = {
+        name: `Rule for ${fullPath}`,
+        enabled: false, // Start disabled so user can configure first
+        when: {
+          all: [
+            {
+              subject: 'tab.url',
+              operator: 'starts_with',
+              value: url.origin + pathname
+            }
+          ]
+        },
+        then: [
+          // Leave actions empty for user to configure
+        ],
+        flags: {
+          createdFrom: 'contextMenu',
+          mode: 'url',
+          sourceDomain: domain,
+          sourceUrl: tab.url
+        }
+      };
+    } else {
+      // Match just the domain
+      ruleTemplate = {
+        name: `Rule for ${domain}`,
+        enabled: false, // Start disabled so user can configure first
+        when: {
+          all: [
+            {
+              subject: 'tab.url',
+              operator: 'contains',
+              value: domain
+            }
+          ]
+        },
+        then: [
+          // Leave actions empty for user to configure
+        ],
+        flags: {
+          createdFrom: 'contextMenu',
+          mode: 'domain',
+          sourceDomain: domain,
+          sourceUrl: tab.url
+        }
+      };
+    }
+
+    // Open dashboard to rules view with the template
+    const dashboardUrl = chrome.runtime.getURL('dashboard/dashboard.html');
+    const existingDashboard = await chrome.tabs.query({ url: dashboardUrl });
+
+    if (existingDashboard.length > 0) {
+      // Focus existing dashboard and send the rule template
+      await chrome.tabs.update(existingDashboard[0].id, { active: true });
+      await chrome.tabs.sendMessage(existingDashboard[0].id, {
+        action: 'openRuleModal',
+        rule: ruleTemplate
+      });
+    } else {
+      // Open new dashboard tab
+      const dashboardTab = await chrome.tabs.create({ url: dashboardUrl });
+
+      // Wait for dashboard to load, then send the rule template
+      // We'll listen for a message from the dashboard indicating it's ready
+      const onDashboardReady = (message, sender) => {
+        if (sender.tab?.id === dashboardTab.id && message.action === 'dashboardReady') {
+          chrome.runtime.sendMessage({
+            action: 'openRuleModal',
+            rule: ruleTemplate,
+            targetTabId: dashboardTab.id
+          });
+          chrome.runtime.onMessage.removeListener(onDashboardReady);
+        }
+      };
+
+      chrome.runtime.onMessage.addListener(onDashboardReady);
+
+      // Also store the template temporarily in case the message doesn't work
+      await chrome.storage.local.set({ pendingRuleTemplate: ruleTemplate });
+    }
+
+  } catch (error) {
+    console.error('Failed to create rule for tab:', error);
+  }
 }
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -1625,6 +1756,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       tomorrow.setHours(9, 0, 0, 0);
       const duration = tomorrow.getTime() - Date.now();
       await snoozeTabs([tab.id], duration);
+      break;
+    case 'create-rule-for-domain':
+      await createRuleForTab(tab, 'domain');
+      break;
+    case 'create-rule-for-url':
+      await createRuleForTab(tab, 'url');
       break;
   }
 });

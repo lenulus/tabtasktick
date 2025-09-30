@@ -913,3 +913,49 @@ async function wakeAllSnoozed() {
     showNotification("Failed to wake snoozed tabs", "error");
   }
 }
+
+// ============================================================================
+// Message Handling
+// ============================================================================
+
+// Listen for messages from background script
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  if (message.action === 'openRuleModal' && message.rule) {
+    // Switch to rules view if not already there
+    if (state.get('currentView') !== 'rules') {
+      switchView('rules');
+      await loadRulesView();
+    }
+
+    // Open the rule modal with the provided template
+    openRuleModal(message.rule);
+
+    sendResponse({ success: true });
+  }
+  return true; // Keep the message channel open for async response
+});
+
+// Notify background that dashboard is ready
+chrome.runtime.sendMessage({ action: 'dashboardReady' }).catch(() => {
+  // Ignore errors if background isn't listening
+});
+
+// Check for pending rule template on load
+(async () => {
+  const { pendingRuleTemplate } = await chrome.storage.local.get('pendingRuleTemplate');
+  if (pendingRuleTemplate) {
+    // Clear it from storage
+    await chrome.storage.local.remove('pendingRuleTemplate');
+
+    // Switch to rules view
+    if (state.get('currentView') !== 'rules') {
+      switchView('rules');
+      await loadRulesView();
+    }
+
+    // Open modal with template
+    setTimeout(() => {
+      openRuleModal(pendingRuleTemplate);
+    }, 500); // Small delay to ensure rules view is fully loaded
+  }
+})();
