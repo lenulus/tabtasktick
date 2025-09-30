@@ -1,6 +1,8 @@
 // Advanced Conditions Builder for Rules Engine 2.0
 // Provides a visual interface for building complex logical conditions
 
+import { DOMAIN_CATEGORIES } from './domain-categories.js';
+
 export class ConditionsBuilder {
   constructor(container, initialConditions = { all: [] }, options = {}) {
     this.container = typeof container === 'string' 
@@ -235,15 +237,19 @@ export class ConditionsBuilder {
       
       case 'category':
         const categories = Array.isArray(value) ? value : [];
+        // Generate options dynamically from DOMAIN_CATEGORIES
+        const categoryOptions = Object.keys(DOMAIN_CATEGORIES)
+          .sort()
+          .map(key => {
+            const category = DOMAIN_CATEGORIES[key];
+            const isSelected = categories.includes(key);
+            return `<option value="${key}" ${isSelected ? 'selected' : ''}>${category.name}</option>`;
+          })
+          .join('\n            ');
+
         return `
-          <select class="value-input value-category" multiple size="5">
-            <option value="news" ${categories.includes('news') ? 'selected' : ''}>News</option>
-            <option value="social" ${categories.includes('social') ? 'selected' : ''}>Social Media</option>
-            <option value="shopping" ${categories.includes('shopping') ? 'selected' : ''}>Shopping</option>
-            <option value="work" ${categories.includes('work') ? 'selected' : ''}>Work</option>
-            <option value="dev" ${categories.includes('dev') ? 'selected' : ''}>Development</option>
-            <option value="entertainment" ${categories.includes('entertainment') ? 'selected' : ''}>Entertainment</option>
-            <option value="reference" ${categories.includes('reference') ? 'selected' : ''}>Reference</option>
+          <select class="value-input value-category" multiple size="8">
+            ${categoryOptions}
           </select>
         `;
       
