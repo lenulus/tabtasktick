@@ -54,9 +54,11 @@ export function buildIndices(tabs) {
  */
 export function evaluateRule(rule, context, options = {}) {
   const matches = [];
-  
-  if (!rule.enabled) return matches;
-  
+
+  // Note: We don't check rule.enabled here because:
+  // 1. Testing/preview should work on disabled rules
+  // 2. The runRules() function checks enabled status before calling this
+
   // Transform conditions from UI format to predicate format (or pass through if already in predicate format)
   const transformedConditions = transformConditions(rule.when);
 
@@ -480,15 +482,16 @@ export async function runRules(rules, context, options = {}) {
     errors: [],
     duration: 0
   };
-  
+
   // Build indices
   context.idx = buildIndices(context.tabs);
-  
+
   // Group map for group-by actions
   context.groupMap = {};
-  
+
   for (const rule of rules) {
-    if (!rule.enabled) continue;
+    // Skip disabled rules unless forceExecution is set (for manual execution/testing)
+    if (!rule.enabled && !options.forceExecution) continue;
     
     try {
       // Evaluate rule

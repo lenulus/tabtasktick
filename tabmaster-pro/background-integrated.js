@@ -345,10 +345,17 @@ async function loadSettings() {
 // Execute rules using the new engine
 async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
   const rule = state.rules.find(r => r.id === ruleId || r.id === String(ruleId) || r.name === ruleId);
-  if (!rule || !rule.enabled) {
-    console.error('executeRule - Rule not found or disabled:', ruleId);
+  if (!rule) {
+    console.error('executeRule - Rule not found:', ruleId);
     console.error('Available rules:', state.rules.map(r => ({ id: r.id, name: r.name, enabled: r.enabled })));
-    return { success: false, error: 'Rule not found or disabled' };
+    return { success: false, error: 'Rule not found' };
+  }
+
+  // For automatic triggers (non-manual), check if rule is enabled
+  // For manual execution (test button, run button), allow executing disabled rules
+  if (triggerType !== 'manual' && !rule.enabled) {
+    console.log(`Skipping disabled rule for automatic trigger: ${rule.name}`);
+    return { success: false, error: 'Rule is disabled' };
   }
   
   console.log(`Executing rule: ${rule.name} (${triggerType})${testMode ? ' [TEST MODE]' : ''}`);
@@ -406,14 +413,16 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
     };
     
     console.log('Running rule with dryRun=false');
-    
+
     // Track performance for test mode
     const startTime = performance.now();
-    
+
     // Run the single rule
+    // For manual execution, force execution even if rule is disabled
     const results = await runRules([rule], context, {
       dryRun: false,
-      skipPinned: rule.flags?.skipPinned !== false
+      skipPinned: rule.flags?.skipPinned !== false,
+      forceExecution: triggerType === 'manual'
     });
     
     const executionTime = performance.now() - startTime;
