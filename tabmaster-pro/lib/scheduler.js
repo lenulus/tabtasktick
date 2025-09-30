@@ -56,18 +56,22 @@ export function createScheduler(options = {}) {
   /**
    * Schedule an immediate trigger with debouncing
    * @param {string} ruleId - Rule ID
+   * @param {number} customDebounceMs - Optional custom debounce duration in milliseconds
    */
-  function scheduleImmediate(ruleId) {
+  function scheduleImmediate(ruleId, customDebounceMs = null) {
     // Cancel any existing debounce timer
     if (debounceTimers.has(ruleId)) {
       clearTimeout(debounceTimers.get(ruleId));
     }
 
+    // Use custom debounce duration if provided, otherwise use default
+    const debounceMs = customDebounceMs !== null ? customDebounceMs : immediateDebounceMs;
+
     // Set new debounce timer
     const timerId = setTimeout(() => {
       debounceTimers.delete(ruleId);
       handleTrigger(ruleId, 'immediate');
-    }, immediateDebounceMs);
+    }, debounceMs);
 
     debounceTimers.set(ruleId, timerId);
   }

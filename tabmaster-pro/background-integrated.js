@@ -738,7 +738,11 @@ async function checkImmediateTriggers(event) {
   });
 
   for (const rule of immediateRules) {
-    scheduler.scheduleImmediate(rule.id);
+    // Get custom debounce duration from rule trigger (convert seconds to milliseconds)
+    const debounceDurationMs = rule.trigger?.debounceDuration
+      ? rule.trigger.debounceDuration * 1000
+      : null;
+    scheduler.scheduleImmediate(rule.id, debounceDurationMs);
   }
 }
 

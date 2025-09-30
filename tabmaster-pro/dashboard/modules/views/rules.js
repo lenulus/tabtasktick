@@ -803,7 +803,22 @@ export function openRuleModal(rule = null) {
   }
   updateTriggerParams();
 
-  
+  // Populate trigger-specific values after updateTriggerParams creates the inputs
+  if (rule?.trigger) {
+    if (rule.trigger.type === 'immediate') {
+      // Set debounce checkbox
+      const debounceCheckbox = document.getElementById('debounce');
+      if (debounceCheckbox) {
+        debounceCheckbox.checked = rule.trigger.debounce ?? true;
+      }
+      // Set debounce duration
+      const debounceDurationInput = document.getElementById('debounceDuration');
+      if (debounceDurationInput && rule.trigger.debounceDuration) {
+        debounceDurationInput.value = rule.trigger.debounceDuration;
+      }
+    }
+  }
+
   // Show modal
   modal.classList.add('show');
 }
@@ -1124,6 +1139,11 @@ function updateTriggerParams() {
             </svg>
           </span>
         </label>
+        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+          <label for="debounceDuration" style="font-size: 13px;">Wait for:</label>
+          <input type="number" id="debounceDuration" value="2" min="0.1" max="60" step="0.1" style="width: 60px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <span style="font-size: 13px; color: #666;">seconds</span>
+        </div>
       `;
       break;
   }
@@ -1302,9 +1322,12 @@ export async function saveRule() {
   
   switch (triggerType) {
     case 'immediate':
+      const debounceEnabled = document.getElementById('debounce')?.checked ?? true;
+      const debounceDuration = parseFloat(document.getElementById('debounceDuration')?.value || '2');
       trigger = {
         type: 'immediate',
-        debounce: document.getElementById('debounce')?.checked ?? true
+        debounce: debounceEnabled,
+        debounceDuration: debounceDuration
       };
       break;
       
