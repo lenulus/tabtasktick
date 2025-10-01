@@ -63,39 +63,38 @@ export class ConditionsBuilder {
   getOperatorsForType(type) {
     const operators = {
       string: [
-        { value: 'equals', label: 'equals' },
-        { value: 'not_equals', label: 'not equals' },
+        { value: 'eq', label: 'equals' },
+        { value: 'neq', label: 'not equals' },
         { value: 'contains', label: 'contains' },
-        { value: 'not_contains', label: 'does not contain' },
-        { value: 'starts_with', label: 'starts with' },
-        { value: 'ends_with', label: 'ends with' },
-        { value: 'matches', label: 'matches regex' },
-        { value: 'not_matches', label: 'does not match regex' }
+        { value: 'notContains', label: 'does not contain' },
+        { value: 'startsWith', label: 'starts with' },
+        { value: 'endsWith', label: 'ends with' },
+        { value: 'regex', label: 'matches regex' }
       ],
       number: [
-        { value: 'equals', label: 'equals' },
-        { value: 'not_equals', label: 'not equals' },
-        { value: 'greater_than', label: 'greater than' },
-        { value: 'less_than', label: 'less than' },
-        { value: 'greater_than_or_equal', label: 'at least' },
-        { value: 'less_than_or_equal', label: 'at most' }
+        { value: 'eq', label: 'equals' },
+        { value: 'neq', label: 'not equals' },
+        { value: 'gt', label: 'greater than' },
+        { value: 'lt', label: 'less than' },
+        { value: 'gte', label: 'at least' },
+        { value: 'lte', label: 'at most' }
       ],
       duration: [
-        { value: 'greater_than', label: 'older than' },
-        { value: 'less_than', label: 'newer than' },
-        { value: 'greater_than_or_equal', label: 'at least' },
-        { value: 'less_than_or_equal', label: 'at most' }
+        { value: 'gt', label: 'older than' },
+        { value: 'lt', label: 'newer than' },
+        { value: 'gte', label: 'at least' },
+        { value: 'lte', label: 'at most' }
       ],
       boolean: [
-        { value: 'equals', label: 'is' }
+        { value: 'is', label: 'is' }
       ],
       category: [
         { value: 'in', label: 'is in' },
-        { value: 'not_in', label: 'is not in' }
+        { value: 'nin', label: 'is not in' }
       ],
       origin: [
-        { value: 'equals', label: 'is' },
-        { value: 'not_equals', label: 'is not' }
+        { value: 'eq', label: 'is' },
+        { value: 'neq', label: 'is not' }
       ]
     };
     return operators[type] || operators.string;

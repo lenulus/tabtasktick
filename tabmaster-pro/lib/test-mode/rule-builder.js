@@ -125,10 +125,10 @@ export class RuleBuilder {
    * Check if a condition is in predicate format
    */
   isPredicateCondition(condition) {
-    const predicateOperators = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 
-                               'contains', 'not_contains', 'starts_with', 
-                               'ends_with', 'regex', 'not_regex', 'in', 
-                               'not_in', 'is'];
+    const predicateOperators = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte',
+                               'contains', 'notContains', 'startsWith',
+                               'endsWith', 'regex', 'in',
+                               'nin', 'is'];
     const keys = Object.keys(condition);
     return keys.length === 1 && predicateOperators.includes(keys[0]);
   }
@@ -171,13 +171,13 @@ export class RuleBuilder {
       'lessThan': 'lt',
       'lessThanOrEquals': 'lte',
       'contains': 'contains',
-      'notContains': 'not_contains',
-      'startsWith': 'starts_with',
-      'endsWith': 'ends_with',
+      'notContains': 'notContains',
+      'startsWith': 'startsWith',
+      'endsWith': 'endsWith',
       'matches': 'regex',
-      'notMatches': 'not_regex',
+      'notMatches': 'regex',
       'in': 'in',
-      'notIn': 'not_in',
+      'notIn': 'nin',
       'is': 'is'
     };
 

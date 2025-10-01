@@ -8,8 +8,8 @@
  */
 export function transformCondition(condition) {
   // Check if this is already in predicate format (has operators like 'is', 'eq', 'gt', etc.)
-  const predicateOperators = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'contains', 'not_contains', 
-                              'starts_with', 'ends_with', 'regex', 'not_regex', 'in', 'not_in', 'is'];
+  const predicateOperators = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'contains', 'notContains',
+                              'startsWith', 'endsWith', 'regex', 'in', 'nin', 'is'];
   
   const conditionKeys = Object.keys(condition);
   if (conditionKeys.length === 1 && predicateOperators.includes(conditionKeys[0])) {
@@ -42,24 +42,38 @@ export function transformCondition(condition) {
     return { all: [] }; // Return empty condition that will match nothing
   }
   
-  // Map UI operators to predicate operators
+  // Map legacy UI operators to predicate operators (for backward compatibility)
   const operatorMap = {
+    // Legacy snake_case mappings
     'equals': 'eq',
     'not_equals': 'neq',
     'greater_than': 'gt',
     'greater_than_or_equal': 'gte',
     'less_than': 'lt',
     'less_than_or_equal': 'lte',
-    'contains': 'contains',
-    'not_contains': 'not_contains',
-    'starts_with': 'starts_with',
-    'ends_with': 'ends_with',
+    'not_contains': 'notContains',
+    'starts_with': 'startsWith',
+    'ends_with': 'endsWith',
     'matches': 'regex',
-    'not_matches': 'not_regex',
+    'not_matches': 'regex',
+    'not_in': 'nin',
+    // New operators pass through as-is
+    'eq': 'eq',
+    'neq': 'neq',
+    'gt': 'gt',
+    'gte': 'gte',
+    'lt': 'lt',
+    'lte': 'lte',
+    'contains': 'contains',
+    'notContains': 'notContains',
+    'startsWith': 'startsWith',
+    'endsWith': 'endsWith',
+    'regex': 'regex',
     'in': 'in',
-    'not_in': 'not_in'
+    'nin': 'nin',
+    'is': 'is'
   };
-  
+
   const predOp = operatorMap[operator] || operator;
   
   // Validate predicate operator
