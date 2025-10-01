@@ -5,10 +5,10 @@ import { DOMAIN_CATEGORIES } from './domain-categories.js';
 
 export class ConditionsBuilder {
   constructor(container, initialConditions = { all: [] }, options = {}) {
-    this.container = typeof container === 'string' 
+    this.container = typeof container === 'string'
       ? document.querySelector(container)
       : container;
-    
+
     this.conditions = this.normalizeConditions(initialConditions);
     this.options = {
       maxDepth: 5,
@@ -16,8 +16,9 @@ export class ConditionsBuilder {
       onChange: null,
       ...options
     };
-    
+
     this.subjects = this.getAvailableSubjects();
+    this.listenersAttached = false;
     this.init();
   }
 
@@ -289,6 +290,10 @@ export class ConditionsBuilder {
   }
 
   attachEventListeners() {
+    // Only attach event listeners once to prevent duplicate handlers
+    if (this.listenersAttached) return;
+    this.listenersAttached = true;
+
     this.container.addEventListener('click', (e) => {
       if (e.target.classList.contains('add-condition')) {
         this.handleAddCondition(e.target);
@@ -300,16 +305,16 @@ export class ConditionsBuilder {
         this.handleRemoveGroup(e.target);
       }
     });
-    
+
     this.container.addEventListener('change', (e) => {
       if (e.target.classList.contains('subject-select')) {
         this.handleSubjectChange(e.target);
       }
-      
+
       this.updatePreview();
       this.triggerChange();
     });
-    
+
     this.container.addEventListener('input', (e) => {
       if (e.target.classList.contains('value-input')) {
         this.updatePreview();
