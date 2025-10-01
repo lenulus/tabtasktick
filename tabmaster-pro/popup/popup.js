@@ -366,49 +366,6 @@ function setupEventListeners() {
   elements.import.addEventListener('click', openImportModal);
   elements.testPanel?.addEventListener('click', openTestPanel);
   elements.help.addEventListener('click', openHelp);
-
-  // Export modal event listeners
-  document.getElementById('closeExportModal').addEventListener('click', closeExportModal);
-  document.getElementById('cancelExport').addEventListener('click', closeExportModal);
-  document.getElementById('confirmExport').addEventListener('click', handleExport);
-  document.getElementById('exportBackdrop').addEventListener('click', closeExportModal);
-
-  // Import modal event listeners
-  document.getElementById('closeImportModal').addEventListener('click', closeImportModal);
-  document.getElementById('cancelImport').addEventListener('click', closeImportModal);
-  document.getElementById('confirmImport').addEventListener('click', handleImport);
-  document.getElementById('importBackdrop').addEventListener('click', closeImportModal);
-
-  // File drop zone
-  const fileDropZone = document.getElementById('fileDropZone');
-  const fileInput = document.getElementById('importFile');
-
-  fileDropZone.addEventListener('click', () => fileInput.click());
-
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileSelect(e.target.files[0]);
-    }
-  });
-
-  // Drag and drop support
-  fileDropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    fileDropZone.classList.add('drag-over');
-  });
-
-  fileDropZone.addEventListener('dragleave', () => {
-    fileDropZone.classList.remove('drag-over');
-  });
-
-  fileDropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    fileDropZone.classList.remove('drag-over');
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelect(e.dataTransfer.files[0]);
-    }
-  });
 }
 
 function setupStatCardLinks() {
