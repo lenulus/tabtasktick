@@ -2485,3 +2485,25 @@ input:checked + .slider:before {
 .dsl-highlight-backdrop {
   background-color: var(--bg-secondary) !important;
 }
+
+/* Tab Details Button */
+.tab-details-btn {
+  opacity: 0;
+  transition: opacity 0.2s;
+  margin-left: 8px;
+  padding: 4px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 4px;
+}
+
+.tab-details-btn:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+.tab-card:hover .tab-details-btn {
+  opacity: 1;
+}
+
+.tab-details-btn svg {
+  display: block;
+}

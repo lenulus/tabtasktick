@@ -323,6 +323,13 @@ export function renderGridView(tabs) {
       <div class="tab-hover-info">
         <span class="tab-state">${getTabState(tab)}</span>
         <span class="tab-access">• ${getLastAccessText(tab)}</span>
+        <button class="btn-icon tab-details-btn" title="Show tab state details" data-tab-id="${tab.id}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </button>
       </div>
     `;
     
@@ -350,12 +357,22 @@ export function renderGridView(tabs) {
       }
     });
     
+    // Add click handler for details button
+    const detailsBtn = card.querySelector('.tab-details-btn');
+    if (detailsBtn) {
+      detailsBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent card click from firing
+        showTabDetails(tab);
+      });
+    }
+
     // Add click handler to open tab
     card.addEventListener('click', (e) => {
-      // Don't open tab if clicking on checkbox or its wrapper
-      const isCheckboxArea = e.target.closest('.tab-select-wrapper') || 
+      // Don't open tab if clicking on checkbox, details button, or their wrappers
+      const isCheckboxArea = e.target.closest('.tab-select-wrapper') ||
                             e.target.classList.contains('tab-checkbox');
-      if (!isCheckboxArea) {
+      const isDetailsBtn = e.target.closest('.tab-details-btn');
+      if (!isCheckboxArea && !isDetailsBtn) {
         chrome.tabs.update(tab.id, { active: true });
         chrome.windows.update(tab.windowId, { focused: true });
       }
@@ -1151,6 +1168,123 @@ export function sortAndRenderTabs(tabs, sortType) {
       // Keep original order (by tab index)
       break;
   }
-  
+
   renderTabs(sorted);
+}
+
+// Show tab details modal for debugging
+export function showTabDetails(tab) {
+  // Create modal
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.display = 'flex';
+
+  // Format tab data for display
+  const formatValue = (value) => {
+    if (value === null) return '<span style="color: #999;">null</span>';
+    if (value === undefined) return '<span style="color: #999;">undefined</span>';
+    if (typeof value === 'boolean') return `<span style="color: ${value ? '#4caf50' : '#f44336'};">${value}</span>`;
+    if (typeof value === 'number') return `<span style="color: #2196f3;">${value}</span>`;
+    if (typeof value === 'string') return `<span style="color: #ff9800;">"${value}"</span>`;
+    if (Array.isArray(value)) {
+      if (value.length === 0) return '[]';
+      return `<span style="color: #9c27b0;">[${value.length} items]</span>`;
+    }
+    if (typeof value === 'object') return '<span style="color: #9c27b0;">{...}</span>';
+    return String(value);
+  };
+
+  // Build attribute rows
+  const attributes = Object.keys(tab).sort().map(key => {
+    const value = tab[key];
+    let displayValue = formatValue(value);
+
+    // Special handling for certain fields
+    if (key === 'categories' && Array.isArray(value)) {
+      displayValue = value.length > 0 ? value.join(', ') : '<span style="color: #999;">none</span>';
+    } else if (key === 'age' || key === 'lastAccess') {
+      const ms = value;
+      if (ms) {
+        const seconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        let timeStr = '';
+        if (days > 0) timeStr = `${days}d ${hours % 24}h`;
+        else if (hours > 0) timeStr = `${hours}h ${minutes % 60}m`;
+        else if (minutes > 0) timeStr = `${minutes}m ${seconds % 60}s`;
+        else timeStr = `${seconds}s`;
+
+        displayValue = `${formatValue(ms)} <span style="color: #666;">(${timeStr})</span>`;
+      }
+    } else if (Array.isArray(value) && value.length > 0) {
+      displayValue = value.map(v => formatValue(v)).join(', ');
+    }
+
+    return `
+      <tr>
+        <td style="font-weight: 600; padding: 8px; border-bottom: 1px solid #eee; vertical-align: top;">${key}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 13px;">${displayValue}</td>
+      </tr>
+    `;
+  }).join('');
+
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+      <div class="modal-header" style="padding: 20px; border-bottom: 1px solid #eee;">
+        <h2 style="margin: 0; font-size: 18px;">Tab State Details</h2>
+        <button class="modal-close" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+      </div>
+      <div style="padding: 20px; overflow-y: auto; flex: 1;">
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
+            <img src="${tab.favIconUrl || '../icons/icon-16.png'}" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 8px;">
+            <strong>${tab.title}</strong>
+          </div>
+          <div style="font-size: 12px; color: #999; font-family: monospace; word-break: break-all;">
+            ${tab.url}
+          </div>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd; background: #f5f5f5;">Attribute</th>
+              <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd; background: #f5f5f5;">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${attributes}
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer" style="padding: 16px; border-top: 1px solid #eee; display: flex; justify-content: space-between;">
+        <button class="btn btn-secondary copy-json-btn">Copy as JSON</button>
+        <button class="btn btn-primary close-modal-btn">Close</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Close handlers
+  const closeModal = () => modal.remove();
+  modal.querySelector('.modal-close').addEventListener('click', closeModal);
+  modal.querySelector('.close-modal-btn').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Copy JSON handler
+  modal.querySelector('.copy-json-btn').addEventListener('click', () => {
+    const json = JSON.stringify(tab, null, 2);
+    navigator.clipboard.writeText(json).then(() => {
+      const btn = modal.querySelector('.copy-json-btn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => {
+        btn.textContent = originalText;
+      }, 2000);
+    });
+  });
 }
