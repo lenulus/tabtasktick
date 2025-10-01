@@ -322,15 +322,15 @@ export function renderGridView(tabs) {
       ${badges.length > 0 ? `<div class="tab-badges">${badges.join('')}</div>` : ''}
       <div class="tab-hover-info">
         <span class="tab-state">${getTabState(tab)}</span>
-        <span class="tab-access">• ${getLastAccessText(tab)}</span>
-        <button class="btn-icon tab-details-btn" title="Show tab state details" data-tab-id="${tab.id}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-        </button>
+        <span class="tab-access">• Last accessed: ${getLastAccessText(tab)}</span>
       </div>
+      <button class="btn-icon tab-details-btn" title="Show tab state details for debugging" data-tab-id="${tab.id}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events: none;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+      </button>
     `;
     
     // Handle favicon errors silently
