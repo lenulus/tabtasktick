@@ -102,7 +102,7 @@ function getSampleRules() {
       enabled: false,
       when: {
         all: [
-          { subject: 'url', operator: 'matches', value: '^chrome://(extensions|downloads|settings|flags|history|bookmarks|newtab)' },
+          { subject: 'url', operator: 'regex', value: '^chrome://(extensions|downloads|settings|flags|history|bookmarks|newtab)' },
           { subject: 'age', operator: 'greater_than', value: 30 * 60 * 1000 }  // 30 minutes in ms
         ]
       },
@@ -381,8 +381,31 @@ export function getNewFormatConditionDescription(conditions) {
 
       const subject = subjectLabels[item.subject] || item.subject;
       const operator = operatorLabels[item.operator] || item.operator;
-      const value = item.value === true ? 'yes' : item.value === false ? 'no' : item.value;
-      
+
+      // Format value based on type
+      let value = item.value;
+      if (value === true) {
+        value = 'yes';
+      } else if (value === false) {
+        value = 'no';
+      } else if (typeof value === 'number' && (item.subject === 'age' || item.subject === 'last_access')) {
+        // Convert milliseconds to human-readable duration
+        const seconds = value / 1000;
+        const minutes = seconds / 60;
+        const hours = minutes / 60;
+        const days = hours / 24;
+
+        if (days >= 1) {
+          value = `${Math.floor(days)}d`;
+        } else if (hours >= 1) {
+          value = `${Math.floor(hours)}h`;
+        } else if (minutes >= 1) {
+          value = `${Math.floor(minutes)}m`;
+        } else {
+          value = `${Math.floor(seconds)}s`;
+        }
+      }
+
       return `${subject} ${operator} ${value}`;
     } else {
       // Nested condition group
@@ -885,7 +908,7 @@ function convertOldConditionsToNew(oldConditions) {
       
     case 'url_pattern':
       if (oldConditions.pattern) {
-        conditions.push({ subject: 'url', operator: 'matches', value: oldConditions.pattern });
+        conditions.push({ subject: 'url', operator: 'regex', value: oldConditions.pattern });
       }
       break;
       
