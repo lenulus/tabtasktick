@@ -2489,7 +2489,7 @@ input:checked + .slider:before {
 /* Tab Details Button */
 .tab-details-btn {
   position: absolute;
-  top: 8px;
+  bottom: 8px;
   right: 8px;
   opacity: 0;
   transition: opacity 0.2s;

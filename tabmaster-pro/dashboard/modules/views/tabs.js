@@ -324,13 +324,6 @@ export function renderGridView(tabs) {
         <span class="tab-state">${getTabState(tab)}</span>
         <span class="tab-access">• Last accessed: ${getLastAccessText(tab)}</span>
       </div>
-      <button class="btn-icon tab-details-btn" title="Show tab state details for debugging" data-tab-id="${tab.id}">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events: none;">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="16" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-        </svg>
-      </button>
     `;
     
     // Handle favicon errors silently
@@ -357,26 +350,21 @@ export function renderGridView(tabs) {
       }
     });
     
-    // Add click handler for details button
-    const detailsBtn = card.querySelector('.tab-details-btn');
-    if (detailsBtn) {
-      detailsBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation(); // Prevent card click from firing
-        showTabDetails(tab);
-      });
-    }
-
     // Add click handler to open tab
     card.addEventListener('click', (e) => {
-      // Don't open tab if clicking on checkbox, details button, or their wrappers
+      // Don't open tab if clicking on checkbox or its wrapper
       const isCheckboxArea = e.target.closest('.tab-select-wrapper') ||
                             e.target.classList.contains('tab-checkbox');
-      const isDetailsBtn = e.target.closest('.tab-details-btn');
-      if (!isCheckboxArea && !isDetailsBtn) {
+      if (!isCheckboxArea) {
         chrome.tabs.update(tab.id, { active: true });
         chrome.windows.update(tab.windowId, { focused: true });
       }
+    });
+
+    // Add double-click handler to show details
+    card.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      showTabDetails(tab);
     });
     
     // Add hover handlers for inline info (disabled popup preview)
