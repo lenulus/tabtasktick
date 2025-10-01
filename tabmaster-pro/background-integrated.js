@@ -860,14 +860,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'getTabs':
           const tabs = await chrome.tabs.query({});
           const windows = await chrome.windows.getAll();
-          
+
           // Add time data to tabs
-          const enhancedTabs = tabs.map(tab => ({
-            ...tab,
-            timeData: tabTimeData.get(tab.id) || null,
-            category: getCategoryForDomain(tab.url)
-          }));
-          
+          const enhancedTabs = tabs.map(tab => {
+            const timeData = tabTimeData.get(tab.id);
+            return {
+              ...tab,
+              timeData: timeData || null,
+              last_access: timeData?.lastAccessed || null,
+              category: getCategoryForDomain(tab.url)
+            };
+          });
+
           sendResponse({ tabs: enhancedTabs, windows });
           break;
           
