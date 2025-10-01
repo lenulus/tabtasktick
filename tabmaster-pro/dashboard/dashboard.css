@@ -835,6 +835,7 @@ body {
   white-space: nowrap;
 }
 
+.tree-tab-details,
 .tree-tab-goto {
   background: transparent;
   border: none;
@@ -851,6 +852,7 @@ body {
   opacity: 0;
 }
 
+.tree-tab:hover .tree-tab-details,
 .tree-tab:hover .tree-tab-goto {
   opacity: 1;
 }
@@ -860,11 +862,13 @@ body {
   padding-left: 8px;
 }
 
+.tree-tab-details:hover,
 .tree-tab-goto:hover {
   background: rgba(102, 126, 234, 0.1);
   color: #667eea;
 }
 
+.tree-tab-details svg,
 .tree-tab-goto svg {
   pointer-events: none;
 }

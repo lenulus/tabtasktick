@@ -837,10 +837,17 @@ function createTreeTab(tab) {
   const safeFaviconUrl = filterFaviconUrl(getFaviconUrl(tab));
   
   tabEl.innerHTML = `
-    <input type="checkbox" class="tree-tab-checkbox tab-checkbox" data-tab-id="${tab.id}" 
+    <input type="checkbox" class="tree-tab-checkbox tab-checkbox" data-tab-id="${tab.id}"
            ${state.selectedTabs.has(tab.id) ? 'checked' : ''}>
     <img src="${safeFaviconUrl}" class="tree-tab-favicon" data-fallback="../icons/icon-16.png">
     <div class="tree-tab-title" title="${tab.title}">${tab.title}</div>
+    <button class="tree-tab-details" title="Show tab state details for debugging">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+    </button>
     <button class="tree-tab-goto" title="Go to tab">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -879,10 +886,11 @@ function createTreeTab(tab) {
   });
   }
   
-  // Make entire row clickable for selection (except checkbox and goto button)
+  // Make entire row clickable for selection (except checkbox, details, and goto button)
   tabEl.addEventListener('click', (e) => {
-    // Don't toggle if clicking checkbox or goto button
-    if (e.target.classList.contains('tab-checkbox') || 
+    // Don't toggle if clicking checkbox, details button, or goto button
+    if (e.target.classList.contains('tab-checkbox') ||
+        e.target.closest('.tree-tab-details') ||
         e.target.closest('.tree-tab-goto')) {
       return;
     }
@@ -890,7 +898,16 @@ function createTreeTab(tab) {
     checkbox.checked = !checkbox.checked;
     checkbox.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  
+
+  // Add click handler to details button
+  const detailsBtn = tabEl.querySelector('.tree-tab-details');
+  if (detailsBtn) {
+    detailsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showTabDetails(tab);
+    });
+  }
+
   // Add click handler to goto button
   const gotoBtn = tabEl.querySelector('.tree-tab-goto');
   if (gotoBtn) {
