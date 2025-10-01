@@ -516,6 +516,7 @@ async function previewRule(ruleId) {
       if (timeData) {
         tab.createdAt = timeData.created;
         tab.lastActivatedAt = timeData.lastActive;
+        tab.last_access = timeData.lastAccessed;  // Add lastAccessed for rule evaluation
       }
       tab.category = getCategoryForDomain(tab.url);
     });
