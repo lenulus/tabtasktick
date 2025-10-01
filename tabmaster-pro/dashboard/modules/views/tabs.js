@@ -54,8 +54,8 @@ export async function loadTabsView(filter = null) {
   };
   
   try {
-    const tabs = await chrome.tabs.query({});
-    const windows = await chrome.windows.getAll();
+    // Get tabs with time data from background script
+    const { tabs, windows } = await chrome.runtime.sendMessage({ action: 'getTabs' });
     const groups = await chrome.tabGroups.query({});
     
     // Get custom window names from storage (keyed by window signature)
@@ -133,20 +133,20 @@ export async function loadTabsView(filter = null) {
       windowNameMap.set(window.id, windowName);
     });
     
-    // Get last accessed time from session storage if available
+    // Get last accessed time from session storage as fallback
     const lastAccessData = await chrome.storage.session.get('tabLastAccess').catch(() => ({}));
     const tabLastAccess = lastAccessData.tabLastAccess || {};
-    
+
     // Update last access for active tabs
     tabs.forEach(tab => {
       if (tab.active) {
         tabLastAccess[tab.id] = Date.now();
       }
     });
-    
+
     // Save updated access times
     await chrome.storage.session.set({ tabLastAccess }).catch(() => {});
-    
+
     // Create group map
     const groupMap = new Map();
     groups.forEach(group => {
@@ -156,15 +156,16 @@ export async function loadTabsView(filter = null) {
         collapsed: group.collapsed
       });
     });
-    
+
     // Store window and group info globally
     window.windowInfo = { windowColorMap, windowNameMap, currentWindowId };
     window.groupInfo = groupMap;
-    
+
     // Map tab data with real state information and window/group info
+    // Priority: background timeData > session storage > Chrome API > null
     state.set('tabsData', tabs.map(tab => ({
       ...tab,
-      lastAccessed: tabLastAccess[tab.id] || (tab.active ? Date.now() : null),
+      lastAccessed: tab.timeData?.lastAccessed || tabLastAccess[tab.id] || tab.lastAccessed || null,
       windowColor: windowColorMap.get(tab.windowId),
       windowName: windowNameMap.get(tab.windowId),
       groupName: tab.groupId > 0 ? groupMap.get(tab.groupId)?.title : null,
