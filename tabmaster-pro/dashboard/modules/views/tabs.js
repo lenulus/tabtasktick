@@ -361,6 +361,7 @@ export function renderGridView(tabs) {
     const detailsBtn = card.querySelector('.tab-details-btn');
     if (detailsBtn) {
       detailsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation(); // Prevent card click from firing
         showTabDetails(tab);
       });
