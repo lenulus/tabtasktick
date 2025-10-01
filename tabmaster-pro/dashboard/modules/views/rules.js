@@ -324,7 +324,7 @@ function updateSampleRulesDropdown() {
 }
 
 // Helper to describe conditions in new format
-function getNewFormatConditionDescription(conditions) {
+export function getNewFormatConditionDescription(conditions) {
   const junction = conditions.all ? 'all' : conditions.any ? 'any' : 'none';
   const items = conditions[junction] || [];
   
@@ -338,21 +338,47 @@ function getNewFormatConditionDescription(conditions) {
         url: 'URL',
         title: 'Title',
         domain: 'Domain',
-        duplicate: 'Is duplicate',
-        age: 'Tab age',
-        last_access: 'Last accessed',
-        pinned: 'Is pinned',
-        category: 'Category'
+        domainCount: 'Domain Tab Count',
+        origin: 'Origin',
+        age: 'Tab Age',
+        last_access: 'Last Accessed',
+        pinned: 'Pinned',
+        audible: 'Playing Audio',
+        muted: 'Muted',
+        group: 'In Group',
+        group_name: 'Group Name',
+        window_id: 'Window ID',
+        duplicate: 'Is Duplicate',
+        category: 'Category',
+        index: 'Tab Index',
+        active: 'Is Active'
       };
       
       const operatorLabels = {
+        // Equality
+        eq: 'equals',
+        neq: 'not equals',
         equals: 'is',
-        contains: 'contains',
+        // Comparison
+        gt: 'greater than',
+        gte: 'at least',
+        lt: 'less than',
+        lte: 'at most',
         greater_than: 'more than',
         less_than: 'less than',
-        in: 'in'
+        // String operations
+        contains: 'contains',
+        notContains: 'does not contain',
+        startsWith: 'starts with',
+        endsWith: 'ends with',
+        regex: 'matches',
+        // Array operations
+        in: 'in',
+        nin: 'not in',
+        // Boolean
+        is: 'is'
       };
-      
+
       const subject = subjectLabels[item.subject] || item.subject;
       const operator = operatorLabels[item.operator] || item.operator;
       const value = item.value === true ? 'yes' : item.value === false ? 'no' : item.value;
