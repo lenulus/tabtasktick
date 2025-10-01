@@ -388,6 +388,7 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
       if (timeData) {
         tab.createdAt = timeData.created;
         tab.lastActivatedAt = timeData.lastActive;
+        tab.last_access = timeData.lastAccessed;  // Add lastAccessed for rule evaluation
         // Log for debugging test tabs with age
         if (testMode && timeData.created < Date.now() - 60 * 60 * 1000) {
           console.log(`Test tab ${tab.id} has age data:`, {

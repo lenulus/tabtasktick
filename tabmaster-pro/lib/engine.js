@@ -33,6 +33,11 @@ export function buildIndices(tabs) {
     if (tab.createdAt) {
       tab.age = Date.now() - tab.createdAt;
     }
+
+    // Calculate time since last access if last_access timestamp is available
+    if (tab.last_access) {
+      tab.last_access = Date.now() - tab.last_access;
+    }
     
     // Add to indices
     (byDomain[tab.domain] ||= []).push(tab);
