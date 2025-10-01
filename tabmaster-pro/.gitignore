@@ -1,0 +1,17 @@
+# Build output
+*.zip
+
+# macOS
+.DS_Store
+
+# Node modules
+node_modules/
+
+# Test files
+dashboard/tests/
+dashboard/test-*.html
+dashboard/verify-*.html
+
+# Backup files
+*.backup*
+*.old
