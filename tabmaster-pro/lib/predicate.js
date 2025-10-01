@@ -127,11 +127,23 @@ const operators = {
     if (a == null || b == null) return true;
     return !String(a).includes(String(b));
   },
+  not_contains: (a, b) => {  // alias for snake_case
+    if (a == null || b == null) return true;
+    return !String(a).includes(String(b));
+  },
   startsWith: (a, b) => {
     if (a == null || b == null) return false;
     return String(a).startsWith(String(b));
   },
+  starts_with: (a, b) => {  // alias for snake_case
+    if (a == null || b == null) return false;
+    return String(a).startsWith(String(b));
+  },
   endsWith: (a, b) => {
+    if (a == null || b == null) return false;
+    return String(a).endsWith(String(b));
+  },
+  ends_with: (a, b) => {  // alias for snake_case
     if (a == null || b == null) return false;
     return String(a).endsWith(String(b));
   },
