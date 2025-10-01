@@ -354,10 +354,15 @@ export class ConditionsBuilder {
     const row = button.closest('.condition-row');
     const container = row.parentElement;
 
+    if (!container) {
+      console.warn('ConditionsBuilder: Cannot find parent container for condition row. Row may have been already removed.');
+      return;
+    }
+
     row.remove();
 
     // If this was the last condition in a group, add a default one
-    if (container && container.children.length === 0) {
+    if (container.children.length === 0) {
       container.appendChild(this.createConditionRow({
         subject: 'url',
         operator: 'contains',
