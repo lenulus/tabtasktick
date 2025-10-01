@@ -391,7 +391,6 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
       if (timeData) {
         tab.createdAt = timeData.created;
         tab.lastActivatedAt = timeData.lastActive;
-        tab.last_access = timeData.lastAccessed;  // Add lastAccessed for rule evaluation
         // Log for debugging test tabs with age
         if (testMode && timeData.created < Date.now() - 60 * 60 * 1000) {
           console.log(`Test tab ${tab.id} has age data:`, {
@@ -402,6 +401,8 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
           });
         }
       }
+      // Prefer Chrome's lastAccessed over our tracked data
+      tab.last_access = tab.lastAccessed || timeData?.lastAccessed || null;
       // Category will be assigned by engine.js using domain-categories.js data
     });
     
@@ -519,8 +520,9 @@ async function previewRule(ruleId) {
       if (timeData) {
         tab.createdAt = timeData.created;
         tab.lastActivatedAt = timeData.lastActive;
-        tab.last_access = timeData.lastAccessed;  // Add lastAccessed for rule evaluation
       }
+      // Prefer Chrome's lastAccessed over our tracked data
+      tab.last_access = tab.lastAccessed || timeData?.lastAccessed || null;
       tab.category = getCategoryForDomain(tab.url);
     });
     
@@ -871,7 +873,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             return {
               ...tab,
               timeData: timeData || null,
-              last_access: timeData?.lastAccessed || null,
+              last_access: tab.lastAccessed || timeData?.lastAccessed || null,
               category: getCategoryForDomain(tab.url)
             };
           });
