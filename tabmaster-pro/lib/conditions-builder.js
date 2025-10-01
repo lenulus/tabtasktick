@@ -354,18 +354,18 @@ export class ConditionsBuilder {
   handleRemoveCondition(button) {
     const row = button.closest('.condition-row');
     const container = row.parentElement;
-
+    
     row.remove();
-
+    
     // If this was the last condition in a group, add a default one
-    if (container && container.children.length === 0) {
+    if (container.children.length === 0) {
       container.appendChild(this.createConditionRow({
         subject: 'url',
         operator: 'contains',
         value: ''
       }));
     }
-
+    
     this.updatePreview();
     this.triggerChange();
   }
