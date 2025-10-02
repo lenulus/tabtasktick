@@ -290,11 +290,11 @@ export class ConditionsBuilder {
   }
 
   attachEventListeners() {
-    // Only attach event listeners once to prevent duplicate handlers
-    if (this.listenersAttached) return;
-    this.listenersAttached = true;
-
-    this.container.addEventListener('click', (e) => {
+    // Remove any existing listeners first
+    this.removeEventListeners();
+    
+    // Create bound event handlers so we can remove them later
+    this.clickHandler = (e) => {
       if (e.target.classList.contains('add-condition')) {
         this.handleAddCondition(e.target);
       } else if (e.target.classList.contains('add-group')) {
@@ -304,23 +304,47 @@ export class ConditionsBuilder {
       } else if (e.target.classList.contains('remove-group')) {
         this.handleRemoveGroup(e.target);
       }
-    });
+    };
 
-    this.container.addEventListener('change', (e) => {
+    this.changeHandler = (e) => {
       if (e.target.classList.contains('subject-select')) {
         this.handleSubjectChange(e.target);
       }
 
       this.updatePreview();
       this.triggerChange();
-    });
+    };
 
-    this.container.addEventListener('input', (e) => {
+    this.inputHandler = (e) => {
       if (e.target.classList.contains('value-input')) {
         this.updatePreview();
         this.triggerChange();
       }
-    });
+    };
+    
+    // Attach the event listeners
+    this.container.addEventListener('click', this.clickHandler);
+    this.container.addEventListener('change', this.changeHandler);
+    this.container.addEventListener('input', this.inputHandler);
+    
+    this.listenersAttached = true;
+  }
+  
+  removeEventListeners() {
+    if (!this.listenersAttached) return;
+    
+    // Remove event listeners using the stored references
+    if (this.clickHandler) {
+      this.container.removeEventListener('click', this.clickHandler);
+    }
+    if (this.changeHandler) {
+      this.container.removeEventListener('change', this.changeHandler);
+    }
+    if (this.inputHandler) {
+      this.container.removeEventListener('input', this.inputHandler);
+    }
+    
+    this.listenersAttached = false;
   }
 
   handleAddCondition(button) {
@@ -602,5 +626,13 @@ export class ConditionsBuilder {
     }
     
     return { valid: true };
+  }
+  
+  destroy() {
+    // Clean up event listeners when destroying the instance
+    this.removeEventListeners();
+    this.clickHandler = null;
+    this.changeHandler = null;
+    this.inputHandler = null;
   }
 }
