@@ -23,6 +23,20 @@ show_usage() {
     echo "  $0 --no-increment    # Build without incrementing version"
 }
 
+# Check for required dependencies
+if ! command -v zip &> /dev/null; then
+    echo "Error: zip command not found!"
+    echo "Please install it using: sudo apt install zip"
+    echo "Or on macOS: brew install zip"
+    exit 1
+fi
+
+# Ensure dist directory exists
+mkdir -p dist
+
+# Change to the extension directory
+cd tabmaster-pro || { echo "Error: tabmaster-pro directory not found"; exit 1; }
+
 # Function to get current version from manifest.json
 get_version() {
     grep -o '"version": "[^"]*"' manifest.json | cut -d'"' -f4
@@ -133,7 +147,7 @@ echo "Version: $CURRENT_VERSION"
 
 # Set the output filename with version (replace dots with underscores)
 VERSION_SAFE=$(echo "$CURRENT_VERSION" | tr '.' '_')
-OUTPUT_FILE="tabmaster-pro-extension_${VERSION_SAFE}.zip"
+OUTPUT_FILE="../dist/tabmaster-pro-extension_${VERSION_SAFE}.zip"
 
 # Remove existing zip if present
 if [ -f "$OUTPUT_FILE" ]; then
