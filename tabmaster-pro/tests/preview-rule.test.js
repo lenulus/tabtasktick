@@ -1,3 +1,5 @@
+import { describe, test, expect, jest } from '@jest/globals';
+
 describe('Preview Rule Logic', () => {
   describe('previewRule async filter bug', () => {
     test('should correctly filter tabs using Promise.all pattern', async () => {

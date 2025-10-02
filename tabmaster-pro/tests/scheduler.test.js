@@ -124,8 +124,8 @@ describe('Scheduler - Repeat Triggers', () => {
     scheduler.stopAll();
   });
   
-  test('should trigger immediately and then repeat', () => {
-    scheduler.scheduleRepeat('rule1', '30m');
+  test('should trigger immediately and then repeat', async () => {
+    await scheduler.scheduleRepeat('rule1', '30m');
     
     // Should trigger immediately
     expect(onTrigger).toHaveBeenCalledTimes(1);
@@ -144,25 +144,25 @@ describe('Scheduler - Repeat Triggers', () => {
     expect(onTrigger).toHaveBeenCalledTimes(3);
   });
   
-  test('should cancel and restart repeat trigger', () => {
-    scheduler.scheduleRepeat('rule1', '1h');
+  test('should cancel and restart repeat trigger', async () => {
+    await scheduler.scheduleRepeat('rule1', '1h');
     expect(onTrigger).toHaveBeenCalledTimes(1);
     
     jest.advanceTimersByTime(30 * 60 * 1000); // 30 minutes
     
     // Restart with new interval
-    scheduler.scheduleRepeat('rule1', '15m');
+    await scheduler.scheduleRepeat('rule1', '15m');
     expect(onTrigger).toHaveBeenCalledTimes(2); // Immediate trigger
     
     jest.advanceTimersByTime(15 * 60 * 1000);
     expect(onTrigger).toHaveBeenCalledTimes(3);
   });
   
-  test('should cancel repeat trigger', () => {
-    scheduler.scheduleRepeat('rule1', '10m');
+  test('should cancel repeat trigger', async () => {
+    await scheduler.scheduleRepeat('rule1', '10m');
     expect(onTrigger).toHaveBeenCalledTimes(1);
     
-    scheduler.cancelRepeat('rule1');
+    await scheduler.cancelRepeat('rule1');
     
     jest.advanceTimersByTime(60 * 60 * 1000); // 1 hour
     expect(onTrigger).toHaveBeenCalledTimes(1); // Only initial trigger
@@ -233,7 +233,7 @@ describe('Scheduler - Once Triggers', () => {
     
     expect(mockStorage.set).toHaveBeenCalledWith({
       scheduledTriggers: [
-        { ruleId: 'rule1', time: triggerTime }
+        { ruleId: 'rule1', time: triggerTime, type: 'once' }
       ]
     });
   });
@@ -299,14 +299,14 @@ describe('Scheduler - Rule Setup', () => {
     scheduler.stopAll();
   });
   
-  test('should setup repeat trigger from rule', () => {
+  test('should setup repeat trigger from rule', async () => {
     const rule = {
       id: 'test-rule',
       enabled: true,
       trigger: { repeat_every: '1h' }
     };
     
-    scheduler.setupRule(rule);
+    await scheduler.setupRule(rule);
     
     expect(onTrigger).toHaveBeenCalledTimes(1); // Immediate trigger
     
@@ -408,11 +408,11 @@ describe('Scheduler - Status and Control', () => {
     expect(onTrigger).toHaveBeenCalledTimes(1);
   });
   
-  test('should stop all triggers', () => {
+  test('should stop all triggers', async () => {
     scheduler.scheduleImmediate('rule1');
     scheduler.scheduleImmediate('rule2');
-    scheduler.scheduleRepeat('rule3', '10m');
-    scheduler.scheduleRepeat('rule4', '20m');
+    await scheduler.scheduleRepeat('rule3', '10m');
+    await scheduler.scheduleRepeat('rule4', '20m');
     
     scheduler.stopAll();
     
@@ -421,11 +421,11 @@ describe('Scheduler - Status and Control', () => {
     expect(onTrigger).toHaveBeenCalledTimes(2);
   });
   
-  test('should remove rule and cancel its triggers', () => {
-    scheduler.scheduleRepeat('rule1', '10m');
+  test('should remove rule and cancel its triggers', async () => {
+    await scheduler.scheduleRepeat('rule1', '10m');
     expect(onTrigger).toHaveBeenCalledTimes(1);
     
-    scheduler.removeRule('rule1');
+    await scheduler.removeRule('rule1');
     
     jest.advanceTimersByTime(60 * 60 * 1000);
     expect(onTrigger).toHaveBeenCalledTimes(1); // Only initial

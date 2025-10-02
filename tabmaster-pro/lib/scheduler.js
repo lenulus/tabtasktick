@@ -81,10 +81,10 @@ export function createScheduler(options = {}) {
    * @param {string} ruleId - Rule ID
    * @param {string|number} interval - Interval like '30m', '1h', '2d' or ms
    */
-  function scheduleRepeat(ruleId, interval) {
+  async function scheduleRepeat(ruleId, interval) {
     console.log(`scheduleRepeat called for rule ${ruleId} with interval ${interval}`);
     // Cancel existing interval if any
-    cancelRepeat(ruleId);
+    await cancelRepeat(ruleId);
 
     const ms = parseDuration(interval);
     console.log(`Parsed interval ${interval} to ${ms}ms`);
@@ -93,6 +93,26 @@ export function createScheduler(options = {}) {
       return;
     }
 
+    // Use chrome.alarms if available for persistent scheduling
+    if (chrome && chrome.alarms) {
+      const minutes = ms / 60000;
+      if (minutes < 1) {
+        console.warn(`Requested repeat interval of ${ms}ms (${minutes} minutes) is less than the minimum of 1 minute for a repeating alarm. Chrome will clamp it to 1 minute.`);
+      }
+
+      // Trigger immediately on start to align with previous setInterval behavior
+      console.log(`Triggering rule ${ruleId} immediately (repeat)`);
+      handleTrigger(ruleId, 'repeat');
+
+      chrome.alarms.create(`rule-repeat:${ruleId}`, {
+        delayInMinutes: minutes,
+        periodInMinutes: minutes,
+      });
+      console.log(`Scheduled repeat trigger for rule ${ruleId} every ${minutes} minutes using chrome.alarms.`);
+      return;
+    }
+
+    // Fallback to setInterval for non-Chrome environments
     // Trigger immediately on start
     console.log(`Triggering rule ${ruleId} immediately (repeat)`);
     handleTrigger(ruleId, 'repeat');
@@ -166,7 +186,13 @@ export function createScheduler(options = {}) {
    * Cancel a repeating trigger
    * @param {string} ruleId - Rule ID
    */
-  function cancelRepeat(ruleId) {
+  async function cancelRepeat(ruleId) {
+    // Clear alarm if using chrome.alarms
+    if (chrome && chrome.alarms) {
+      await chrome.alarms.clear(`rule-repeat:${ruleId}`);
+    }
+
+    // Clear interval for non-Chrome environments
     if (intervals.has(ruleId)) {
       clearInterval(intervals.get(ruleId));
       intervals.delete(ruleId);
@@ -177,22 +203,22 @@ export function createScheduler(options = {}) {
    * Cancel a one-time trigger
    * @param {string} ruleId - Rule ID
    */
-  function cancelOnce(ruleId) {
+  async function cancelOnce(ruleId) {
     if (timers.has(ruleId)) {
       clearTimeout(timers.get(ruleId));
       timers.delete(ruleId);
     }
-    removeSavedTrigger(ruleId);
+    await removeSavedTrigger(ruleId);
   }
   
   /**
    * Cancel all triggers for a rule
    * @param {string} ruleId - Rule ID
    */
-  function cancelAll(ruleId) {
+  async function cancelAll(ruleId) {
     cancelImmediate(ruleId);
-    cancelRepeat(ruleId);
-    cancelOnce(ruleId);
+    await cancelRepeat(ruleId);
+    await cancelOnce(ruleId);
   }
   
   /**
@@ -310,7 +336,7 @@ export function createScheduler(options = {}) {
     // Handle both repeat_every and repeat formats
     if (trigger.repeat_every || trigger.repeat) {
       console.log(`Setting up repeat trigger for rule ${rule.name}: ${trigger.repeat_every || trigger.repeat}`);
-      scheduleRepeat(rule.id, trigger.repeat_every || trigger.repeat);
+      await scheduleRepeat(rule.id, trigger.repeat_every || trigger.repeat);
     }
 
     // Handle both once_at and once formats
@@ -325,8 +351,8 @@ export function createScheduler(options = {}) {
    * Remove all triggers for a rule
    * @param {string} ruleId - Rule ID
    */
-  function removeRule(ruleId) {
-    cancelAll(ruleId);
+  async function removeRule(ruleId) {
+    await cancelAll(ruleId);
   }
   
   return {

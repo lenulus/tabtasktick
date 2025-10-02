@@ -1,3 +1,4 @@
+import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 import state from '../modules/core/state.js';
 
 describe('State Management', () => {

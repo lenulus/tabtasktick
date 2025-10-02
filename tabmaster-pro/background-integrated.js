@@ -67,8 +67,8 @@ const state = {
 // Rules Engine 2.0 Integration
 // ============================================================================
 
-// Create scheduler instance
-const scheduler = createChromeScheduler(chrome, async (trigger) => {
+// Scheduler trigger handler
+async function onSchedulerTrigger(trigger) {
   console.log('Rule trigger fired:', trigger);
   console.log('Current rules in state:', state.rules.map(r => ({ id: r.id, name: r.name, enabled: r.enabled })));
   const rule = state.rules.find(r => r.id === trigger.ruleId);
@@ -81,7 +81,10 @@ const scheduler = createChromeScheduler(chrome, async (trigger) => {
   } else {
     console.warn(`Rule not found or disabled for trigger: ${trigger.ruleId}`);
   }
-});
+}
+
+// Create scheduler instance
+const scheduler = createChromeScheduler(chrome, onSchedulerTrigger);
 
 // Initialize scheduler on startup
 async function initializeScheduler() {
@@ -1848,6 +1851,9 @@ async function checkSnoozedTabs() {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'checkSnoozedTabs') {
     await checkSnoozedTabs();
+  } else if (alarm.name.startsWith('rule-repeat:')) {
+    const ruleId = alarm.name.substring('rule-repeat:'.length);
+    await onSchedulerTrigger({ ruleId, type: 'repeat' });
   }
 });
 
