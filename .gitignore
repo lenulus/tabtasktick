@@ -2,8 +2,10 @@
 dist/
 *.zip
 
-# OS files
+# macOS
 .DS_Store
+
+# Windows
 Thumbs.db
 
 # Editor files
@@ -13,12 +15,21 @@ Thumbs.db
 *.swo
 *~
 
+# Node modules
+node_modules/
+
+# Test files
+tabmaster-pro/dashboard/tests/
+tabmaster-pro/dashboard/test-*.html
+tabmaster-pro/dashboard/verify-*.html
+
+# Backup files
+*.backup*
+*.old
+
 # Logs
 *.log
 npm-debug.log*
-
-# Dependencies
-node_modules/
 
 # Environment files
 .env
@@ -28,4 +39,3 @@ node_modules/
 # Temporary files
 *.tmp
 *.temp
-*.backup
