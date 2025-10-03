@@ -34,9 +34,8 @@ export async function ungroupAllTabs() {
 
 export async function loadGroupsView() {
   try {
-    // Get all tabs and groups from all windows
-    const tabs = await chrome.tabs.query({});
-    const groups = await chrome.tabGroups.query({});
+    const tabs = await chrome.tabs.query({ currentWindow: true });
+    const groups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
 
     const groupsMap = new Map();
     
@@ -199,17 +198,18 @@ async function closeGroup(groupId) {
 
 export async function groupTabsByDomain() {
   try {
-    const result = await chrome.runtime.sendMessage({ action: 'groupByDomain' });
+    // Import the service directly for dashboard use
+    const { GroupingScope, groupTabsByDomain: groupTabs, getCurrentWindowId } = await import('../../lib/tabGroupingService.js');
 
-    if (result && typeof result === 'object') {
-      await loadGroupsView();
+    // Use TARGETED scope for the dashboard's window
+    const currentWindowId = await getCurrentWindowId();
+    const result = await groupTabs(GroupingScope.TARGETED, currentWindowId);
 
-      if (result.groupsCreated > 0 || result.groupsReused > 0) {
-        const message = `Created ${result.groupsCreated} new groups, reused ${result.groupsReused} existing groups with ${result.totalTabsGrouped} tabs`;
-        showNotification(message, 'success');
-      } else {
-        showNotification('No tabs to group by domain', 'info');
-      }
+    await loadGroupsView();
+
+    if (result.groupsCreated > 0 || result.groupsReused > 0) {
+      const message = `Created ${result.groupsCreated} new groups, reused ${result.groupsReused} existing groups with ${result.totalTabsGrouped} tabs`;
+      showNotification(message, 'success');
     } else {
       showNotification('No tabs to group by domain', 'info');
     }

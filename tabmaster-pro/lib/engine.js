@@ -260,14 +260,16 @@ async function executeAction(action, tab, context, dryRun) {
         }
 
         if (groupName) {
-          // Initialize maps if needed
+          // IMPORTANT: Ensure grouping happens in the tab's window, not across windows
+          // Initialize maps per window if needed
           if (!context.groupMap) {
             context.groupMap = {};
           }
 
           // Load all existing groups on first use (once per batch)
           if (!context.existingGroupsLoaded) {
-            const existingGroups = await context.chrome.tabGroups.query({});
+            // CRITICAL: Only query groups in the tab's window to prevent cross-window grouping
+            const existingGroups = await context.chrome.tabGroups.query({ windowId: tab.windowId });
             // Cache all existing groups by title
             for (const group of existingGroups) {
               if (group.title) {
@@ -306,7 +308,8 @@ async function executeAction(action, tab, context, dryRun) {
 
           // Load all existing groups on first use (once per batch)
           if (!context.existingGroupsLoaded) {
-            const existingGroups = await context.chrome.tabGroups.query({});
+            // CRITICAL: Only query groups in the tab's window to prevent cross-window grouping
+            const existingGroups = await context.chrome.tabGroups.query({ windowId: tab.windowId });
             // Cache all existing groups by title
             for (const group of existingGroups) {
               if (group.title) {

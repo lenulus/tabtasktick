@@ -56,6 +56,7 @@ export class TestMode {
 
     // Mark test mode as active
     this.isActive = true;
+    this.shouldAbort = false;
 
     console.log('Test mode initialized', this.options);
     return true;
@@ -183,6 +184,7 @@ export class TestMode {
    * Run all test scenarios
    */
   async runAll() {
+    this.shouldAbort = false;  // Reset abort flag
     const scenarios = await this.loadScenarios();
     const results = {
       metadata: {
@@ -207,7 +209,7 @@ export class TestMode {
     };
 
     for (const scenario of scenarios) {
-      if (!this.isActive) break;
+      if (!this.isActive || this.shouldAbort) break;
 
       try {
         const scenarioResult = await this.runScenario(scenario);
@@ -242,6 +244,7 @@ export class TestMode {
    * @param {Array<string>} scenarioNames - Names of scenarios to run
    */
   async runScenarios(scenarioNames) {
+    this.shouldAbort = false;  // Reset abort flag
     const allScenarios = await this.loadScenarios();
     const scenarios = allScenarios.filter(s => scenarioNames.includes(s.name));
     
@@ -797,6 +800,13 @@ export class TestMode {
 
       // Execute steps
       for (const step of scenario.steps) {
+        // Check if we should abort
+        if (this.shouldAbort) {
+          result.status = 'aborted';
+          result.error = 'Test execution aborted by user';
+          break;
+        }
+
         const stepResult = await this.executeStep(step);
         result.steps.push(stepResult);
 

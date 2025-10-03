@@ -1039,7 +1039,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'groupByDomain':
-          const groupResult = await groupTabsByDomain();
+          // Allow caller to specify window ID, otherwise use sender's window
+          let targetWindowId = request.windowId;
+
+          if (!targetWindowId) {
+            // Fall back to sender's window
+            targetWindowId = sender.tab ? sender.tab.windowId :
+                             (await chrome.windows.getCurrent()).id;
+          }
+
+          const { GroupingScope, groupTabsByDomain: groupTabs } = await import('./lib/tabGroupingService.js');
+          const groupResult = await groupTabs(GroupingScope.TARGETED, targetWindowId);
           sendResponse(groupResult);
           break;
           
@@ -1277,89 +1287,24 @@ async function findAndCloseDuplicates() {
   return duplicates.length;
 }
 
-// Group tabs by domain
+// Group tabs by domain - moved to lib/tabGroupingService.js
+// Keeping old function name for compatibility with commands
 async function groupTabsByDomain() {
-  const tabs = await chrome.tabs.query({ currentWindow: true });
-  const domainMap = new Map();
-  const existingGroups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
+  const { GroupingScope, groupTabsByDomain: groupTabs, getCurrentWindowId } = await import('./lib/tabGroupingService.js');
+  const currentWindowId = await getCurrentWindowId();
+  const result = await groupTabs(GroupingScope.TARGETED, currentWindowId);
 
-  // Build a map of existing groups by domain title
-  const groupsByDomain = new Map();
-  for (const group of existingGroups) {
-    if (group.title) {
-      groupsByDomain.set(group.title, group.id);
-    }
-  }
+  // Update statistics
+  if (result.totalTabsGrouped > 0) {
+    state.statistics.tabsGrouped += result.totalTabsGrouped;
+    await chrome.storage.local.set({ statistics: state.statistics });
 
-  // Group ungrouped tabs by domain
-  for (const tab of tabs) {
-    if (tab.groupId > 0) continue; // Skip already grouped tabs
-
-    try {
-      const url = new URL(tab.url);
-      const domain = url.hostname;
-
-      if (!domainMap.has(domain)) {
-        domainMap.set(domain, []);
-      }
-      domainMap.get(domain).push(tab.id);
-    } catch {
-      // Skip invalid URLs
-    }
-  }
-
-  // Add tabs to existing groups or create new ones
-  let groupsCreated = 0;
-  let groupsReused = 0;
-  let totalTabsGrouped = 0;
-  const colors = ['blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange'];
-  let colorIndex = existingGroups.length; // Start color index after existing groups
-
-  for (const [domain, tabIds] of domainMap) {
-    if (tabIds.length >= 2 || (tabIds.length === 1 && groupsByDomain.has(domain))) {
-      let groupId;
-
-      // Check if a group with this domain already exists
-      if (groupsByDomain.has(domain)) {
-        // Add tabs to existing group
-        groupId = groupsByDomain.get(domain);
-        await chrome.tabs.group({
-          tabIds: tabIds,
-          groupId: groupId
-        });
-        groupsReused++;
-      } else if (tabIds.length >= 2) {
-        // Create new group only if we have multiple tabs
-        groupId = await chrome.tabs.group({ tabIds });
-
-        await chrome.tabGroups.update(groupId, {
-          title: domain,
-          color: colors[colorIndex % colors.length],
-          collapsed: false
-        });
-
-        colorIndex++;
-        groupsCreated++;
-        groupsByDomain.set(domain, groupId); // Track for potential reuse
-      } else {
-        // Single tab with no existing group - skip
-        continue;
-      }
-
-      totalTabsGrouped += tabIds.length;
-      state.statistics.tabsGrouped += tabIds.length;
-    }
-  }
-
-  await chrome.storage.local.set({ statistics: state.statistics });
-
-  // Log activity
-  if (groupsCreated > 0 || groupsReused > 0) {
-    const message = `Created ${groupsCreated} new groups, reused ${groupsReused} existing groups with ${totalTabsGrouped} tabs`;
+    // Log activity
+    const message = `Created ${result.groupsCreated} new groups, reused ${result.groupsReused} existing groups with ${result.totalTabsGrouped} tabs`;
     logActivity('group', message, 'manual');
   }
 
-  return { groupsCreated, groupsReused, totalTabsGrouped };
+  return result;
 }
 
 // Quick snooze current tab

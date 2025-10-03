@@ -209,7 +209,22 @@ async function runSelectedTests() {
 
 async function stopTests() {
   log('Stopping tests...', 'warning');
-  // TODO: Implement test cancellation
+
+  // Set a flag that the test runner will check
+  if (testMode) {
+    testMode.shouldAbort = true;
+
+    // Force cleanup after a short delay to ensure current step completes
+    setTimeout(async () => {
+      if (testMode && testMode.isActive) {
+        log('Cleaning up test environment...', 'warning');
+        await testMode.cleanup();
+        updateUI('active');
+        log('Tests stopped and cleaned up', 'warning');
+      }
+    }, 500);
+  }
+
   updateUI('active');
 }
 
