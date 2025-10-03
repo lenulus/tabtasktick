@@ -21,35 +21,56 @@ Systematic cleanup to achieve services-first architecture with single source of 
 - [x] Add dry-run support for previewing changes
 - [x] Deterministic color assignment via domain hash
 
-### 1.2 Update Callers ❌
-- [ ] **Background** (`background-integrated.js:1292`)
-  - [ ] Import from `/services/TabGrouping.js`
-  - [ ] Remove import from `/lib/tabGroupingService.js`
-  - [ ] Keep statistics update and activity logging (side effects stay in caller)
+### 1.2 Update Callers ✅
+- [x] **Background** (`background-integrated.js:1292`)
+  - [x] Import from `/services/TabGrouping.js`
+  - [x] Remove import from `/lib/tabGroupingService.js`
+  - [x] Keep statistics update and activity logging (side effects stay in caller)
 
-- [ ] **Dashboard** (`dashboard/modules/views/groups.js:199`)
-  - [ ] Import from `/services/TabGrouping.js`
-  - [ ] Remove import from `/lib/tabGroupingService.js`
-  - [ ] Keep notification display (side effects stay in caller)
+- [x] **Dashboard** (`dashboard/modules/views/groups.js:199`)
+  - [x] Import from `/services/TabGrouping.js`
+  - [x] Remove import from `/lib/tabGroupingService.js`
+  - [x] Keep notification display (side effects stay in caller)
 
-- [ ] **Session Manager** (`session/session.js:902`)
-  - [ ] Complete rewrite to use service
-  - [ ] Map selected tabIds to TARGETED scope with specific window
-  - [ ] Remove entire local implementation
+- [x] **Session Manager** (`session/session.js:902`)
+  - [x] Complete rewrite to use service
+  - [x] Map selected tabIds to TARGETED scope with specific window
+  - [x] Remove entire local implementation
 
-- [ ] **Rules Engine** (`lib/engine.js:244`)
-  - [ ] Import service at top of file
-  - [ ] Replace entire 'group' case with service call
-  - [ ] Map action.by to appropriate scope
-  - [ ] Handle single tab case properly
+- [x] **Rules Engine** (`lib/engine.js:244`)
+  - [x] Import service at top of file
+  - [x] Replace entire 'group' case with service call
+  - [x] Uses groupTabsByDomain with specificTabIds for now
+  - [ ] TODO: Batch process all matching tabs in one call
 
-### 1.3 Remove Old Code ❌
-- [ ] Delete `/lib/tabGroupingService.js` completely
-- [ ] Remove groupTabsByDomain from session.js
-- [ ] Remove inline grouping logic from engine.js
-- [ ] Clean up any dead imports
+### 1.3 Remove Old Code ✅
+- [x] Delete `/lib/tabGroupingService.js` completely
+- [x] Remove getDomain and getColorForDomain from session.js
+- [x] Simplify engine.js to call service
+- [x] Clean up any dead imports
 
-### 1.4 Testing ❌
+### 1.4 Split Selection from Execution 🚧
+- [x] Create `/services/selection/selectTabs.js` service
+  - [x] Generalized `selectTabs(filters)` method with all criteria
+  - [x] `matchesFilter(tab, filters)` for single tab testing
+  - [x] Common filter presets
+  - [x] Handle "all ungrouped in window"
+  - [x] Handle "by domain"
+  - [x] Handle "matching condition"
+- [x] Create `/services/execution/groupTabs.js` service
+  - [x] `groupTabs(tabIds, options)` - execution only
+  - [x] Remove selection logic
+  - [x] Only handle execution
+  - [x] Add dry-run support
+  - [x] Support custom names and by-domain grouping
+- [ ] Update all callers to use new pattern
+  - [ ] Dashboard: selection service → execution service
+  - [ ] Background: selection service → execution service
+  - [ ] Session: custom selection → execution service
+  - [ ] Rules: custom selection → execution service (batch all matches)
+  - [ ] Remove old TabGrouping.js combined service
+
+### 1.5 Testing ❌
 - [ ] Test popup "Group by Domain" button
 - [ ] Test dashboard Groups view "Group by Domain" button
 - [ ] Test keyboard shortcut (Ctrl+Shift+G)

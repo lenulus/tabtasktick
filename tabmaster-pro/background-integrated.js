@@ -1048,7 +1048,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                              (await chrome.windows.getCurrent()).id;
           }
 
-          const { GroupingScope, groupTabsByDomain: groupTabs } = await import('./lib/tabGroupingService.js');
+          const { GroupingScope, groupTabsByDomain: groupTabs } = await import('./services/TabGrouping.js');
           const groupResult = await groupTabs(GroupingScope.TARGETED, targetWindowId);
           sendResponse(groupResult);
           break;
@@ -1287,19 +1287,18 @@ async function findAndCloseDuplicates() {
   return duplicates.length;
 }
 
-// Group tabs by domain - moved to lib/tabGroupingService.js
-// Keeping old function name for compatibility with commands
+// Group tabs by domain - uses centralized TabGrouping service
 async function groupTabsByDomain() {
-  const { GroupingScope, groupTabsByDomain: groupTabs, getCurrentWindowId } = await import('./lib/tabGroupingService.js');
+  const { GroupingScope, groupTabsByDomain: groupTabs, getCurrentWindowId } = await import('./services/TabGrouping.js');
   const currentWindowId = await getCurrentWindowId();
   const result = await groupTabs(GroupingScope.TARGETED, currentWindowId);
 
-  // Update statistics
+  // Update statistics (side effects stay in caller)
   if (result.totalTabsGrouped > 0) {
     state.statistics.tabsGrouped += result.totalTabsGrouped;
     await chrome.storage.local.set({ statistics: state.statistics });
 
-    // Log activity
+    // Log activity (side effects stay in caller)
     const message = `Created ${result.groupsCreated} new groups, reused ${result.groupsReused} existing groups with ${result.totalTabsGrouped} tabs`;
     logActivity('group', message, 'manual');
   }

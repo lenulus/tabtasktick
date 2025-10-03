@@ -198,8 +198,8 @@ async function closeGroup(groupId) {
 
 export async function groupTabsByDomain() {
   try {
-    // Import the service directly for dashboard use
-    const { GroupingScope, groupTabsByDomain: groupTabs, getCurrentWindowId } = await import('../../lib/tabGroupingService.js');
+    // Import from centralized TabGrouping service
+    const { GroupingScope, groupTabsByDomain: groupTabs, getCurrentWindowId } = await import('../../../services/TabGrouping.js');
 
     // Use TARGETED scope for the dashboard's window
     const currentWindowId = await getCurrentWindowId();
@@ -207,6 +207,7 @@ export async function groupTabsByDomain() {
 
     await loadGroupsView();
 
+    // Show notification (side effects stay in caller)
     if (result.groupsCreated > 0 || result.groupsReused > 0) {
       const message = `Created ${result.groupsCreated} new groups, reused ${result.groupsReused} existing groups with ${result.totalTabsGrouped} tabs`;
       showNotification(message, 'success');

@@ -272,30 +272,32 @@ describe('Engine - executeActions', () => {
   test('should create named groups', async () => {
     const tabs = [createTab({ id: 1, windowId: 1 })];
     const actions = [{ action: 'group', name: 'Work' }];
-    
+
+    chromeMock.tabs.get.mockResolvedValue(tabs[0]);
     chromeMock.tabGroups.query.mockResolvedValue([]);
     chromeMock.tabs.group.mockResolvedValue(100);
     chromeMock.tabGroups.update.mockResolvedValue({});
-    
+
     const results = await executeActions(actions, tabs, { chrome: chromeMock }, false);
-    
+
     expect(chromeMock.tabs.group).toHaveBeenCalledWith({ tabIds: [1] });
-    expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(100, { title: 'Work' });
+    expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(100, { title: 'Work', color: expect.any(String), collapsed: false });
     expect(results[0].success).toBe(true);
   });
   
   test('should use existing named groups', async () => {
     const tabs = [createTab({ id: 1, windowId: 1 })];
     const actions = [{ action: 'group', name: 'Work' }];
-    
+
+    chromeMock.tabs.get.mockResolvedValue(tabs[0]);
     chromeMock.tabGroups.query.mockResolvedValue([
       { id: 100, title: 'Work' }
     ]);
     chromeMock.tabs.group.mockResolvedValue({});
-    
+
     const results = await executeActions(actions, tabs, { chrome: chromeMock }, false);
-    
-    expect(chromeMock.tabs.group).toHaveBeenCalledWith({ groupId: 100, tabIds: [1] });
+
+    expect(chromeMock.tabs.group).toHaveBeenCalledWith({ tabIds: [1], groupId: 100 });
     expect(results[0].success).toBe(true);
   });
   
@@ -569,28 +571,33 @@ describe('Engine - Complex Scenarios', () => {
       createTab({ url: 'https://github.com/pr/123', origin: 'gmail', id: 2, windowId: 1 }),
       createTab({ url: 'https://example.com', origin: 'direct', id: 3, windowId: 1 })
     ];
-    
+
     const rule = createRule({
       name: 'Gmail Spawn Group',
       when: { eq: ['tab.origin', 'gmail'] },
       then: [{ action: 'group', name: 'Gmail Session' }]
     });
-    
+
+    // Mock tabs.get for the service
+    chromeMock.tabs.get
+      .mockResolvedValueOnce(tabs[0])
+      .mockResolvedValueOnce(tabs[1]);
+
     // First call: No existing groups
     chromeMock.tabGroups.query.mockResolvedValueOnce([]);
     // Second call: Return the created group
     chromeMock.tabGroups.query.mockResolvedValueOnce([
       { id: 100, title: 'Gmail Session' }
     ]);
-    
+
     chromeMock.tabs.group
       .mockResolvedValueOnce(100) // First tab creates the group
       .mockResolvedValueOnce({}); // Second tab adds to existing group
     chromeMock.tabGroups.update.mockResolvedValue({});
-    
+
     const context = createTestContext(tabs);
     const results = await runRules([rule], { ...context, chrome: chromeMock }, { dryRun: false });
-    
+
     expect(results.totalMatches).toBe(2);
     // The implementation now groups all tabs at once for efficiency
     expect(chromeMock.tabs.group).toHaveBeenCalled();

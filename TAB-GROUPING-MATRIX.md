@@ -129,20 +129,55 @@
    }
    ```
 
-## Migration Plan
+## Architectural Decision: Separation of Concerns
 
-1. **Phase 1**: Update all wrappers to use new service
-   - background-integrated.js → call service
-   - dashboard/groups.js → call service
-   - session.js → call service
-   - Rules engine → call service for 'group' action
+### Core Principle
+- **UI/Rules Layer**: Responsible for SELECTING which tabs to act on
+- **Service Layer**: Responsible for EXECUTING actions on provided tabs
 
-2. **Phase 2**: Remove old implementations
-   - Delete lib/tabGroupingService.js
-   - Remove inline logic from session.js
-   - Simplify rules engine
+### Service Layer Structure
+1. **Selection Services**: Handle common selection patterns
+   - `selectTabsForGrouping(criteria)` - "all ungrouped", "by domain", etc.
+   - Returns array of tab IDs
 
-3. **Phase 3**: Add missing features
-   - Dry-run support for preview
+2. **Execution Services**: Handle the actual operations
+   - `groupTabs(tabIds, options)` - groups provided tabs
+   - `snoozeTabs(tabIds, duration)` - snoozes provided tabs
+   - etc.
+
+### Usage Patterns
+1. **Simple/Common Selection**:
+   - UI calls selection service → execution service
+   - Example: Dashboard "Group All" → `selectTabsForGrouping()` → `groupTabs()`
+
+2. **Bespoke Selection**:
+   - UI does custom selection → calls execution service directly
+   - Example: Rules engine matches tabs → `groupTabs(matchedTabIds)`
+   - Example: Session manager user selection → `groupTabs(selectedTabIds)`
+
+### Benefits
+- No duplication of selection logic for common patterns
+- Flexibility for custom selection when needed
+- Clean separation between "what to act on" vs "how to act"
+- Services remain thin and focused
+
+## Migration Plan (COMPLETED Phase 1-2)
+
+1. **Phase 1**: ✅ Update all wrappers to use new service
+   - ✅ background-integrated.js → calls service
+   - ✅ dashboard/groups.js → calls service
+   - ✅ session.js → calls service
+   - ✅ Rules engine → calls service for 'group' action
+
+2. **Phase 2**: ✅ Remove old implementations
+   - ✅ Delete lib/tabGroupingService.js
+   - ✅ Remove inline logic from session.js
+   - ✅ Simplify rules engine to call service
+
+3. **Phase 3**: Split Selection from Execution (TODO)
+   - Create selection service for common patterns
+   - Update execution service to only handle execution
+   - Update callers to use appropriate pattern
+   - Add dry-run support at execution layer
    - Better error messages
    - Progress callbacks

@@ -900,31 +900,29 @@ async function closeSoloTabs() {
 }
 
 async function groupTabsByDomain(tabIds) {
-  const tabsByDomain = new Map();
-  
-  // Group by domain
+  // Import from centralized TabGrouping service
+  const { GroupingScope, groupTabsByDomain: groupTabs } = await import('../services/TabGrouping.js');
+
+  // Group tabs by their windows first
+  const tabsByWindow = new Map();
   for (const tabId of tabIds) {
     const tab = await chrome.tabs.get(tabId);
-    const domain = getDomain(tab.url);
-    
-    if (!tabsByDomain.has(domain)) {
-      tabsByDomain.set(domain, []);
+    if (!tabsByWindow.has(tab.windowId)) {
+      tabsByWindow.set(tab.windowId, []);
     }
-    tabsByDomain.get(domain).push(tab);
+    tabsByWindow.get(tab.windowId).push(tabId);
   }
-  
-  // Create groups for each domain
-  for (const [domain, tabs] of tabsByDomain) {
-    if (tabs.length > 1) {
-      const tabIds = tabs.map(t => t.id);
-      const groupId = await chrome.tabs.group({ tabIds });
-      
-      await chrome.tabGroups.update(groupId, {
-        title: domain,
-        color: getColorForDomain(domain)
-      });
-    }
+
+  // For each window, group only the selected tabs
+  for (const [windowId, windowTabIds] of tabsByWindow) {
+    await groupTabs(GroupingScope.TARGETED, windowId, {
+      specificTabIds: windowTabIds,
+      minTabsPerGroup: 2  // Keep session's behavior of requiring >1 tab per group
+    });
   }
+
+  // Refresh the session view
+  await updateAllWindows();
 }
 
 async function archiveOldTabs(tabIds) {
@@ -1184,14 +1182,7 @@ function getGroupColor(color) {
   return colorMap[color] || colorMap.grey;
 }
 
-function getDomain(url) {
-  try {
-    const u = new URL(url);
-    return u.hostname.replace('www.', '');
-  } catch {
-    return url;
-  }
-}
+// getDomain removed - now using centralized TabGrouping service
 
 function getFaviconUrl(url) {
   if (!url || url.startsWith('chrome://') || url.startsWith('edge://')) {
@@ -1223,15 +1214,7 @@ function debounce(func, wait) {
   };
 }
 
-function getColorForDomain(domain) {
-  // Simple hash-based color selection
-  let hash = 0;
-  for (let i = 0; i < domain.length; i++) {
-    hash = domain.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const colors = ['blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange'];
-  return colors[Math.abs(hash) % colors.length];
-}
+// getColorForDomain removed - now using centralized TabGrouping service
 
 // Track last selected for shift-click
 let lastSelectedNode = null;

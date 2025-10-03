@@ -14,6 +14,7 @@ export const GroupingScope = {
  * @property {boolean} [includeSingleIfExisting=true] - Add a single tab to an existing same-title group
  * @property {boolean} [includePinned=false] - Include pinned tabs in grouping (default: skip them)
  * @property {boolean} [dryRun=false] - If true, compute what would happen but don't move/group tabs
+ * @property {number[]} [specificTabIds] - If provided, ONLY group these specific tabs (ignores other tabs)
  */
 
 /**
@@ -49,7 +50,18 @@ export async function groupTabsByDomain(scope, targetWindowId = null, opts = {})
  */
 async function groupGlobally(targetWindowId, opts) {
   const result = baseResult({ targetWindow: targetWindowId });
-  const allTabs = await chrome.tabs.query({});
+  const { specificTabIds = null } = opts;
+
+  // Get tabs - either specific ones or all tabs
+  let allTabs;
+  if (specificTabIds && specificTabIds.length > 0) {
+    allTabs = await Promise.all(specificTabIds.map(id =>
+      chrome.tabs.get(id).catch(() => null)
+    ));
+    allTabs = allTabs.filter(tab => tab !== null);
+  } else {
+    allTabs = await chrome.tabs.query({});
+  }
 
   // Partition tabs
   const tabsToMove = [];
@@ -104,13 +116,25 @@ async function groupInWindow(windowId, opts = {}) {
     minTabsPerGroup = 2,
     includeSingleIfExisting = true,
     includePinned = false,
-    dryRun = false
+    dryRun = false,
+    specificTabIds = null
   } = opts;
 
   const result = baseResult();
   result._windowsAffectedSet.add(windowId);
 
-  const tabs = await chrome.tabs.query({ windowId });
+  // Get tabs - either specific ones or all in window
+  let tabs;
+  if (specificTabIds && specificTabIds.length > 0) {
+    // Get only the specific tabs requested
+    tabs = await Promise.all(specificTabIds.map(id =>
+      chrome.tabs.get(id).catch(() => null)
+    ));
+    tabs = tabs.filter(tab => tab && tab.windowId === windowId);
+  } else {
+    tabs = await chrome.tabs.query({ windowId });
+  }
+
   const existingGroups = await chrome.tabGroups.query({ windowId });
 
   // Map existing groups by title (domain title convention)
@@ -226,6 +250,80 @@ async function groupPerWindow(opts) {
 
   finalizeResult(result);
   return result;
+}
+
+/**
+ * Group a single tab by its domain or a custom name.
+ * Will reuse existing group with same name if it exists in the tab's window.
+ * Used primarily by the rules engine for single-tab operations.
+ *
+ * @param {number} tabId - The ID of the tab to group
+ * @param {Object} [opts] - Options
+ * @param {string} [opts.groupName] - Custom group name (if not provided, uses domain)
+ * @param {boolean} [opts.createIfMissing=true] - Create a new group if no matching group exists
+ * @returns {Promise<{success:boolean, groupId?:number, reused:boolean, error?:string}>}
+ */
+export async function groupSingleTab(tabId, opts = {}) {
+  const { groupName = null, createIfMissing = true } = opts;
+
+  try {
+    const tab = await chrome.tabs.get(tabId);
+
+    // Determine the group title
+    let title;
+    if (groupName) {
+      // Use custom group name
+      title = groupName;
+    } else {
+      // Use domain from URL
+      if (!isValidTab(tab)) {
+        return { success: false, error: 'Invalid tab URL' };
+      }
+      title = tryGetDomain(tab.url);
+      if (!title) {
+        return { success: false, error: 'Cannot determine domain' };
+      }
+    }
+
+    // Check if already in the correct group
+    if (tab.groupId && tab.groupId !== -1) {
+      const group = await chrome.tabGroups.get(tab.groupId);
+      if (group.title === title) {
+        return { success: true, groupId: tab.groupId, reused: true };
+      }
+    }
+
+    // Look for existing group with same title in this window
+    const existingGroups = await chrome.tabGroups.query({ windowId: tab.windowId });
+    let targetGroupId = null;
+
+    for (const group of existingGroups) {
+      if (group.title === title) {
+        targetGroupId = group.id;
+        break;
+      }
+    }
+
+    if (targetGroupId) {
+      // Add to existing group
+      await chrome.tabs.group({ tabIds: [tabId], groupId: targetGroupId });
+      return { success: true, groupId: targetGroupId, reused: true };
+    } else if (createIfMissing) {
+      // Create new group
+      const newGroupId = await chrome.tabs.group({ tabIds: [tabId] });
+      const color = groupName ? pickColorForDomain(groupName) : pickColorForDomain(title);
+      await chrome.tabGroups.update(newGroupId, {
+        title: title,
+        color: color,
+        collapsed: false
+      });
+      return { success: true, groupId: newGroupId, reused: false };
+    } else {
+      return { success: false, error: 'No matching group exists' };
+    }
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 }
 
 /**

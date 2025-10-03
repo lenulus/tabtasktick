@@ -9,28 +9,57 @@
 3. **No Magic**: Every side effect is an explicit call; every option is a parameter
 4. **Deterministic**: Same inputs → same outputs; handle collisions predictably
 5. **Maintainable**: Small PRs, strong tests, clear docs, remove dead code immediately
+6. **Separation of Concerns**: Selection (what to act on) is separate from Execution (how to act)
 
 ### Implementation Rules
 
-- **If two places have similar logic, it MUST move to `/lib/services/*` and both call it**
+- **If two places have similar logic, it MUST move to `/services/*` and both call it**
 - **NO duplicate implementations** - everything has one source of truth
 - **Surfaces (popup, dashboard, etc) are THIN** - they only handle UI, not business logic
 - **Services handle ALL business logic** - surfaces just call services
 - **Every option is explicit** - no hidden defaults or magic behavior
 - **Dead code is deleted immediately** - not commented out or left around
 
+### Separation of Concerns Pattern
+
+- **UI Layer**: Handles user-based selection
+  - User clicks, checkbox selections, list selections
+  - Returns selected entity IDs
+  - Stays THIN - no business logic
+
+- **Selection Services**: Handle bulk selection by filtering (business logic)
+  - Filtering patterns (all ungrouped, by domain, by age, duplicates, etc.)
+  - Return arrays of entity IDs
+  - Example: `selectUngroupedTabs(windowId)`
+
+- **Execution Services**: Handle operations on provided entities
+  - Take entity IDs and perform operations
+  - No selection logic, only execution
+  - Example: `groupTabs(tabIds, options)`
+
+- **Usage**:
+  - **Bulk operations**: UI → Selection Service (filtering) → Execution Service
+  - **User selections**: UI (user picks items) → Execution Service
+  - **Rules engine**: Does matching (custom filtering) → Execution Service
+
 ### Directory Structure
 
 ```
-/lib/services/           # ALL shared business logic
-  ├── tabGroupingService.js  # Single source for grouping logic
-  ├── snoozeService.js       # Single source for snooze logic
-  └── ...                    # Other centralized services
+/services/               # ALL shared business logic
+  ├── selection/         # Selection services (what to act on)
+  │   ├── selectTabs.js      # Tab selection patterns
+  │   ├── selectBookmarks.js # Bookmark selection patterns
+  │   └── ...
+  ├── execution/         # Execution services (how to act)
+  │   ├── groupTabs.js       # Tab grouping execution
+  │   ├── snoozeTabs.js      # Tab snoozing execution
+  │   └── ...
+  └── TabGrouping.js     # Current combined service (to be split)
 
 /popup/                  # THIN presentation layer
 /dashboard/              # THIN presentation layer
 /background.js           # THIN coordinator - calls services
-/lib/engine.js          # Rules engine - calls services
+/lib/engine.js          # Rules engine - does selection, calls execution services
 ```
 
 ## Project Overview
@@ -49,32 +78,47 @@ TabMaster Pro is a Chrome extension for advanced tab management, built with vani
 ## Service Pattern Example
 
 ```javascript
-// WRONG - logic in multiple places
+// WRONG - mixing selection and execution
 // popup.js
 async function groupTabs() {
-  const tabs = await chrome.tabs.query({});
+  const tabs = await chrome.tabs.query({ groupId: -1 }); // selection
+  for (const tab of tabs) {
+    // grouping logic here... (execution)
+  }
+}
+
+// WRONG - duplicate selection logic
+// dashboard.js
+async function groupTabs() {
+  const tabs = await chrome.tabs.query({ groupId: -1 }); // duplicate selection
   // grouping logic here...
 }
 
-// dashboard.js
-async function groupTabs() {
-  const tabs = await chrome.tabs.query({});
-  // similar grouping logic here...
+// RIGHT - separated concerns
+// services/selection/selectTabs.js
+export async function selectUngroupedTabs(windowId) {
+  const tabs = await chrome.tabs.query({ windowId, groupId: -1 });
+  return tabs.map(t => t.id);
 }
 
-// RIGHT - single service
-// lib/services/tabGroupingService.js
-export async function groupTabsByDomain(scope, targetWindowId) {
-  // ALL grouping logic here
+// services/execution/groupTabs.js
+export async function groupTabs(tabIds, options) {
+  // ONLY execution logic here
+  // No selection, just group the provided tabs
 }
 
-// popup.js
-import { groupTabsByDomain } from '/lib/services/tabGroupingService.js';
-await groupTabsByDomain('TARGETED', windowId);
+// popup.js - bulk selection via filtering service
+import { selectUngroupedTabs } from '/services/selection/selectTabs.js';
+import { groupTabs } from '/services/execution/groupTabs.js';
 
-// dashboard.js
-import { groupTabsByDomain } from '/lib/services/tabGroupingService.js';
-await groupTabsByDomain('TARGETED', windowId);
+const tabIds = await selectUngroupedTabs(windowId); // service does filtering
+await groupTabs(tabIds, { byDomain: true });
+
+// session.js - user-based selection at UI level
+import { groupTabs } from '/services/execution/groupTabs.js';
+
+const selectedTabIds = getCheckedTabs(); // UI tracks what user selected
+await groupTabs(selectedTabIds, { byDomain: true });
 ```
 
 ## Testing Commands
