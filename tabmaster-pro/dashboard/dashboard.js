@@ -67,7 +67,7 @@ import {
   setupRuleDragAndDrop,
   updateRulePriorities
 } from './modules/views/rules.js';
-import { loadGroupsView, autoGroupTabs } from './modules/views/groups.js';
+import { loadGroupsView, groupTabsByDomain, ungroupAllTabs } from './modules/views/groups.js';
 import { loadSnoozedView } from './modules/views/snoozed.js';
 import { loadHistoryView } from './modules/views/history.js';
 
@@ -315,11 +315,11 @@ function setupEventListeners() {
   });
   
   
-  // Create group
-  document.getElementById('createGroup')?.addEventListener('click', createNewGroup);
+  // Ungroup all
+  document.getElementById('ungroupAll')?.addEventListener('click', ungroupAllTabs);
   
-  // Auto group
-  document.getElementById('autoGroup')?.addEventListener('click', autoGroupTabs);
+  // Group by domain
+  document.getElementById('groupByDomain')?.addEventListener('click', groupTabsByDomain);
   
   // Wake all snoozed
   document.getElementById('wakeAll')?.addEventListener('click', wakeAllSnoozed);
@@ -876,22 +876,6 @@ function hideProgressIndicator() {
   }
 }
 
-async function createNewGroup() {
-  const name = await promptGroupName();
-  if (!name) return;
-  
-  try {
-    // Create an empty group
-    const groupId = await chrome.tabs.group({ tabIds: [] });
-    await chrome.tabGroups.update(groupId, { title: name, color: "blue" });
-    
-    showNotification(`Created group "${name}"`, "success");
-    await refreshData();
-  } catch (error) {
-    console.error("Failed to create group:", error);
-    showNotification("Failed to create group", "error");
-  }
-}
 
 async function wakeAllSnoozed() {
   try {

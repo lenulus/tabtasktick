@@ -973,8 +973,9 @@ body {
 
 .group-header {
   padding: 16px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  color: #333;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -982,7 +983,7 @@ body {
 }
 
 .group-header:hover {
-  opacity: 0.95;
+  background: #f0f1f3;
 }
 
 .group-title {
@@ -994,13 +995,16 @@ body {
 .group-title h3 {
   font-size: 16px;
   font-weight: 600;
+  color: #333;
+  margin: 0;
 }
 
 .group-count {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.08);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 12px;
+  color: #666;
 }
 
 .group-actions {
@@ -1009,28 +1013,64 @@ body {
 }
 
 .group-action-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
+  background: transparent;
+  border: 1px solid #dee2e6;
+  color: #666;
   padding: 6px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+.group-action-btn svg {
+  transition: transform 0.2s ease;
+}
+
 .group-action-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
 }
 
 .group-tabs {
-  padding: 16px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .group-tabs.collapsed {
   display: none;
+}
+
+.group-tab-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+
+.group-tab-card:hover {
+  background: #f8f9fa;
+}
+
+.group-tab-favicon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.group-tab-title {
+  font-size: 13px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Snoozed Timeline */

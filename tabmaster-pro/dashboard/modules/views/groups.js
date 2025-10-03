@@ -2,12 +2,42 @@
 // Handles the tab groups management view
 
 import { showNotification } from '../core/shared-utils.js';
+import { getFaviconUrl } from '../core/utils.js';
+
+// Store UI collapsed state for groups
+const collapsedGroups = new Set();
+
+export async function ungroupAllTabs() {
+  try {
+    // Get all tabs in the current window
+    const tabs = await chrome.tabs.query({ currentWindow: true });
+
+    // Filter for only grouped tabs
+    const groupedTabs = tabs.filter(tab => tab.groupId && tab.groupId !== -1);
+
+    if (groupedTabs.length === 0) {
+      showNotification("No grouped tabs to ungroup", "info");
+      return;
+    }
+
+    // Ungroup all tabs
+    const tabIds = groupedTabs.map(tab => tab.id);
+    await chrome.tabs.ungroup(tabIds);
+
+    showNotification(`Ungrouped ${groupedTabs.length} tabs`, "success");
+    await loadGroupsView(); // Refresh the view
+  } catch (error) {
+    console.error("Failed to ungroup tabs:", error);
+    showNotification("Failed to ungroup tabs", "error");
+  }
+}
 
 export async function loadGroupsView() {
   try {
-    const tabs = await chrome.tabs.query({ currentWindow: true });
-    const groups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
-    
+    // Get all tabs and groups from all windows
+    const tabs = await chrome.tabs.query({});
+    const groups = await chrome.tabGroups.query({});
+
     const groupsMap = new Map();
     
     // Initialize groups
@@ -42,18 +72,21 @@ export function renderGroups(groups) {
       <div class="empty-state">
         <h3>No tab groups</h3>
         <p>Create groups to organize your tabs better</p>
-        <button class="btn btn-primary" id="autoGroupBtn">Auto-Group Tabs</button>
+        <button class="btn btn-primary" id="groupByDomainBtn">Group by Domain</button>
       </div>
     `;
     // Add event listener after creating the button
-    document.getElementById('autoGroupBtn')?.addEventListener('click', autoGroupTabs);
+    document.getElementById('groupByDomainBtn')?.addEventListener('click', groupTabsByDomain);
     return;
   }
   
   groups.forEach(group => {
     const card = document.createElement('div');
     card.className = 'group-card';
-    
+
+    // Use our stored UI state instead of Chrome's collapsed state
+    const isUICollapsed = collapsedGroups.has(group.id);
+
     card.innerHTML = `
       <div class="group-header" data-group-id="${group.id}">
         <div class="group-title">
@@ -62,7 +95,7 @@ export function renderGroups(groups) {
         </div>
         <div class="group-actions">
           <button class="group-action-btn" data-action="collapse" data-group-id="${group.id}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="transform: ${isUICollapsed ? 'rotate(-90deg)' : ''}">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
@@ -74,20 +107,13 @@ export function renderGroups(groups) {
           </button>
         </div>
       </div>
-      <div class="group-tabs ${group.collapsed ? 'collapsed' : ''}">
+      <div class="group-tabs ${isUICollapsed ? 'collapsed' : ''}">
         ${group.tabs.map(tab => {
-          // Filter out invalid favicon URLs
-          const favIconUrl = (!tab.favIconUrl || 
-                              tab.favIconUrl.startsWith('chrome-extension://') || 
-                              tab.favIconUrl === 'chrome-extension://invalid/') 
-                              ? '../icons/icon-16.png' 
-                              : tab.favIconUrl;
+          const favIconUrl = getFaviconUrl(tab);
           return `
-          <div class="tab-card">
-            <div class="tab-header">
-              <img src="${favIconUrl}" class="tab-favicon" data-fallback="../icons/icon-16.png">
-              <div class="tab-title">${tab.title}</div>
-            </div>
+          <div class="group-tab-card">
+            <img src="${favIconUrl}" class="group-tab-favicon" data-fallback="../icons/icon-16.png">
+            <div class="group-tab-title">${tab.title}</div>
           </div>
         `;
         }).join('')}
@@ -100,6 +126,19 @@ export function renderGroups(groups) {
       if (!e.target.closest('.group-actions')) {
         const tabs = card.querySelector('.group-tabs');
         tabs.classList.toggle('collapsed');
+
+        // Track collapsed state
+        if (tabs.classList.contains('collapsed')) {
+          collapsedGroups.add(group.id);
+        } else {
+          collapsedGroups.delete(group.id);
+        }
+
+        // Update chevron rotation
+        const chevron = card.querySelector('[data-action="collapse"] svg');
+        if (chevron) {
+          chevron.style.transform = tabs.classList.contains('collapsed') ? 'rotate(-90deg)' : '';
+        }
       }
     });
     
@@ -110,19 +149,34 @@ export function renderGroups(groups) {
   container.addEventListener('click', (e) => {
     const button = e.target.closest('.group-action-btn');
     if (!button) return;
-    
+
     const action = button.dataset.action;
     const groupId = parseInt(button.dataset.groupId);
-    
+
     if (action === 'collapse') {
-      collapseGroup(groupId);
+      // Just toggle the UI, don't actually collapse in Chrome
+      e.stopPropagation();
+      const groupCard = button.closest('.group-card');
+      const tabs = groupCard.querySelector('.group-tabs');
+      tabs.classList.toggle('collapsed');
+
+      // Track collapsed state
+      if (tabs.classList.contains('collapsed')) {
+        collapsedGroups.add(groupId);
+      } else {
+        collapsedGroups.delete(groupId);
+      }
+
+      // Rotate the chevron
+      const svg = button.querySelector('svg');
+      svg.style.transform = tabs.classList.contains('collapsed') ? 'rotate(-90deg)' : '';
     } else if (action === 'close') {
       closeGroup(groupId);
     }
   });
   
   // Handle favicon errors silently
-  container.querySelectorAll('.tab-favicon').forEach(img => {
+  container.querySelectorAll('.group-tab-favicon').forEach(img => {
     img.addEventListener('error', function(e) {
       // Prevent error from bubbling up and logging to console
       e.preventDefault();
@@ -131,14 +185,6 @@ export function renderGroups(groups) {
   });
 }
 
-async function collapseGroup(groupId) {
-  try {
-    await chrome.tabGroups.update(groupId, { collapsed: true });
-    await loadGroupsView(); // Reload the view
-  } catch (error) {
-    console.error('Failed to collapse group:', error);
-  }
-}
 
 async function closeGroup(groupId) {
   try {
@@ -151,16 +197,25 @@ async function closeGroup(groupId) {
   }
 }
 
-export async function autoGroupTabs() {
+export async function groupTabsByDomain() {
   try {
-    const result = await chrome.runtime.sendMessage({ action: 'autoGroupTabs' });
-    if (result.success) {
+    const result = await chrome.runtime.sendMessage({ action: 'groupByDomain' });
+
+    if (result && typeof result === 'object') {
       await loadGroupsView();
-      showNotification(`Created ${result.groupsCreated} groups`, 'success');
+
+      if (result.groupsCreated > 0 || result.groupsReused > 0) {
+        const message = `Created ${result.groupsCreated} new groups, reused ${result.groupsReused} existing groups with ${result.totalTabsGrouped} tabs`;
+        showNotification(message, 'success');
+      } else {
+        showNotification('No tabs to group by domain', 'info');
+      }
+    } else {
+      showNotification('No tabs to group by domain', 'info');
     }
   } catch (error) {
-    console.error('Failed to auto-group tabs:', error);
-    showNotification('Failed to auto-group tabs', 'error');
+    console.error('Failed to group tabs by domain:', error);
+    showNotification('Failed to group tabs by domain', 'error');
   }
 }
 
