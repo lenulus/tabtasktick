@@ -14,6 +14,9 @@ show_usage() {
     echo "  --patch              Increment patch version (X.Y.Z+1) [default]"
     echo "  --set-version X.Y.Z  Set specific version before packaging"
     echo "  --no-increment       Don't increment version after packaging"
+    echo "  --tag                Create git tag for the built version"
+    echo "  --push               Push tag and version bump commit to remote"
+    echo "  --release            Shorthand for --tag --push (full release workflow)"
     echo "  --help               Show this help message"
     echo ""
     echo "Examples:"
@@ -21,6 +24,8 @@ show_usage() {
     echo "  $0 --major           # Increment to next major version and build"
     echo "  $0 --set-version 2.0.0  # Set version to 2.0.0 and build"
     echo "  $0 --no-increment    # Build without incrementing version"
+    echo "  $0 --tag             # Build, tag, and increment version"
+    echo "  $0 --release         # Build, tag, increment, commit, and push"
 }
 
 # Check for required dependencies
@@ -90,6 +95,8 @@ increment_version() {
 INCREMENT_TYPE="patch"
 AUTO_INCREMENT=true
 SET_VERSION=""
+CREATE_TAG=false
+PUSH_CHANGES=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -111,6 +118,19 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-increment)
             AUTO_INCREMENT=false
+            shift
+            ;;
+        --tag)
+            CREATE_TAG=true
+            shift
+            ;;
+        --push)
+            PUSH_CHANGES=true
+            shift
+            ;;
+        --release)
+            CREATE_TAG=true
+            PUSH_CHANGES=true
             shift
             ;;
         --help)
@@ -188,6 +208,20 @@ echo "✓ Extension package created: $OUTPUT_FILE"
 echo "  Size: $SIZE"
 echo "  Version: $CURRENT_VERSION"
 
+# Store the built version for tagging
+BUILT_VERSION="$CURRENT_VERSION"
+
+# Create git tag if requested
+if [ "$CREATE_TAG" = true ]; then
+    echo ""
+    echo "Creating git tag for version $BUILT_VERSION..."
+    # Go back to repo root for git operations
+    cd ..
+    git tag -a "v$BUILT_VERSION" -m "Release version $BUILT_VERSION"
+    echo "✓ Tagged as v$BUILT_VERSION"
+    cd tabmaster-pro
+fi
+
 # Auto-increment version after packaging
 if [ "$AUTO_INCREMENT" = true ]; then
     NEW_VERSION=$(increment_version "$CURRENT_VERSION" "$INCREMENT_TYPE")
@@ -195,9 +229,40 @@ if [ "$AUTO_INCREMENT" = true ]; then
     echo "Auto-incrementing version ($INCREMENT_TYPE)..."
     set_version "$NEW_VERSION"
     echo "Next build will be version: $NEW_VERSION"
+    
+    # Commit the version bump if we're tagging or pushing
+    if [ "$CREATE_TAG" = true ] || [ "$PUSH_CHANGES" = true ]; then
+        echo ""
+        echo "Committing version bump..."
+        cd ..
+        git add tabmaster-pro/manifest.json
+        git commit -m "Bump version to $NEW_VERSION for next development cycle"
+        echo "✓ Committed version bump"
+        cd tabmaster-pro
+    fi
+fi
+
+# Push changes if requested
+if [ "$PUSH_CHANGES" = true ]; then
+    echo ""
+    echo "Pushing changes to remote..."
+    cd ..
+    if [ "$CREATE_TAG" = true ]; then
+        git push origin main --tags
+        echo "✓ Pushed commits and tags"
+    else
+        git push origin main
+        echo "✓ Pushed commits"
+    fi
+    cd tabmaster-pro
 fi
 
 echo ""
 echo "The package is ready for:"
 echo "  • Chrome Web Store submission"
 echo "  • Sideloading via chrome://extensions (Developer mode)"
+
+if [ "$CREATE_TAG" = true ]; then
+    echo ""
+    echo "Release tag created: v$BUILT_VERSION"
+fi
