@@ -1434,14 +1434,45 @@ async function wakeAllSnoozedTabs() {
   if (count === 0) {
     return { success: true, count: 0 };
   }
-
-  // Create all tabs and restore group associations
-  for (const snoozedTab of state.snoozedTabs) {
+  
+  // If there are multiple tabs, create them in a new window
+  let targetWindowId;
+  if (count > 1) {
+    // Create window with the first tab's URL to avoid default new tab
+    const firstTab = state.snoozedTabs[0];
+    const newWindow = await chrome.windows.create({
+      url: firstTab.url,
+      focused: true
+    });
+    targetWindowId = newWindow.id;
+    
+    // Get the tab that was created with the window
+    const windowTabs = await chrome.tabs.query({ windowId: targetWindowId });
+    if (windowTabs.length > 0) {
+      // Restore group if needed for the first tab
+      await restoreTabToGroup(windowTabs[0].id, firstTab.groupId);
+    }
+    
+    // Create the remaining tabs
+    for (let i = 1; i < state.snoozedTabs.length; i++) {
+      const snoozedTab = state.snoozedTabs[i];
+      const newTab = await chrome.tabs.create({
+        url: snoozedTab.url,
+        windowId: targetWindowId,
+        active: false
+      });
+      
+      // Restore group association if the group still exists
+      await restoreTabToGroup(newTab.id, snoozedTab.groupId);
+    }
+  } else {
+    // Single tab - create in current window
+    const snoozedTab = state.snoozedTabs[0];
     const newTab = await chrome.tabs.create({
       url: snoozedTab.url,
       active: false
     });
-
+    
     // Restore group association if the group still exists
     await restoreTabToGroup(newTab.id, snoozedTab.groupId);
   }
@@ -1815,8 +1846,36 @@ async function checkSnoozedTabs() {
     let targetWindowId;
     
     if (windowId === 'new') {
-      const newWindow = await chrome.windows.create();
+      // Create window with the first tab's URL to avoid default new tab
+      const firstTab = tabs[0];
+      const newWindow = await chrome.windows.create({
+        url: firstTab.url,
+        focused: true
+      });
       targetWindowId = newWindow.id;
+      
+      // Get the tab that was created with the window
+      const windowTabs = await chrome.tabs.query({ windowId: targetWindowId });
+      if (windowTabs.length > 0) {
+        // Restore group if needed for the first tab
+        await restoreTabToGroup(windowTabs[0].id, firstTab.groupId);
+      }
+      
+      // Create the remaining tabs
+      for (let i = 1; i < tabs.length; i++) {
+        const tab = tabs[i];
+        await chrome.tabs.create({
+          url: tab.url,
+          windowId: targetWindowId,
+          active: false
+        });
+      }
+      
+      // Remove the original tab from state.snoozedTabs
+      state.snoozedTabs = state.snoozedTabs.filter(t => t.id !== firstTab.id);
+      
+      // Skip the rest of the loop since we handled all tabs
+      continue;
     } else {
       // Check if original window still exists
       try {

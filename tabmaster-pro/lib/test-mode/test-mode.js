@@ -163,7 +163,9 @@ export class TestMode {
    * Create isolated test window
    */
   async createTestWindow() {
+    // Create window with the test mode indicator URL directly to avoid extra new tab
     this.testWindow = await chrome.windows.create({
+      url: 'data:text/html,<h1>TabMaster Pro - Test Mode Active</h1><p>Do not close this window.</p>',
       focused: !this.options.headless,
       width: 1200,
       height: 800,
@@ -172,12 +174,8 @@ export class TestMode {
       type: 'normal'
     });
 
-    // Create initial tab with test mode indicator
+    // Get the tab that was created with the window
     const [tab] = await chrome.tabs.query({ windowId: this.testWindow.id });
-    await chrome.tabs.update(tab.id, {
-      url: 'data:text/html,<h1>TabMaster Pro - Test Mode Active</h1><p>Do not close this window.</p>'
-    });
-
     this.testTabIds.add(tab.id);
   }
 
