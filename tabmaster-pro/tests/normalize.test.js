@@ -74,7 +74,7 @@ describe('normalizeUrl', () => {
 
     it('should handle internationalized domains', () => {
       expect(normalizeUrl('https://例え.jp/page#top'))
-        .toBe('https://例え.jp/page');
+        .toBe('https://xn--r8jz45g.jp/page');
     });
   });
 

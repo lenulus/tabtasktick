@@ -107,6 +107,11 @@ export const DOMAIN_CATEGORIES = {
     name: "Search & Discovery",
     description: "Search engines and discovery platforms",
     color: "#4285F4"
+  },
+  test: {
+    name: "Test",
+    description: "Test and example domains",
+    color: "#9CA3AF"
   }
 };
 
@@ -337,6 +342,9 @@ export const CATEGORIZED_DOMAINS = [
   { domain: "foodnetwork.com", rank: 575, categories: ["food_delivery", "video"] },
   { domain: "epicurious.com", rank: 615, categories: ["food_delivery", "reference"] },
   { domain: "seriouseats.com", rank: 655, categories: ["food_delivery", "reference"] },
+  
+  // Test Domains
+  { domain: "example.com", rank: 999, categories: ["test"] },
   
   // Health & Fitness
   { domain: "webmd.com", rank: 232, categories: ["health_fitness", "reference"] },

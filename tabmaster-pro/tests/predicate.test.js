@@ -91,13 +91,13 @@ describe('predicate compiler', () => {
       const condition = { in: ['tab.category', ['news', 'social']] };
       const pred = compile(condition);
       
-      const tab = createTab();
-      tab.category = 'news';
-      const ctx = createTestContext([tab]);
-      expect(pred({ tab, ...ctx })).toBe(true);
+      const newsTab = createTab({ url: 'https://cnn.com' });
+      const ctx1 = createTestContext([newsTab]);
+      expect(pred({ ...ctx1, tab: newsTab })).toBe(true);
       
-      tab.category = 'dev';
-      expect(pred({ tab, ...ctx })).toBe(false);
+      const devTab = createTab({ url: 'https://github.com' });
+      const ctx2 = createTestContext([devTab]);
+      expect(pred({ ...ctx2, tab: devTab })).toBe(false);
     });
 
     it('should compile nin (not in array) condition', () => {

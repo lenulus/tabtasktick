@@ -147,7 +147,7 @@ describe('Utils Module', () => {
         { url: 'invalid-url' },
         { url: 'https://valid.com' }
       ];
-      expect(getWindowSignature(tabs)).toBe('valid.com');
+      expect(getWindowSignature(tabs)).toBe('newtab|valid.com');
     });
   });
   

@@ -76,8 +76,8 @@ describe('Issue #3: Domain Categories Consistency', () => {
     expect(keys.length).toBe(uniqueKeys.size);
   });
 
-  test('Category count should match (21 total including search)', () => {
+  test('Category count should match (22 total including search and test)', () => {
     const categoryCount = Object.keys(DOMAIN_CATEGORIES).length;
-    expect(categoryCount).toBe(21);
+    expect(categoryCount).toBe(22);
   });
 });

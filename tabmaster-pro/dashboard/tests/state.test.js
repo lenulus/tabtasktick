@@ -1,10 +1,19 @@
-import { describe, test, expect, beforeEach, jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import state from '../modules/core/state.js';
+
+// Store unsubscribe functions
+let unsubscribeFns = [];
 
 describe('State Management', () => {
   beforeEach(() => {
     // Reset state before each test
     state.reset();
+  });
+  
+  afterEach(() => {
+    // Unsubscribe all listeners after each test
+    unsubscribeFns.forEach(fn => fn());
+    unsubscribeFns = [];
   });
 
   describe('Basic state operations', () => {
@@ -78,7 +87,7 @@ describe('State Management', () => {
     test('should not notify for unrelated changes', () => {
       const callback = jest.fn();
       
-      state.subscribe(['specificPath'], callback);
+      unsubscribeFns.push(state.subscribe(['specificPath'], callback));
       state.set('otherPath', 'value');
       
       expect(callback).not.toHaveBeenCalled();
@@ -87,7 +96,7 @@ describe('State Management', () => {
     test('should handle wildcard subscriptions', () => {
       const callback = jest.fn();
       
-      state.subscribe(['*'], callback);
+      unsubscribeFns.push(state.subscribe(['*'], callback));
       state.set('anyPath', 'value');
       
       expect(callback).toHaveBeenCalledWith(
@@ -110,7 +119,7 @@ describe('State Management', () => {
   describe('Batch updates', () => {
     test('should batch multiple updates', () => {
       const callback = jest.fn();
-      state.subscribe(['*'], callback);
+      unsubscribeFns.push(state.subscribe(['*'], callback));
       
       state.batchUpdate(() => {
         state.set('value1', 'test1');
@@ -169,8 +178,9 @@ describe('State Management', () => {
         done();
       });
 
-      state.subscribe(['selectedTabs'], callback);
+      const unsubscribe = state.subscribe(['selectedTabs'], callback);
       state.selectedTabs.add(1);
+      unsubscribeFns.push(unsubscribe);
     });
   });
 

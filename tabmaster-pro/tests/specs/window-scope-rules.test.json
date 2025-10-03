@@ -1,0 +1,242 @@
+{
+  "name": "Window Scope Rules Test Suite",
+  "description": "Tests for rule window scoping feature - verifies that rules can operate per-window or globally",
+  "tests": [
+    {
+      "name": "Remove Duplicates - Per Window Scope",
+      "description": "Verifies that duplicate removal only affects tabs within each window when scope is per-window",
+      "steps": [
+        { "action": "createWindow", "name": "work" },
+        { "action": "createWindow", "name": "personal" },
+        
+        { "action": "createTab", "url": "https://github.com/project-a", "window": "work", "count": 3 },
+        { "action": "createTab", "url": "https://github.com/project-b", "window": "personal", "count": 2 },
+        { "action": "createTab", "url": "https://stackoverflow.com", "window": "work", "count": 2 },
+        { "action": "createTab", "url": "https://stackoverflow.com", "window": "personal", "count": 3 },
+        
+        {
+          "action": "createRule",
+          "rule": {
+            "name": "Remove per-window duplicates",
+            "if": [{ "url": { "matches": "*" } }],
+            "then": [{ "action": "removeDuplicates", "keep": "newest" }],
+            "scope": "window"
+          }
+        },
+        
+        { "action": "executeRule", "ruleId": "Remove per-window duplicates" },
+        
+        { "action": "assert", "type": "tabCount", "window": "work", "url": "github.com", "count": 2 },
+        { "action": "assert", "type": "tabCount", "window": "personal", "url": "github.com", "count": 1 },
+        { "action": "assert", "type": "tabCount", "window": "work", "url": "stackoverflow", "count": 1 },
+        { "action": "assert", "type": "tabCount", "window": "personal", "url": "stackoverflow", "count": 1 }
+      ]
+    },
+    
+    {
+      "name": "Remove Duplicates - Global Scope",
+      "description": "Verifies that duplicate removal affects all tabs across windows when scope is global",
+      "steps": [
+        { "action": "createWindow", "name": "window1" },
+        { "action": "createWindow", "name": "window2" },
+        
+        { "action": "createTab", "url": "https://example.com/page", "window": "window1", "count": 2 },
+        { "action": "createTab", "url": "https://example.com/page", "window": "window2", "count": 2 },
+        
+        {
+          "action": "createRule",
+          "rule": {
+            "name": "Remove global duplicates",
+            "if": [{ "url": { "matches": "*" } }],
+            "then": [{ "action": "removeDuplicates", "keep": "newest" }],
+            "scope": "global"
+          }
+        },
+        
+        { "action": "executeRule", "ruleId": "Remove global duplicates" },
+        
+        { "action": "assert", "type": "tabCount", "url": "example.com/page", "count": 1 }
+      ]
+    },
+    
+    {
+      "name": "Group by Domain - Per Window Scope",
+      "description": "Verifies that domain grouping happens independently within each window",
+      "steps": [
+        { "action": "createWindow", "name": "research" },
+        { "action": "createWindow", "name": "development" },
+        
+        { "action": "createTab", "url": "https://arxiv.org/paper1", "window": "research" },
+        { "action": "createTab", "url": "https://arxiv.org/paper2", "window": "research" },
+        { "action": "createTab", "url": "https://arxiv.org/paper3", "window": "research" },
+        { "action": "createTab", "url": "https://nature.com/article1", "window": "research" },
+        
+        { "action": "createTab", "url": "https://developer.mozilla.org/docs/web", "window": "development" },
+        { "action": "createTab", "url": "https://developer.mozilla.org/docs/css", "window": "development" },
+        { "action": "createTab", "url": "https://developer.mozilla.org/docs/js", "window": "development" },
+        { "action": "createTab", "url": "https://github.com/repo", "window": "development" },
+        
+        {
+          "action": "createRule",
+          "rule": {
+            "name": "Group by domain per window",
+            "if": [{ "url": { "matches": "*" } }],
+            "then": [{ "action": "group", "by": "domain" }],
+            "scope": "window"
+          }
+        },
+        
+        { "action": "executeRule", "ruleId": "Group by domain per window" },
+        
+        { "action": "assert", "type": "groupExists", "window": "research", "title": "arxiv.org" },
+        { "action": "assert", "type": "groupExists", "window": "research", "title": "nature.com" },
+        { "action": "assert", "type": "groupExists", "window": "development", "title": "developer.mozilla.org" },
+        { "action": "assert", "type": "groupExists", "window": "development", "title": "github.com" },
+        { "action": "assert", "type": "tabsInGroup", "window": "research", "groupTitle": "arxiv.org", "count": 3 },
+        { "action": "assert", "type": "tabsInGroup", "window": "development", "groupTitle": "developer.mozilla.org", "count": 3 }
+      ]
+    },
+    
+    {
+      "name": "Suspend Inactive Tabs - Per Window Scope",
+      "description": "Verifies that tab suspension tracking is independent per window",
+      "steps": [
+        { "action": "createWindow", "name": "active-work" },
+        { "action": "createWindow", "name": "reference" },
+        
+        { "action": "createTab", "url": "https://work-site.com/page1", "window": "active-work", "age": "5m" },
+        { "action": "createTab", "url": "https://work-site.com/page2", "window": "active-work", "age": "45m" },
+        
+        { "action": "createTab", "url": "https://docs.com/ref1", "window": "reference", "age": "35m" },
+        { "action": "createTab", "url": "https://docs.com/ref2", "window": "reference", "age": "45m" },
+        
+        {
+          "action": "createRule",
+          "rule": {
+            "name": "Suspend inactive per window",
+            "if": [{ "inactive": { "for": "30m" } }],
+            "then": [{ "action": "suspend" }],
+            "scope": "window"
+          }
+        },
+        
+        { "action": "executeRule", "ruleId": "Suspend inactive per window" },
+        
+        { "action": "assert", "type": "tabSuspended", "window": "active-work", "url": "page2", "suspended": true },
+        { "action": "assert", "type": "tabSuspended", "window": "active-work", "url": "page1", "suspended": false },
+        { "action": "assert", "type": "tabSuspended", "window": "reference", "url": "ref1", "suspended": true },
+        { "action": "assert", "type": "tabSuspended", "window": "reference", "url": "ref2", "suspended": true }
+      ]
+    },
+    
+    {
+      "name": "Limit Tabs per Domain - Per Window Scope",
+      "description": "Verifies that domain limits apply within each window independently",
+      "steps": [
+        { "action": "createWindow", "name": "window1" },
+        { "action": "createWindow", "name": "window2" },
+        
+        { "action": "createTab", "url": "https://reddit.com/r/programming/1", "window": "window1" },
+        { "action": "createTab", "url": "https://reddit.com/r/programming/2", "window": "window1" },
+        { "action": "createTab", "url": "https://reddit.com/r/programming/3", "window": "window1" },
+        { "action": "createTab", "url": "https://reddit.com/r/webdev/1", "window": "window1" },
+        { "action": "createTab", "url": "https://reddit.com/r/webdev/2", "window": "window1" },
+        { "action": "createTab", "url": "https://reddit.com/r/webdev/3", "window": "window1" },
+        
+        { "action": "createTab", "url": "https://reddit.com/r/science/1", "window": "window2" },
+        { "action": "createTab", "url": "https://reddit.com/r/science/2", "window": "window2" },
+        { "action": "createTab", "url": "https://reddit.com/r/science/3", "window": "window2" },
+        { "action": "createTab", "url": "https://reddit.com/r/science/4", "window": "window2" },
+        
+        {
+          "action": "createRule",
+          "rule": {
+            "name": "Limit reddit tabs per window",
+            "if": [{ "url": { "domain": "reddit.com" } }],
+            "then": [{ "action": "limitDomain", "max": 3, "keep": "newest" }],
+            "scope": "window"
+          }
+        },
+        
+        { "action": "executeRule", "ruleId": "Limit reddit tabs per window" },
+        
+        { "action": "assert", "type": "tabCount", "window": "window1", "url": "reddit.com", "count": 3 },
+        { "action": "assert", "type": "tabCount", "window": "window2", "url": "reddit.com", "count": 3 }
+      ]
+    },
+    
+    {
+      "name": "Close Tabs by Pattern - Per Window Scope",
+      "description": "Verifies that pattern matching for tab closure happens within each window",
+      "steps": [
+        { "action": "createWindow", "name": "dev" },
+        { "action": "createWindow", "name": "staging" },
+        
+        { "action": "createTab", "url": "http://localhost:3000/app", "window": "dev" },
+        { "action": "createTab", "url": "http://localhost:3001/api", "window": "dev" },
+        { "action": "createTab", "url": "https://github.com/repo", "window": "dev" },
+        
+        { "action": "createTab", "url": "http://localhost:8080/test", "window": "staging" },
+        { "action": "createTab", "url": "https://staging.example.com", "window": "staging" },
+        
+        {
+          "action": "createRule",
+          "rule": {
+            "name": "Close localhost tabs per window",
+            "if": [{ "url": { "matches": "http://localhost:*" } }],
+            "then": [{ "action": "close" }],
+            "scope": "window"
+          }
+        },
+        
+        { "action": "executeRule", "ruleId": "Close localhost tabs per window" },
+        
+        { "action": "assert", "type": "tabCount", "window": "dev", "url": "localhost", "count": 0 },
+        { "action": "assert", "type": "tabCount", "window": "dev", "url": "github.com", "count": 1 },
+        { "action": "assert", "type": "tabCount", "window": "staging", "url": "localhost", "count": 0 },
+        { "action": "assert", "type": "tabCount", "window": "staging", "url": "staging.example.com", "count": 1 }
+      ]
+    },
+    
+    {
+      "name": "Mixed Window and Global Rules",
+      "description": "Verifies that window-scoped and global rules can coexist",
+      "steps": [
+        { "action": "createWindow", "name": "window1" },
+        { "action": "createWindow", "name": "window2" },
+        
+        { "action": "createTab", "url": "https://news.com/article1", "window": "window1", "count": 2 },
+        { "action": "createTab", "url": "https://news.com/article2", "window": "window2", "count": 2 },
+        { "action": "createTab", "url": "https://blog.com/post1", "window": "window1", "count": 3 },
+        { "action": "createTab", "url": "https://blog.com/post1", "window": "window2", "count": 2 },
+        
+        {
+          "action": "createRule",
+          "rule": {
+            "name": "Remove news duplicates per window",
+            "if": [{ "url": { "domain": "news.com" } }],
+            "then": [{ "action": "removeDuplicates", "keep": "oldest" }],
+            "scope": "window"
+          }
+        },
+        
+        {
+          "action": "createRule",
+          "rule": {
+            "name": "Remove blog duplicates globally",
+            "if": [{ "url": { "domain": "blog.com" } }],
+            "then": [{ "action": "removeDuplicates", "keep": "newest" }],
+            "scope": "global"
+          }
+        },
+        
+        { "action": "executeRule", "ruleId": "Remove news duplicates per window" },
+        { "action": "executeRule", "ruleId": "Remove blog duplicates globally" },
+        
+        { "action": "assert", "type": "tabCount", "window": "window1", "url": "news.com", "count": 1 },
+        { "action": "assert", "type": "tabCount", "window": "window2", "url": "news.com", "count": 1 },
+        { "action": "assert", "type": "tabCount", "url": "blog.com", "count": 1 }
+      ]
+    }
+  ]
+}

@@ -119,9 +119,16 @@ export function setState(pathOrUpdates, value) {
     }
   }
   
-  // Notify listeners
+  // Notify listeners or collect for batching
   if (changedPaths.length > 0) {
-    notifyListeners(changedPaths, updates);
+    if (isBatching) {
+      // Collect updates for batching
+      Object.assign(batchedUpdates, updates);
+      changedPaths.forEach(path => batchedPaths.add(path));
+    } else {
+      // Notify immediately
+      notifyListeners(changedPaths, updates);
+    }
   }
 }
 
@@ -161,34 +168,39 @@ function notifyListeners(changedPaths, updates) {
   }
 }
 
+// Batching state
+let isBatching = false;
+let batchedUpdates = {};
+let batchedPaths = new Set();
+
 /**
  * Batch multiple state updates
  * @param {Function} updateFn - Function that performs multiple setState calls
  */
 export function batchUpdate(updateFn) {
-  // Store original notifyListeners
-  const originalNotify = notifyListeners;
-  const batchedChanges = {};
-  const batchedPaths = new Set();
+  if (isBatching) {
+    // Already batching, just run the function
+    updateFn();
+    return;
+  }
   
-  // Temporarily replace notifyListeners to collect changes
-  window._notifyListeners = notifyListeners;
-  window.notifyListeners = (paths, updates) => {
-    Object.assign(batchedChanges, updates);
-    paths.forEach(path => batchedPaths.add(path));
-  };
+  isBatching = true;
+  batchedUpdates = {};
+  batchedPaths = new Set();
   
   try {
     updateFn();
   } finally {
-    // Restore original notifyListeners
-    notifyListeners = window._notifyListeners;
-    delete window._notifyListeners;
+    isBatching = false;
     
-    // Notify once with all changes
+    // Notify once with all batched changes
     if (batchedPaths.size > 0) {
-      originalNotify(Array.from(batchedPaths), batchedChanges);
+      notifyListeners(Array.from(batchedPaths), batchedUpdates);
     }
+    
+    // Clear batch state
+    batchedUpdates = {};
+    batchedPaths = new Set();
   }
 }
 
