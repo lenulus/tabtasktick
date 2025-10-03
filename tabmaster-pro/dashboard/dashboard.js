@@ -103,17 +103,7 @@ window.addEventListener('load', async () => {
   } else {
     console.error('SnoozeModal class not found after window load');
   }
-  
-  // Initialize preview card
-  if (typeof TabPreviewCard !== 'undefined') {
-    const previewCard = new TabPreviewCard(document.body);
-    state.set('previewCard', previewCard);
-    window.previewCard = previewCard; // Make available globally
-    console.log('Preview card initialized');
-  } else {
-    console.error('TabPreviewCard not found - preview.js may not be loaded');
-  }
-  
+
   // Refresh data periodically
   setInterval(refreshData, 30000); // Every 30 seconds
   
