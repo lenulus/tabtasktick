@@ -398,10 +398,10 @@ describe('Scheduler - Status and Control', () => {
   
   test('should cancel all triggers for a rule', async () => {
     scheduler.scheduleImmediate('rule1');
-    scheduler.scheduleRepeat('rule1', '30m');
+    await scheduler.scheduleRepeat('rule1', '30m');
     await scheduler.scheduleOnce('rule1', 10000);
     
-    scheduler.cancelAll('rule1');
+    await scheduler.cancelAll('rule1');
     
     jest.advanceTimersByTime(60 * 60 * 1000);
     // Only the initial repeat trigger should have fired
