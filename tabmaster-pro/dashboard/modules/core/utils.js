@@ -204,16 +204,32 @@ export function getFaviconUrl(tab) {
   if (tab.favIconUrl) {
     return tab.favIconUrl;
   }
-  
+
   // Otherwise generate one from the URL
   try {
     const u = new URL(tab.url);
-    if (u.protocol === 'chrome:' || u.protocol === 'chrome-extension:') {
-      return `chrome://favicon/${tab.url}`;
+    // Chrome internal pages - use appropriate icons
+    if (u.protocol === 'chrome:') {
+      if (u.hostname === 'newtab') {
+        return '../icons/chrome-newtab-16.png';
+      }
+      if (u.hostname === 'extensions') {
+        return '../icons/chrome-extensions-16.png';
+      }
+      // Generic Chrome icon for other chrome:// pages
+      return '../icons/chrome-logo-16.png';
+    }
+    if (u.protocol === 'chrome-extension:') {
+      // Use this extension's own icon for its pages
+      if (u.hostname === chrome.runtime.id) {
+        return '../icons/icon-16.png';
+      }
+      // Use puzzle piece for other extensions
+      return '../icons/chrome-extensions-16.png';
     }
     return `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(tab.url)}&size=16`;
-  } catch {
-    return 'chrome://favicon/';
+  } catch (e) {
+    return '../icons/icon-16.png';
   }
 }
 

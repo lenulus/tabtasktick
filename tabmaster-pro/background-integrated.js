@@ -1407,6 +1407,7 @@ async function wakeSnoozedTab(tabId) {
   const tabIndex = state.snoozedTabs.findIndex(t =>
     String(t.id) === String(tabId) || t.url === tabId
   );
+
   if (tabIndex === -1) {
     return { success: false, error: 'Tab not found' };
   }

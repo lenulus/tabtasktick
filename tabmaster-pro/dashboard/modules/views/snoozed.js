@@ -1,15 +1,21 @@
 // Snoozed View Module
 // Handles the snoozed tabs timeline view
 
+// Track if event listeners are already set up
+let listenersInitialized = false;
+
 export async function loadSnoozedView() {
   try {
     console.log('Loading snoozed view...');
     const snoozedTabs = await sendMessage({ action: 'getSnoozedTabs' });
     console.log('Received snoozed tabs:', snoozedTabs);
     renderSnoozedTimeline(snoozedTabs || []);
-    
-    // Set up event listeners for Wake Now buttons
-    setupSnoozedEventListeners();
+
+    // Set up event listeners only once
+    if (!listenersInitialized) {
+      setupSnoozedEventListeners();
+      listenersInitialized = true;
+    }
   } catch (error) {
     console.error('Failed to load snoozed tabs:', error);
     renderSnoozedTimeline([]);
@@ -142,12 +148,17 @@ async function wakeTab(tabId) {
   try {
     console.log('Waking snoozed tab:', tabId);
     const result = await sendMessage({ action: 'wakeSnoozedTab', tabId });
-    if (result) {
+    console.log('Wake result:', result);
+    if (result && result.success) {
       // Reload the snoozed view
       await loadSnoozedView();
+    } else {
+      console.error('Failed to wake tab:', result?.error || 'Unknown error');
+      alert(`Failed to wake tab: ${result?.error || 'Unknown error'}`);
     }
   } catch (error) {
     console.error('Failed to wake tab:', error);
+    alert(`Failed to wake tab: ${error.message}`);
   }
 }
 
