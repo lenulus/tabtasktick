@@ -1053,7 +1053,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'wakeSnoozedTab':
-          const wakeResult = await restoreSnoozedTab(request.tabId);
+          const wakeResult = await wakeSnoozedTab(request.tabId);
           sendResponse(wakeResult);
           break;
           
@@ -1401,9 +1401,12 @@ async function restoreTabToGroup(newTabId, originalGroupId) {
   }
 }
 
-// Restore a snoozed tab
-async function restoreSnoozedTab(tabId) {
-  const tabIndex = state.snoozedTabs.findIndex(t => t.id === tabId);
+// Wake a snoozed tab (restore it and remove from snooze list)
+async function wakeSnoozedTab(tabId) {
+  // Match by ID (compare as strings) or by URL as fallback
+  const tabIndex = state.snoozedTabs.findIndex(t =>
+    String(t.id) === String(tabId) || t.url === tabId
+  );
   if (tabIndex === -1) {
     return { success: false, error: 'Tab not found' };
   }
@@ -1423,7 +1426,7 @@ async function restoreSnoozedTab(tabId) {
   state.snoozedTabs.splice(tabIndex, 1);
   await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
 
-  logActivity('snooze', `Restored snoozed tab: ${snoozedTab.title}`, 'manual');
+  logActivity('snooze', `Woke snoozed tab: ${snoozedTab.title}`, 'manual');
 
   return { success: true };
 }

@@ -277,7 +277,7 @@ function updateSnoozedList(snoozedTabs) {
 
       wakeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        restoreSnoozedTab(tab.id || tab.url); // Use URL as fallback ID
+        wakeSnoozedTab(tab.id || tab.url); // Use URL as fallback ID
       });
 
       rescheduleBtn.addEventListener('click', (e) => {
@@ -588,22 +588,22 @@ async function toggleRule(ruleId) {
   }
 }
 
-async function restoreSnoozedTab(tabId) {
+async function wakeSnoozedTab(tabId) {
   try {
-    console.log('Attempting to restore snoozed tab:', tabId);
-    const response = await sendMessage({ action: 'restoreSnoozedTab', tabId });
-    console.log('Restore response:', response);
+    console.log('Attempting to wake snoozed tab:', tabId);
+    const response = await sendMessage({ action: 'wakeSnoozedTab', tabId });
+    console.log('Wake response:', response);
 
     if (response && response.success) {
       await loadSnoozedTabs();
       showNotification('Tab restored', 'success');
     } else {
-      console.error('Restore failed:', response);
-      showNotification(`Failed to restore tab: ${response?.error || 'Unknown error'}`, 'error');
+      console.error('Wake failed:', response);
+      showNotification(`Failed to wake tab: ${response?.error || 'Unknown error'}`, 'error');
     }
   } catch (error) {
-    console.error('Failed to restore tab:', error);
-    showNotification('Failed to restore tab', 'error');
+    console.error('Failed to wake tab:', error);
+    showNotification('Failed to wake tab', 'error');
   }
 }
 
