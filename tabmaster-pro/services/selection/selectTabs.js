@@ -2,6 +2,8 @@
 // Generalized tab selection service with filter criteria
 // Returns arrays of tab info for execution services to act upon
 
+import { getCategoriesForDomain } from '../../lib/domain-categories.js';
+
 /**
  * Select tabs based on filter criteria.
  *
@@ -372,9 +374,10 @@ function buildRuleContext(tabs, windows) {
     tab.dupeKey = tab.dupeKey || normalizeUrl(tab.url);
     tab.origin = tab.origin || extractDomain(tab.referrer || '');
 
-    // For now, set default category
-    tab.category = tab.category || 'unknown';
-    tab.categories = tab.categories || ['unknown'];
+    // Get categories for this domain
+    const categories = getCategoriesForDomain(tab.domain);
+    tab.category = categories.length > 0 ? categories[0] : 'unknown';
+    tab.categories = categories.length > 0 ? categories : ['unknown'];
 
     // Calculate age - prefer createdAt (from test data) over lastAccessed
     if (tab.createdAt) {
