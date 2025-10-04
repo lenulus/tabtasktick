@@ -1032,6 +1032,7 @@ function createActionElement(action, index) {
   
   const actionLabels = {
     close: 'Close tabs',
+    'close-duplicates': 'Close duplicates',
     group: 'Group tabs',
     snooze: 'Snooze tabs',
     bookmark: 'Bookmark tabs',
@@ -1062,12 +1063,23 @@ function getActionParamsHTML(action) {
     case 'close':
       return `
         <label>
-          <input type="checkbox" ${action.bookmark_first ? 'checked' : ''} 
+          <input type="checkbox" ${action.bookmark_first ? 'checked' : ''}
             onchange="updateActionParam(${currentActions.indexOf(action)}, 'bookmark_first', this.checked)">
           Bookmark before closing
         </label>
       `;
-      
+
+    case 'close-duplicates':
+      return `
+        <label>Keep:
+          <select onchange="updateActionParam(${currentActions.indexOf(action)}, 'keep', this.value)">
+            <option value="oldest" ${!action.keep || action.keep === 'oldest' ? 'selected' : ''}>Oldest tab</option>
+            <option value="newest" ${action.keep === 'newest' ? 'selected' : ''}>Newest tab</option>
+            <option value="none" ${action.keep === 'none' ? 'selected' : ''}>None (close all)</option>
+          </select>
+        </label>
+      `;
+
     case 'group':
       return `
         <label>Group by:
@@ -1239,6 +1251,7 @@ function createActionModal() {
   
   const actionLabels = {
     close: 'Close tabs',
+    'close-duplicates': 'Close duplicates',
     group: 'Group tabs',
     snooze: 'Snooze tabs',
     bookmark: 'Bookmark tabs',

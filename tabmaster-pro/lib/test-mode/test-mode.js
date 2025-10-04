@@ -292,13 +292,13 @@ export class TestMode {
           { action: 'createTab', url: 'https://example.com#section', count: 1 },
           { action: 'createTab', url: 'https://different.com', count: 1 },
           
-          // Create rule to close duplicates
-          { 
-            action: 'createRule', 
+          // Create rule to close duplicates (keep oldest)
+          {
+            action: 'createRule',
             rule: {
               name: 'Close Duplicates',
               when: { all: [{ eq: ['tab.isDupe', true] }] },
-              then: [{ action: 'close' }]
+              then: [{ action: 'close-duplicates', keep: 'oldest' }]
             }
           },
           

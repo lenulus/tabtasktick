@@ -101,6 +101,78 @@ export async function executeActions(actions, tabs, context, dryRun = false) {
   const results = [];
 
   for (const action of sortedActions) {
+    // Handle close-duplicates action specially
+    if (action.action === 'close-duplicates' || action.type === 'close-duplicates') {
+      // Group tabs by their dupeKey
+      const dupeGroups = {};
+      for (const tab of tabs) {
+        if (!dupeGroups[tab.dupeKey]) {
+          dupeGroups[tab.dupeKey] = [];
+        }
+        dupeGroups[tab.dupeKey].push(tab);
+      }
+
+      // Process each group of duplicates
+      for (const [dupeKey, dupeTabs] of Object.entries(dupeGroups)) {
+        if (dupeTabs.length <= 1) {
+          // No duplicates in this group
+          continue;
+        }
+
+        // Determine which tab(s) to close based on keep strategy
+        const keepStrategy = action.keep || 'oldest'; // Default to keeping oldest
+        let tabsToClose = [];
+
+        if (keepStrategy === 'none') {
+          // Close all duplicates
+          tabsToClose = dupeTabs;
+        } else {
+          // Sort tabs to identify which to keep
+          const sortedDupes = [...dupeTabs].sort((a, b) => {
+            // Sort by creation time (use ID as proxy if no createdAt)
+            const aTime = a.createdAt || a.id;
+            const bTime = b.createdAt || b.id;
+            return aTime - bTime; // Oldest first
+          });
+
+          if (keepStrategy === 'oldest') {
+            // Keep first (oldest), close the rest
+            tabsToClose = sortedDupes.slice(1);
+          } else if (keepStrategy === 'newest') {
+            // Keep last (newest), close the rest
+            tabsToClose = sortedDupes.slice(0, -1);
+          }
+        }
+
+        // Close the designated duplicates
+        for (const tab of tabsToClose) {
+          try {
+            if (!dryRun && context.chrome?.tabs) {
+              await context.chrome.tabs.remove(tab.id);
+            }
+            results.push({
+              tabId: tab.id,
+              action: 'close-duplicates',
+              success: true,
+              details: {
+                closed: tab.id,
+                dupeKey: tab.dupeKey,
+                strategy: keepStrategy
+              }
+            });
+          } catch (error) {
+            results.push({
+              tabId: tab.id,
+              action: 'close-duplicates',
+              success: false,
+              error: error.message
+            });
+          }
+        }
+      }
+      continue; // Move to next action
+    }
+
     // Handle batch actions (like group)
     if (action.action === 'group' || action.type === 'group') {
       const options = {

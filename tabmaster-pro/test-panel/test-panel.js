@@ -6,12 +6,15 @@ import { TestMode } from '../lib/test-mode/test-mode.js';
 let testMode = null;
 let isTestModeActive = false;
 let currentResults = null;
+let selectedEngine = 'v1'; // Default to production engine
 const logs = [];
 
 // DOM Elements
 const elements = {
   toggleTestMode: document.getElementById('toggleTestMode'),
   testStatus: document.getElementById('testStatus'),
+  engineSelect: document.getElementById('engineSelect'),
+  engineStatus: document.getElementById('engineStatus'),
   runAllTests: document.getElementById('runAllTests'),
   runSelectedTest: document.getElementById('runSelectedTest'),
   stopTests: document.getElementById('stopTests'),
@@ -39,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Event Listeners
 function setupEventListeners() {
   elements.toggleTestMode.addEventListener('click', toggleTestMode);
+  elements.engineSelect.addEventListener('change', onEngineChange);
   elements.runAllTests.addEventListener('click', runAllTests);
   elements.runSelectedTest.addEventListener('click', runSelectedTests);
   elements.stopTests.addEventListener('click', stopTests);
@@ -46,6 +50,40 @@ function setupEventListeners() {
   elements.downloadLogs.addEventListener('click', downloadLogs);
   elements.copyAllLogs.addEventListener('click', copyAllLogs);
   elements.logLevel.addEventListener('change', filterLogs);
+}
+
+// Engine Selection
+async function onEngineChange() {
+  const newEngine = elements.engineSelect.value;
+  selectedEngine = newEngine;
+
+  // Update status
+  elements.engineStatus.textContent = '⏳ Switching...';
+  elements.engineStatus.className = 'engine-status loading';
+
+  // Send message to background to switch engine
+  try {
+    const response = await chrome.runtime.sendMessage({
+      action: 'setTestEngine',
+      engine: selectedEngine
+    });
+
+    if (response && response.success) {
+      elements.engineStatus.textContent = '✅ Ready';
+      elements.engineStatus.className = 'engine-status';
+      log(`Switched to engine: ${selectedEngine}`, 'info');
+    } else {
+      throw new Error(response?.error || 'Failed to switch engine');
+    }
+  } catch (error) {
+    elements.engineStatus.textContent = '❌ Error';
+    elements.engineStatus.className = 'engine-status error';
+    log(`Failed to switch engine: ${error.message}`, 'error');
+
+    // Revert selection
+    elements.engineSelect.value = selectedEngine === newEngine ? 'v1' : selectedEngine;
+    selectedEngine = elements.engineSelect.value;
+  }
 }
 
 // Test Mode Management

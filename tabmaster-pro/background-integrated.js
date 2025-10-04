@@ -1,12 +1,36 @@
 // Background Service Worker for TabMaster Pro
 // Integrated with new Rules Engine 2.0 (engine.js + scheduler.js)
 
-import { runRules, previewRule as previewRuleEngine, buildIndices } from './lib/engine.js';
+// Import all engine versions
+import * as engineV1 from './lib/engine.js';
+import * as engineV2Services from './lib/engine.v2.services.js';
+// Command pattern engines would need their dependencies fixed first
+// import * as engineV2CommandFull from './lib/engine.v2.command.full.js';
+// import * as engineV2CommandCompact from './lib/engine.v2.command.compact.js';
+
 import { createChromeScheduler } from './lib/scheduler.js';
 import { checkIsDupe } from './lib/predicate.js';
 import { GroupingScope, groupTabsByDomain as groupTabsByDomainService, getCurrentWindowId } from './services/TabGrouping.js';
 
 console.log('Background service worker loaded with Rules Engine 2.0');
+
+// Engine selector
+const engines = {
+  'v1': engineV1,
+  'v2-services': engineV2Services,
+  // 'v2-command-full': engineV2CommandFull,
+  // 'v2-command-compact': engineV2CommandCompact
+};
+
+// Get the active engine's functions
+function getEngine() {
+  const engine = engines[state.testEngine] || engines['v1'];
+  return {
+    runRules: engine.runRules,
+    previewRule: engine.previewRule || engine.previewRuleEngine,
+    buildIndices: engine.buildIndices
+  };
+}
 
 // ============================================================================
 // Console Log Capturing for Debug
@@ -48,6 +72,7 @@ const state = {
   snoozedTabs: [],
   tabGroups: new Map(),
   activityLog: [], // Track recent activities
+  testEngine: 'v1', // Track which engine to use for tests
   settings: {
     autoCloseEnabled: true,
     autoGroupEnabled: true,
@@ -407,9 +432,13 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
       // Category will be assigned by engine.js using domain-categories.js data
     });
     
+    // Get the current engine
+    const { runRules, buildIndices } = getEngine();
+    console.log(`Using engine: ${state.testEngine} for rule execution`);
+
     // Build indices to enhance tabs with dupeKeys and other fields
     const idx = buildIndices(tabs);
-    
+
     // Build context for engine
     const context = {
       tabs,
@@ -527,9 +556,13 @@ async function previewRule(ruleId) {
       tab.category = getCategoryForDomain(tab.url);
     });
     
+    // Get the current engine
+    const { previewRule: previewRuleEngine, buildIndices } = getEngine();
+    console.log(`Using engine: ${state.testEngine} for preview`);
+
     // Build indices to enhance tabs with dupeKeys and other fields
     const idx = buildIndices(tabs);
-    
+
     // Build context
     const context = {
       tabs,
@@ -537,7 +570,7 @@ async function previewRule(ruleId) {
       chrome,
       idx
     };
-    
+
     // Use engine's preview function
     const preview = previewRuleEngine(rule, context, {
       skipPinned: rule.flags?.skipPinned !== false
@@ -645,10 +678,14 @@ async function executeAllRules() {
       }
       tab.category = getCategoryForDomain(tab.url);
     });
-    
+
+    // Get the current engine
+    const { runRules, buildIndices } = getEngine();
+    console.log(`Using engine: ${state.testEngine} for executing all rules`);
+
     // Build indices to enhance tabs with dupeKeys and other fields
     const idx = buildIndices(tabs);
-    
+
     // Build context
     const context = {
       tabs,
@@ -656,7 +693,7 @@ async function executeAllRules() {
       chrome,
       idx
     };
-    
+
     // Run all rules
     const results = await runRules(enabledRules, context, {
       dryRun: false,
@@ -967,7 +1004,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const status = scheduler.getStatus();
           sendResponse({ status });
           break;
-          
+
+        // Test Engine Selection
+        case 'setTestEngine':
+          state.testEngine = request.engine || 'v1';
+          console.log(`Test engine switched to: ${state.testEngine}`);
+          sendResponse({ success: true, engine: state.testEngine });
+          break;
+
+        case 'getTestEngine':
+          sendResponse({ engine: state.testEngine });
+          break;
+
         // Activity log
         case 'getActivityLog':
           sendResponse(state.activityLog || []);

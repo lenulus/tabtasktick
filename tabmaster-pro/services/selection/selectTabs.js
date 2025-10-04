@@ -338,7 +338,8 @@ export async function selectTabsMatchingRule(rule, tabs = null, windows = null) 
   const matches = [];
 
   for (const tab of tabs) {
-    if (matchesRuleWithContext(tab, rule, context, windows)) {
+    const isMatch = matchesRuleWithContext(tab, rule, context, windows);
+    if (isMatch) {
       matches.push(tab);
     }
   }
@@ -392,10 +393,27 @@ function buildRuleContext(tabs, windows) {
     (byCategory[tab.category] ||= []).push(tab);
   }
 
+  // Build duplicate set
+  const duplicates = new Set();
+  const domainCounts = new Map();
+
+  // Mark duplicates and count domains
+  for (const [dupeKey, tabList] of Object.entries(byDupeKey)) {
+    if (tabList.length > 1) {
+      tabList.forEach(tab => duplicates.add(tab.id));
+    }
+  }
+
+  for (const [domain, tabList] of Object.entries(byDomain)) {
+    domainCounts.set(domain, tabList.length);
+  }
+
   return {
     tabs,
     windows,
-    idx: { byDomain, byOrigin, byDupeKey, byCategory }
+    idx: { byDomain, byOrigin, byDupeKey, byCategory },
+    duplicates,
+    domainCounts
   };
 }
 
@@ -409,13 +427,14 @@ function buildRuleContext(tabs, windows) {
  * @param {Array} windows - Window array
  * @returns {boolean}
  */
-async function matchesRuleWithContext(tab, rule, context, windows) {
+function matchesRuleWithContext(tab, rule, context, windows) {
   // TEMPORARILY SIMPLIFIED - Use basic matching instead of predicate compiler
   // This prevents crashes from dynamic imports in Chrome extension context
 
   try {
     // For now, fall back to the simpler matchesRule function
-    return matchesRule(tab, rule, context);
+    const result = matchesRule(tab, rule, context);
+    return result;
   } catch (error) {
     console.error('Error evaluating rule for tab:', tab.url, error);
     return false;
@@ -433,13 +452,16 @@ async function matchesRuleWithContext(tab, rule, context, windows) {
 function matchesRule(tab, rule, context) {
   // Handle different rule formats
   if (rule.conditions) {
-    return evaluateLegacyConditions(tab, rule.conditions, context);
+    const result = evaluateLegacyConditions(tab, rule.conditions, context);
+    return result;
   }
 
   if (rule.when) {
-    return evaluateWhenConditions(tab, rule.when, context);
+    const result = evaluateWhenConditions(tab, rule.when, context);
+    return result;
   }
 
+  // No conditions means match all tabs (this might be the issue!)
   return false;
 }
 
@@ -485,6 +507,29 @@ function evaluateWhenConditions(tab, when, context) {
 }
 
 /**
+ * Get value from an object using dot-notation path
+ * @private
+ */
+function getValueFromPath(obj, path) {
+  // Handle simple cases
+  if (!path || typeof path !== 'string') return undefined;
+
+  // Remove 'tab.' prefix if present
+  const cleanPath = path.startsWith('tab.') ? path.slice(4) : path;
+
+  // Handle nested paths
+  const parts = cleanPath.split('.');
+  let value = obj;
+
+  for (const part of parts) {
+    if (value == null) return undefined;
+    value = value[part];
+  }
+
+  return value;
+}
+
+/**
  * Evaluate a single condition against a tab
  * @private
  */
@@ -500,10 +545,77 @@ function evaluateSingleCondition(tab, condition, context) {
     domainCount: context.domainCounts.get(tab.domain) || 1
   };
 
-  // Handle different condition types
+  // Handle different condition formats
+
+  // Format 1: { eq: ['tab.domain', 'github.com'] }
+  // Format 2: { gt: ['tab.age', 1000] }
+  // Format 3: { is: ['tab.isDupe', true] }
+  if (condition.eq) {
+    const [path, expected] = condition.eq;
+    const actual = getValueFromPath(mappedTab, path);
+    return actual === expected;
+  }
+
+  if (condition.gt) {
+    const [path, threshold] = condition.gt;
+    const actual = getValueFromPath(mappedTab, path);
+    return actual > threshold;
+  }
+
+  if (condition.lt) {
+    const [path, threshold] = condition.lt;
+    const actual = getValueFromPath(mappedTab, path);
+    return actual < threshold;
+  }
+
+  if (condition.gte) {
+    const [path, threshold] = condition.gte;
+    const actual = getValueFromPath(mappedTab, path);
+    return actual >= threshold;
+  }
+
+  if (condition.lte) {
+    const [path, threshold] = condition.lte;
+    const actual = getValueFromPath(mappedTab, path);
+    return actual <= threshold;
+  }
+
+  if (condition.is) {
+    const [path, expected] = condition.is;
+    const actual = getValueFromPath(mappedTab, path);
+    return actual === expected;
+  }
+
+  if (condition.not) {
+    const [path, expected] = condition.not;
+    const actual = getValueFromPath(mappedTab, path);
+    return actual !== expected;
+  }
+
+  if (condition.in) {
+    const [path, values] = condition.in;
+    const actual = getValueFromPath(mappedTab, path);
+    return values.includes(actual);
+  }
+
+  if (condition.contains) {
+    const [path, substring] = condition.contains;
+    const actual = getValueFromPath(mappedTab, path);
+    return String(actual).includes(substring);
+  }
+
+  if (condition.matches) {
+    const [path, pattern] = condition.matches;
+    const actual = getValueFromPath(mappedTab, path);
+    return new RegExp(pattern).test(String(actual));
+  }
+
+  // Legacy format: { property, operator, value }
   const { property, operator, value } = condition;
 
   if (!property || !operator) {
+    // No recognized condition format - should not match
+    console.warn('Unrecognized condition format:', condition);
     return false;
   }
 

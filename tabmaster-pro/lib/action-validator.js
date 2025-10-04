@@ -9,7 +9,7 @@
  * - deferral: Actions that defer tab handling (limited combinations)
  */
 const ACTION_CATEGORIES = {
-  terminal: ['close'],
+  terminal: ['close', 'close-duplicates'],
   state: ['pin', 'unpin', 'mute', 'unmute'],
   organizational: ['group', 'move_to_window'],
   deferral: ['snooze', 'bookmark']

@@ -455,3 +455,50 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
 }
+
+/* Engine Selector */
+.engine-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
+}
+
+.engine-selector label {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.engine-select {
+  flex: 1;
+  max-width: 350px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 13px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.engine-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.1);
+}
+
+.engine-status {
+  font-size: 12px;
+  color: var(--success-color);
+  font-weight: 500;
+}
+
+.engine-status.error {
+  color: var(--danger-color);
+}
+
+.engine-status.loading {
+  color: var(--warning-color);
+}

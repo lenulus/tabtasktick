@@ -4,30 +4,20 @@
   "type": "module",
   "description": "Chrome extension for advanced tab management",
   "scripts": {
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.mjs",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.mjs --watch",
-    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.mjs --coverage"
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.mjs --coverage",
+    "test:engine:v1": "TEST_ENGINE=v1 NODE_OPTIONS=--experimental-vm-modules jest tests/engine-compatibility.test.js",
+    "test:engine:v2": "TEST_ENGINE=v2-services NODE_OPTIONS=--experimental-vm-modules jest tests/engine-compatibility.test.js",
+    "test:engines:all": "./test-engines.sh all",
+    "test:engines:compare": "NODE_OPTIONS=--experimental-vm-modules jest tests/engine-compatibility.test.js --verbose"
   },
   "devDependencies": {
+    "@types/chrome": "^0.0.254",
+    "eslint": "^9.37.0",
     "jest": "^29.7.0",
-    "jest-environment-jsdom": "^29.7.0",
-    "@types/chrome": "^0.0.254"
-  },
-  "jest": {
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
-    "testMatch": [
-      "**/tests/**/*.test.js"
-    ],
-    "collectCoverageFrom": [
-      "background.js",
-      "lib/**/*.js",
-      "dashboard/**/*.js",
-      "!**/*.test.js"
-    ],
-    "transform": {},
-    "testEnvironmentOptions": {
-      "customExportConditions": ["node", "node-addons"]
-    }
+    "jest-environment-jsdom": "^29.7.0"
   }
 }
