@@ -153,6 +153,17 @@ Systematic cleanup to achieve services-first architecture with single source of 
   - [ ] Update keyboard shortcut handlers (Ctrl+Shift+G)
   - [ ] Ensure backward compatibility with existing rules
   - [ ] Monitor performance with production workloads
+  - [ ] **CRITICAL: Fix closeDuplicates to use engine instead of duplicate implementation**
+    - **Current Issue**: `findAndCloseDuplicates()` in `background-integrated.js:1300` has its own duplicate detection logic
+    - **Proper Fix**: Use engine's `close-duplicates` action via `runRules()` or `executeActions()`
+    - **Files to Review**:
+      - `background-integrated.js:1085-1088` - closeDuplicates message handler (calls findAndCloseDuplicates)
+      - `background-integrated.js:1300-1336` - findAndCloseDuplicates implementation (DUPLICATE LOGIC - should be removed)
+      - `lib/engine.v2.services.js:104-173` - v2 engine's close-duplicates action (canonical implementation with keep strategies)
+      - `lib/engine.v1.legacy.js` - v1 engine has similar close-duplicates action
+      - `services/selection/selectTabs.js` - has dupeKey generation via `normalizeUrl()`
+    - **Quick Fix Applied**: Removed unused `buildIndices(tabs)` call to make it work with v2 engine
+    - **Remaining Work**: Replace entire function with engine call for services-first architecture
 
 - [ ] **Rules Page Visualization**
   - [ ] Add "Preview Rule" button using selected engine
