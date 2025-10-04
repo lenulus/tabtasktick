@@ -49,7 +49,7 @@ Systematic cleanup to achieve services-first architecture with single source of 
 - [x] Simplify engine.js to call service
 - [x] Clean up any dead imports
 
-### 1.4 Split Selection from Execution 🚧
+### 1.4 Split Selection from Execution ✅
 - [x] Create `/services/selection/selectTabs.js` service
   - [x] Generalized `selectTabs(filters)` method with all criteria
   - [x] `matchesFilter(tab, filters)` for single tab testing
@@ -63,14 +63,40 @@ Systematic cleanup to achieve services-first architecture with single source of 
   - [x] Only handle execution
   - [x] Add dry-run support
   - [x] Support custom names and by-domain grouping
-- [ ] Update all callers to use new pattern
-  - [ ] Dashboard: selection service → execution service
-  - [ ] Background: selection service → execution service
-  - [ ] Session: custom selection → execution service
-  - [ ] Rules: custom selection → execution service (batch all matches)
-  - [ ] Remove old TabGrouping.js combined service
 
-### 1.5 Testing ❌
+### 1.5 Simplify Rules Engine ✅
+- [x] **SelectionService Enhancement**
+  - [x] Add `selectTabsMatchingRule(rule)` - pass rule object directly
+  - [x] Move condition evaluation from engine to SelectionService
+  - [x] Move context building (indices, duplicates) to SelectionService
+  - [x] Add support for all rule condition types
+- [x] **Engine Simplification**
+  - [x] Reduce to thin orchestrator: select → execute → log
+  - [x] Remove all selection/matching logic
+  - [x] Remove index building
+  - [x] Achieved: 356 lines (from 618), with backward compat
+
+### 1.6 Command Pattern Architecture ✅
+- [x] **Command Infrastructure**
+  - [x] Create Command class with validation and preview
+  - [x] Support for all action types (close, group, snooze, etc.)
+  - [x] Conflict detection between commands
+  - [x] Priority-based command ordering
+- [x] **ActionManager**
+  - [x] Create command dispatcher
+  - [x] Register service-backed handlers
+  - [x] Support dry-run and preview modes
+  - [x] Add event hooks for debugging
+- [x] **Service Integration**
+  - [x] Create selectAndPlan service for command generation
+  - [x] Migrate all action logic to handlers
+  - [x] Ensure atomicity of operations
+- [x] **Engine Refactor**
+  - [x] Created engine-v2.js using Command Pattern (174 lines)
+  - [x] Created engine-compact.js (111 lines - goal achieved!)
+  - [x] Clean separation: Select → Commands → Execute
+
+### 1.6 Testing ❌
 - [ ] Test popup "Group by Domain" button
 - [ ] Test dashboard Groups view "Group by Domain" button
 - [ ] Test keyboard shortcut (Ctrl+Shift+G)

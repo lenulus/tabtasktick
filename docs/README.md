@@ -2,10 +2,15 @@
 
 ## Directory Structure
 
-### `/docs/` - User Documentation
+### Architecture Documentation
+- `ARCHITECTURE.md` - **System architecture overview and design decisions**
+- `ARCHITECTURE-STATUS.md` - **Current migration status and progress**
+- `COMMAND-PATTERN-ARCHITECTURE.md` - Command Pattern implementation details
+- `SELECTION-SERVICE-ENHANCEMENT-PLAN.md` - Service refactoring plan
+
+### User Documentation
 - `EXPORT-IMPORT.md` - Guide for export/import functionality
 - `KEYBINDS.md` - Keyboard shortcuts reference
-- Additional user guides and documentation
 
 ### `/docs/specs/` - Technical Specifications
 Feature specifications following the Plan-Spec-Implement pattern:

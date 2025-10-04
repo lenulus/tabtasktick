@@ -3,6 +3,7 @@
 
 import { showNotification } from '../core/shared-utils.js';
 import { getFaviconUrl } from '../core/utils.js';
+import { GroupingScope, groupTabsByDomain as groupTabsByDomainService, getCurrentWindowId } from '../../../services/TabGrouping.js';
 
 // Store UI collapsed state for groups
 const collapsedGroups = new Set();
@@ -198,12 +199,10 @@ async function closeGroup(groupId) {
 
 export async function groupTabsByDomain() {
   try {
-    // Import from centralized TabGrouping service
-    const { GroupingScope, groupTabsByDomain: groupTabs, getCurrentWindowId } = await import('../../../services/TabGrouping.js');
-
+    // Use centralized TabGrouping service
     // Use TARGETED scope for the dashboard's window
     const currentWindowId = await getCurrentWindowId();
-    const result = await groupTabs(GroupingScope.TARGETED, currentWindowId);
+    const result = await groupTabsByDomainService(GroupingScope.TARGETED, currentWindowId);
 
     await loadGroupsView();
 

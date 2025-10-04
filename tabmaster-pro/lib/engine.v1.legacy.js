@@ -1,3 +1,8 @@
+// ENGINE v1 (Legacy) - ORIGINAL WORKING VERSION
+// Status: PRODUCTION / STABLE
+// Size: 618 lines - Mixed concerns (selection + execution in one file)
+// This is the stable, production-tested rules engine currently in use
+//
 // Rules Engine - Core rule evaluation and action execution
 // Integrates normalize.js for deduplication and predicate.js for condition evaluation
 

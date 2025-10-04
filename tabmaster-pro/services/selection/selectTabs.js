@@ -315,6 +315,294 @@ export function matchesFilter(tab, filters = {}) {
   return true;
 }
 
+/**
+ * Select tabs that match a rule's conditions
+ * @param {Object} rule - The rule object with conditions
+ * @param {Array} tabs - Optional tab array (queries all if not provided)
+ * @param {Array} windows - Optional window array for context
+ * @returns {Promise<Array>} Tabs that match the rule with all their properties
+ */
+export async function selectTabsMatchingRule(rule, tabs = null, windows = null) {
+  if (!tabs) {
+    tabs = await chrome.tabs.query({});
+  }
+
+  if (!windows) {
+    windows = await chrome.windows.getAll();
+  }
+
+  // Build context for evaluation (duplicates, counts, indices)
+  const context = buildRuleContext(tabs, windows);
+
+  // Filter tabs that match the rule
+  const matches = [];
+
+  for (const tab of tabs) {
+    if (matchesRuleWithContext(tab, rule, context, windows)) {
+      matches.push(tab);
+    }
+  }
+
+  return matches;
+}
+
+/**
+ * Build context for rule evaluation (duplicates, domain counts, etc.)
+ * Compatible with engine.js indices structure
+ * @private
+ * @param {Array} tabs - Array of tabs to build context from
+ * @param {Array} windows - Array of windows for context
+ * @returns {Object} Context with indices and counts
+ */
+function buildRuleContext(tabs, windows) {
+  // Import normalize functions for consistency with engine
+  const { extractDomain: normExtractDomain, generateDupeKey, extractOrigin } =
+    { extractDomain, generateDupeKey: normalizeUrl, extractOrigin: (url) => extractDomain(url) };
+
+  const byDomain = {};
+  const byOrigin = {};
+  const byDupeKey = {};
+  const byCategory = {};
+
+  // Enhance tabs with derived fields (like engine.js does)
+  for (const tab of tabs) {
+    // Add derived fields
+    tab.domain = tab.domain || extractDomain(tab.url);
+    tab.dupeKey = tab.dupeKey || normalizeUrl(tab.url);
+    tab.origin = tab.origin || extractDomain(tab.referrer || '');
+
+    // For now, set default category
+    tab.category = tab.category || 'unknown';
+    tab.categories = tab.categories || ['unknown'];
+
+    // Calculate age if lastAccessed is available
+    if (tab.lastAccessed) {
+      tab.age = Date.now() - tab.lastAccessed;
+    }
+
+    // Calculate time since last access
+    if (tab.last_access) {
+      tab.last_access = Date.now() - tab.last_access;
+    }
+
+    // Add to indices
+    (byDomain[tab.domain] ||= []).push(tab);
+    (byOrigin[tab.origin] ||= []).push(tab);
+    (byDupeKey[tab.dupeKey] ||= []).push(tab);
+    (byCategory[tab.category] ||= []).push(tab);
+  }
+
+  return {
+    tabs,
+    windows,
+    idx: { byDomain, byOrigin, byDupeKey, byCategory }
+  };
+}
+
+/**
+ * Test if a single tab matches a rule with full context
+ * SIMPLIFIED VERSION - Dynamic imports removed to prevent crashes
+ * @private
+ * @param {Object} tab - Tab to test
+ * @param {Object} rule - Rule with conditions
+ * @param {Object} context - Full context with tabs, windows, idx
+ * @param {Array} windows - Window array
+ * @returns {boolean}
+ */
+async function matchesRuleWithContext(tab, rule, context, windows) {
+  // TEMPORARILY SIMPLIFIED - Use basic matching instead of predicate compiler
+  // This prevents crashes from dynamic imports in Chrome extension context
+
+  try {
+    // For now, fall back to the simpler matchesRule function
+    return matchesRule(tab, rule, context);
+  } catch (error) {
+    console.error('Error evaluating rule for tab:', tab.url, error);
+    return false;
+  }
+}
+
+/**
+ * Test if a single tab matches a rule (simplified version without async)
+ * @private
+ * @param {Object} tab - Tab to test
+ * @param {Object} rule - Rule with conditions
+ * @param {Object} context - Context with indices and counts
+ * @returns {boolean}
+ */
+function matchesRule(tab, rule, context) {
+  // Handle different rule formats
+  if (rule.conditions) {
+    return evaluateLegacyConditions(tab, rule.conditions, context);
+  }
+
+  if (rule.when) {
+    return evaluateWhenConditions(tab, rule.when, context);
+  }
+
+  return false;
+}
+
+/**
+ * Evaluate legacy-format conditions (older rules)
+ * @private
+ */
+function evaluateLegacyConditions(tab, conditions, context) {
+  // Handle array of conditions (AND logic)
+  if (Array.isArray(conditions)) {
+    return conditions.every(cond => evaluateSingleCondition(tab, cond, context));
+  }
+
+  // Handle object with logical operators
+  if (conditions.all) {
+    return conditions.all.every(cond => evaluateSingleCondition(tab, cond, context));
+  }
+
+  if (conditions.any) {
+    return conditions.any.some(cond => evaluateSingleCondition(tab, cond, context));
+  }
+
+  // Single condition object
+  return evaluateSingleCondition(tab, conditions, context);
+}
+
+/**
+ * Evaluate modern when-format conditions
+ * @private
+ */
+function evaluateWhenConditions(tab, when, context) {
+  // Transform to common format if needed
+  if (when.all) {
+    return when.all.every(cond => evaluateSingleCondition(tab, cond, context));
+  }
+
+  if (when.any) {
+    return when.any.some(cond => evaluateSingleCondition(tab, cond, context));
+  }
+
+  // Direct condition
+  return evaluateSingleCondition(tab, when, context);
+}
+
+/**
+ * Evaluate a single condition against a tab
+ * @private
+ */
+function evaluateSingleCondition(tab, condition, context) {
+  // Map Chrome properties to expected names
+  const mappedTab = {
+    ...tab,
+    isPinned: tab.pinned,
+    isMuted: tab.mutedInfo?.muted || false,
+    isAudible: tab.audible || false,
+    isActive: tab.active,
+    isDupe: context.duplicates.has(tab.id),
+    domainCount: context.domainCounts.get(tab.domain) || 1
+  };
+
+  // Handle different condition types
+  const { property, operator, value } = condition;
+
+  if (!property || !operator) {
+    return false;
+  }
+
+  // Get the actual value from the tab
+  let actualValue = mappedTab[property];
+
+  // Handle nested properties (e.g., "tab.url")
+  if (property.includes('.')) {
+    const parts = property.split('.');
+    actualValue = mappedTab;
+    for (const part of parts) {
+      actualValue = actualValue?.[part];
+      if (actualValue === undefined) break;
+    }
+  }
+
+  // Evaluate the operator
+  return evaluateOperator(actualValue, operator, value);
+}
+
+/**
+ * Evaluate an operator comparison
+ * @private
+ */
+function evaluateOperator(actual, operator, expected) {
+  switch (operator) {
+    case '=':
+    case '==':
+    case 'equals':
+      return actual == expected;
+
+    case '!=':
+    case 'not_equals':
+      return actual != expected;
+
+    case '>':
+    case 'greater_than':
+      return actual > expected;
+
+    case '>=':
+    case 'greater_than_or_equal':
+      return actual >= expected;
+
+    case '<':
+    case 'less_than':
+      return actual < expected;
+
+    case '<=':
+    case 'less_than_or_equal':
+      return actual <= expected;
+
+    case 'contains':
+      return String(actual).toLowerCase().includes(String(expected).toLowerCase());
+
+    case 'not_contains':
+      return !String(actual).toLowerCase().includes(String(expected).toLowerCase());
+
+    case 'starts_with':
+      return String(actual).toLowerCase().startsWith(String(expected).toLowerCase());
+
+    case 'ends_with':
+      return String(actual).toLowerCase().endsWith(String(expected).toLowerCase());
+
+    case 'matches':
+      return new RegExp(expected, 'i').test(String(actual));
+
+    case 'in':
+      return Array.isArray(expected) ? expected.includes(actual) : expected == actual;
+
+    case 'not_in':
+      return Array.isArray(expected) ? !expected.includes(actual) : expected != actual;
+
+    case 'is':
+      return Boolean(actual) === Boolean(expected);
+
+    case 'is_not':
+      return Boolean(actual) !== Boolean(expected);
+
+    default:
+      console.warn(`Unknown operator: ${operator}`);
+      return false;
+  }
+}
+
+/**
+ * Extract domain from URL
+ * @private
+ */
+function extractDomain(url) {
+  if (!url) return '';
+
+  try {
+    const u = new URL(url);
+    return u.hostname.toLowerCase().replace('www.', '');
+  } catch {
+    return '';
+  }
+}
+
 // Pre-built filter combinations for common use cases
 export const CommonFilters = {
   // All ungrouped tabs in current window

@@ -75,6 +75,32 @@ TabMaster Pro is a Chrome extension for advanced tab management, built with vani
 - **Storage**: chrome.storage.local for persistence
 - **Charts**: Chart.js (via CDN) for analytics
 
+## ⚠️ CRITICAL: Chrome Extension Limitations - DO NOT VIOLATE
+
+### NEVER Use Dynamic Imports - They Will CRASH Chrome
+**DO NOT USE `import()` or `await import()` ANYWHERE IN THE EXTENSION**
+
+Chrome extensions do NOT support dynamic imports in service workers or content scripts. Using them will cause the extension to crash Chrome entirely, closing all windows.
+
+❌ **NEVER DO THIS:**
+```javascript
+// This will CRASH Chrome and close all windows
+const { groupTabs } = await import('../services/execution/groupTabs.js');
+```
+
+✅ **ALWAYS DO THIS:**
+```javascript
+// Static imports at the top of the file only
+import { groupTabs } from '../services/execution/groupTabs.js';
+```
+
+### Other Critical Rules
+- All imports MUST be static and at the top of the file
+- Service workers cannot use dynamic module loading
+- NEVER modify working production code directly - create parallel implementations
+- Test changes incrementally - one small change at a time
+- Keep original working files intact until new versions are proven
+
 ## Service Pattern Example
 
 ```javascript

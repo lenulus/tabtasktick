@@ -3,6 +3,7 @@
 // Import Rules Engine modules
 import { RulesEngine } from '../lib/engine.js';
 import { normalizeUrl } from '../lib/normalize.js';
+import { GroupingScope, groupTabsByDomain as groupTabsByDomainService } from '../services/TabGrouping.js';
 
 // State management
 const sessionState = {
@@ -900,9 +901,7 @@ async function closeSoloTabs() {
 }
 
 async function groupTabsByDomain(tabIds) {
-  // Import from centralized TabGrouping service
-  const { GroupingScope, groupTabsByDomain: groupTabs } = await import('../services/TabGrouping.js');
-
+  // Use centralized TabGrouping service
   // Group tabs by their windows first
   const tabsByWindow = new Map();
   for (const tabId of tabIds) {
@@ -915,7 +914,7 @@ async function groupTabsByDomain(tabIds) {
 
   // For each window, group only the selected tabs
   for (const [windowId, windowTabIds] of tabsByWindow) {
-    await groupTabs(GroupingScope.TARGETED, windowId, {
+    await groupTabsByDomainService(GroupingScope.TARGETED, windowId, {
       specificTabIds: windowTabIds,
       minTabsPerGroup: 2  // Keep session's behavior of requiring >1 tab per group
     });

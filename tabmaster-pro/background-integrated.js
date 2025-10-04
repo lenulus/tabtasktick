@@ -4,6 +4,7 @@
 import { runRules, previewRule as previewRuleEngine, buildIndices } from './lib/engine.js';
 import { createChromeScheduler } from './lib/scheduler.js';
 import { checkIsDupe } from './lib/predicate.js';
+import { GroupingScope, groupTabsByDomain as groupTabsByDomainService, getCurrentWindowId } from './services/TabGrouping.js';
 
 console.log('Background service worker loaded with Rules Engine 2.0');
 
@@ -629,12 +630,12 @@ async function getTabInfo() {
 // Execute all enabled rules
 async function executeAllRules() {
   const enabledRules = state.rules.filter(r => r.enabled);
-  
+
   try {
     // Get current tabs and windows
     const tabs = await chrome.tabs.query({});
     const windows = await chrome.windows.getAll();
-    
+
     // Enhance tabs
     tabs.forEach(tab => {
       const timeData = tabTimeData.get(tab.id);
@@ -1048,8 +1049,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                              (await chrome.windows.getCurrent()).id;
           }
 
-          const { GroupingScope, groupTabsByDomain: groupTabs } = await import('./services/TabGrouping.js');
-          const groupResult = await groupTabs(GroupingScope.TARGETED, targetWindowId);
+          const groupResult = await groupTabsByDomainService(GroupingScope.TARGETED, targetWindowId);
           sendResponse(groupResult);
           break;
           
@@ -1289,9 +1289,8 @@ async function findAndCloseDuplicates() {
 
 // Group tabs by domain - uses centralized TabGrouping service
 async function groupTabsByDomain() {
-  const { GroupingScope, groupTabsByDomain: groupTabs, getCurrentWindowId } = await import('./services/TabGrouping.js');
   const currentWindowId = await getCurrentWindowId();
-  const result = await groupTabs(GroupingScope.TARGETED, currentWindowId);
+  const result = await groupTabsByDomainService(GroupingScope.TARGETED, currentWindowId);
 
   // Update statistics (side effects stay in caller)
   if (result.totalTabsGrouped > 0) {
