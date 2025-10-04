@@ -778,6 +778,15 @@ export class TestMode {
     console.log(`Running scenario: ${scenario.name}`);
     this.currentScenario = scenario.name;
 
+    // Focus test window for scenario execution (maintains window isolation)
+    if (this.testWindowId) {
+      try {
+        await chrome.windows.update(this.testWindowId, { focused: true });
+      } catch (error) {
+        console.warn('Failed to focus test window:', error);
+      }
+    }
+
     // Notify scenario started
     if (this.onScenarioStarted) {
       this.onScenarioStarted(scenario);

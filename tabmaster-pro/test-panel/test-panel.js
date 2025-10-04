@@ -164,6 +164,10 @@ async function runAllTests() {
     updateUI('running');
     log('Starting all tests...', 'info');
 
+    // Store Test Runner window for focus management
+    const testRunnerWindow = await chrome.windows.getCurrent();
+    const testRunnerWindowId = testRunnerWindow.id;
+
     // Hook into test mode to get real-time updates
     testMode.onStepExecuted = (scenario, step, result) => {
       logTestStep(scenario, step, result);
@@ -180,8 +184,14 @@ async function runAllTests() {
           result.status === 'passed' ? 'info' : 'error');
     };
 
+    // Pass Test Runner window ID to test mode for focus management
+    testMode.testRunnerWindowId = testRunnerWindowId;
+
     const results = await testMode.runAll();
     currentResults = results;
+
+    // Return focus to Test Runner window
+    await chrome.windows.update(testRunnerWindowId, { focused: true });
 
     displayResults(results);
     updateUI('active');
@@ -214,6 +224,10 @@ async function runSelectedTests() {
     updateUI('running');
     log(`Running ${selectedScenarios.length} selected scenarios: ${selectedScenarios.join(', ')}`, 'info');
 
+    // Store Test Runner window for focus management
+    const testRunnerWindow = await chrome.windows.getCurrent();
+    const testRunnerWindowId = testRunnerWindow.id;
+
     // Hook into test mode for detailed logging
     testMode.onStepExecuted = (scenario, step, result) => {
       logTestStep(scenario, step, result);
@@ -230,8 +244,14 @@ async function runSelectedTests() {
           result.status === 'passed' ? 'info' : 'error');
     };
 
+    // Pass Test Runner window ID to test mode for focus management
+    testMode.testRunnerWindowId = testRunnerWindowId;
+
     const results = await testMode.runScenarios(selectedScenarios);
     currentResults = results;
+
+    // Return focus to Test Runner window
+    await chrome.windows.update(testRunnerWindowId, { focused: true });
 
     displayResults(results);
     updateUI('active');
