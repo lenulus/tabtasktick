@@ -57,17 +57,17 @@ export async function groupTabs(tabIds, options = {}) {
     if (customName) {
       // Group all tabs under custom name
       if (perWindow) {
-        // Group per window with same custom name
+        // Group per window with same custom name (no window moving)
         const tabsByWindow = groupTabsByWindow(validTabs);
 
         for (const [windowId, windowTabs] of tabsByWindow) {
-          const step = await planGroupCreation(windowTabs, customName, windowId, collapsed);
-          plan.push(step);
+          const step = await planGroupCreation(windowTabs, customName, windowId, collapsed, false);
+          if (step) plan.push(step);
         }
       } else {
         // Group all tabs together (may involve moving tabs)
-        const step = await planGroupCreation(validTabs, customName, null, collapsed);
-        plan.push(step);
+        const step = await planGroupCreation(validTabs, customName, null, collapsed, true);
+        if (step) plan.push(step);
       }
     } else if (byDomain) {
       // Group tabs by their domains
@@ -75,17 +75,17 @@ export async function groupTabs(tabIds, options = {}) {
 
       for (const [domain, domainTabs] of tabsByDomain) {
         if (perWindow) {
-          // Further group by window
+          // Further group by window (no window moving)
           const tabsByWindow = groupTabsByWindow(domainTabs);
 
           for (const [windowId, windowTabs] of tabsByWindow) {
-            const step = await planGroupCreation(windowTabs, domain, windowId, collapsed);
-            plan.push(step);
+            const step = await planGroupCreation(windowTabs, domain, windowId, collapsed, false);
+            if (step) plan.push(step);
           }
         } else {
-          // Group all tabs of this domain together
-          const step = await planGroupCreation(domainTabs, domain, null, collapsed);
-          plan.push(step);
+          // Group all tabs of this domain together (may move windows)
+          const step = await planGroupCreation(domainTabs, domain, null, collapsed, true);
+          if (step) plan.push(step);
         }
       }
     }
@@ -98,14 +98,29 @@ export async function groupTabs(tabIds, options = {}) {
       }
     }
 
+    const windowCounts = {};
+    for (const tab of validTabs) {
+      windowCounts[tab.windowId] = (windowCounts[tab.windowId] || 0) + 1;
+    }
+
     return {
       success: true,
       results,
       plan,
       summary: {
         totalTabs: validTabs.length,
-        groupsCreated: plan.filter(s => s.action === 'create').length,
-        groupsReused: plan.filter(s => s.action === 'reuse').length
+        groupsCreated: plan.filter(s => s?.action === 'create').length,
+        groupsReused: plan.filter(s => s?.action === 'reuse').length,
+        debug: {
+          planSteps: plan.length,
+          planDetails: plan.map(s => ({ action: s?.action, groupName: s?.groupName, windowId: s?.windowId, tabCount: s?.tabIds?.length })),
+          byDomain: byDomain,
+          perWindow: perWindow,
+          validTabsCount: validTabs.length,
+          tabsWithGroupId: validTabs.filter(t => t.groupId && t.groupId !== -1).length,
+          windowCounts: windowCounts,
+          groupIds: [...new Set(validTabs.map(t => t.groupId).filter(id => id && id !== -1))]
+        }
       }
     };
 
@@ -123,7 +138,7 @@ export async function groupTabs(tabIds, options = {}) {
  * Plan a grouping operation
  * @private
  */
-async function planGroupCreation(tabs, groupName, windowId, collapsed) {
+async function planGroupCreation(tabs, groupName, windowId, collapsed, allowWindowMove = false) {
   if (tabs.length === 0) {
     return null;
   }
@@ -131,19 +146,32 @@ async function planGroupCreation(tabs, groupName, windowId, collapsed) {
   // If no specific window, use the first tab's window
   const targetWindowId = windowId || tabs[0].windowId;
 
-  // Check if a group with this name already exists in the target window
-  const existingGroups = await chrome.tabGroups.query({ windowId: targetWindowId });
-  const existingGroup = existingGroups.find(g => g.title === groupName);
+  // Check if a group with this name already exists (search all windows to handle Chrome's window switching)
+  const allGroups = await chrome.tabGroups.query({});
+  const existingGroup = allGroups.find(g => g.title === groupName);
 
-  const tabIds = tabs.map(t => t.id);
+  // Filter out tabs that are already in the correct group
+  let tabsToGroup = tabs;
+  if (existingGroup) {
+    tabsToGroup = tabs.filter(t => t.groupId !== existingGroup.id);
+
+    // If all tabs are already in the correct group, nothing to do
+    if (tabsToGroup.length === 0) {
+      return null;
+    }
+  }
+
+  const tabIds = tabsToGroup.map(t => t.id);
 
   if (existingGroup) {
+    // Reuse existing group - tabs will be moved to the group's window
     return {
       action: 'reuse',
       groupId: existingGroup.id,
       groupName: groupName,
       tabIds: tabIds,
-      windowId: targetWindowId
+      windowId: existingGroup.windowId, // Use the existing group's window, not the target window
+      allowWindowMove: true // Allow movement to join the existing group
     };
   } else {
     return {
@@ -152,7 +180,8 @@ async function planGroupCreation(tabs, groupName, windowId, collapsed) {
       tabIds: tabIds,
       windowId: targetWindowId,
       color: pickColorForName(groupName),
-      collapsed: collapsed
+      collapsed: collapsed,
+      allowWindowMove
     };
   }
 }
@@ -169,20 +198,23 @@ async function executeGroupStep(step) {
   try {
     let groupId;
 
-    // Move tabs to target window if needed
-    const tabsToMove = [];
-    for (const tabId of step.tabIds) {
-      const tab = await chrome.tabs.get(tabId);
-      if (tab.windowId !== step.windowId) {
-        tabsToMove.push(tabId);
+    // Verify all tabs are in the target window (they should be if perWindow=true)
+    // Only move tabs if explicitly allowed (perWindow=false means cross-window grouping is ok)
+    if (step.allowWindowMove) {
+      const tabsToMove = [];
+      for (const tabId of step.tabIds) {
+        const tab = await chrome.tabs.get(tabId);
+        if (tab.windowId !== step.windowId) {
+          tabsToMove.push(tabId);
+        }
       }
-    }
 
-    if (tabsToMove.length > 0) {
-      await chrome.tabs.move(tabsToMove, {
-        windowId: step.windowId,
-        index: -1
-      });
+      if (tabsToMove.length > 0) {
+        await chrome.tabs.move(tabsToMove, {
+          windowId: step.windowId,
+          index: -1
+        });
+      }
     }
 
     if (step.action === 'create') {
