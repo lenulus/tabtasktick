@@ -1,5 +1,13 @@
 // Options Page JavaScript for TabMaster Pro
 
+import {
+  getActiveEngineVersion,
+  setActiveEngineVersion,
+  getAvailableEngines,
+  getEngineInfo,
+  onEngineChanged
+} from '../lib/engineLoader.js';
+
 // ============================================================================
 // State Management
 // ============================================================================
@@ -82,6 +90,9 @@ async function loadSettings() {
     document.getElementById('previewDelay').value = previewSettings.hoverDelay;
     document.getElementById('previewDelayValue').textContent = `${previewSettings.hoverDelay}ms`;
     
+    // Load engine selector
+    await loadEngineSelector();
+
     // Load whitelist
     const whitelist = currentSettings.whitelist || [];
     whitelistDomains = whitelist;
@@ -752,3 +763,76 @@ function showNotification(message, type = 'success') {
 window.editRule = editRule;
 window.toggleRule = toggleRule;
 window.deleteRule = deleteRule;
+
+// ============================================================================
+// Engine Selector Management
+// ============================================================================
+
+async function loadEngineSelector() {
+  try {
+    // Get current active engine
+    const activeVersion = await getActiveEngineVersion();
+
+    // Update selector
+    const selector = document.getElementById('activeEngine');
+    selector.value = activeVersion;
+
+    // Update info display
+    updateEngineInfo(activeVersion);
+
+    // Setup change listener
+    selector.addEventListener('change', async (e) => {
+      const newVersion = e.target.value;
+      await handleEngineChange(newVersion);
+    });
+
+    // Listen for engine changes from other contexts
+    onEngineChanged((newVersion) => {
+      selector.value = newVersion;
+      updateEngineInfo(newVersion);
+      showNotification(`Engine switched to ${newVersion}`, 'info');
+    });
+
+  } catch (error) {
+    console.error('Failed to load engine selector:', error);
+    showNotification('Failed to load engine settings', 'error');
+  }
+}
+
+async function handleEngineChange(newVersion) {
+  try {
+    await setActiveEngineVersion(newVersion);
+    updateEngineInfo(newVersion);
+    showSaveNotification();
+
+    // Show info message about engine change
+    const info = getEngineInfo(newVersion);
+    showNotification(`Switched to ${info.name}: ${info.description}`, 'success');
+
+  } catch (error) {
+    console.error('Failed to change engine:', error);
+    showNotification('Failed to change engine', 'error');
+
+    // Revert selector
+    const currentVersion = await getActiveEngineVersion();
+    document.getElementById('activeEngine').value = currentVersion;
+  }
+}
+
+function updateEngineInfo(version) {
+  const info = getEngineInfo(version);
+
+  if (!info) {
+    document.getElementById('engineInfoTitle').textContent = 'Unknown Engine';
+    document.getElementById('engineInfoDescription').textContent = 'Engine not found';
+    return;
+  }
+
+  document.getElementById('engineInfoTitle').textContent = info.name;
+  document.getElementById('engineInfoDescription').textContent = info.description;
+
+  // Update status badge
+  const statusBadge = document.getElementById('engineStatusBadge');
+  statusBadge.textContent = 'Active';
+  statusBadge.className = 'status-badge active';
+}

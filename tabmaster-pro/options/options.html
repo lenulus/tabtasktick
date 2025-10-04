@@ -94,6 +94,32 @@
         </section>
 
         <section class="settings-section">
+          <h2>Rules Engine</h2>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="activeEngine">Active Engine</label>
+              <p class="setting-description">Choose which rules engine to use. V2 (Services) is the new architecture with all tests passing. V1 (Legacy) is the stable production engine.</p>
+            </div>
+            <select id="activeEngine" class="engine-selector">
+              <option value="v1-legacy">V1 (Legacy) - Stable</option>
+              <option value="v2-services">V2 (Services) - New Architecture</option>
+            </select>
+          </div>
+
+          <div class="engine-info" id="engineInfo">
+            <div class="info-card">
+              <h4 id="engineInfoTitle">Engine Information</h4>
+              <p id="engineInfoDescription">Loading...</p>
+              <div class="engine-status" id="engineStatus">
+                <span class="status-label">Status:</span>
+                <span class="status-badge" id="engineStatusBadge">Active</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section">
           <h2>Notifications</h2>
           
           <div class="setting-item">
@@ -491,6 +517,6 @@
   <!-- Import file input (hidden) -->
   <input type="file" id="importFile" accept=".json" style="display: none;">
   
-  <script src="options.js"></script>
+  <script type="module" src="options.js"></script>
 </body>
 </html>
