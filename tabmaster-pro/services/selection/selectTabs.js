@@ -376,8 +376,10 @@ function buildRuleContext(tabs, windows) {
     tab.category = tab.category || 'unknown';
     tab.categories = tab.categories || ['unknown'];
 
-    // Calculate age if lastAccessed is available
-    if (tab.lastAccessed) {
+    // Calculate age - prefer createdAt (from test data) over lastAccessed
+    if (tab.createdAt) {
+      tab.age = Date.now() - tab.createdAt;
+    } else if (tab.lastAccessed) {
       tab.age = Date.now() - tab.lastAccessed;
     }
 
@@ -507,6 +509,34 @@ function evaluateWhenConditions(tab, when, context) {
 }
 
 /**
+ * Normalize duration values - convert strings like "1h" to milliseconds
+ * @private
+ */
+function normalizeDurationValue(value) {
+  // Already a number - return as-is
+  if (typeof value === 'number') return value;
+
+  // Not a string - return as-is
+  if (typeof value !== 'string') return value;
+
+  // Try to parse as duration string (e.g., "1h", "30m", "2d")
+  const units = {
+    m: 60 * 1000,           // minutes
+    h: 60 * 60 * 1000,      // hours
+    d: 24 * 60 * 60 * 1000  // days
+  };
+
+  const match = value.match(/^(\d+)([mhd])$/);
+  if (match) {
+    const [, num, unit] = match;
+    return parseInt(num) * units[unit];
+  }
+
+  // Not a duration string - return as-is
+  return value;
+}
+
+/**
  * Get value from an object using dot-notation path
  * @private
  */
@@ -577,25 +607,29 @@ function evaluateSingleCondition(tab, condition, context) {
   if (condition.gt) {
     const [path, threshold] = condition.gt;
     const actual = getValueFromPath(mappedTab, path, context);
-    return actual > threshold;
+    const normalizedThreshold = normalizeDurationValue(threshold);
+    return actual > normalizedThreshold;
   }
 
   if (condition.lt) {
     const [path, threshold] = condition.lt;
     const actual = getValueFromPath(mappedTab, path, context);
-    return actual < threshold;
+    const normalizedThreshold = normalizeDurationValue(threshold);
+    return actual < normalizedThreshold;
   }
 
   if (condition.gte) {
     const [path, threshold] = condition.gte;
     const actual = getValueFromPath(mappedTab, path, context);
-    return actual >= threshold;
+    const normalizedThreshold = normalizeDurationValue(threshold);
+    return actual >= normalizedThreshold;
   }
 
   if (condition.lte) {
     const [path, threshold] = condition.lte;
     const actual = getValueFromPath(mappedTab, path, context);
-    return actual <= threshold;
+    const normalizedThreshold = normalizeDurationValue(threshold);
+    return actual <= normalizedThreshold;
   }
 
   if (condition.is) {
