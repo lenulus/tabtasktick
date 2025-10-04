@@ -162,8 +162,19 @@ Systematic cleanup to achieve services-first architecture with single source of 
       - `lib/engine.v2.services.js:104-173` - v2 engine's close-duplicates action (canonical implementation with keep strategies)
       - `lib/engine.v1.legacy.js` - v1 engine has similar close-duplicates action
       - `services/selection/selectTabs.js` - has dupeKey generation via `normalizeUrl()`
-    - **Quick Fix Applied**: Removed unused `buildIndices(tabs)` call to make it work with v2 engine
+    - **Quick Fix Applied**: Removed unused `buildIndices(tabs)` call in findAndCloseDuplicates to make it work
     - **Remaining Work**: Replace entire function with engine call for services-first architecture
+  - [ ] **CRITICAL: Fix getStatistics to work with v2 engine**
+    - **Current Issue**: `getStatistics()` in `background-integrated.js:598` calls `buildIndices(tabs)` on line 623 which doesn't exist in v2
+    - **Symptom**: Popup shows missing values for All Tabs, Groups, Snoozed, Duplicates counts
+    - **Files to Review**:
+      - `background-integrated.js:598-636` - getStatistics function (calls buildIndices on line 623)
+      - `background-integrated.js:1042-1045` - getStatistics message handler
+      - `popup/popup.js:97-114` - loadStatistics displays the counts
+      - `lib/engine.v2.services.js` - v2 engine doesn't export buildIndices
+      - `services/selection/selectTabs.js:358-420` - v2's buildRuleContext (similar to buildIndices)
+    - **Proper Fix**: Use engineLoader to get active engine's context building, or refactor to not need buildIndices
+    - **Quick Fix**: Import buildIndices from engine.v1.legacy.js or recreate minimal version
 
 - [ ] **Rules Page Visualization**
   - [ ] Add "Preview Rule" button using selected engine
