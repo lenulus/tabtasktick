@@ -108,21 +108,27 @@ Systematic cleanup to achieve services-first architecture with single source of 
 - [x] Add window focus management to Test Runner
 - [x] All 9/9 test scenarios passing
 
-### 1.7 Engine Selector in Settings ❌
+### 1.7 Engine Selector in Settings ✅
 **Goal**: Allow switching between v1 and v2 engines across all surfaces for comparison
 
-- [ ] **Settings UI**
-  - [ ] Add engine selector dropdown (v1-legacy, v2-services)
-  - [ ] Store selection in chrome.storage.local
-  - [ ] Default to v1 for backward compatibility
-  - [ ] Add description explaining differences
-  - [ ] Show current engine version on settings page
+- [x] **Settings UI**
+  - [x] Add engine selector dropdown (v1-legacy, v2-services)
+  - [x] Store selection in chrome.storage.local
+  - [x] Default to v1 for backward compatibility
+  - [x] Add description explaining differences
+  - [x] Show current engine version on settings page
 
-- [ ] **Engine Loader Service**
-  - [ ] Create `/lib/engineLoader.js` to abstract engine selection
-  - [ ] `getActiveEngine()` - returns current engine module
-  - [ ] `switchEngine(version)` - updates storage and reloads if needed
-  - [ ] Emit events when engine changes
+- [x] **Engine Loader Service**
+  - [x] Create `/lib/engineLoader.js` to abstract engine selection
+  - [x] `getActiveEngine()` - returns current engine module
+  - [x] `setActiveEngineVersion()` - updates storage and reloads if needed
+  - [x] `onEngineChanged()` - emit events when engine changes
+
+**Implementation** (commit 3aa6fb8):
+- Created `/lib/engineLoader.js` with full engine abstraction
+- Added engine selector dropdown to Settings page
+- Live updates across all contexts via storage events
+- Clean UI with status badge and descriptions
 
 ### 1.8 Wire Surfaces to Use Selected Engine ❌
 
@@ -153,28 +159,26 @@ Systematic cleanup to achieve services-first architecture with single source of 
   - [ ] Update keyboard shortcut handlers (Ctrl+Shift+G)
   - [ ] Ensure backward compatibility with existing rules
   - [ ] Monitor performance with production workloads
-  - [ ] **CRITICAL: Fix closeDuplicates to use engine instead of duplicate implementation**
-    - **Current Issue**: `findAndCloseDuplicates()` in `background-integrated.js:1300` has its own duplicate detection logic
-    - **Proper Fix**: Use engine's `close-duplicates` action via `runRules()` or `executeActions()`
-    - **Files to Review**:
-      - `background-integrated.js:1085-1088` - closeDuplicates message handler (calls findAndCloseDuplicates)
-      - `background-integrated.js:1300-1336` - findAndCloseDuplicates implementation (DUPLICATE LOGIC - should be removed)
-      - `lib/engine.v2.services.js:104-173` - v2 engine's close-duplicates action (canonical implementation with keep strategies)
-      - `lib/engine.v1.legacy.js` - v1 engine has similar close-duplicates action
-      - `services/selection/selectTabs.js` - has dupeKey generation via `normalizeUrl()`
-    - **Quick Fix Applied**: Removed unused `buildIndices(tabs)` call in findAndCloseDuplicates to make it work
-    - **Remaining Work**: Replace entire function with engine call for services-first architecture
-  - [ ] **CRITICAL: Fix getStatistics to work with v2 engine**
-    - **Current Issue**: `getStatistics()` in `background-integrated.js:598` calls `buildIndices(tabs)` on line 623 which doesn't exist in v2
-    - **Symptom**: Popup shows missing values for All Tabs, Groups, Snoozed, Duplicates counts
-    - **Files to Review**:
-      - `background-integrated.js:598-636` - getStatistics function (calls buildIndices on line 623)
-      - `background-integrated.js:1042-1045` - getStatistics message handler
-      - `popup/popup.js:97-114` - loadStatistics displays the counts
-      - `lib/engine.v2.services.js` - v2 engine doesn't export buildIndices
-      - `services/selection/selectTabs.js:358-420` - v2's buildRuleContext (similar to buildIndices)
-    - **Proper Fix**: Use engineLoader to get active engine's context building, or refactor to not need buildIndices
-    - **Quick Fix**: Import buildIndices from engine.v1.legacy.js or recreate minimal version
+  - [x] **CRITICAL: Fix closeDuplicates to use engine instead of duplicate implementation**
+    - **Solution**: Refactored `findAndCloseDuplicates()` to use `engine.runRules()` with temporary rule
+    - **Implementation**: Creates temp rule with `conditions: {}` (match all) and `action: close-duplicates`
+    - **Benefit**: Ensures Test Runner behavior matches manual button behavior (consistency principle)
+    - **Files Changed**:
+      - `background-integrated.js:1270-1309` - Now uses engine.runRules() instead of inline duplicate detection
+      - `services/selection/selectTabs.js` - Enhanced `normalizeUrlForDuplicates()` to remove ALL query params
+      - `services/selection/selectTabs.js:452-471` - Fixed `matchesRule()` to handle empty conditions object
+  - [x] **CRITICAL: Fix getStatistics to work with v2 engine**
+    - **Solution**: Created `getTabStatistics()` service in `services/selection/selectTabs.js`
+    - **Implementation**: Single-pass calculation with performance instrumentation
+    - **Fixes Applied**:
+      - Groups count now uses `chrome.tabGroups.query()` instead of counting tabs
+      - Duplicate detection via `normalizeUrlForDuplicates()` (removes query params, fragments, trailing slashes)
+      - Removed inline duplicate detection from `background-integrated.js:598-610`
+      - Removed `getDuplicateTabsCount()` from `popup/popup.js`
+    - **Files Changed**:
+      - `services/selection/selectTabs.js:858-941` - New `getTabStatistics()` service
+      - `background-integrated.js:602-610` - Now calls service instead of inline logic
+      - `popup/popup.js` - Removed duplicate getDuplicateTabsCount() function
 
 - [ ] **Rules Page Visualization**
   - [ ] Add "Preview Rule" button using selected engine
