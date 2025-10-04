@@ -510,9 +510,27 @@ function evaluateWhenConditions(tab, when, context) {
  * Get value from an object using dot-notation path
  * @private
  */
-function getValueFromPath(obj, path) {
+function getValueFromPath(obj, path, context) {
   // Handle simple cases
   if (!path || typeof path !== 'string') return undefined;
+
+  // Handle special countPerOrigin paths
+  if (path.startsWith('tab.countPerOrigin:')) {
+    const metric = path.split(':')[1];
+    const tab = obj;
+    if (!tab) return 0;
+
+    switch (metric) {
+      case 'domain':
+        return context?.idx?.byDomain?.[tab.domain]?.length || 0;
+      case 'origin':
+        return context?.idx?.byOrigin?.[tab.origin || 'unknown']?.length || 0;
+      case 'dupeKey':
+        return context?.idx?.byDupeKey?.[tab.dupeKey]?.length || 0;
+      default:
+        return 0;
+    }
+  }
 
   // Remove 'tab.' prefix if present
   const cleanPath = path.startsWith('tab.') ? path.slice(4) : path;
@@ -552,61 +570,61 @@ function evaluateSingleCondition(tab, condition, context) {
   // Format 3: { is: ['tab.isDupe', true] }
   if (condition.eq) {
     const [path, expected] = condition.eq;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return actual === expected;
   }
 
   if (condition.gt) {
     const [path, threshold] = condition.gt;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return actual > threshold;
   }
 
   if (condition.lt) {
     const [path, threshold] = condition.lt;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return actual < threshold;
   }
 
   if (condition.gte) {
     const [path, threshold] = condition.gte;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return actual >= threshold;
   }
 
   if (condition.lte) {
     const [path, threshold] = condition.lte;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return actual <= threshold;
   }
 
   if (condition.is) {
     const [path, expected] = condition.is;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return actual === expected;
   }
 
   if (condition.not) {
     const [path, expected] = condition.not;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return actual !== expected;
   }
 
   if (condition.in) {
     const [path, values] = condition.in;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return values.includes(actual);
   }
 
   if (condition.contains) {
     const [path, substring] = condition.contains;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return String(actual).includes(substring);
   }
 
   if (condition.matches) {
     const [path, pattern] = condition.matches;
-    const actual = getValueFromPath(mappedTab, path);
+    const actual = getValueFromPath(mappedTab, path, context);
     return new RegExp(pattern).test(String(actual));
   }
 
