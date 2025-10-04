@@ -1,48 +1,30 @@
 # TabMaster Pro - TODO
 
-## Critical Issues
+## Completed ✅
 
-### Window Isolation Regression in Tab Grouping
-**Status**: Test passes but with wrong behavior
-**Priority**: High
-**Affected**: v2 engine (v1 also broken currently, but earlier code worked)
+### ~~Window Isolation Regression in Tab Grouping~~
+**Status**: FIXED ✅ (commit d60f656 and window focus fix)
+**Resolution**:
+- Root cause identified: `chrome.tabs.group()` moves tabs to focused window
+- Fixed by focusing target window BEFORE creating groups
+- Group search scoped to target window when `perWindow=true`
+- All test scenarios now pass with proper window isolation
 
-**Problem**:
-1. Tabs created in test window migrate to main window during grouping
-2. Earlier versions of the code properly isolated tabs in test windows
-3. Current fix queries across all windows, violating `perWindow=true` scoping
+### ~~v2 Engine Test Suite Failures~~
+**Status**: ALL TESTS PASSING ✅
+**Completed Fixes**:
+1. ✅ Time-based rules - Added duration string parsing ("1h", "30m", etc.)
+2. ✅ Complex conditions - Made condition evaluation recursive for nested `any`/`all`
+3. ✅ Regex operator - Added `regex` as alias for `matches`
+4. ✅ Bookmark actions - Added folder support via `to` parameter
+5. ✅ Age calculation - Prefer `createdAt` over `lastAccessed` for test compatibility
+6. ✅ Tab state actions - Pin, mute, suspend, unpin all working
+7. ✅ Repeat triggers - 3-second repeat triggers executing correctly
+8. ✅ Category matching - Added domain categorization via `getCategoriesForDomain`
+9. ✅ Window focus UX - Test Runner now manages window focus automatically
 
-**Current Behavior**:
-- Test `domain-grouping-reuse` PASSES ✅
-- But all tabs move from test window (181866465) to main window (181866248)
-- Groups are correctly reused (no duplicates)
-- Tab counts are correct
+**Test Results**: 9/9 scenarios passing in v2-services engine
 
-**Root Cause**:
-- `chrome.tabs.group()` API appears to move tabs between windows
-- Current fix searches globally for existing groups (`chrome.tabGroups.query({})`)
-- When reusing groups, sets `allowWindowMove: true` and uses `existingGroup.windowId`
-- This breaks `perWindow=true` semantics
+## Active Work
 
-**What Needs Fixing**:
-1. Understand why `chrome.tabs.group()` moves tabs out of their window
-2. Restore window isolation - tabs should stay in their creation window
-3. Respect `perWindow` option:
-   - When `perWindow=true`: Only search for groups in target window
-   - When `perWindow=false`: Allow cross-window group consolidation
-4. Find what changed from earlier working code that handled this correctly
-
-**Files Involved**:
-- `/services/execution/groupTabs.js` - Main grouping logic
-- `/lib/engine.v2.services.js` - Calls grouping with `perWindow: true`
-
-**Test Case**:
-- Scenario: `domain-grouping-reuse`
-- Run with v2 engine selected in Test Runner
-- Observe tabs migrating from test window to main window
-
-**Next Steps**:
-1. Check git history to find when window isolation broke
-2. Compare with earlier working implementation
-3. Investigate Chrome API docs for proper window-scoped grouping
-4. Implement fix that respects window boundaries while preventing duplicate groups
+None - v2-services engine ready for production use
