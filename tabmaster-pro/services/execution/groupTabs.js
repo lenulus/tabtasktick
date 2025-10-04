@@ -146,9 +146,12 @@ async function planGroupCreation(tabs, groupName, windowId, collapsed, allowWind
   // If no specific window, use the first tab's window
   const targetWindowId = windowId || tabs[0].windowId;
 
-  // Check if a group with this name already exists (search all windows to handle Chrome's window switching)
-  const allGroups = await chrome.tabGroups.query({});
-  const existingGroup = allGroups.find(g => g.title === groupName);
+  // Check if a group with this name already exists
+  // When allowWindowMove=false (perWindow=true), only search in target window to maintain window isolation
+  // When allowWindowMove=true (perWindow=false), search all windows to allow consolidation
+  const searchQuery = allowWindowMove ? {} : { windowId: targetWindowId };
+  const groups = await chrome.tabGroups.query(searchQuery);
+  const existingGroup = groups.find(g => g.title === groupName);
 
   // Filter out tabs that are already in the correct group
   let tabsToGroup = tabs;
@@ -218,6 +221,12 @@ async function executeGroupStep(step) {
     }
 
     if (step.action === 'create') {
+      // Chrome moves tabs to the focused window when creating groups
+      // To maintain window isolation (perWindow=true), focus the target window first
+      if (!step.allowWindowMove && step.windowId) {
+        await chrome.windows.update(step.windowId, { focused: true });
+      }
+
       // Create new group
       groupId = await chrome.tabs.group({ tabIds: step.tabIds });
       await chrome.tabGroups.update(groupId, {
