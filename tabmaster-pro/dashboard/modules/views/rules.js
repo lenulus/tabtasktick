@@ -42,7 +42,7 @@ function getSampleRules() {
     {
       id: 'sample_1',
       name: 'Close duplicate tabs',
-      description: 'Automatically close duplicate tabs, keeping the first one',
+      description: 'Automatically close duplicate tabs, keeping the oldest one',
       enabled: false,
       when: {
         all: [
@@ -50,7 +50,7 @@ function getSampleRules() {
         ]
       },
       then: [
-        { type: 'close' }
+        { type: 'close-duplicates', keep: 'oldest' }
       ],
       trigger: { type: 'manual' },
       priority: 1,
@@ -489,6 +489,7 @@ function getActionDescription(actions) {
     const actionDescriptions = actions.map(action => {
       const actionLabels = {
         close: 'Close tabs',
+        'close-duplicates': 'Close duplicates',
         group: 'Group tabs',
         snooze: 'Snooze tabs',
         bookmark: 'Bookmark tabs',
@@ -500,13 +501,14 @@ function getActionDescription(actions) {
       };
       
       let desc = actionLabels[action.type] || action.type;
-      
+
       // Add parameters
       if (action.bookmark_first) desc += ' (bookmark first)';
+      if (action.keep) desc += ` (keep ${action.keep})`;
       if (action.group_by) desc += ` by ${action.group_by}`;
       if (action.until) desc += ` for ${action.until}`;
       if (action.folder) desc += ` to "${action.folder}"`;
-      
+
       return desc;
     });
     
@@ -1309,6 +1311,9 @@ function createActionModal() {
         break;
       case 'group':
         action.group_by = 'domain';
+        break;
+      case 'close-duplicates':
+        action.keep = 'oldest';
         break;
     }
     
