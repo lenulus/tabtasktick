@@ -122,7 +122,7 @@ export async function selectTabs(filters = {}) {
     // First pass: count occurrences
     for (const tab of filtered) {
       if (!tab.url) continue;
-      const normalized = normalizeUrl(tab.url);
+      const normalized = normalizeUrlForDuplicates(tab.url);
       if (!urlCounts.has(normalized)) {
         urlCounts.set(normalized, []);
       }
@@ -165,43 +165,38 @@ export async function getCurrentWindowId() {
 }
 
 /**
- * Helper: Normalize URL for duplicate detection
- * @private
+ * Normalize URL for duplicate detection.
+ * Removes query parameters, fragments, trailing slashes, normalizes case.
+ *
+ * @param {string} url - URL to normalize
+ * @returns {string} Normalized URL for duplicate comparison
  */
-function normalizeUrl(url) {
+export function normalizeUrlForDuplicates(url) {
   if (!url) return '';
 
   try {
     const u = new URL(url);
 
-    // Remove common tracking parameters
-    const paramsToRemove = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid'];
-    for (const param of paramsToRemove) {
-      u.searchParams.delete(param);
-    }
+    // Remove query parameters - treat example.com?a=1 and example.com?b=2 as duplicates
+    u.search = '';
 
-    // Sort remaining parameters for consistency
-    u.searchParams.sort();
-
-    // Remove fragment
+    // Remove fragment/anchor - treat example.com#a and example.com#b as duplicates
     u.hash = '';
 
-    // Normalize protocol
-    if (u.protocol === 'https:' || u.protocol === 'http:') {
-      // Remove default ports
-      if ((u.protocol === 'https:' && u.port === '443') ||
-          (u.protocol === 'http:' && u.port === '80')) {
-        u.port = '';
-      }
+    // Remove default ports for http/https
+    if ((u.protocol === 'https:' && u.port === '443') ||
+        (u.protocol === 'http:' && u.port === '80')) {
+      u.port = '';
     }
 
-    // Remove trailing slash from pathname
+    // Remove trailing slash from pathname (but keep root /)
     if (u.pathname.endsWith('/') && u.pathname !== '/') {
       u.pathname = u.pathname.slice(0, -1);
     }
 
     return u.toString().toLowerCase();
   } catch {
+    // Invalid URLs - return as-is lowercased
     return url.toLowerCase();
   }
 }
@@ -360,7 +355,7 @@ export async function selectTabsMatchingRule(rule, tabs = null, windows = null) 
 function buildRuleContext(tabs, windows) {
   // Import normalize functions for consistency with engine
   const { extractDomain: normExtractDomain, generateDupeKey, extractOrigin } =
-    { extractDomain, generateDupeKey: normalizeUrl, extractOrigin: (url) => extractDomain(url) };
+    { extractDomain, generateDupeKey: normalizeUrlForDuplicates, extractOrigin: (url) => extractDomain(url) };
 
   const byDomain = {};
   const byOrigin = {};
@@ -371,7 +366,7 @@ function buildRuleContext(tabs, windows) {
   for (const tab of tabs) {
     // Add derived fields
     tab.domain = tab.domain || extractDomain(tab.url);
-    tab.dupeKey = tab.dupeKey || normalizeUrl(tab.url);
+    tab.dupeKey = tab.dupeKey || normalizeUrlForDuplicates(tab.url);
     tab.origin = tab.origin || extractDomain(tab.referrer || '');
 
     // Get categories for this domain
@@ -455,6 +450,11 @@ function matchesRuleWithContext(tab, rule, context, windows) {
  * @returns {boolean}
  */
 function matchesRule(tab, rule, context) {
+  // Handle "match all" case - empty conditions object
+  if (rule.conditions && typeof rule.conditions === 'object' && Object.keys(rule.conditions).length === 0) {
+    return true;
+  }
+
   // Handle different rule formats
   if (rule.conditions) {
     const result = evaluateLegacyConditions(tab, rule.conditions, context);
@@ -466,8 +466,8 @@ function matchesRule(tab, rule, context) {
     return result;
   }
 
-  // No conditions means match all tabs (this might be the issue!)
-  return false;
+  // No conditions property means match all tabs
+  return true;
 }
 
 /**
@@ -827,4 +827,112 @@ export const CommonFilters = {
     pinned: true,
     ...(windowId && { windowId })
   })
+};
+
+/**
+ * Get tab statistics for display in UI (popup, dashboard, etc.)
+ *
+ * Calculates in a single pass for performance:
+ * - Total tabs, windows, groups
+ * - Pinned tabs count
+ * - Duplicate tabs count (using URL normalization)
+ * - Top 5 domains by tab count
+ *
+ * Includes performance instrumentation to measure cost.
+ *
+ * @returns {Promise<{
+ *   totalTabs: number,
+ *   totalWindows: number,
+ *   groupedTabs: number,
+ *   pinnedTabs: number,
+ *   duplicates: number,
+ *   topDomains: Array<{domain: string, count: number}>,
+ *   performanceMetrics: {
+ *     queryTime: number,
+ *     processingTime: number,
+ *     totalTime: number,
+ *     tabCount: number
+ *   }
+ * }>}
+ */
+export async function getTabStatistics() {
+  const startTotal = performance.now();
+
+  // Measure Chrome API query time
+  const startQuery = performance.now();
+  const tabs = await chrome.tabs.query({});
+  const windows = await chrome.windows.getAll();
+  const groups = await chrome.tabGroups.query({});
+  const queryTime = performance.now() - startQuery;
+
+  // Measure processing time
+  const startProcessing = performance.now();
+
+  const stats = {
+    totalTabs: tabs.length,
+    totalWindows: windows.length,
+    groupedTabs: groups.length, // Number of groups, not tabs in groups
+    pinnedTabs: 0,
+    duplicates: 0,
+    topDomains: []
+  };
+
+  // Single-pass accumulation
+  const dupeMap = new Map(); // dupeKey -> count
+  const domainCounts = new Map(); // domain -> count
+
+  for (const tab of tabs) {
+
+    // Count pinned tabs
+    if (tab.pinned) {
+      stats.pinnedTabs++;
+    }
+
+    // Track duplicates using normalized URL
+    const dupeKey = normalizeUrlForDuplicates(tab.url);
+    if (dupeKey) {
+      dupeMap.set(dupeKey, (dupeMap.get(dupeKey) || 0) + 1);
+    }
+
+    // Track domain counts
+    const domain = extractDomain(tab.url);
+    if (domain) {
+      domainCounts.set(domain, (domainCounts.get(domain) || 0) + 1);
+    }
+  }
+
+  // Count tabs that are duplicates (exclude the first/original, only count extras)
+  for (const count of dupeMap.values()) {
+    if (count > 1) {
+      stats.duplicates += (count - 1); // Don't count the original
+    }
+  }
+
+  // Get top 5 domains by count
+  stats.topDomains = Array.from(domainCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([domain, count]) => ({ domain, count }));
+
+  const processingTime = performance.now() - startProcessing;
+  const totalTime = performance.now() - startTotal;
+
+  // Add performance metrics for analysis
+  stats.performanceMetrics = {
+    queryTime: Math.round(queryTime * 100) / 100,
+    processingTime: Math.round(processingTime * 100) / 100,
+    totalTime: Math.round(totalTime * 100) / 100,
+    tabCount: tabs.length
+  };
+
+  // Log performance for analysis (use string formatting for proper display in logs)
+  console.log(
+    `[TabStatistics] Performance: ${tabs.length} tabs, ` +
+    `query=${stats.performanceMetrics.queryTime}ms, ` +
+    `processing=${stats.performanceMetrics.processingTime}ms, ` +
+    `total=${stats.performanceMetrics.totalTime}ms, ` +
+    `avg=${Math.round((processingTime / tabs.length) * 1000) / 1000}ms/tab`
+  );
+
+  return stats;
 };

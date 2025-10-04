@@ -686,6 +686,8 @@ async function copyDebugInfo() {
       const tabs = await chrome.tabs.query({});
       const windows = await chrome.windows.getAll();
       const groups = await chrome.tabGroups?.query({}) || [];
+      // Get duplicate count from statistics (uses service)
+      const stats = await sendMessage({ action: 'getStatistics' });
 
       debugInfo.state.tabs = {
         total: tabs.length,
@@ -715,7 +717,7 @@ async function copyDebugInfo() {
           collapsed: g.collapsed,
           windowId: g.windowId
         })),
-        duplicates: await getDuplicateTabsCount(tabs)
+        duplicates: stats?.duplicates || 0
       };
     } catch (e) {
       debugInfo.errors.push({ context: 'chrome.tabs.query', error: e.message, stack: e.stack });
@@ -832,24 +834,6 @@ async function copyDebugInfo() {
     console.error('Failed to collect debug info:', error);
     showNotification('Failed to copy debug info', 'error');
   }
-}
-
-// Helper function to count duplicate tabs
-async function getDuplicateTabsCount(tabs) {
-  const urlCounts = {};
-  let duplicates = 0;
-
-  for (const tab of tabs) {
-    if (!tab.url || tab.pinned) continue;
-    const normalizedUrl = tab.url.replace(/\/$/, '').split('#')[0];
-    urlCounts[normalizedUrl] = (urlCounts[normalizedUrl] || 0) + 1;
-  }
-
-  for (const count of Object.values(urlCounts)) {
-    if (count > 1) duplicates += (count - 1);
-  }
-
-  return duplicates;
 }
 
 // ============================================================================

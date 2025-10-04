@@ -9,8 +9,8 @@ import * as engineV2Services from './lib/engine.v2.services.js';
 // import * as engineV2CommandCompact from './lib/engine.v2.command.compact.js';
 
 import { createChromeScheduler } from './lib/scheduler.js';
-import { checkIsDupe } from './lib/predicate.js';
-import { GroupingScope, groupTabsByDomain as groupTabsByDomainService, getCurrentWindowId } from './services/TabGrouping.js';
+import { getTabStatistics } from './services/selection/selectTabs.js';
+import { getCurrentWindowId } from './services/TabGrouping.js';
 
 console.log('Background service worker loaded with Rules Engine 2.0');
 
@@ -28,7 +28,8 @@ function getEngine() {
   return {
     runRules: engine.runRules,
     previewRule: engine.previewRule || engine.previewRuleEngine,
-    buildIndices: engine.buildIndices
+    buildIndices: engine.buildIndices,
+    executeActions: engine.executeActions
   };
 }
 
@@ -365,9 +366,14 @@ async function loadRules() {
 }
 
 async function loadSettings() {
-  const { settings } = await chrome.storage.local.get('settings');
+  const { settings, activeEngine } = await chrome.storage.local.get(['settings', 'activeEngine']);
   if (settings) {
     state.settings = { ...state.settings, ...settings };
+  }
+  // Load the active engine preference
+  if (activeEngine) {
+    state.testEngine = activeEngine;
+    console.log(`Loaded engine preference: ${activeEngine}`);
   }
 }
 
@@ -596,43 +602,17 @@ async function previewRule(ruleId) {
 
 // Get statistics for popup and dashboard
 async function getStatistics() {
-  const tabs = await chrome.tabs.query({});
-  const windows = await chrome.windows.getAll({ populate: true });
-  
-  // Count grouped tabs
-  const groupedTabs = tabs.filter(tab => tab.groupId && tab.groupId !== -1);
-  
-  // Count by domain
-  const domainCounts = {};
-  for (const tab of tabs) {
-    try {
-      const domain = new URL(tab.url).hostname;
-      domainCounts[domain] = (domainCounts[domain] || 0) + 1;
-    } catch {
-      // Skip invalid URLs
-    }
-  }
-  
-  // Get top domains
-  const topDomains = Object.entries(domainCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([domain, count]) => ({ domain, count }));
-  
-  // Find duplicates using the new engine
-  const context = { tabs, windows, idx: buildIndices(tabs) };
-  const duplicates = tabs.filter(tab => checkIsDupe(tab, context));
-  
-  return {
-    totalTabs: tabs.length,
-    totalWindows: windows.length,
-    groupedTabs: groupedTabs.length,
-    pinnedTabs: tabs.filter(t => t.pinned).length,
-    snoozedTabs: state.snoozedTabs?.length || 0,
-    duplicates: duplicates.length,
-    topDomains,
-    statistics: state.statistics
-  };
+  // Use service for statistics calculation (services-first architecture)
+  const stats = await getTabStatistics();
+
+  // Add snoozed tabs count from background state
+  // (snoozed tabs are managed by background, not in Chrome's tab list)
+  stats.snoozedTabs = state.snoozedTabs?.length || 0;
+
+  // Add activity statistics from background state
+  stats.statistics = state.statistics;
+
+  return stats;
 }
 
 // Get tab info for the current window
@@ -1088,16 +1068,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'groupByDomain':
-          // Allow caller to specify window ID, otherwise use sender's window
-          let targetWindowId = request.windowId;
-
-          if (!targetWindowId) {
-            // Fall back to sender's window
-            targetWindowId = sender.tab ? sender.tab.windowId :
-                             (await chrome.windows.getCurrent()).id;
-          }
-
-          const groupResult = await groupTabsByDomainService(GroupingScope.TARGETED, targetWindowId);
+          const groupResult = await groupByDomain();
           sendResponse(groupResult);
           break;
           
@@ -1296,61 +1267,87 @@ async function closeTabs(tabIds) {
   logActivity('close', `Closed ${tabIds.length} tabs`, 'manual');
 }
 
-// Find and close duplicate tabs
+// Find and close duplicate tabs - uses engine for consistency
 async function findAndCloseDuplicates() {
-  const tabs = await chrome.tabs.query({});
-  const context = { tabs, windows: await chrome.windows.getAll(), idx: buildIndices(tabs) };
-  const duplicates = [];
-  const seenUrls = new Set();
-  
-  // Find duplicates - keep the first instance of each URL
-  for (const tab of tabs) {
-    if (tab.pinned) continue;
-    
-    // Normalize URL by removing trailing slashes and fragments
-    const normalizedUrl = tab.url.replace(/\/$/, '').split('#')[0];
-    
-    if (seenUrls.has(normalizedUrl)) {
-      duplicates.push(tab.id);
-      state.statistics.duplicatesRemoved++;
-    } else {
-      seenUrls.add(normalizedUrl);
-    }
-  }
-  
-  // Close duplicate tabs
-  if (duplicates.length > 0) {
-    await chrome.tabs.remove(duplicates);
+  // Use engine via runRules to ensure proper tab enhancement and consistent behavior
+  const engine = getEngine();
+
+  // Create a temporary rule for manual duplicate closing
+  const tempRule = {
+    id: 'manual-close-duplicates',
+    name: 'Manual Close Duplicates',
+    enabled: true,
+    conditions: {}, // Empty conditions object matches all tabs
+    actions: [{
+      action: 'close-duplicates',
+      keep: 'oldest' // Keep first instance, close duplicates
+    }]
+  };
+
+  // Execute via engine.runRules to get proper tab enhancement
+  const result = await engine.runRules(
+    [tempRule],
+    { chrome },
+    { dryRun: false }
+  );
+
+  // Count actions executed (each closed tab is an action)
+  const closedCount = result.totalActions || 0;
+
+  // Update statistics (side effects stay in caller)
+  if (closedCount > 0) {
+    state.statistics.duplicatesRemoved += closedCount;
     await chrome.storage.local.set({ statistics: state.statistics });
-    
+
     // Log activity
-    logActivity('close', `Closed ${duplicates.length} duplicate tab${duplicates.length > 1 ? 's' : ''}`, 'manual');
-    
+    logActivity('close', `Closed ${closedCount} duplicate tab${closedCount > 1 ? 's' : ''}`, 'manual');
+
     // Track history
-    for (let i = 0; i < duplicates.length; i++) {
+    for (let i = 0; i < closedCount; i++) {
       await trackTabHistory('closed');
     }
   }
-  
-  return duplicates.length;
+
+  return closedCount;
 }
 
-// Group tabs by domain - uses centralized TabGrouping service
-async function groupTabsByDomain() {
-  const currentWindowId = await getCurrentWindowId();
-  const result = await groupTabsByDomainService(GroupingScope.TARGETED, currentWindowId);
+// Group tabs by domain - uses engine for consistency
+async function groupByDomain() {
+  // Use engine via runRules to ensure proper tab enhancement and consistent behavior
+  const engine = getEngine();
+
+  // Create a temporary rule for manual grouping by domain
+  const tempRule = {
+    id: 'manual-group-by-domain',
+    name: 'Manual Group By Domain',
+    enabled: true,
+    conditions: {}, // Empty conditions object matches all tabs
+    actions: [{
+      action: 'group',
+      by: 'domain'
+    }]
+  };
+
+  // Execute via engine.runRules to get proper tab enhancement
+  const result = await engine.runRules(
+    [tempRule],
+    { chrome },
+    { dryRun: false }
+  );
+
+  // Count actions executed (each grouped tab is an action)
+  const groupedCount = result.totalActions || 0;
 
   // Update statistics (side effects stay in caller)
-  if (result.totalTabsGrouped > 0) {
-    state.statistics.tabsGrouped += result.totalTabsGrouped;
+  if (groupedCount > 0) {
+    state.statistics.tabsGrouped += groupedCount;
     await chrome.storage.local.set({ statistics: state.statistics });
 
-    // Log activity (side effects stay in caller)
-    const message = `Created ${result.groupsCreated} new groups, reused ${result.groupsReused} existing groups with ${result.totalTabsGrouped} tabs`;
-    logActivity('group', message, 'manual');
+    // Log activity
+    logActivity('group', `Grouped ${groupedCount} tab${groupedCount > 1 ? 's' : ''} by domain`, 'manual');
   }
 
-  return result;
+  return { totalTabsGrouped: groupedCount };
 }
 
 // Quick snooze current tab
