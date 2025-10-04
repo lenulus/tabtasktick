@@ -96,13 +96,81 @@ Systematic cleanup to achieve services-first architecture with single source of 
   - [x] Created engine-compact.js (111 lines - goal achieved!)
   - [x] Clean separation: Select → Commands → Execute
 
-### 1.6 Testing ❌
-- [ ] Test popup "Group by Domain" button
-- [ ] Test dashboard Groups view "Group by Domain" button
-- [ ] Test keyboard shortcut (Ctrl+Shift+G)
-- [ ] Test rules engine group action
-- [ ] Test session manager bulk grouping
+### 1.6 V2 Engine Validation ✅
+- [x] Create comprehensive test suite with 9 scenarios
+- [x] Fix duration parsing for time-based rules
+- [x] Fix nested condition evaluation (recursive any/all)
+- [x] Add regex operator support
+- [x] Add bookmark folder support
+- [x] Fix age calculation (createdAt vs lastAccessed)
+- [x] Fix window isolation regression
+- [x] Add domain category classification
+- [x] Add window focus management to Test Runner
+- [x] All 9/9 test scenarios passing
+
+### 1.7 Engine Selector in Settings ❌
+**Goal**: Allow switching between v1 and v2 engines across all surfaces for comparison
+
+- [ ] **Settings UI**
+  - [ ] Add engine selector dropdown (v1-legacy, v2-services)
+  - [ ] Store selection in chrome.storage.local
+  - [ ] Default to v1 for backward compatibility
+  - [ ] Add description explaining differences
+  - [ ] Show current engine version on settings page
+
+- [ ] **Engine Loader Service**
+  - [ ] Create `/lib/engineLoader.js` to abstract engine selection
+  - [ ] `getActiveEngine()` - returns current engine module
+  - [ ] `switchEngine(version)` - updates storage and reloads if needed
+  - [ ] Emit events when engine changes
+
+### 1.8 Wire Surfaces to Use Selected Engine ❌
+
+**Order**: Popup → Dashboard → Session Manager → Background (rules)
+
+- [ ] **Popup Integration**
+  - [ ] Update "Group by Domain" button to use engineLoader
+  - [ ] Update quick actions to use selected engine
+  - [ ] Test with v1 vs v2 and verify same behavior
+  - [ ] Handle errors gracefully with fallback
+
+- [ ] **Dashboard Integration**
+  - [ ] Update Groups view "Group by Domain" button
+  - [ ] Update Rules page preview functionality
+  - [ ] Add rule preview using v2 engine's previewRule()
+  - [ ] Update analytics/stats to work with both engines
+  - [ ] Test with 200+ tabs
+
+- [ ] **Session Manager Integration**
+  - [ ] Update bulk grouping operations
+  - [ ] Update tab selection and execution flows
+  - [ ] Test restore from saved sessions
+  - [ ] Verify no breaking changes
+
+- [ ] **Background Service Integration**
+  - [ ] Update rule execution to use selected engine
+  - [ ] Update scheduled rule runs
+  - [ ] Update keyboard shortcut handlers (Ctrl+Shift+G)
+  - [ ] Ensure backward compatibility with existing rules
+  - [ ] Monitor performance with production workloads
+
+- [ ] **Rules Page Visualization**
+  - [ ] Add "Preview Rule" button using selected engine
+  - [ ] Show matched tabs before execution
+  - [ ] Display execution plan (what will happen)
+  - [ ] Use v2 engine's dry-run capability
+  - [ ] Show diff between v1 and v2 previews (optional)
+
+### 1.9 Production Validation ❌
+- [ ] Test popup "Group by Domain" button (v1 and v2)
+- [ ] Test dashboard Groups view "Group by Domain" button (v1 and v2)
+- [ ] Test keyboard shortcut (Ctrl+Shift+G) (v1 and v2)
+- [ ] Test rules engine group action (v1 and v2)
+- [ ] Test session manager bulk grouping (v1 and v2)
 - [ ] Test with 200+ tabs across multiple windows
+- [ ] Performance comparison: v1 vs v2 execution time
+- [ ] Memory usage comparison
+- [ ] Verify no breaking changes in user workflows
 
 ---
 
