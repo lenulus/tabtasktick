@@ -286,8 +286,30 @@ async function executeAction(action, tab, context, dryRun) {
     case 'bookmark':
       // TODO: Move to BookmarkService
       if (!dryRun && context.chrome?.bookmarks) {
+        let parentId = '2'; // Default: Other Bookmarks
+
+        // If 'to' folder is specified, find or create it
+        if (action.to) {
+          try {
+            const bookmarks = await context.chrome.bookmarks.search({ title: action.to });
+            const folder = bookmarks.find(b => !b.url); // Find folder (not URL bookmark)
+            if (folder) {
+              parentId = folder.id;
+            } else {
+              // Folder doesn't exist, create it in Other Bookmarks
+              const newFolder = await context.chrome.bookmarks.create({
+                parentId: '2',
+                title: action.to
+              });
+              parentId = newFolder.id;
+            }
+          } catch (error) {
+            console.warn('Failed to find/create bookmark folder:', action.to, error);
+          }
+        }
+
         await context.chrome.bookmarks.create({
-          parentId: '2', // Other Bookmarks
+          parentId,
           title: tab.title,
           url: tab.url
         });

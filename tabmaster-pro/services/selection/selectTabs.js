@@ -495,13 +495,25 @@ function evaluateLegacyConditions(tab, conditions, context) {
  * @private
  */
 function evaluateWhenConditions(tab, when, context) {
-  // Transform to common format if needed
+  // Handle nested logical operators by recursing
   if (when.all) {
-    return when.all.every(cond => evaluateSingleCondition(tab, cond, context));
+    return when.all.every(cond => {
+      // Check if this is a nested logical operator or a single condition
+      if (cond.all || cond.any) {
+        return evaluateWhenConditions(tab, cond, context);
+      }
+      return evaluateSingleCondition(tab, cond, context);
+    });
   }
 
   if (when.any) {
-    return when.any.some(cond => evaluateSingleCondition(tab, cond, context));
+    return when.any.some(cond => {
+      // Check if this is a nested logical operator or a single condition
+      if (cond.all || cond.any) {
+        return evaluateWhenConditions(tab, cond, context);
+      }
+      return evaluateSingleCondition(tab, cond, context);
+    });
   }
 
   // Direct condition
@@ -656,10 +668,12 @@ function evaluateSingleCondition(tab, condition, context) {
     return String(actual).includes(substring);
   }
 
-  if (condition.matches) {
-    const [path, pattern] = condition.matches;
+  if (condition.matches || condition.regex) {
+    const [path, pattern] = condition.matches || condition.regex;
     const actual = getValueFromPath(mappedTab, path, context);
-    return new RegExp(pattern).test(String(actual));
+    // Remove leading/trailing slashes if present (e.g., "/pattern/" -> "pattern")
+    const cleanPattern = pattern.replace(/^\/|\/$/g, '');
+    return new RegExp(cleanPattern).test(String(actual));
   }
 
   // Legacy format: { property, operator, value }
