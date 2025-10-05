@@ -1764,7 +1764,7 @@ async function exportData(options = {}) {
     case 'csv':
       return buildCSVExport(tabs, groups);
     case 'markdown':
-      return buildMarkdownExport(tabs, windows, groups, options);
+      return await buildMarkdownExport(tabs, windows, groups, options);
     default:
       return await buildJSONExport(tabs, windows, groups, options);
   }
@@ -1943,7 +1943,7 @@ function buildCSVExport(tabs, groups) {
   return { csv, format: 'csv' };
 }
 
-function buildMarkdownExport(tabs, windows, groups, options) {
+async function buildMarkdownExport(tabs, windows, groups, options) {
   const windowsArray = Array.isArray(windows) ? windows : [windows];
   let markdown = '# TabMaster Export - ' + new Date().toLocaleDateString() + '\n\n';
 
