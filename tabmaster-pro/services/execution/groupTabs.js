@@ -200,6 +200,7 @@ async function executeGroupStep(step) {
 
   try {
     let groupId;
+    let originalFocusedWindowId = null;
 
     // Verify all tabs are in the target window (they should be if perWindow=true)
     // Only move tabs if explicitly allowed (perWindow=false means cross-window grouping is ok)
@@ -224,6 +225,10 @@ async function executeGroupStep(step) {
       // Chrome moves tabs to the focused window when creating groups
       // To maintain window isolation (perWindow=true), focus the target window first
       if (!step.allowWindowMove && step.windowId) {
+        // Store original focused window
+        const currentWindow = await chrome.windows.getCurrent();
+        originalFocusedWindowId = currentWindow.id;
+
         await chrome.windows.update(step.windowId, { focused: true });
       }
 
@@ -234,6 +239,11 @@ async function executeGroupStep(step) {
         color: step.color,
         collapsed: step.collapsed
       });
+
+      // Restore original focus
+      if (originalFocusedWindowId && originalFocusedWindowId !== step.windowId) {
+        await chrome.windows.update(originalFocusedWindowId, { focused: true });
+      }
     } else if (step.action === 'reuse') {
       // Add to existing group
       groupId = step.groupId;
