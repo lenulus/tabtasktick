@@ -70,8 +70,8 @@ async function loadSettings() {
     document.getElementById('autoCloseEnabled').checked = currentSettings.autoCloseEnabled;
     document.getElementById('autoGroupEnabled').checked = currentSettings.autoGroupEnabled;
     document.getElementById('duplicateDetection').checked = currentSettings.duplicateDetection;
-    document.getElementById('maxTabsWarning').value = currentSettings.maxTabsWarning;
-    document.getElementById('defaultSnoozeMinutes').value = currentSettings.defaultSnoozeMinutes;
+    document.getElementById('maxTabsWarning').value = currentSettings.maxTabsWarning || 100;
+    document.getElementById('defaultSnoozeMinutes').value = currentSettings.defaultSnoozeMinutes || 60;
     
     // Memory threshold
     const memoryThreshold = document.getElementById('memoryThreshold');
