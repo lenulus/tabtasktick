@@ -38,11 +38,12 @@ export async function ungroupAllTabs() {
 
 export async function loadGroupsView() {
   try {
-    const tabs = await chrome.tabs.query({ currentWindow: true });
-    const groups = await chrome.tabGroups.query({ windowId: chrome.windows.WINDOW_ID_CURRENT });
+    // Get ALL tabs and groups across all windows (like tabs view does)
+    const tabs = await chrome.tabs.query({});
+    const groups = await chrome.tabGroups.query({});
 
     const groupsMap = new Map();
-    
+
     // Initialize groups
     groups.forEach(group => {
       groupsMap.set(group.id, {
@@ -50,7 +51,7 @@ export async function loadGroupsView() {
         tabs: []
       });
     });
-    
+
     // Add tabs to groups
     tabs.forEach(tab => {
       if (tab.groupId && tab.groupId !== -1) {
@@ -59,7 +60,7 @@ export async function loadGroupsView() {
         }
       }
     });
-    
+
     renderGroups(Array.from(groupsMap.values()));
   } catch (error) {
     console.error('Failed to load groups:', error);
