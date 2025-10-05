@@ -764,139 +764,109 @@ async function handleAction(action) {
   }
 }
 
-// Tab actions
+// Tab actions - route through background → engine
 async function closeTabs(tabIds) {
-  await chrome.tabs.remove(tabIds);
+  await chrome.runtime.sendMessage({
+    action: 'closeTabs',
+    tabIds: tabIds
+  });
   sessionState.selectedTabs.clear();
 }
 
 async function groupTabs(tabIds) {
   if (tabIds.length === 0) return;
-  
-  // Group tabs by window first
-  const tabsByWindow = new Map();
-  
-  for (const tabId of tabIds) {
-    const tab = await chrome.tabs.get(tabId);
-    if (!tabsByWindow.has(tab.windowId)) {
-      tabsByWindow.set(tab.windowId, []);
-    }
-    tabsByWindow.get(tab.windowId).push(tabId);
-  }
-  
-  // Create group in each window
-  for (const [windowId, windowTabIds] of tabsByWindow) {
-    const groupId = await chrome.tabs.group({ 
-      tabIds: windowTabIds,
-      createProperties: { windowId }
-    });
-    
-    await chrome.tabGroups.update(groupId, {
-      title: 'New Group',
-      color: 'blue'
-    });
-  }
+
+  // Route through background → engine
+  await chrome.runtime.sendMessage({
+    action: 'groupTabs',
+    tabIds: tabIds,
+    groupName: 'New Group',
+    color: 'blue'
+  });
 }
 
 async function snoozeTabs(tabIds) {
-  // TODO: Implement snooze functionality
-  console.log('Snooze tabs:', tabIds);
+  // Route through background → SnoozeService (default to 2 hours)
+  await chrome.runtime.sendMessage({
+    action: 'snoozeTabs',
+    tabIds: tabIds,
+    minutes: 120, // 2 hours
+    reason: 'session_manager'
+  });
 }
 
 async function bookmarkTabs(tabIds) {
-  const tabs = await Promise.all(tabIds.map(id => chrome.tabs.get(id)));
-  
-  // Create bookmark folder
-  const folder = await chrome.bookmarks.create({
-    title: `Session ${new Date().toLocaleDateString()}`
+  // Route through background → engine
+  const folderName = `Session ${new Date().toLocaleDateString()}`;
+  await chrome.runtime.sendMessage({
+    action: 'bookmarkTabs',
+    tabIds: tabIds,
+    folder: folderName
   });
-  
-  // Add bookmarks
-  for (const tab of tabs) {
-    await chrome.bookmarks.create({
-      parentId: folder.id,
-      title: tab.title,
-      url: tab.url
-    });
-  }
 }
 
 async function moveTabsToWindow(tabIds) {
   if (tabIds.length === 0) return;
-  
-  // Create new window with first tab
-  const firstTab = await chrome.tabs.get(tabIds[0]);
-  const newWindow = await chrome.windows.create({
-    tabId: firstTab.id
+
+  // Route through background → engine (create new window)
+  await chrome.runtime.sendMessage({
+    action: 'moveToWindow',
+    tabIds: tabIds,
+    targetWindowId: 'new'
   });
-  
-  // Move remaining tabs
-  for (let i = 1; i < tabIds.length; i++) {
-    await chrome.tabs.move(tabIds[i], {
-      windowId: newWindow.id,
-      index: -1
-    });
-  }
 }
 
 async function deduplicateTabs() {
-  const urlMap = new Map();
-  const toClose = [];
-  
-  // Find all duplicates
-  sessionState.windows.forEach(window => {
-    const allTabs = [...window.ungroupedTabs, 
-      ...Array.from(window.groups.values()).flatMap(g => g.tabs)];
-    
-    allTabs.forEach(tab => {
-      if (sessionState.selectedTabs.has(tab.id)) {
-        const url = normalizeUrl(tab.url);
-        if (urlMap.has(url)) {
-          toClose.push(tab.id);
-        } else {
-          urlMap.set(url, tab.id);
-        }
-      }
-    });
+  // Get selected tab IDs
+  const selectedIds = Array.from(sessionState.selectedTabs);
+
+  if (selectedIds.length === 0) return;
+
+  // Route through background closeDuplicates handler
+  // This will use the engine's duplicate detection
+  await chrome.runtime.sendMessage({
+    action: 'closeDuplicates',
+    tabIds: selectedIds
   });
-  
-  if (toClose.length > 0) {
-    await chrome.tabs.remove(toClose);
-  }
 }
 
 async function closeSoloTabs() {
+  // Get all selected tabs
+  const selectedIds = Array.from(sessionState.selectedTabs);
+  if (selectedIds.length === 0) return;
+
+  // Get all tabs to analyze domains
+  const tabs = await chrome.tabs.query({});
+  const selectedTabs = tabs.filter(t => selectedIds.includes(t.id));
+
+  // Count domains
   const domainCounts = new Map();
   const tabsByDomain = new Map();
-  
-  // Count domains
-  sessionState.windows.forEach(window => {
-    const allTabs = [...window.ungroupedTabs, 
-      ...Array.from(window.groups.values()).flatMap(g => g.tabs)];
-    
-    allTabs.forEach(tab => {
-      if (sessionState.selectedTabs.has(tab.id)) {
-        const domain = getDomain(tab.url);
-        domainCounts.set(domain, (domainCounts.get(domain) || 0) + 1);
-        
-        if (!tabsByDomain.has(domain)) {
-          tabsByDomain.set(domain, []);
-        }
-        tabsByDomain.get(domain).push(tab.id);
-      }
-    });
+
+  selectedTabs.forEach(tab => {
+    const domain = getDomain(tab.url);
+    domainCounts.set(domain, (domainCounts.get(domain) || 0) + 1);
+
+    if (!tabsByDomain.has(domain)) {
+      tabsByDomain.set(domain, []);
+    }
+    tabsByDomain.get(domain).push(tab.id);
   });
-  
-  // Find solo tabs
+
+  // Find solo tabs (only one tab for that domain)
   const toClose = [];
   domainCounts.forEach((count, domain) => {
     if (count === 1) {
       toClose.push(...tabsByDomain.get(domain));
     }
   });
-  
+
   if (toClose.length > 0) {
-    await chrome.tabs.remove(toClose);
+    // Route through background → engine
+    await chrome.runtime.sendMessage({
+      action: 'closeTabs',
+      tabIds: toClose
+    });
   }
 }
 

@@ -477,115 +477,50 @@ async function executeBulkAction(action) {
 // ============================================================================
 
 async function closeTabs(tabIds) {
-  // Get the window IDs of tabs we're closing
-  const tabs = await chrome.tabs.query({});
-  const closingTabs = tabs.filter(tab => tabIds.includes(tab.id));
-  const windowsToCheck = new Set(closingTabs.map(tab => tab.windowId));
-  
-  // Count tabs per window before closing
-  const windowTabCounts = new Map();
-  tabs.forEach(tab => {
-    if (!windowTabCounts.has(tab.windowId)) {
-      windowTabCounts.set(tab.windowId, 0);
-    }
-    windowTabCounts.set(tab.windowId, windowTabCounts.get(tab.windowId) + 1);
-  });
-  
-  // Check if we're closing all tabs in any window
-  const windowsBeingClosed = [];
-  windowsToCheck.forEach(windowId => {
-    const tabsInWindow = tabs.filter(tab => tab.windowId === windowId);
-    const tabsBeingClosed = tabsInWindow.filter(tab => tabIds.includes(tab.id));
-    if (tabsInWindow.length === tabsBeingClosed.length) {
-      windowsBeingClosed.push(windowId);
-    }
-  });
-  
-  await chrome.tabs.remove(tabIds);
-  
-  // If we closed all tabs in a window, Chrome will close that window
-  // Add a small delay to ensure Chrome has time to close the window
-  if (windowsBeingClosed.length > 0) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  
-  // Send message to background to log this bulk action
-  chrome.runtime.sendMessage({
-    action: 'logBulkActivity',
-    type: 'close',
-    count: tabIds.length,
-    source: 'bulk'
+  // Route through background → engine for single source of truth
+  await chrome.runtime.sendMessage({
+    action: 'closeTabs',
+    tabIds: tabIds
   });
 }
 
 async function groupTabs(tabIds) {
   if (tabIds.length === 0) return;
-  
-  // Create new group
-  const groupId = await chrome.tabs.group({ tabIds });
-  
+
   // Prompt for group name
   const name = await promptGroupName();
-  if (name) {
-    await chrome.tabGroups.update(groupId, { 
-      title: name,
-      color: 'blue' // Default color
-    });
-  }
-  
+
+  // Route through background → engine for single source of truth
+  await chrome.runtime.sendMessage({
+    action: 'groupTabs',
+    tabIds: tabIds,
+    groupName: name || 'Untitled',
+    color: 'blue'
+  });
+
   showNotification(`Created group "${name || 'Untitled'}" with ${tabIds.length} tabs`, 'success');
 }
 
 async function bookmarkTabs(tabIds) {
-  // Create folder for bookmarks
-  const folder = await chrome.bookmarks.create({
-    parentId: '1', // Bookmarks bar
-    title: `TabMaster Export - ${new Date().toLocaleString()}`
+  // Route through background → engine for single source of truth
+  const folderName = `TabMaster Export - ${new Date().toLocaleString()}`;
+  await chrome.runtime.sendMessage({
+    action: 'bookmarkTabs',
+    tabIds: tabIds,
+    folder: folderName
   });
-  
-  // Get tab details
-  const tabs = await chrome.tabs.query({});
-  const selectedTabs = tabs.filter(tab => tabIds.includes(tab.id));
-  
-  // Create bookmarks
-  for (const tab of selectedTabs) {
-    try {
-      await chrome.bookmarks.create({
-        parentId: folder.id,
-        title: tab.title || 'Untitled',
-        url: tab.url
-      });
-    } catch (error) {
-      console.error('Failed to bookmark tab:', tab.url, error);
-    }
-  }
 }
 
 async function moveToWindow(tabIds, targetWindowId) {
-  if (targetWindowId === 'new') {
-    // Create new window with first tab
-    const firstTab = tabIds.shift();
-    const newWindow = await chrome.windows.create({
-      tabId: firstTab,
-      focused: false
-    });
-    
-    // Move remaining tabs
-    if (tabIds.length > 0) {
-      await chrome.tabs.move(tabIds, {
-        windowId: newWindow.id,
-        index: -1
-      });
-    }
-    return newWindow.id;
-  } else {
-    // Move to existing window
-    await chrome.tabs.move(tabIds, {
-      windowId: targetWindowId,
-      index: -1
-    });
-    return targetWindowId;
-  }
+  // Route through background → engine for single source of truth
+  const result = await chrome.runtime.sendMessage({
+    action: 'moveToWindow',
+    tabIds: tabIds,
+    targetWindowId: targetWindowId
+  });
+
+  // Return the window ID (either new or existing)
+  return result?.windowId || targetWindowId;
 }
 
 async function showMoveToWindowDialog(tabIds) {

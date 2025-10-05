@@ -872,6 +872,79 @@ function getCategoryForDomain(url) {
 }
 
 // ============================================================================
+// Action Helper - Routes all actions through engine for consistency
+// ============================================================================
+
+/**
+ * Execute tab actions through the engine for single source of truth
+ * @param {string} action - The action type (close, group, bookmark, move, etc.)
+ * @param {number[]} tabIds - Array of tab IDs to act on
+ * @param {object} params - Action-specific parameters
+ * @returns {Promise<object>} - Execution results
+ */
+async function executeActionViaEngine(action, tabIds, params = {}) {
+  // Get all tabs and windows for context
+  const allTabs = await chrome.tabs.query({});
+  const windows = await chrome.windows.getAll();
+
+  // Enhance tabs with time data
+  allTabs.forEach(tab => {
+    const timeData = tabTimeData.get(tab.id);
+    if (timeData) {
+      if (timeData.createdAt && !tab.createdAt) {
+        Object.assign(tab, {
+          createdAt: timeData.createdAt,
+          age: Date.now() - timeData.createdAt,
+          ageHours: (Date.now() - timeData.createdAt) / (1000 * 60 * 60)
+        });
+      }
+    }
+    tab.last_access = tab.lastAccessed || timeData?.lastAccessed || null;
+  });
+
+  // Filter to only the tabs we want to act on
+  const tabs = allTabs.filter(t => tabIds.includes(t.id));
+
+  // Get the current engine
+  const { runRules, buildIndices } = getEngine();
+
+  // Build indices to enhance tabs
+  const idx = buildIndices(tabs);
+
+  // Build context for engine
+  const context = {
+    tabs,
+    windows,
+    chrome,
+    idx
+  };
+
+  // Create a temporary rule for this action
+  const tempRule = {
+    id: `temp-${action}-${Date.now()}`,
+    name: `Manual ${action} action`,
+    enabled: true,
+    conditions: {}, // Match all provided tabs
+    then: [{ action, ...params }]
+  };
+
+  // Execute through engine
+  const results = await runRules([tempRule], context, {
+    dryRun: false,
+    skipPinned: false,
+    forceExecution: true
+  });
+
+  // Log activity
+  const totalActions = results.totalActions || 0;
+  if (totalActions > 0) {
+    logActivity(action, `${action} ${tabIds.length} tabs`, 'manual');
+  }
+
+  return results;
+}
+
+// ============================================================================
 // Message Handler
 // ============================================================================
 
@@ -1039,17 +1112,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           });
           break;
 
-        // Tab operations
+        // Tab operations - all routed through engine for consistency
         case 'closeTabs':
-          await closeTabs(request.tabIds);
-          sendResponse({ success: true });
+          const closeResult = await executeActionViaEngine('close', request.tabIds);
+          sendResponse({ success: true, result: closeResult });
           break;
-          
+
         case 'groupTabs':
-          await groupTabs(request.tabIds, request.groupName);
-          sendResponse({ success: true });
+          const groupParams = {};
+          if (request.groupName) groupParams.name = request.groupName;
+          if (request.color) groupParams.color = request.color;
+          const groupResult = await executeActionViaEngine('group', request.tabIds, groupParams);
+          sendResponse({ success: true, result: groupResult });
           break;
-          
+
         case 'snoozeTabs':
           // Convert minutes to milliseconds for backward compatibility
           const duration = request.minutes ? request.minutes * 60 * 1000 : request.duration;
@@ -1057,12 +1133,29 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           await SnoozeService.snoozeTabs(request.tabIds, snoozeUntil, request.reason);
           sendResponse({ success: true });
           break;
-          
+
         case 'bookmarkTabs':
-          await bookmarkTabs(request.tabIds, request.folder);
+          const bookmarkParams = {};
+          if (request.folder) bookmarkParams.folder = request.folder;
+          const bookmarkResult = await executeActionViaEngine('bookmark', request.tabIds, bookmarkParams);
+          sendResponse({ success: true, result: bookmarkResult });
+          break;
+
+        case 'moveToWindow':
+          const moveParams = {
+            windowId: request.windowId || request.targetWindowId
+          };
+          const moveResult = await executeActionViaEngine('move', request.tabIds, moveParams);
+          sendResponse({ success: true, result: moveResult });
+          break;
+
+        case 'ungroupTabs':
+          // Ungroup tabs - direct Chrome API call (not an engine action)
+          await chrome.tabs.ungroup(request.tabIds);
+          logActivity('ungroup', `Ungrouped ${request.tabIds.length} tabs`, 'manual');
           sendResponse({ success: true });
           break;
-          
+
         case 'closeDuplicates':
           const closedCount = await findAndCloseDuplicates();
           sendResponse(closedCount);
@@ -1423,27 +1516,29 @@ async function bookmarkTabs(tabIds, folderName = 'TabMaster Bookmarks') {
 
 chrome.commands.onCommand.addListener(async (command) => {
   console.log('Command received:', command);
-  
+
   switch (command) {
     case 'open_test_panel':
       // Note: sidePanel.open() requires user gesture, can't be triggered from keyboard shortcut
       // Users should click the Test button in the popup or use browser's side panel button
       console.log('Use the Test button in the popup to open the test panel');
       break;
-      
+
     case 'open_command_palette':
       // TODO: Implement command palette
       break;
-      
+
     case 'quick_snooze':
       await quickSnoozeCurrent();
       break;
-      
+
     case 'group_by_domain':
-      await groupTabsByDomain();
+      // Route through engine via groupByDomain (already uses getEngine())
+      await groupByDomain();
       break;
-      
+
     case 'close_duplicates':
+      // Route through engine (already uses getEngine())
       await findAndCloseDuplicates();
       break;
   }

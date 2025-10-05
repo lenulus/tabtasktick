@@ -685,7 +685,11 @@ export function renderTreeView(tabs) {
       const groupId = parseInt(actionBtn.dataset.groupId);
       if (confirm('Close all tabs in this group?')) {
         const tabsToClose = tabs.filter(t => t.groupId === groupId).map(t => t.id);
-        await chrome.tabs.remove(tabsToClose);
+        // Route through background → engine
+        await chrome.runtime.sendMessage({
+          action: 'closeTabs',
+          tabIds: tabsToClose
+        });
         await loadTabsView();
       }
     } else if (action === 'rename-group') {

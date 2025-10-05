@@ -21,9 +21,12 @@ export async function ungroupAllTabs() {
       return;
     }
 
-    // Ungroup all tabs
+    // Route through background → engine (via ungroup action)
     const tabIds = groupedTabs.map(tab => tab.id);
-    await chrome.tabs.ungroup(tabIds);
+    await chrome.runtime.sendMessage({
+      action: 'ungroupTabs',
+      tabIds: tabIds
+    });
 
     showNotification(`Ungrouped ${groupedTabs.length} tabs`, "success");
     await loadGroupsView(); // Refresh the view
@@ -190,7 +193,13 @@ async function closeGroup(groupId) {
   try {
     const tabs = await chrome.tabs.query({ groupId });
     const tabIds = tabs.map(tab => tab.id);
-    await chrome.tabs.remove(tabIds);
+
+    // Route through background → engine
+    await chrome.runtime.sendMessage({
+      action: 'closeTabs',
+      tabIds: tabIds
+    });
+
     await loadGroupsView(); // Reload the view
   } catch (error) {
     console.error('Failed to close group:', error);

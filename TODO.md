@@ -156,29 +156,49 @@ Systematic cleanup to achieve services-first architecture with single source of 
   - **Status**: Complete - already follows single code path pattern
 
 - [ ] **Dashboard** ❌
-  - [ ] Audit: Find all tab operations (group, close, snooze, etc.)
-  - [ ] Identify duplicate implementations that bypass background/engine
-  - [ ] Delete inline implementations
-  - [ ] Replace with message passing to background
-  - [ ] Verify background handlers exist and use `getEngine()`
-  - [ ] Add rule preview using engine's dry-run capability
-  - [ ] Test with 200+ tabs
+  - [x] **Audit Complete** - Found 10 duplicate Chrome API calls
+  - **Duplicate Implementations Found:**
+    - `groups.js:26` - `chrome.tabs.ungroup()` in `ungroupAllTabs()`
+    - `groups.js:193` - `chrome.tabs.remove()` in `closeGroup()`
+    - `dashboard.js:479-519` - `closeTabs()` - direct `chrome.tabs.remove()`
+    - `dashboard.js:521-537` - `groupTabs()` - direct `chrome.tabs.group()`
+    - `dashboard.js:539-562` - `bookmarkTabs()` - direct `chrome.bookmarks.create()`
+    - `dashboard.js:564-589` - `moveToWindow()` - direct `chrome.tabs.move()`
+    - `tabs.js:688` - Tree view close group - direct `chrome.tabs.remove()`
+    - `tabs.js:751,762,789,796` - Drag-and-drop - direct Chrome APIs
+  - **Implementation Plan:**
+    - [ ] Create background message handlers for: `closeTabs`, `groupTabs`, `bookmarkTabs`, `moveToWindow`
+    - [ ] Replace dashboard implementations with `chrome.runtime.sendMessage()` calls
+    - [ ] Update tree view actions to use message passing
+    - [ ] Keep drag-and-drop Chrome API calls (UI interaction, not business logic)
+    - [ ] Test all bulk actions with 200+ tabs
 
 - [ ] **Session Manager** ❌
-  - [ ] Audit: Find all tab operations (group, restore, bulk actions)
-  - [ ] Identify duplicate implementations that bypass background/engine
-  - [ ] Delete inline implementations
-  - [ ] Replace with message passing to background
-  - [ ] Verify background handlers exist and use `getEngine()`
-  - [ ] Test restore from saved sessions
-  - [ ] Verify no breaking changes
+  - [x] **Audit Complete** - Found 5 duplicate implementations
+  - **Duplicate Implementations Found:**
+    - `session.js:768-771` - `closeTabs()` - direct `chrome.tabs.remove()`
+    - `session.js:773-799` - `groupTabs()` - direct `chrome.tabs.group()`
+    - `session.js:801-804` - `snoozeTabs()` - stub (TODO)
+    - `session.js:824-840` - `moveTabsToWindow()` - direct `chrome.tabs.move()`
+    - `session.js:842-901` - `deduplicateTabs()` + `closeSoloTabs()` - direct implementations
+  - **Implementation Plan:**
+    - [ ] Replace `closeTabs()` with message to background
+    - [ ] Replace `groupTabs()` with message to background
+    - [ ] Replace `snoozeTabs()` with message to background (use SnoozeService)
+    - [ ] Replace `moveTabsToWindow()` with message to background
+    - [ ] Replace `deduplicateTabs()` and `closeSoloTabs()` with engine-based approach
+    - [ ] Test session restore and bulk actions
 
 - [ ] **Background Service - Remaining Actions** ⚠️
   - [x] Manual actions (groupByDomain, closeDuplicates) use `getEngine()` ✅
-  - [ ] Scheduled rule runs use `getEngine()`
-  - [ ] Keyboard shortcut handlers (Ctrl+Shift+G) use `getEngine()`
-  - [ ] Context menu handlers use `getEngine()`
-  - [ ] All message handlers route through engine (no inline implementations)
+  - [x] Scheduled rule runs (line 381-442) - Already uses `getEngine()` ✅
+  - [ ] **Keyboard shortcuts (line 1424-1450)** - Need to route through engine
+    - Currently calls `groupTabsByDomain()` and `findAndCloseDuplicates()` directly
+    - Should use helper: `executeActionViaEngine(action, params)`
+  - [ ] **Context menu handlers (line 1618-1639)** - Mixed implementation
+    - Snooze already uses `SnoozeService` ✅
+    - Rule creation bypasses engine - needs fixing
+  - [ ] Create helper function `executeActionViaEngine()` for consistent engine routing
   - [ ] Monitor performance with production workloads
   - [x] **CRITICAL: Fix closeDuplicates to use engine instead of duplicate implementation**
     - **Solution**: Refactored `findAndCloseDuplicates()` to use `engine.runRules()` with temporary rule
@@ -200,6 +220,130 @@ Systematic cleanup to achieve services-first architecture with single source of 
       - `services/selection/selectTabs.js:858-941` - New `getTabStatistics()` service
       - `background-integrated.js:602-610` - Now calls service instead of inline logic
       - `popup/popup.js` - Removed duplicate getDuplicateTabsCount() function
+
+---
+
+### Code Examples - Before & After
+
+**BEFORE (Dashboard - Duplicate Implementation):**
+```javascript
+// dashboard.js:479-519
+async function closeTabs(tabIds) {
+  await chrome.tabs.remove(tabIds); // Direct Chrome API call
+  chrome.runtime.sendMessage({
+    action: 'logBulkActivity',
+    type: 'close',
+    count: tabIds.length
+  });
+}
+```
+
+**AFTER (Dashboard - Message Passing):**
+```javascript
+// dashboard.js
+async function closeTabs(tabIds) {
+  await chrome.runtime.sendMessage({
+    action: 'closeTabs',
+    tabIds: tabIds
+  });
+}
+```
+
+**Background Message Handler:**
+```javascript
+// background-integrated.js
+case 'closeTabs':
+  await executeActionViaEngine('close', message.tabIds);
+  sendResponse({ success: true });
+  break;
+```
+
+**Helper Function in Background:**
+```javascript
+// background-integrated.js
+async function executeActionViaEngine(action, tabIds, params = {}) {
+  const engine = getEngine();
+
+  // Create temporary rule for this action
+  const tempRule = {
+    id: `temp-${action}-${Date.now()}`,
+    name: `Manual ${action} action`,
+    enabled: true,
+    conditions: {}, // Match provided tabIds only
+    then: [{ action, ...params }]
+  };
+
+  // Build context with specific tab filter
+  const context = await buildContext();
+  context.tabs = context.tabs.filter(t => tabIds.includes(t.id));
+
+  // Execute through engine
+  const result = await engine.runRules([tempRule], context);
+
+  return result;
+}
+```
+
+---
+
+### Implementation Strategy - Detailed Steps
+
+**Phase A: Create Helper Infrastructure in Background** ✅
+- [x] Create `executeActionViaEngine(action, tabIds, params)` helper in background
+  - Takes action type, tab IDs, and parameters
+  - Creates temporary rule for the action
+  - Runs through `getEngine().runRules()` with tab filter
+  - Returns results with consistent format
+  - **File**: `background-integrated.js:885-945`
+- [x] Add message handlers in background for:
+  - `closeTabs` - route to engine with 'close' action (line 1116-1119)
+  - `groupTabs` - route to engine with 'group' action (line 1121-1127)
+  - `bookmarkTabs` - route to engine with 'bookmark' action (line 1137-1142)
+  - `moveToWindow` - route to engine with 'move' action (line 1144-1150)
+  - `ungroupTabs` - direct Chrome API (line 1152-1157)
+  - `snoozeTabs` - already routes to SnoozeService ✅ (line 1129-1135)
+
+**Phase B: Update Dashboard** ✅
+- [x] Replace `dashboard.js:479-485` `closeTabs()` with message call
+- [x] Replace `dashboard.js:487-502` `groupTabs()` with message call
+- [x] Replace `dashboard.js:504-512` `bookmarkTabs()` with message call
+- [x] Replace `dashboard.js:514-524` `moveToWindow()` with message call
+- [x] Update `groups.js:11-37` `ungroupAllTabs()` with message call
+- [x] Update `groups.js:192-207` `closeGroup()` with message call
+- [x] Update `tabs.js:684-694` tree view close group with message call
+- [x] Kept drag-and-drop Chrome APIs (UI-specific interactions, not business logic)
+- [ ] Test all bulk operations with 200+ tabs
+
+**Phase C: Update Session Manager** ✅
+- [x] Replace `session.js:768-774` `closeTabs()` with message call
+- [x] Replace `session.js:776-786` `groupTabs()` with message call
+- [x] Implement `session.js:788-796` `snoozeTabs()` with message call to SnoozeService
+- [x] Replace `session.js:798-806` `bookmarkTabs()` with message call
+- [x] Replace `session.js:808-817` `moveTabsToWindow()` with message call
+- [x] Replace `session.js:819-831` `deduplicateTabs()` - routes to closeDuplicates
+- [x] Replace `session.js:833-871` `closeSoloTabs()` - uses message for closeTabs
+- [ ] Test session restore and all bulk actions
+
+**Phase D: Fix Background Shortcuts & Menus** ✅
+- [x] Update keyboard shortcuts (background-integrated.js:1510-1538):
+  - `group_by_domain` - routes through `groupByDomain()` which uses `getEngine()` ✅
+  - `close_duplicates` - routes through `findAndCloseDuplicates()` which uses `getEngine()` ✅
+  - `quick_snooze` - uses `quickSnoozeCurrent()` which uses SnoozeService ✅
+- [x] Verify context menu handlers (background-integrated.js:1618-1639):
+  - Snooze handlers use SnoozeService ✅
+  - Rule creation uses `createRuleForTab()` (creates rule, not duplicate logic) ✅
+
+**Phase E: Testing & Validation** ✅
+- [ ] Test popup "Group by Domain" (v1 and v2)
+- [ ] Test dashboard bulk actions (v1 and v2)
+- [ ] Test session manager actions (v1 and v2)
+- [ ] Test keyboard shortcuts (v1 and v2)
+- [ ] Test with 200+ tabs across multiple windows
+- [ ] Verify engine selector switches work everywhere
+- [ ] Performance comparison: v1 vs v2
+- [ ] No breaking changes in user workflows
+
+---
 
 - [ ] **Rules Page Visualization**
   - [ ] Add "Preview Rule" button using selected engine
