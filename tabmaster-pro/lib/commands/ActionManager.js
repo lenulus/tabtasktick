@@ -327,14 +327,46 @@ export class ActionManager {
       }
 
       const windowId = command.params.windowId;
+      const preserveGroup = command.params.preserveGroup !== false; // Default to true
+
       if (!windowId) {
         throw new Error('windowId parameter is required for move action');
+      }
+
+      // Get tab details to preserve group info
+      const tabs = await context.chrome.tabs.query({});
+      const targetTabs = tabs.filter(t => command.targetIds.includes(t.id));
+
+      // Group tabs by their original group
+      const groupMap = new Map(); // groupId -> { title, color, tabIds }
+      for (const tab of targetTabs) {
+        if (tab.groupId && tab.groupId !== -1 && preserveGroup) {
+          if (!groupMap.has(tab.groupId)) {
+            try {
+              const group = await context.chrome.tabGroups.get(tab.groupId);
+              groupMap.set(tab.groupId, {
+                title: group.title,
+                color: group.color,
+                tabIds: []
+              });
+            } catch (e) {
+              // Group doesn't exist anymore
+            }
+          }
+          if (groupMap.has(tab.groupId)) {
+            groupMap.get(tab.groupId).tabIds.push(tab.id);
+          }
+        }
       }
 
       let targetWindowId = windowId;
 
       // Handle "new" window creation
       if (windowId === 'new') {
+        // Store original focused window
+        const currentWindow = await context.chrome.windows.getCurrent();
+        const originalFocusedWindowId = currentWindow.id;
+
         const tabIds = [...command.targetIds];
         const firstTabId = tabIds.shift();
 
@@ -353,10 +385,30 @@ export class ActionManager {
           });
         }
 
+        // Re-create groups
+        if (groupMap.size > 0) {
+          // Focus the new window to create groups correctly
+          await context.chrome.windows.update(newWindow.id, { focused: true });
+
+          for (const [oldGroupId, groupInfo] of groupMap.entries()) {
+            const newGroupId = await context.chrome.tabs.group({
+              tabIds: groupInfo.tabIds
+            });
+            await context.chrome.tabGroups.update(newGroupId, {
+              title: groupInfo.title,
+              color: groupInfo.color
+            });
+          }
+
+          // Restore original focus
+          await context.chrome.windows.update(originalFocusedWindowId, { focused: true });
+        }
+
         return {
           moved: command.targetIds,
           windowId: newWindow.id,
-          newWindow: true
+          newWindow: true,
+          regrouped: groupMap.size
         };
       }
 
@@ -366,10 +418,34 @@ export class ActionManager {
         index: -1
       });
 
+      // Re-create groups (must focus window first due to Chrome limitation)
+      if (groupMap.size > 0) {
+        // Store original focused window
+        const currentWindow = await context.chrome.windows.getCurrent();
+        const originalFocusedWindowId = currentWindow.id;
+
+        // CRITICAL: Focus the target window first, otherwise Chrome creates group in focused window
+        await context.chrome.windows.update(parseInt(windowId), { focused: true });
+
+        for (const [oldGroupId, groupInfo] of groupMap.entries()) {
+          const newGroupId = await context.chrome.tabs.group({
+            tabIds: groupInfo.tabIds
+          });
+          await context.chrome.tabGroups.update(newGroupId, {
+            title: groupInfo.title,
+            color: groupInfo.color
+          });
+        }
+
+        // Restore original focus
+        await context.chrome.windows.update(originalFocusedWindowId, { focused: true });
+      }
+
       return {
         moved: command.targetIds,
         windowId: parseInt(windowId),
-        newWindow: false
+        newWindow: false,
+        regrouped: groupMap.size
       };
     });
   }

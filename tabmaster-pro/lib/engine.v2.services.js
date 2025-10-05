@@ -313,20 +313,58 @@ async function executeAction(action, tab, context, dryRun) {
     case 'move':
       if (!dryRun && context.chrome?.tabs && context.chrome?.windows) {
         const windowId = action.windowId || action.to;
+        const preserveGroup = action.preserveGroup !== false; // Default to true
 
         if (!windowId) {
           return { success: false, error: 'Move action requires windowId parameter' };
         }
 
+        // Store original group info before moving
+        const originalGroupId = tab.groupId;
+        let groupTitle = null;
+        let groupColor = null;
+
+        if (originalGroupId && originalGroupId !== -1 && preserveGroup) {
+          try {
+            const group = await context.chrome.tabGroups.get(originalGroupId);
+            groupTitle = group.title;
+            groupColor = group.color;
+          } catch (e) {
+            // Group might not exist anymore
+          }
+        }
+
         // Handle "new" window creation
         if (windowId === 'new') {
+          // Store original focused window
+          const currentWindow = await context.chrome.windows.getCurrent();
+          const originalFocusedWindowId = currentWindow.id;
+
           const newWindow = await context.chrome.windows.create({
             tabId: tab.id,
             focused: false
           });
+
+          // Re-group if needed
+          if (groupTitle && preserveGroup) {
+            // Focus the new window to create group correctly
+            await context.chrome.windows.update(newWindow.id, { focused: true });
+
+            const newGroupId = await context.chrome.tabs.group({
+              tabIds: [tab.id]
+            });
+            await context.chrome.tabGroups.update(newGroupId, {
+              title: groupTitle,
+              color: groupColor
+            });
+
+            // Restore original focus
+            await context.chrome.windows.update(originalFocusedWindowId, { focused: true });
+          }
+
           return {
             success: true,
-            details: { moved: tab.id, windowId: newWindow.id, newWindow: true }
+            details: { moved: tab.id, windowId: newWindow.id, newWindow: true, regrouped: !!groupTitle }
           };
         }
 
@@ -335,9 +373,31 @@ async function executeAction(action, tab, context, dryRun) {
           windowId: parseInt(windowId),
           index: -1
         });
+
+        // Re-group if needed
+        if (groupTitle && preserveGroup) {
+          // Store original focused window
+          const currentWindow = await context.chrome.windows.getCurrent();
+          const originalFocusedWindowId = currentWindow.id;
+
+          // CRITICAL: Focus the target window first, otherwise Chrome creates group in focused window
+          await context.chrome.windows.update(parseInt(windowId), { focused: true });
+
+          const newGroupId = await context.chrome.tabs.group({
+            tabIds: [tab.id]
+          });
+          await context.chrome.tabGroups.update(newGroupId, {
+            title: groupTitle,
+            color: groupColor
+          });
+
+          // Restore original focus
+          await context.chrome.windows.update(originalFocusedWindowId, { focused: true });
+        }
+
         return {
           success: true,
-          details: { moved: tab.id, windowId: parseInt(windowId), newWindow: false }
+          details: { moved: tab.id, windowId: parseInt(windowId), newWindow: false, regrouped: !!groupTitle }
         };
       }
       return { success: true, details: { moved: tab.id } };
