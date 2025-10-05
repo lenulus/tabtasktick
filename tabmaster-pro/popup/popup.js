@@ -391,15 +391,22 @@ async function handleGroupByDomain() {
   try {
     const button = elements.groupByDomain;
     button.disabled = true;
-    
-    const count = await sendMessage({ action: 'groupByDomain' });
-    
+
+    // Get current window to only group tabs in this window
+    const currentWindow = await chrome.windows.getCurrent();
+
+    const count = await sendMessage({
+      action: 'groupByDomain',
+      currentWindowOnly: true,
+      windowId: currentWindow.id
+    });
+
     if (count > 0) {
       showNotification(`Created ${count} group${count > 1 ? 's' : ''}`, 'success');
     } else {
       showNotification('No tabs to group', 'info');
     }
-    
+
     await loadStatistics();
   } catch (error) {
     console.error('Failed to group tabs:', error);

@@ -81,13 +81,19 @@ export async function groupTabs(tabIds, options = {}) {
           const tabsByWindow = groupTabsByWindow(domainTabs);
 
           for (const [windowId, windowTabs] of tabsByWindow) {
-            const step = await planGroupCreation(windowTabs, domain, windowId, collapsed, false);
-            if (step) plan.push(step);
+            // Skip if only 1 tab - no point in creating a group for a single tab
+            if (windowTabs.length > 1) {
+              const step = await planGroupCreation(windowTabs, domain, windowId, collapsed, false);
+              if (step) plan.push(step);
+            }
           }
         } else {
           // Group all tabs of this domain together (may move windows)
-          const step = await planGroupCreation(domainTabs, domain, null, collapsed, true);
-          if (step) plan.push(step);
+          // Skip if only 1 tab - no point in creating a group for a single tab
+          if (domainTabs.length > 1) {
+            const step = await planGroupCreation(domainTabs, domain, null, collapsed, true);
+            if (step) plan.push(step);
+          }
         }
       }
     }

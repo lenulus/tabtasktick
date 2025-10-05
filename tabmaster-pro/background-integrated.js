@@ -1165,11 +1165,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'groupByDomain':
-          // Get caller's window ID from request (sent by dashboard)
+          // Get parameters from request
           console.log('[groupByDomain] request:', request);
           const callerWindowId = request.callerWindowId || null;
-          console.log('[groupByDomain] callerWindowId from request:', callerWindowId);
-          const groupByDomainResult = await groupByDomain(callerWindowId);
+          const currentWindowOnly = request.currentWindowOnly || false;
+          const windowId = request.windowId || null;
+          console.log('[groupByDomain] callerWindowId:', callerWindowId, 'currentWindowOnly:', currentWindowOnly, 'windowId:', windowId);
+          const groupByDomainResult = await groupByDomain(callerWindowId, currentWindowOnly, windowId);
           sendResponse(groupByDomainResult);
           break;
           
@@ -1402,16 +1404,24 @@ async function findAndCloseDuplicates() {
 }
 
 // Group tabs by domain - uses engine for consistency
-async function groupByDomain(callerWindowId = null) {
+async function groupByDomain(callerWindowId = null, currentWindowOnly = false, windowId = null) {
   // Use engine via runRules to ensure proper tab enhancement and consistent behavior
   const engine = getEngine();
+
+  // Build conditions based on whether we want current window only
+  let conditions = {};
+  if (currentWindowOnly && windowId) {
+    conditions = {
+      eq: ['tab.windowId', windowId]
+    };
+  }
 
   // Create a temporary rule for manual grouping by domain
   const tempRule = {
     id: 'manual-group-by-domain',
     name: 'Manual Group By Domain',
     enabled: true,
-    conditions: {}, // Empty conditions object matches all tabs
+    conditions: conditions, // Filter by window if requested
     actions: [{
       action: 'group',
       by: 'domain',
