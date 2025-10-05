@@ -130,34 +130,55 @@ Systematic cleanup to achieve services-first architecture with single source of 
 - Live updates across all contexts via storage events
 - Clean UI with status badge and descriptions
 
-### 1.8 Wire Surfaces to Use Selected Engine ❌
+### 1.8 Eliminate Duplicate Implementations - Force Single Code Path ⚠️
 
-**Order**: Popup → Dashboard → Session Manager → Background (rules)
+**Goal**: Remove all duplicate business logic from surfaces. All operations must go through:
+**Surface → Message → Background → Engine**
 
-- [ ] **Popup Integration**
-  - [ ] Update "Group by Domain" button to use engineLoader
-  - [ ] Update quick actions to use selected engine
-  - [ ] Test with v1 vs v2 and verify same behavior
-  - [ ] Handle errors gracefully with fallback
+**Why**:
+- Single source of truth for all tab operations
+- Centralized testing (test the engine once, not 4 implementations)
+- Less fragile - changes in one place, consistent everywhere
+- Engine selector works across all surfaces automatically
 
-- [ ] **Dashboard Integration**
-  - [ ] Update Groups view "Group by Domain" button
-  - [ ] Update Rules page preview functionality
-  - [ ] Add rule preview using v2 engine's previewRule()
-  - [ ] Update analytics/stats to work with both engines
+**Pattern**:
+1. Find inline implementations in surfaces (grouping, snoozing, closing, etc.)
+2. Delete the duplicate code
+3. Replace with message to background
+4. Background handler uses `getEngine()` and runs operation through engine
+
+---
+
+- [x] **Popup** ✅
+  - [x] Already uses message passing (`{ action: 'groupByDomain' }`)
+  - [x] Background handler uses `getEngine()` (background-integrated.js:1304)
+  - [x] No duplicate implementations found
+  - **Status**: Complete - already follows single code path pattern
+
+- [ ] **Dashboard** ❌
+  - [ ] Audit: Find all tab operations (group, close, snooze, etc.)
+  - [ ] Identify duplicate implementations that bypass background/engine
+  - [ ] Delete inline implementations
+  - [ ] Replace with message passing to background
+  - [ ] Verify background handlers exist and use `getEngine()`
+  - [ ] Add rule preview using engine's dry-run capability
   - [ ] Test with 200+ tabs
 
-- [ ] **Session Manager Integration**
-  - [ ] Update bulk grouping operations
-  - [ ] Update tab selection and execution flows
+- [ ] **Session Manager** ❌
+  - [ ] Audit: Find all tab operations (group, restore, bulk actions)
+  - [ ] Identify duplicate implementations that bypass background/engine
+  - [ ] Delete inline implementations
+  - [ ] Replace with message passing to background
+  - [ ] Verify background handlers exist and use `getEngine()`
   - [ ] Test restore from saved sessions
   - [ ] Verify no breaking changes
 
-- [ ] **Background Service Integration**
-  - [ ] Update rule execution to use selected engine
-  - [ ] Update scheduled rule runs
-  - [ ] Update keyboard shortcut handlers (Ctrl+Shift+G)
-  - [ ] Ensure backward compatibility with existing rules
+- [ ] **Background Service - Remaining Actions** ⚠️
+  - [x] Manual actions (groupByDomain, closeDuplicates) use `getEngine()` ✅
+  - [ ] Scheduled rule runs use `getEngine()`
+  - [ ] Keyboard shortcut handlers (Ctrl+Shift+G) use `getEngine()`
+  - [ ] Context menu handlers use `getEngine()`
+  - [ ] All message handlers route through engine (no inline implementations)
   - [ ] Monitor performance with production workloads
   - [x] **CRITICAL: Fix closeDuplicates to use engine instead of duplicate implementation**
     - **Solution**: Refactored `findAndCloseDuplicates()` to use `engine.runRules()` with temporary rule
