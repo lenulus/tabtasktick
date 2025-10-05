@@ -1162,8 +1162,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'groupByDomain':
-          const groupResult = await groupByDomain();
-          sendResponse(groupResult);
+          const groupByDomainResult = await groupByDomain();
+          sendResponse(groupByDomainResult);
           break;
           
         case 'snoozeCurrent':
