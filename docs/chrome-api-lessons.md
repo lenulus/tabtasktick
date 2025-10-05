@@ -103,6 +103,91 @@ Store original focus → Focus target → Perform operation → Restore focus
 
 ---
 
+## Tab Stealing Behavior
+
+### Critical Limitation: Adding to Group in Different Window Steals Tabs
+
+**Problem**: When you add a tab to an existing group that's in a **different window** than the currently focused window, Chrome will **steal the entire group** (and all its tabs) and move them to the focused window.
+
+**Example of Broken Behavior**:
+```javascript
+// User is on Window A (dashboard)
+// Existing group with 10 tabs is in Window B
+// Tab to add is in Window A
+
+// This will MOVE the group and all 10 tabs from Window B to Window A!
+await chrome.tabs.group({
+  tabIds: [newTab.id],
+  groupId: existingGroupInWindowB
+});
+// Now Window B lost all those tabs!
+```
+
+**Impact**:
+- Unexpected tab movement across windows
+- Breaks window organization
+- Confusing user experience (tabs "disappear" from one window)
+- Can accidentally merge completely unrelated tabs
+
+**Solution**: Always focus the window containing the group before adding tabs to it:
+
+```javascript
+// 1. Find which window the group is in
+const existingGroup = await chrome.tabGroups.get(groupId);
+const groupWindowId = existingGroup.windowId;
+
+// 2. Store original focused window
+const currentWindow = await chrome.windows.getCurrent();
+const originalFocusedWindowId = currentWindow.id;
+
+// 3. Focus the window containing the group
+await chrome.windows.update(groupWindowId, { focused: true });
+
+// 4. Add tabs to the group (now it won't steal)
+await chrome.tabs.group({
+  tabIds: [newTab.id],
+  groupId: groupId
+});
+
+// 5. Restore original focus
+await chrome.windows.update(originalFocusedWindowId, { focused: true });
+```
+
+**When This Matters**:
+- Adding tabs to existing groups from dashboard in different window
+- Reusing groups across multiple operations
+- Any "group by domain" logic that tries to reuse existing groups
+- Drag-and-drop operations between windows
+
+**Detection Pattern**:
+```javascript
+async function safeAddToGroup(tabIds, groupId) {
+  // Check if group is in a different window
+  const group = await chrome.tabGroups.get(groupId);
+  const currentWindow = await chrome.windows.getCurrent();
+
+  if (group.windowId !== currentWindow.id) {
+    // DANGER: This would steal tabs!
+    // Must focus the group's window first
+    await chrome.windows.update(group.windowId, { focused: true });
+    await chrome.tabs.group({ tabIds, groupId });
+    await chrome.windows.update(currentWindow.id, { focused: true });
+  } else {
+    // Same window, safe to add directly
+    await chrome.tabs.group({ tabIds, groupId });
+  }
+}
+```
+
+**Files Affected**:
+- `services/execution/groupTabs.js:237-254` (reuse action)
+- Any code using `action: 'reuse'` for grouping
+
+**Why This Happens**:
+Chrome's grouping API is designed for user interactions within a single focused window. When you add tabs to a group programmatically, Chrome assumes you want those tabs in the currently focused window, so it moves the entire group to satisfy that constraint.
+
+---
+
 ## Best Practices
 
 ### 1. Window Isolation Pattern
@@ -253,6 +338,36 @@ async function createGroup(tabIds, windowId) {
 
 ---
 
+### ❌ Don't: Add tabs to groups in other windows
+
+```javascript
+// This will STEAL the entire group to the focused window!
+const groupInOtherWindow = await chrome.tabGroups.get(groupId);
+await chrome.tabs.group({
+  tabIds: [newTab.id],
+  groupId: groupId
+});
+// Group and all its tabs just moved windows!
+```
+
+### ✅ Do: Focus the group's window first
+
+```javascript
+const group = await chrome.tabGroups.get(groupId);
+const originalWindow = await chrome.windows.getCurrent();
+
+// Focus the window containing the group
+await chrome.windows.update(group.windowId, { focused: true });
+
+// Now safe to add
+await chrome.tabs.group({ tabIds: [newTab.id], groupId });
+
+// Restore focus
+await chrome.windows.update(originalWindow.id, { focused: true });
+```
+
+---
+
 ### ❌ Don't: Skip group preservation on moves
 
 ```javascript
@@ -317,11 +432,14 @@ When implementing tab group features, always test:
 
 - ✅ Creating groups in the same window as the UI
 - ✅ Creating groups in a different window than the UI
+- ✅ Adding tabs to existing group in the same window
+- ✅ Adding tabs to existing group in a different window (verify no stealing!)
 - ✅ Moving individual grouped tabs between windows
 - ✅ Moving entire groups between windows
 - ✅ Moving tabs from multiple different groups to one window
 - ✅ Focus returns to original window after operation
 - ✅ Group metadata (title, color) is preserved
+- ✅ Groups stay in their original windows (no unexpected movement)
 - ✅ Works with multiple windows (3+) open
 
 ---
