@@ -474,6 +474,46 @@ async function executeAction(action, tab, context, dryRun) {
       }
       return { success: true, details: { suspended: tab.id } };
 
+    case 'move':
+      console.log(`Executing move action for tab ${tab.id}`);
+      if (!dryRun && context.chrome?.tabs && context.chrome?.windows) {
+        try {
+          const windowId = action.windowId || action.to;
+
+          if (!windowId) {
+            return { success: false, error: 'Move action requires windowId parameter' };
+          }
+
+          // Handle "new" window creation
+          if (windowId === 'new') {
+            const newWindow = await context.chrome.windows.create({
+              tabId: tab.id,
+              focused: false
+            });
+            console.log(`Moved tab ${tab.id} to new window ${newWindow.id}`);
+            return {
+              success: true,
+              details: { moved: tab.id, windowId: newWindow.id, newWindow: true }
+            };
+          }
+
+          // Move to existing window
+          await context.chrome.tabs.move(tab.id, {
+            windowId: parseInt(windowId),
+            index: -1
+          });
+          console.log(`Moved tab ${tab.id} to window ${windowId}`);
+          return {
+            success: true,
+            details: { moved: tab.id, windowId: parseInt(windowId), newWindow: false }
+          };
+        } catch (error) {
+          console.error(`Failed to move tab ${tab.id}:`, error);
+          return { success: false, error: error.message };
+        }
+      }
+      return { success: true, details: { moved: tab.id } };
+
     default:
       return { success: false, error: `Unknown action: ${actionType}` };
   }

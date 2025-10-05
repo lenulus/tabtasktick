@@ -115,6 +115,17 @@ export class Command {
           reversible: true
         };
 
+      case 'move':
+        const windowId = this.params.windowId;
+        const windowDesc = windowId === 'new' ? 'new window' : `window ${windowId}`;
+        return {
+          action: 'move',
+          description: `Move ${targetStr} to ${windowDesc}`,
+          targets: this.targetIds,
+          params: this.params,
+          reversible: true
+        };
+
       case 'pin':
         return {
           action: 'pin',

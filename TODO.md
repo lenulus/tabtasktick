@@ -352,12 +352,42 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
   - [ ] Use v2 engine's dry-run capability
   - [ ] Show diff between v1 and v2 previews (optional)
 
-### 1.9 Production Validation ❌
+### 1.9 Missing Engine Actions - BLOCKER ⚠️
+
+**Problem**: `bookmark` and `move` actions not implemented in engines
+- Dashboard/Session Manager call `executeActionViaEngine('bookmark', ...)` → fails silently
+- Dashboard/Session Manager call `executeActionViaEngine('move', ...)` → fails silently
+- These actions were never part of the rules engine, only manual operations
+
+**Solution**: Implement these actions in the engine OR handle them separately
+
+**Option A: Implement in Engine (Preferred)** ✅
+- [x] Add `bookmark` action to engine v1 (lib/engine.v1.legacy.js) - already existed
+- [x] Add `bookmark` action to engine v2 - ActionManager (lib/commands/ActionManager.js:283-321)
+- [x] Add `move` action to engine v1 (lib/engine.v1.legacy.js:477-515)
+- [x] Add `move` action to engine v2 - ActionManager (lib/commands/ActionManager.js:323-374)
+- [x] Add to Command.js validation (lines 52-62) and preview (lines 118-127)
+- [x] ActionManager handlers registered in registerDefaultHandlers()
+- [ ] Test bookmark and move through engine
+
+**Option B: Handle Outside Engine (Quick Fix)** ❌
+- Keep `bookmark` and `move` as direct Chrome API calls in background
+- Don't route through `executeActionViaEngine()`
+- Update message handlers to call functions directly
+- NOT PREFERRED - violates single source of truth principle
+
+**Recommendation**: Option A - add these actions to the engine properly
+
+---
+
+### 1.10 Production Validation ❌
 - [ ] Test popup "Group by Domain" button (v1 and v2)
 - [ ] Test dashboard Groups view "Group by Domain" button (v1 and v2)
 - [ ] Test keyboard shortcut (Ctrl+Shift+G) (v1 and v2)
 - [ ] Test rules engine group action (v1 and v2)
 - [ ] Test session manager bulk grouping (v1 and v2)
+- [ ] Test bookmark action (Dashboard + Session Manager)
+- [ ] Test move to window action (Dashboard + Session Manager)
 - [ ] Test with 200+ tabs across multiple windows
 - [ ] Performance comparison: v1 vs v2 execution time
 - [ ] Memory usage comparison

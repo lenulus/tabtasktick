@@ -319,6 +319,59 @@ export class ActionManager {
         folder: folder || 'Other Bookmarks'
       };
     });
+
+    // Move handler - move tabs to different window
+    this.registerHandler('move', async (command, context) => {
+      if (!context.chrome?.tabs || !context.chrome?.windows) {
+        throw new Error('Chrome tabs/windows API not available');
+      }
+
+      const windowId = command.params.windowId;
+      if (!windowId) {
+        throw new Error('windowId parameter is required for move action');
+      }
+
+      let targetWindowId = windowId;
+
+      // Handle "new" window creation
+      if (windowId === 'new') {
+        const tabIds = [...command.targetIds];
+        const firstTabId = tabIds.shift();
+
+        // Create new window with first tab
+        const newWindow = await context.chrome.windows.create({
+          tabId: firstTabId,
+          focused: false
+        });
+        targetWindowId = newWindow.id;
+
+        // Move remaining tabs if any
+        if (tabIds.length > 0) {
+          await context.chrome.tabs.move(tabIds, {
+            windowId: newWindow.id,
+            index: -1
+          });
+        }
+
+        return {
+          moved: command.targetIds,
+          windowId: newWindow.id,
+          newWindow: true
+        };
+      }
+
+      // Move to existing window
+      await context.chrome.tabs.move(command.targetIds, {
+        windowId: parseInt(windowId),
+        index: -1
+      });
+
+      return {
+        moved: command.targetIds,
+        windowId: parseInt(windowId),
+        newWindow: false
+      };
+    });
   }
 
   /**
