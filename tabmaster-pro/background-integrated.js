@@ -9,7 +9,7 @@ import * as engineV2Services from './lib/engine.v2.services.js';
 // import * as engineV2CommandCompact from './lib/engine.v2.command.compact.js';
 
 import { createChromeScheduler } from './lib/scheduler.js';
-import * as SnoozeService from './services/SnoozeService.js';
+import * as SnoozeService from './services/execution/SnoozeService.js';
 import { getTabStatistics } from './services/selection/selectTabs.js';
 import { getCurrentWindowId } from './services/TabGrouping.js';
 

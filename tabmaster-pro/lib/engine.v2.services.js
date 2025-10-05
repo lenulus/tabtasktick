@@ -7,7 +7,7 @@
 // Delegates selection to SelectionService, only handles orchestration
 
 import { selectTabsMatchingRule } from '../services/selection/selectTabs.js';
-import * as SnoozeService from '../services/SnoozeService.js';
+import * as SnoozeService from '../services/execution/SnoozeService.js';
 import { validateActionList, sortActionsByPriority } from './action-validator.js';
 import { groupTabs } from '../services/execution/groupTabs.js';
 

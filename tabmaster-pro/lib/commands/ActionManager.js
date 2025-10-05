@@ -3,7 +3,7 @@
 
 import { sortAndResolveCommands } from './Command.js';
 import { groupTabs } from '../../services/execution/groupTabs.js';
-import * as SnoozeService from '../../services/SnoozeService.js';
+import * as SnoozeService from '../../services/execution/SnoozeService.js';
 
 /**
  * ActionManager handles command execution and dispatching

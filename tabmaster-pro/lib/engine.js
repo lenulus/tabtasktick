@@ -2,7 +2,7 @@
 // Integrates normalize.js for deduplication and predicate.js for condition evaluation
 
 import { compile, checkIsDupe } from './predicate.js';
-import * as SnoozeService from '../services/SnoozeService.js';
+import * as SnoozeService from '../services/execution/SnoozeService.js';
 import { normalizeUrl, extractDomain, generateDupeKey, extractOrigin } from './normalize.js';
 import { validateActionList, sortActionsByPriority } from './action-validator.js';
 import { transformConditions } from './condition-transformer.js';
