@@ -221,28 +221,36 @@ Systematic cleanup to achieve services-first architecture with single source of 
 
 ---
 
-## Phase 2: Snooze Service Consolidation ❌
+## Phase 2: Snooze Service Consolidation ✅
 
-### 2.1 Discovery ❌
-- [ ] Find all snooze implementations
-- [ ] Create comparison matrix (like tab grouping)
-- [ ] Document canonical behavior
+### 2.1 Discovery ✅
+- [x] Find all snooze implementations
+- [x] Create comparison matrix (like tab grouping)
+- [x] Document canonical behavior
 
-### 2.2 Service Implementation ❌
-- [ ] Create `/services/SnoozeService.js`
-- [ ] Single source for snooze/wake logic
-- [ ] Handle all wake targets (same window, new window, etc.)
+### 2.2 Service Implementation ✅
+- [x] Create `/services/execution/SnoozeService.js`
+- [x] Single source for snooze/wake logic
+- [x] Handle all wake targets and timing (chrome.alarms with fallback)
+- [x] Dependency injection pattern for testability
 
-### 2.3 Update Callers ❌
-- [ ] Background service
-- [ ] Popup
-- [ ] Dashboard snoozed view
-- [ ] Rules engine snooze action
-- [ ] Session manager (if implemented)
+### 2.3 Update Callers ✅
+- [x] Background service
+- [x] Popup (via message passing)
+- [x] Dashboard snoozed view (via message passing)
+- [x] Rules engine snooze action (v1 and v2)
+- [x] ActionManager (command pattern)
 
-### 2.4 Remove Old Code ❌
-- [ ] Delete `/lib/snooze.js` if redundant
-- [ ] Remove inline implementations
+### 2.4 Remove Old Code ✅
+- [x] Removed all duplicate snooze implementations (~400 lines → 213 line service)
+- [x] Eliminated 4 duplicate implementations across codebase
+
+**Completed**: Merged from `snooze-service-refactor` branch
+- Created comprehensive discovery document (`docs/snooze-service-discovery.md`)
+- Assessment document (`docs/snooze-service-assessment.md`)
+- All surfaces now use SnoozeService via background
+- Updated Jest tests to use service
+- 47% code reduction with improved testability
 
 ---
 
