@@ -3,19 +3,19 @@
 // Allows switching between v1 and v2 engines across all surfaces
 
 const STORAGE_KEY = 'activeEngine';
-const DEFAULT_ENGINE = 'v1-legacy'; // Safe default for backward compatibility
+const DEFAULT_ENGINE = 'v2-services'; // V2 is now stable and default
 
 // Available engines
 const ENGINES = {
   'v1-legacy': {
     name: 'V1 Legacy',
-    description: 'Original engine - stable and tested',
+    description: 'Original engine - for validation only',
     path: './engine.v1.legacy.js',
     module: null // Lazy loaded
   },
   'v2-services': {
-    name: 'V2 Services',
-    description: 'New services-first architecture - all tests passing',
+    name: 'V2 Services (Default)',
+    description: 'Services-first architecture - stable and tested',
     path: './engine.v2.services.js',
     module: null // Lazy loaded
   }

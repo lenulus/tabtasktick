@@ -114,7 +114,7 @@ Systematic cleanup to achieve services-first architecture with single source of 
 - [x] **Settings UI**
   - [x] Add engine selector dropdown (v1-legacy, v2-services)
   - [x] Store selection in chrome.storage.local
-  - [x] Default to v1 for backward compatibility
+  - [x] Default to v2 (v1 kept for validation only)
   - [x] Add description explaining differences
   - [x] Show current engine version on settings page
 
