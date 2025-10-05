@@ -130,7 +130,7 @@ Systematic cleanup to achieve services-first architecture with single source of 
 - Live updates across all contexts via storage events
 - Clean UI with status badge and descriptions
 
-### 1.8 Eliminate Duplicate Implementations - Force Single Code Path ⚠️
+### 1.8 Eliminate Duplicate Implementations - Force Single Code Path ✅
 
 **Goal**: Remove all duplicate business logic from surfaces. All operations must go through:
 **Surface → Message → Background → Engine**
@@ -155,7 +155,7 @@ Systematic cleanup to achieve services-first architecture with single source of 
   - [x] No duplicate implementations found
   - **Status**: Complete - already follows single code path pattern
 
-- [ ] **Dashboard** ❌
+- [x] **Dashboard** ✅
   - [x] **Audit Complete** - Found 10 duplicate Chrome API calls
   - **Duplicate Implementations Found:**
     - `groups.js:26` - `chrome.tabs.ungroup()` in `ungroupAllTabs()`
@@ -167,13 +167,13 @@ Systematic cleanup to achieve services-first architecture with single source of 
     - `tabs.js:688` - Tree view close group - direct `chrome.tabs.remove()`
     - `tabs.js:751,762,789,796` - Drag-and-drop - direct Chrome APIs
   - **Implementation Plan:**
-    - [ ] Create background message handlers for: `closeTabs`, `groupTabs`, `bookmarkTabs`, `moveToWindow`
-    - [ ] Replace dashboard implementations with `chrome.runtime.sendMessage()` calls
-    - [ ] Update tree view actions to use message passing
-    - [ ] Keep drag-and-drop Chrome API calls (UI interaction, not business logic)
+    - [x] Create background message handlers for: `closeTabs`, `groupTabs`, `bookmarkTabs`, `moveToWindow`
+    - [x] Replace dashboard implementations with `chrome.runtime.sendMessage()` calls
+    - [x] Update tree view actions to use message passing
+    - [x] Keep drag-and-drop Chrome API calls (UI interaction, not business logic)
     - [ ] Test all bulk actions with 200+ tabs
 
-- [ ] **Session Manager** ❌
+- [x] **Session Manager** ✅
   - [x] **Audit Complete** - Found 5 duplicate implementations
   - **Duplicate Implementations Found:**
     - `session.js:768-771` - `closeTabs()` - direct `chrome.tabs.remove()`
@@ -182,23 +182,24 @@ Systematic cleanup to achieve services-first architecture with single source of 
     - `session.js:824-840` - `moveTabsToWindow()` - direct `chrome.tabs.move()`
     - `session.js:842-901` - `deduplicateTabs()` + `closeSoloTabs()` - direct implementations
   - **Implementation Plan:**
-    - [ ] Replace `closeTabs()` with message to background
-    - [ ] Replace `groupTabs()` with message to background
-    - [ ] Replace `snoozeTabs()` with message to background (use SnoozeService)
-    - [ ] Replace `moveTabsToWindow()` with message to background
-    - [ ] Replace `deduplicateTabs()` and `closeSoloTabs()` with engine-based approach
+    - [x] Replace `closeTabs()` with message to background
+    - [x] Replace `groupTabs()` with message to background
+    - [x] Replace `snoozeTabs()` with message to background (use SnoozeService)
+    - [x] Replace `moveTabsToWindow()` with message to background
+    - [x] Replace `deduplicateTabs()` and `closeSoloTabs()` with engine-based approach
     - [ ] Test session restore and bulk actions
 
-- [ ] **Background Service - Remaining Actions** ⚠️
+- [x] **Background Service - Remaining Actions** ✅
   - [x] Manual actions (groupByDomain, closeDuplicates) use `getEngine()` ✅
   - [x] Scheduled rule runs (line 381-442) - Already uses `getEngine()` ✅
-  - [ ] **Keyboard shortcuts (line 1424-1450)** - Need to route through engine
-    - Currently calls `groupTabsByDomain()` and `findAndCloseDuplicates()` directly
-    - Should use helper: `executeActionViaEngine(action, params)`
-  - [ ] **Context menu handlers (line 1618-1639)** - Mixed implementation
+  - [x] **Keyboard shortcuts (line 1510-1538)** - All route through engine ✅
+    - `group_by_domain` - routes through `groupByDomain()` which uses `getEngine()` ✅
+    - `close_duplicates` - routes through `findAndCloseDuplicates()` which uses `getEngine()` ✅
+    - `quick_snooze` - uses `quickSnoozeCurrent()` which uses SnoozeService ✅
+  - [x] **Context menu handlers (line 1618-1639)** - All correct ✅
     - Snooze already uses `SnoozeService` ✅
-    - Rule creation bypasses engine - needs fixing
-  - [ ] Create helper function `executeActionViaEngine()` for consistent engine routing
+    - Rule creation uses `createRuleForTab()` (creates rule, not duplicate logic) ✅
+  - [x] Create helper function `executeActionViaEngine()` for consistent engine routing ✅
   - [ ] Monitor performance with production workloads
   - [x] **CRITICAL: Fix closeDuplicates to use engine instead of duplicate implementation**
     - **Solution**: Refactored `findAndCloseDuplicates()` to use `engine.runRules()` with temporary rule
@@ -312,6 +313,11 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
 - [x] Update `groups.js:192-207` `closeGroup()` with message call
 - [x] Update `tabs.js:684-694` tree view close group with message call
 - [x] Kept drag-and-drop Chrome APIs (UI-specific interactions, not business logic)
+- [x] **CRITICAL: Fixed Groups view to show all windows** (commit 9277567)
+  - Changed from `currentWindow: true` to `{}` to query all windows
+  - Now consistent with Tabs view
+- [x] **CRITICAL: Fixed Ungroup All to work across all windows** (commit e353f03)
+  - Changed from `currentWindow: true` to `{}` to ungroup all windows
 - [ ] Test all bulk operations with 200+ tabs
 
 **Phase C: Update Session Manager** ✅
@@ -334,7 +340,7 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
   - Rule creation uses `createRuleForTab()` (creates rule, not duplicate logic) ✅
 
 **Phase E: Testing & Validation** ✅
-- [ ] Test popup "Group by Domain" (v1 and v2)
+- [x] Test popup "Group by Domain" (v1 and v2) - Working ✅
 - [ ] Test dashboard bulk actions (v1 and v2)
 - [ ] Test session manager actions (v1 and v2)
 - [ ] Test keyboard shortcuts (v1 and v2)
@@ -342,6 +348,33 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
 - [ ] Verify engine selector switches work everywhere
 - [ ] Performance comparison: v1 vs v2
 - [ ] No breaking changes in user workflows
+
+**Phase F: Chrome API Workarounds - Window Focus Management** ✅
+- [x] **CRITICAL: Documented Chrome API limitations** (docs/chrome-api-lessons.md)
+  - Groups cannot cross windows - must preserve and recreate
+  - Group creation happens in focused window, not target window
+  - Tab stealing when adding to groups in different windows
+- [x] **Fixed: Group preservation when moving tabs between windows** (commits 2a4727c)
+  - Capture group metadata before move
+  - Recreate groups in target window after move
+  - Implemented in v1, v2, and ActionManager
+- [x] **Fixed: Focus management for group operations** (commits 669b69b, c524ef7, ed840c6)
+  - Store original focused window before operation
+  - Focus target window for group creation/modification
+  - Restore original focus after operation
+  - Pattern: Store → Switch → Operate → Restore
+- [x] **Fixed: callerWindowId parameter for cross-window grouping** (commits 1a58d62, 5d0580a, 93d96b8, fb6c4c2)
+  - Dashboard sends its window ID in messages
+  - Background passes it through to groupTabs service
+  - Service restores focus to caller's window after grouping
+  - Popup sends `currentWindowOnly: true` to limit scope
+- [x] **Fixed: Skip single-tab domains in grouping** (commit 7aa3b67)
+  - Only create groups for domains with 2+ tabs
+  - Prevents pointless single-tab groups
+- [x] **Fixed: Popup Group by Domain scope** (commit 7aa3b67)
+  - Now only groups tabs in current window
+  - Dashboard still groups across all windows (as expected)
+  - Proper scoping based on context
 
 ---
 
@@ -352,46 +385,42 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
   - [ ] Use v2 engine's dry-run capability
   - [ ] Show diff between v1 and v2 previews (optional)
 
-### 1.9 Missing Engine Actions - BLOCKER ⚠️
+### 1.9 Missing Engine Actions ✅
 
 **Problem**: `bookmark` and `move` actions not implemented in engines
 - Dashboard/Session Manager call `executeActionViaEngine('bookmark', ...)` → fails silently
 - Dashboard/Session Manager call `executeActionViaEngine('move', ...)` → fails silently
 - These actions were never part of the rules engine, only manual operations
 
-**Solution**: Implement these actions in the engine OR handle them separately
+**Solution**: Implemented in both engines ✅
 
-**Option A: Implement in Engine (Preferred)** ✅
+**Implementation** ✅
 - [x] Add `bookmark` action to engine v1 (lib/engine.v1.legacy.js) - already existed
 - [x] Add `bookmark` action to engine v2 - ActionManager (lib/commands/ActionManager.js:283-321)
-- [x] Add `move` action to engine v1 (lib/engine.v1.legacy.js:477-515)
-- [x] Add `move` action to engine v2 - ActionManager (lib/commands/ActionManager.js:323-374)
-- [x] Add to Command.js validation (lines 52-62) and preview (lines 118-127)
+- [x] Add `move` action to engine v1 (lib/engine.v1.legacy.js:477-561) - with group preservation
+- [x] Add `move` action to engine v2 (lib/engine.v2.services.js:313-390) - with group preservation
+- [x] Add `move` action to ActionManager (lib/commands/ActionManager.js:323-450) - with group preservation
+- [x] Add to Command.js validation (lines 58-62) and preview (lines 118-127)
 - [x] ActionManager handlers registered in registerDefaultHandlers()
-- [ ] Test bookmark and move through engine
-
-**Option B: Handle Outside Engine (Quick Fix)** ❌
-- Keep `bookmark` and `move` as direct Chrome API calls in background
-- Don't route through `executeActionViaEngine()`
-- Update message handlers to call functions directly
-- NOT PREFERRED - violates single source of truth principle
-
-**Recommendation**: Option A - add these actions to the engine properly
+- [x] Tested move action - working with group preservation ✅
 
 ---
 
-### 1.10 Production Validation ❌
-- [ ] Test popup "Group by Domain" button (v1 and v2)
+### 1.10 Production Validation ⚠️
+- [x] Test popup "Group by Domain" button (v1 and v2) - Working ✅
 - [ ] Test dashboard Groups view "Group by Domain" button (v1 and v2)
+- [ ] Test dashboard bulk "Group" action with custom name (v1 and v2)
 - [ ] Test keyboard shortcut (Ctrl+Shift+G) (v1 and v2)
 - [ ] Test rules engine group action (v1 and v2)
 - [ ] Test session manager bulk grouping (v1 and v2)
 - [ ] Test bookmark action (Dashboard + Session Manager)
-- [ ] Test move to window action (Dashboard + Session Manager)
+- [x] Test move to window action (Dashboard) - Working with group preservation ✅
 - [ ] Test with 200+ tabs across multiple windows
 - [ ] Performance comparison: v1 vs v2 execution time
 - [ ] Memory usage comparison
 - [ ] Verify no breaking changes in user workflows
+- [x] Test Groups view shows all windows - Working ✅
+- [x] Test Ungroup All works across all windows - Working ✅
 
 ---
 
