@@ -3,6 +3,7 @@
 
 import { sortAndResolveCommands } from './Command.js';
 import { groupTabs } from '../../services/execution/groupTabs.js';
+import * as SnoozeService from '../../services/SnoozeService.js';
 
 /**
  * ActionManager handles command execution and dispatching
@@ -262,35 +263,20 @@ export class ActionManager {
 
     // Snooze handler
     this.registerHandler('snooze', async (command, context) => {
-      if (!context.chrome?.tabs || !context.chrome?.storage) {
-        throw new Error('Chrome tabs/storage API not available');
+      if (!SnoozeService) {
+        throw new Error('SnoozeService is not available.');
       }
 
       const duration = parseDuration(command.params.duration || '1h');
-      const wakeTime = command.params.until || (Date.now() + duration);
+      const snoozeUntil = command.params.until || (Date.now() + duration);
+      const reason = command.params.reason || 'command_rule';
 
-      // Get tab details
-      const tabs = await context.chrome.tabs.query({});
-      const targetTabs = tabs.filter(t => command.targetIds.includes(t.id));
-
-      // Save snoozed tabs
-      const { snoozedTabs = [] } = await context.chrome.storage.local.get('snoozedTabs');
-      for (const tab of targetTabs) {
-        snoozedTabs.push({
-          url: tab.url,
-          title: tab.title,
-          favIconUrl: tab.favIconUrl,
-          wakeTime,
-          wakeInto: command.params.wakeInto || 'same_window'
-        });
-      }
-
-      await context.chrome.storage.local.set({ snoozedTabs });
-      await context.chrome.tabs.remove(command.targetIds);
+      // The SnoozeService will handle finding tab details and removing the original tabs.
+      await SnoozeService.snoozeTabs(command.targetIds, snoozeUntil, reason);
 
       return {
         snoozed: command.targetIds,
-        until: new Date(wakeTime).toISOString()
+        until: new Date(snoozeUntil).toISOString()
       };
     });
 

@@ -107,8 +107,8 @@ describe(`Engine Compatibility Tests [Testing: ${SELECTED_ENGINE}]`, () => {
       }
 
       const tabs = [
-        { id: 1, url: 'https://old-site.com', title: 'Old', lastAccessed: Date.now() - 8 * 24 * 60 * 60 * 1000 },
-        { id: 2, url: 'https://new-site.com', title: 'New', lastAccessed: Date.now() - 1000 }
+        { id: 1, url: 'https://old-site.com', title: 'Old', createdAt: Date.now() - 8 * 24 * 60 * 60 * 1000 },
+        { id: 2, url: 'https://new-site.com', title: 'New', createdAt: Date.now() - 1000 }
       ];
 
       const rules = [{

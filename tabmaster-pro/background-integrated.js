@@ -9,6 +9,7 @@ import * as engineV2Services from './lib/engine.v2.services.js';
 // import * as engineV2CommandCompact from './lib/engine.v2.command.compact.js';
 
 import { createChromeScheduler } from './lib/scheduler.js';
+import * as SnoozeService from './services/SnoozeService.js';
 import { getTabStatistics } from './services/selection/selectTabs.js';
 import { getCurrentWindowId } from './services/TabGrouping.js';
 
@@ -70,7 +71,6 @@ console.warn = function(...args) {
 
 const state = {
   rules: [],
-  snoozedTabs: [],
   tabGroups: new Map(),
   activityLog: [], // Track recent activities
   testEngine: 'v1', // Track which engine to use for tests
@@ -313,13 +313,13 @@ chrome.runtime.onInstalled.addListener(async () => {
   console.log('TabMaster Pro installed');
   await loadDomainCategories();
   await initializeExtension();
+  await SnoozeService.initialize(chrome);
   await setupContextMenus();
   await loadSettings();
   await loadRules();
   await loadActivityLog();
   await initializeTabTimeTracking();
   await initializeScheduler();
-  await restoreSnoozedTabs();
   await checkAndMigrateTabs();
 });
 
@@ -327,10 +327,10 @@ chrome.runtime.onStartup.addListener(async () => {
   await loadDomainCategories();
   await loadSettings();
   await loadRules();
+  await SnoozeService.initialize(chrome);
   await loadActivityLog();
   await initializeTabTimeTracking();
   await initializeScheduler();
-  await restoreSnoozedTabs();
   await startMonitoring();
 });
 
@@ -605,9 +605,9 @@ async function getStatistics() {
   // Use service for statistics calculation (services-first architecture)
   const stats = await getTabStatistics();
 
-  // Add snoozed tabs count from background state
-  // (snoozed tabs are managed by background, not in Chrome's tab list)
-  stats.snoozedTabs = state.snoozedTabs?.length || 0;
+  // Add snoozed tabs count from the SnoozeService
+  const snoozedTabs = await SnoozeService.getSnoozedTabs();
+  stats.snoozedTabs = snoozedTabs.length;
 
   // Add activity statistics from background state
   stats.statistics = state.statistics;
@@ -1051,9 +1051,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'snoozeTabs':
-          // Convert minutes to milliseconds
+          // Convert minutes to milliseconds for backward compatibility
           const duration = request.minutes ? request.minutes * 60 * 1000 : request.duration;
-          await snoozeTabs(request.tabIds, duration);
+          const snoozeUntil = Date.now() + duration;
+          await SnoozeService.snoozeTabs(request.tabIds, snoozeUntil, request.reason);
           sendResponse({ success: true });
           break;
           
@@ -1078,50 +1079,38 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'getSnoozedTabs':
-          sendResponse(state.snoozedTabs || []);
+          const snoozedTabs = await SnoozeService.getSnoozedTabs();
+          sendResponse(snoozedTabs);
           break;
           
         case 'wakeSnoozedTab':
-          const wakeResult = await wakeSnoozedTab(request.tabId);
-          sendResponse(wakeResult);
+          await SnoozeService.wakeTabs([request.tabId]);
+          sendResponse({ success: true });
           break;
           
         case 'wakeAllSnoozed':
-          const wakeAllResult = await wakeAllSnoozedTabs();
-          sendResponse(wakeAllResult);
+          const allSnoozed = await SnoozeService.getSnoozedTabs();
+          const allIds = allSnoozed.map(t => t.id);
+          await SnoozeService.wakeTabs(allIds);
+          sendResponse({ success: true, count: allIds.length });
           break;
 
         case 'deleteSnoozedTab':
-          // Delete a snoozed tab record from storage
-          const tabIdToDelete = request.tabId;
-          const beforeDeleteCount = state.snoozedTabs.length;
-
-          // Remove the record matching by ID or URL
-          state.snoozedTabs = state.snoozedTabs.filter(tab => {
-            // Compare IDs as strings since HTML data attributes are strings
-            return String(tab.id) !== String(tabIdToDelete) && tab.url !== tabIdToDelete;
-          });
-
-          if (state.snoozedTabs.length < beforeDeleteCount) {
-            await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
-            sendResponse({ success: true });
-          } else {
-            sendResponse({ success: false, error: 'Tab not found' });
-          }
+          await SnoozeService.deleteSnoozedTab(request.tabId);
+          sendResponse({ success: true });
           break;
 
         case 'clearTestSnoozedTabs':
-          // Clear snoozed tabs matching test patterns without recreating them
           const testPatterns = request.patterns || [];
-          const beforeCount = state.snoozedTabs.length;
-          state.snoozedTabs = state.snoozedTabs.filter(tab => {
-            return !testPatterns.some(pattern => tab.url?.includes(pattern));
-          });
-          const removedCount = beforeCount - state.snoozedTabs.length;
-          if (removedCount > 0) {
-            await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
-            console.log(`Cleared ${removedCount} test snoozed tabs`);
+          const allTestSnoozed = await SnoozeService.getSnoozedTabs();
+          const tabsToClear = allTestSnoozed.filter(tab =>
+            testPatterns.some(pattern => tab.url?.includes(pattern))
+          );
+          const removedCount = tabsToClear.length;
+          for (const tab of tabsToClear) {
+            await SnoozeService.deleteSnoozedTab(tab.id);
           }
+          console.log(`Cleared ${removedCount} test snoozed tabs`);
           sendResponse({ success: true, removedCount });
           break;
 
@@ -1354,128 +1343,12 @@ async function groupByDomain() {
 async function quickSnoozeCurrent(minutes = 120) {
   const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (activeTab) {
-    await snoozeTabs([activeTab.id], minutes * 60 * 1000);
+    const snoozeUntil = Date.now() + (minutes * 60 * 1000);
+    await SnoozeService.snoozeTabs([activeTab.id], snoozeUntil, 'quick_action');
+    logActivity('snooze', `Snoozed current tab for ${minutes} minutes`, 'manual');
     return { success: true, tabId: activeTab.id };
   }
   return { success: false, error: 'No active tab' };
-}
-
-// Helper function to restore a tab to its original group if it exists
-async function restoreTabToGroup(newTabId, originalGroupId) {
-  if (!originalGroupId || originalGroupId <= 0) {
-    return false;
-  }
-
-  try {
-    // Check if the group still exists by querying all groups
-    const groups = await chrome.tabGroups.query({});
-    const groupExists = groups.some(g => g.id === originalGroupId);
-
-    if (groupExists) {
-      // Group still exists, add tab to it
-      await chrome.tabs.group({
-        tabIds: [newTabId],
-        groupId: originalGroupId
-      });
-      return true;
-    } else {
-      console.log(`Group ${originalGroupId} no longer exists for restored tab`);
-      return false;
-    }
-  } catch (error) {
-    // Error adding to group, tab stays ungrouped
-    console.error(`Error restoring tab to group ${originalGroupId}:`, error);
-    return false;
-  }
-}
-
-// Wake a snoozed tab (restore it and remove from snooze list)
-async function wakeSnoozedTab(tabId) {
-  // Match by ID (compare as strings) or by URL as fallback
-  const tabIndex = state.snoozedTabs.findIndex(t =>
-    String(t.id) === String(tabId) || t.url === tabId
-  );
-
-  if (tabIndex === -1) {
-    return { success: false, error: 'Tab not found' };
-  }
-
-  const snoozedTab = state.snoozedTabs[tabIndex];
-
-  // Create the tab
-  const newTab = await chrome.tabs.create({
-    url: snoozedTab.url,
-    active: false
-  });
-
-  // Restore group association if the group still exists
-  await restoreTabToGroup(newTab.id, snoozedTab.groupId);
-
-  // Remove from snoozed list
-  state.snoozedTabs.splice(tabIndex, 1);
-  await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
-
-  logActivity('snooze', `Woke snoozed tab: ${snoozedTab.title}`, 'manual');
-
-  return { success: true };
-}
-
-// Wake all snoozed tabs
-async function wakeAllSnoozedTabs() {
-  const count = state.snoozedTabs.length;
-  if (count === 0) {
-    return { success: true, count: 0 };
-  }
-  
-  // If there are multiple tabs, create them in a new window
-  let targetWindowId;
-  if (count > 1) {
-    // Create window with the first tab's URL to avoid default new tab
-    const firstTab = state.snoozedTabs[0];
-    const newWindow = await chrome.windows.create({
-      url: firstTab.url,
-      focused: true
-    });
-    targetWindowId = newWindow.id;
-    
-    // Get the tab that was created with the window
-    const windowTabs = await chrome.tabs.query({ windowId: targetWindowId });
-    if (windowTabs.length > 0) {
-      // Restore group if needed for the first tab
-      await restoreTabToGroup(windowTabs[0].id, firstTab.groupId);
-    }
-    
-    // Create the remaining tabs
-    for (let i = 1; i < state.snoozedTabs.length; i++) {
-      const snoozedTab = state.snoozedTabs[i];
-      const newTab = await chrome.tabs.create({
-        url: snoozedTab.url,
-        windowId: targetWindowId,
-        active: false
-      });
-      
-      // Restore group association if the group still exists
-      await restoreTabToGroup(newTab.id, snoozedTab.groupId);
-    }
-  } else {
-    // Single tab - create in current window
-    const snoozedTab = state.snoozedTabs[0];
-    const newTab = await chrome.tabs.create({
-      url: snoozedTab.url,
-      active: false
-    });
-    
-    // Restore group association if the group still exists
-    await restoreTabToGroup(newTab.id, snoozedTab.groupId);
-  }
-
-  // Clear snoozed list
-  state.snoozedTabs = [];
-  await chrome.storage.local.set({ snoozedTabs: [] });
-
-  logActivity('snooze', `Restored all ${count} snoozed tabs`, 'manual');
-
-  return { success: true, count };
 }
 
 async function groupTabs(tabIds, groupName) {
@@ -1489,41 +1362,6 @@ async function groupTabs(tabIds, groupName) {
   state.statistics.tabsGrouped += tabIds.length;
   await chrome.storage.local.set({ statistics: state.statistics });
   logActivity('group', `Grouped ${tabIds.length} tabs`, 'manual');
-}
-
-async function snoozeTabs(tabIds, duration) {
-  // Get tab details for each ID
-  const tabs = [];
-  for (const tabId of tabIds) {
-    try {
-      const tab = await chrome.tabs.get(tabId);
-      tabs.push(tab);
-    } catch (e) {
-      console.error(`Failed to get tab ${tabId}:`, e);
-    }
-  }
-
-  const wakeTime = Date.now() + duration;
-  
-  for (const tab of tabs) {
-    state.snoozedTabs.push({
-      id: tab.id,
-      url: tab.url,
-      title: tab.title,
-      favIconUrl: tab.favIconUrl,
-      windowId: tab.windowId,
-      index: tab.index,
-      groupId: tab.groupId || -1,  // Preserve group association
-      wakeTime
-    });
-  }
-  
-  await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
-  await chrome.tabs.remove(tabIds);
-  
-  state.statistics.tabsSnoozed += tabIds.length;
-  await chrome.storage.local.set({ statistics: state.statistics });
-  logActivity('snooze', `Snoozed ${tabIds.length} tabs`, 'manual');
 }
 
 async function bookmarkTabs(tabIds, folderName = 'TabMaster Bookmarks') {
@@ -1779,17 +1617,16 @@ async function createRuleForTab(tab, mode = 'domain') {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   switch (info.menuItemId) {
     case 'snooze-1h':
-      await snoozeTabs([tab.id], 60 * 60 * 1000);
+      await SnoozeService.snoozeTabs([tab.id], Date.now() + 60 * 60 * 1000, 'context_menu_1h');
       break;
     case 'snooze-3h':
-      await snoozeTabs([tab.id], 3 * 60 * 60 * 1000);
+      await SnoozeService.snoozeTabs([tab.id], Date.now() + 3 * 60 * 60 * 1000, 'context_menu_3h');
       break;
     case 'snooze-tomorrow':
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(9, 0, 0, 0);
-      const duration = tomorrow.getTime() - Date.now();
-      await snoozeTabs([tab.id], duration);
+      await SnoozeService.snoozeTabs([tab.id], tomorrow.getTime(), 'context_menu_tomorrow');
       break;
     case 'create-rule-for-domain':
       await createRuleForTab(tab, 'domain');
@@ -1801,109 +1638,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 // ============================================================================
-// Snoozed Tabs
-// ============================================================================
-
-async function restoreSnoozedTabs() {
-  const { snoozedTabs } = await chrome.storage.local.get('snoozedTabs');
-  if (snoozedTabs) {
-    state.snoozedTabs = snoozedTabs;
-  }
-  
-  // Set up periodic check
-  chrome.alarms.create('checkSnoozedTabs', {
-    delayInMinutes: 1,
-    periodInMinutes: 1
-  });
-}
-
-async function checkSnoozedTabs() {
-  const now = Date.now();
-  const toRestore = state.snoozedTabs.filter(tab => tab.wakeTime <= now);
-  
-  if (toRestore.length === 0) return;
-  
-  // Group by window
-  const byWindow = {};
-  for (const tab of toRestore) {
-    const windowId = tab.windowId || 'new';
-    if (!byWindow[windowId]) {
-      byWindow[windowId] = [];
-    }
-    byWindow[windowId].push(tab);
-  }
-  
-  // Restore tabs
-  for (const [windowId, tabs] of Object.entries(byWindow)) {
-    let targetWindowId;
-    
-    if (windowId === 'new') {
-      // Create window with the first tab's URL to avoid default new tab
-      const firstTab = tabs[0];
-      const newWindow = await chrome.windows.create({
-        url: firstTab.url,
-        focused: true
-      });
-      targetWindowId = newWindow.id;
-      
-      // Get the tab that was created with the window
-      const windowTabs = await chrome.tabs.query({ windowId: targetWindowId });
-      if (windowTabs.length > 0) {
-        // Restore group if needed for the first tab
-        await restoreTabToGroup(windowTabs[0].id, firstTab.groupId);
-      }
-      
-      // Create the remaining tabs
-      for (let i = 1; i < tabs.length; i++) {
-        const tab = tabs[i];
-        await chrome.tabs.create({
-          url: tab.url,
-          windowId: targetWindowId,
-          active: false
-        });
-      }
-      
-      // Remove the original tab from state.snoozedTabs
-      state.snoozedTabs = state.snoozedTabs.filter(t => t.id !== firstTab.id);
-      
-      // Skip the rest of the loop since we handled all tabs
-      continue;
-    } else {
-      // Check if original window still exists
-      try {
-        await chrome.windows.get(parseInt(windowId));
-        targetWindowId = parseInt(windowId);
-      } catch (e) {
-        const currentWindow = await chrome.windows.getCurrent();
-        targetWindowId = currentWindow.id;
-      }
-    }
-    
-    // Create tabs
-    for (const tab of tabs) {
-      await chrome.tabs.create({
-        url: tab.url,
-        windowId: targetWindowId,
-        active: false
-      });
-    }
-  }
-  
-  // Remove restored tabs from snoozed list
-  state.snoozedTabs = state.snoozedTabs.filter(tab => tab.wakeTime > now);
-  await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
-  
-  // Log activity
-  logActivity('snooze', `Restored ${toRestore.length} snoozed tabs`, 'auto');
-}
-
-// ============================================================================
 // Alarm Handlers
 // ============================================================================
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === 'checkSnoozedTabs') {
-    await checkSnoozedTabs();
+  if (alarm.name.startsWith('snooze_')) {
+    await SnoozeService.handleAlarm(alarm);
   } else if (alarm.name.startsWith('rule-repeat:')) {
     const ruleId = alarm.name.substring('rule-repeat:'.length);
     await onSchedulerTrigger({ ruleId, type: 'repeat' });
@@ -2141,10 +1881,11 @@ async function buildJSONExport(tabs, windows, groups, options) {
   }
 
   if (options.includeSnoozed !== false) {
-    exportData.extensionData.snoozedTabs = state.snoozedTabs.map(tab => ({
+    const snoozedTabs = await SnoozeService.getSnoozedTabs();
+    exportData.extensionData.snoozedTabs = snoozedTabs.map(tab => ({
       ...tab,
-      wakeTimeReadable: tab.wakeTime ? getTimeUntil(tab.wakeTime, currentTime) : 'Unknown',
-      snoozedReadable: tab.snoozedAt ? getTimeAgo(tab.snoozedAt, currentTime) : 'Unknown'
+      wakeTimeReadable: tab.snoozeUntil ? getTimeUntil(tab.snoozeUntil, currentTime) : 'Unknown',
+      snoozedReadable: tab.createdAt ? getTimeAgo(tab.createdAt, currentTime) : 'Unknown'
     }));
   }
 
@@ -2210,8 +1951,9 @@ function buildMarkdownExport(tabs, windows, groups, options) {
   markdown += '## Summary\n';
   markdown += `- **Total Tabs**: ${tabs.length} across ${windowsArray.length} window${windowsArray.length > 1 ? 's' : ''}\n`;
   markdown += `- **Tab Groups**: ${groups.length} groups\n`;
-  if (options.includeSnoozed !== false && state.snoozedTabs.length > 0) {
-    markdown += `- **Snoozed Tabs**: ${state.snoozedTabs.length} tabs\n`;
+  const snoozedTabs = await SnoozeService.getSnoozedTabs();
+  if (options.includeSnoozed !== false && snoozedTabs.length > 0) {
+    markdown += `- **Snoozed Tabs**: ${snoozedTabs.length} tabs\n`;
   }
   if (options.includeRules !== false && state.rules.length > 0) {
     markdown += `- **Active Rules**: ${state.rules.filter(r => r.enabled).length} rules\n`;
@@ -2262,14 +2004,14 @@ function buildMarkdownExport(tabs, windows, groups, options) {
   });
 
   // Snoozed tabs section
-  if (options.includeSnoozed !== false && state.snoozedTabs.length > 0) {
+  if (options.includeSnoozed !== false && snoozedTabs.length > 0) {
     markdown += '## Snoozed Tabs\n';
     markdown += '| Title | URL | Wake Time | Reason |\n';
     markdown += '|-------|-----|-----------|--------|\n';
 
-    state.snoozedTabs.forEach(tab => {
-      const wakeTime = tab.wakeTime ? new Date(tab.wakeTime).toLocaleString() : 'Unknown';
-      markdown += `| ${tab.title} | ${tab.url} | ${wakeTime} | ${tab.reason || 'No reason'} |\n`;
+    snoozedTabs.forEach(tab => {
+      const wakeTime = tab.snoozeUntil ? new Date(tab.snoozeUntil).toLocaleString() : 'Unknown';
+      markdown += `| ${tab.title} | ${tab.url} | ${wakeTime} | ${tab.snoozeReason || 'manual'} |\n`;
     });
     markdown += '\n';
   }
@@ -2774,36 +2516,34 @@ async function importRules(rules) {
 
 async function importSnoozedTabs(snoozedTabs) {
   const result = { imported: 0, errors: [] };
+  const allSnoozed = await SnoozeService.getSnoozedTabs();
 
   try {
     for (const tabData of snoozedTabs) {
       try {
-        // Skip if URL is restricted
-        if (tabData.url && (
-          tabData.url.startsWith('chrome://') ||
-          tabData.url.startsWith('edge://') ||
-          tabData.url.startsWith('about:')
-        )) {
+        if (tabData.url && (tabData.url.startsWith('chrome://') || tabData.url.startsWith('edge://') || tabData.url.startsWith('about:'))) {
           result.errors.push(`Skipped restricted snoozed URL: ${tabData.url}`);
           continue;
         }
 
-        // Add to snoozed tabs
-        const snoozedTab = {
-          ...tabData,
-          id: `snoozed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          snoozedAt: Date.now()
+        // This is a workaround as the service expects a live tabId.
+        // A better approach would be a dedicated import method in the service.
+        const newSnoozedTab = {
+            ...tabData,
+            id: `snoozed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            createdAt: tabData.createdAt || Date.now()
         };
-
-        state.snoozedTabs.push(snoozedTab);
+        allSnoozed.push(newSnoozedTab);
         result.imported++;
+
       } catch (e) {
         result.errors.push(`Failed to import snoozed tab: ${e.message}`);
       }
     }
-
-    // Save snoozed tabs
-    await chrome.storage.local.set({ snoozedTabs: state.snoozedTabs });
+    // Batch save at the end
+    await chrome.storage.local.set({ snoozedTabs: allSnoozed });
+    // Re-initialize the service to update its internal state and alarms
+    await SnoozeService.initialize(chrome);
 
   } catch (error) {
     console.error('Failed to import snoozed tabs:', error);

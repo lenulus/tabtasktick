@@ -7,6 +7,7 @@
 // Delegates selection to SelectionService, only handles orchestration
 
 import { selectTabsMatchingRule } from '../services/selection/selectTabs.js';
+import * as SnoozeService from '../services/SnoozeService.js';
 import { validateActionList, sortActionsByPriority } from './action-validator.js';
 import { groupTabs } from '../services/execution/groupTabs.js';
 
@@ -44,6 +45,9 @@ export async function runRules(rules, context, options = {}) {
           console.warn(`Rule ${rule.name} has no actions defined`);
           continue;
         }
+
+        // Add rule name to context for logging
+        context.ruleName = rule.name;
 
         // 2. Execute actions on matched tabs
         const actions = await executeActions(
@@ -265,23 +269,13 @@ async function executeAction(action, tab, context, dryRun) {
       return { success: true, details: { suspended: tab.id } };
 
     case 'snooze':
-      // TODO: Move to SnoozeService
       const duration = parseDuration(action.for || '1h');
-      const wakeTime = Date.now() + duration;
+      const snoozeUntil = Date.now() + duration;
 
-      if (!dryRun && context.chrome?.storage) {
-        const { snoozedTabs = [] } = await context.chrome.storage.local.get('snoozedTabs');
-        snoozedTabs.push({
-          url: tab.url,
-          title: tab.title,
-          favIconUrl: tab.favIconUrl,
-          wakeTime,
-          wakeInto: action.wakeInto || 'same_window'
-        });
-        await context.chrome.storage.local.set({ snoozedTabs });
-        await context.chrome.tabs.remove(tab.id);
+      if (!dryRun && SnoozeService) {
+        await SnoozeService.snoozeTabs([tab.id], snoozeUntil, `rule: ${context.ruleName || 'v2_rule'}`);
       }
-      return { success: true, details: { snoozed: tab.id, until: new Date(wakeTime).toISOString() } };
+      return { success: true, details: { snoozed: tab.id, until: new Date(snoozeUntil).toISOString() } };
 
     case 'bookmark':
       // TODO: Move to BookmarkService

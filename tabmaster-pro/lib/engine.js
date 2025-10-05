@@ -2,6 +2,7 @@
 // Integrates normalize.js for deduplication and predicate.js for condition evaluation
 
 import { compile, checkIsDupe } from './predicate.js';
+import * as SnoozeService from '../services/SnoozeService.js';
 import { normalizeUrl, extractDomain, generateDupeKey, extractOrigin } from './normalize.js';
 import { validateActionList, sortActionsByPriority } from './action-validator.js';
 import { transformConditions } from './condition-transformer.js';
@@ -349,27 +350,15 @@ async function executeAction(action, tab, context, dryRun) {
       
     case 'snooze':
       const duration = parseDuration(action.for || '1h');
-      const wakeTime = Date.now() + duration;
+      const snoozeUntil = Date.now() + duration;
       
-      if (!dryRun && context.chrome?.storage) {
-        const snoozedData = await context.chrome.storage.local.get('snoozedTabs') || {};
-        const snoozedTabs = snoozedData.snoozedTabs || [];
-        
-        snoozedTabs.push({
-          url: tab.url,
-          title: tab.title,
-          favIconUrl: tab.favIconUrl,
-          wakeTime,
-          wakeInto: action.wakeInto || 'same_window'
-        });
-        
-        await context.chrome.storage.local.set({ snoozedTabs });
-        await context.chrome.tabs.remove(tab.id);
+      if (!dryRun && SnoozeService) {
+        await SnoozeService.snoozeTabs([tab.id], snoozeUntil, `rule: ${context.ruleName || 'untitled'}`);
       }
       
       return { 
         success: true, 
-        details: { snoozed: tab.id, until: new Date(wakeTime).toISOString() } 
+        details: { snoozed: tab.id, until: new Date(snoozeUntil).toISOString() }
       };
       
     case 'bookmark':

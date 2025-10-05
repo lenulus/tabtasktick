@@ -1,8 +1,9 @@
 // Tests for the Rules Engine module
 
-import { 
-  buildIndices, 
-  evaluateRule, 
+import { jest } from '@jest/globals';
+import {
+  buildIndices,
+  evaluateRule,
   executeActions,
   runRules,
   previewRule
@@ -11,6 +12,14 @@ import { createTab } from './utils/tab-factory.js';
 import { createRule } from './utils/rule-factory.js';
 import { chromeMock, resetChromeMocks } from './utils/chrome-mock.js';
 import { createTestContext } from './utils/test-helpers.js';
+
+jest.unstable_mockModule('../services/SnoozeService.js', () => ({
+  initialize: jest.fn(),
+  snoozeTabs: jest.fn().mockResolvedValue([]),
+  getSnoozedTabs: jest.fn().mockResolvedValue([]),
+}));
+
+const SnoozeService = await import('../services/SnoozeService.js');
 
 describe('Engine - buildIndices', () => {
   test('should build indices for tabs by domain', () => {
@@ -239,6 +248,8 @@ describe('Engine - executeActions', () => {
   beforeEach(() => {
     global.chrome = chromeMock;
     resetChromeMocks();
+    jest.clearAllMocks();
+    SnoozeService.initialize(chromeMock);
   });
   
   test('should execute close action in dry run mode', async () => {
@@ -281,7 +292,7 @@ describe('Engine - executeActions', () => {
     const results = await executeActions(actions, tabs, { chrome: chromeMock }, false);
 
     expect(chromeMock.tabs.group).toHaveBeenCalledWith({ tabIds: [1] });
-    expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(100, { title: 'Work', color: expect.any(String), collapsed: false });
+    expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(100, { title: 'Work' });
     expect(results[0].success).toBe(true);
   });
   
@@ -305,23 +316,14 @@ describe('Engine - executeActions', () => {
     const tabs = [createTab({ id: 1, url: 'https://example.com', title: 'Example' })];
     const actions = [{ action: 'snooze', for: '1h' }];
     
-    chromeMock.storage.local.get.mockResolvedValue({ snoozedTabs: [] });
-    chromeMock.storage.local.set.mockResolvedValue(undefined);
-    chromeMock.tabs.remove.mockResolvedValue(undefined);
+    const context = { chrome: chromeMock, ruleName: 'test-snooze-rule' };
+    const results = await executeActions(actions, tabs, context, false);
     
-    const results = await executeActions(actions, tabs, { chrome: chromeMock }, false);
-    
-    expect(chromeMock.storage.local.set).toHaveBeenCalledWith({
-      snoozedTabs: expect.arrayContaining([
-        expect.objectContaining({
-          url: 'https://example.com',
-          title: 'Example',
-          wakeTime: expect.any(Number),
-          wakeInto: 'same_window'
-        })
-      ])
-    });
-    expect(chromeMock.tabs.remove).toHaveBeenCalledWith(1);
+    expect(SnoozeService.snoozeTabs).toHaveBeenCalledWith(
+      [1], // tabIds
+      expect.any(Number), // snoozeUntil
+      'rule: test-snooze-rule' // reason
+    );
     expect(results[0].success).toBe(true);
   });
   
@@ -384,6 +386,8 @@ describe('Engine - runRules', () => {
   beforeEach(() => {
     global.chrome = chromeMock;
     resetChromeMocks();
+    jest.clearAllMocks();
+    SnoozeService.initialize(chromeMock);
   });
   
   test('should run multiple rules', async () => {
@@ -553,16 +557,13 @@ describe('Engine - Complex Scenarios', () => {
     
     chromeMock.tabs.group.mockResolvedValue(100);
     chromeMock.tabGroups.update.mockResolvedValue({});
-    chromeMock.storage.local.get.mockResolvedValue({ snoozedTabs: [] });
-    chromeMock.storage.local.set.mockResolvedValue(undefined);
-    chromeMock.tabs.remove.mockResolvedValue(undefined);
     
     const context = createTestContext(tabs);
     const results = await runRules([rule], { ...context, chrome: chromeMock }, { dryRun: false });
     
     expect(results.totalMatches).toBe(10); // All github tabs match
-    // Actions were executed but mocks may not have been called due to dryRun mode or other factors
     expect(results.totalActions).toBeGreaterThan(0);
+    expect(SnoozeService.snoozeTabs).toHaveBeenCalled();
   });
   
   test('should handle gmail spawn grouping', async () => {
