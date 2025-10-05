@@ -1185,8 +1185,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           
         case 'analyzeDuplicates':
           // Analyze duplicates for test assertions
-          const testTabs = request.tabs || await chrome.tabs.query({});
-          const testIndices = buildIndices(testTabs);
+          const testTabs = (Array.isArray(request.tabs) ? request.tabs : null) || await chrome.tabs.query({});
+          const { buildIndices: buildIndicesForTest } = getEngine();
+          const testIndices = buildIndicesForTest(testTabs);
           const dupeGroups = [];
           
           for (const [dupeKey, tabs] of Object.entries(testIndices.byDupeKey)) {
