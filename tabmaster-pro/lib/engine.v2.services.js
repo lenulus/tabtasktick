@@ -310,6 +310,38 @@ async function executeAction(action, tab, context, dryRun) {
       }
       return { success: true, details: { bookmarked: tab.id } };
 
+    case 'move':
+      if (!dryRun && context.chrome?.tabs && context.chrome?.windows) {
+        const windowId = action.windowId || action.to;
+
+        if (!windowId) {
+          return { success: false, error: 'Move action requires windowId parameter' };
+        }
+
+        // Handle "new" window creation
+        if (windowId === 'new') {
+          const newWindow = await context.chrome.windows.create({
+            tabId: tab.id,
+            focused: false
+          });
+          return {
+            success: true,
+            details: { moved: tab.id, windowId: newWindow.id, newWindow: true }
+          };
+        }
+
+        // Move to existing window
+        await context.chrome.tabs.move(tab.id, {
+          windowId: parseInt(windowId),
+          index: -1
+        });
+        return {
+          success: true,
+          details: { moved: tab.id, windowId: parseInt(windowId), newWindow: false }
+        };
+      }
+      return { success: true, details: { moved: tab.id } };
+
     default:
       return { success: false, error: `Unknown action: ${actionType}` };
   }
