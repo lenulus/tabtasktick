@@ -1164,7 +1164,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'groupByDomain':
-          const groupByDomainResult = await groupByDomain();
+          // Get sender's window ID to restore focus after grouping
+          const callerWindowId = sender?.tab?.windowId;
+          const groupByDomainResult = await groupByDomain(callerWindowId);
           sendResponse(groupByDomainResult);
           break;
           
@@ -1397,7 +1399,7 @@ async function findAndCloseDuplicates() {
 }
 
 // Group tabs by domain - uses engine for consistency
-async function groupByDomain() {
+async function groupByDomain(callerWindowId = null) {
   // Use engine via runRules to ensure proper tab enhancement and consistent behavior
   const engine = getEngine();
 
@@ -1409,7 +1411,8 @@ async function groupByDomain() {
     conditions: {}, // Empty conditions object matches all tabs
     actions: [{
       action: 'group',
-      by: 'domain'
+      by: 'domain',
+      callerWindowId: callerWindowId // Pass through to groupTabs service
     }]
   };
 

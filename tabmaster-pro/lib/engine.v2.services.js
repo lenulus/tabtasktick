@@ -183,7 +183,8 @@ export async function executeActions(actions, tabs, context, dryRun = false) {
         byDomain: action.by === 'domain' || action.group_by === 'domain',
         customName: action.name || null,
         perWindow: true,
-        dryRun
+        dryRun,
+        callerWindowId: action.callerWindowId || null
       };
 
       const tabIds = tabs.map(t => t.id);

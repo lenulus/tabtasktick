@@ -13,6 +13,7 @@
  * @param {boolean} [options.perWindow=true] - Respect window boundaries
  * @param {boolean} [options.collapsed=false] - Collapse groups after creation
  * @param {boolean} [options.dryRun=false] - Preview without executing
+ * @param {number} [options.callerWindowId] - Window ID to restore focus to after grouping
  * @returns {Promise<{success: boolean, results: Array, plan: Array, error?: string}>}
  */
 export async function groupTabs(tabIds, options = {}) {
@@ -21,7 +22,8 @@ export async function groupTabs(tabIds, options = {}) {
     customName = null,
     perWindow = true,
     collapsed = false,
-    dryRun = false
+    dryRun = false,
+    callerWindowId = null
   } = options;
 
   if (!tabIds || tabIds.length === 0) {
@@ -93,7 +95,7 @@ export async function groupTabs(tabIds, options = {}) {
     // Execute plan (unless dry-run)
     if (!dryRun) {
       for (const step of plan) {
-        const result = await executeGroupStep(step);
+        const result = await executeGroupStep(step, callerWindowId);
         results.push(result);
       }
     }
@@ -192,15 +194,17 @@ async function planGroupCreation(tabs, groupName, windowId, collapsed, allowWind
 /**
  * Execute a single grouping step
  * @private
+ * @param {Object} step - The grouping step to execute
+ * @param {number} callerWindowId - Window ID to restore focus to (overrides auto-detection)
  */
-async function executeGroupStep(step) {
+async function executeGroupStep(step, callerWindowId = null) {
   if (!step || step.tabIds.length === 0) {
     return { success: false, error: 'No tabs to group' };
   }
 
   try {
     let groupId;
-    let originalFocusedWindowId = null;
+    let originalFocusedWindowId = callerWindowId; // Use provided caller window if available
 
     // Verify all tabs are in the target window (they should be if perWindow=true)
     // Only move tabs if explicitly allowed (perWindow=false means cross-window grouping is ok)
@@ -225,9 +229,12 @@ async function executeGroupStep(step) {
       // Chrome moves tabs to the focused window when creating groups
       // To maintain window isolation (perWindow=true), focus the target window first
       if (!step.allowWindowMove && step.windowId) {
-        // Store original focused window
-        const currentWindow = await chrome.windows.getCurrent();
-        originalFocusedWindowId = currentWindow.id;
+        // Only detect focused window if caller didn't provide one
+        if (!originalFocusedWindowId) {
+          const windows = await chrome.windows.getAll();
+          const focusedWindow = windows.find(w => w.focused);
+          originalFocusedWindowId = focusedWindow?.id;
+        }
 
         await chrome.windows.update(step.windowId, { focused: true });
       }
@@ -247,10 +254,33 @@ async function executeGroupStep(step) {
     } else if (step.action === 'reuse') {
       // Add to existing group
       groupId = step.groupId;
+
+      // CRITICAL: Must focus the group's window to prevent tab stealing
+      // Chrome will steal the entire group if we add tabs from a different focused window
+      const group = await chrome.tabGroups.get(groupId);
+
+      // Use provided callerWindowId, or detect focused window
+      if (!originalFocusedWindowId) {
+        const windows = await chrome.windows.getAll();
+        const focusedWindow = windows.find(w => w.focused);
+        originalFocusedWindowId = focusedWindow?.id;
+      }
+
+      const needsFocusSwitch = originalFocusedWindowId && originalFocusedWindowId !== group.windowId;
+
+      if (needsFocusSwitch) {
+        await chrome.windows.update(group.windowId, { focused: true });
+      }
+
       await chrome.tabs.group({
         tabIds: step.tabIds,
         groupId: groupId
       });
+
+      // Restore original focus
+      if (needsFocusSwitch && originalFocusedWindowId) {
+        await chrome.windows.update(originalFocusedWindowId, { focused: true });
+      }
     }
 
     return {
