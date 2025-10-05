@@ -1124,6 +1124,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const groupParams = {};
           if (request.groupName) groupParams.name = request.groupName;
           if (request.color) groupParams.color = request.color;
+          if (request.callerWindowId) groupParams.callerWindowId = request.callerWindowId;
           const groupResult = await executeActionViaEngine('group', request.tabIds, groupParams);
           sendResponse({ success: true, result: groupResult });
           break;
@@ -1164,8 +1165,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
           
         case 'groupByDomain':
-          // Get sender's window ID to restore focus after grouping
-          const callerWindowId = sender?.tab?.windowId;
+          // Get caller's window ID from request (sent by dashboard)
+          console.log('[groupByDomain] request:', request);
+          const callerWindowId = request.callerWindowId || null;
+          console.log('[groupByDomain] callerWindowId from request:', callerWindowId);
           const groupByDomainResult = await groupByDomain(callerWindowId);
           sendResponse(groupByDomainResult);
           break;

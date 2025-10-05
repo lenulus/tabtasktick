@@ -399,7 +399,12 @@ async function executeQuickOrganize() {
   }
   
   if (groupDomains) {
-    await sendMessage({ action: 'groupByDomain' });
+    // Get current window ID to restore focus after grouping
+    const currentWindow = await chrome.windows.getCurrent();
+    await sendMessage({
+      action: 'groupByDomain',
+      callerWindowId: currentWindow.id
+    });
   }
   
   // Would implement other actions
@@ -490,12 +495,16 @@ async function groupTabs(tabIds) {
   // Prompt for group name
   const name = await promptGroupName();
 
+  // Get current window ID to restore focus after grouping
+  const currentWindow = await chrome.windows.getCurrent();
+
   // Route through background → engine for single source of truth
   await chrome.runtime.sendMessage({
     action: 'groupTabs',
     tabIds: tabIds,
     groupName: name || 'Untitled',
-    color: 'blue'
+    color: 'blue',
+    callerWindowId: currentWindow.id
   });
 
   showNotification(`Created group "${name || 'Untitled'}" with ${tabIds.length} tabs`, 'success');
