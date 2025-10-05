@@ -10,8 +10,8 @@ const collapsedGroups = new Set();
 
 export async function ungroupAllTabs() {
   try {
-    // Get all tabs in the current window
-    const tabs = await chrome.tabs.query({ currentWindow: true });
+    // Get ALL tabs across all windows (consistent with loadGroupsView)
+    const tabs = await chrome.tabs.query({});
 
     // Filter for only grouped tabs
     const groupedTabs = tabs.filter(tab => tab.groupId && tab.groupId !== -1);
