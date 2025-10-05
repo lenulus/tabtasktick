@@ -902,29 +902,31 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
     tab.last_access = tab.lastAccessed || timeData?.lastAccessed || null;
   });
 
-  // Filter to only the tabs we want to act on
-  const tabs = allTabs.filter(t => tabIds.includes(t.id));
-
   // Get the current engine
   const { runRules, buildIndices } = getEngine();
 
-  // Build indices to enhance tabs
-  const idx = buildIndices(tabs);
-
-  // Build context for engine
+  // Build context - pass ALL tabs but filter in the rule
   const context = {
-    tabs,
+    tabs: allTabs,
     windows,
-    chrome,
-    idx
+    chrome
   };
 
-  // Create a temporary rule for this action
+  // Only add idx for v1 engine (buildIndices exists and is a function)
+  if (buildIndices && typeof buildIndices === 'function') {
+    const filteredTabs = allTabs.filter(t => tabIds.includes(t.id));
+    context.idx = buildIndices(filteredTabs);
+  }
+
+  // Create a temporary rule that matches only our target tabs
   const tempRule = {
     id: `temp-${action}-${Date.now()}`,
     name: `Manual ${action} action`,
     enabled: true,
-    conditions: {}, // Match all provided tabs
+    conditions: {
+      // Match only tabs with IDs in our list
+      any: tabIds.map(id => ({ eq: ['tab.id', id] }))
+    },
     then: [{ action, ...params }]
   };
 
