@@ -563,6 +563,6 @@ export async function previewRule(rule, context, options = {}) {
       url: t.url,
       title: t.title
     })),
-    matchCount: matches.length
+    totalMatches: matches.length // Match v1 format for compatibility
   };
 }

@@ -578,7 +578,7 @@ async function previewRule(ruleId) {
     };
 
     // Use engine's preview function
-    const preview = previewRuleEngine(rule, context, {
+    const preview = await previewRuleEngine(rule, context, {
       skipPinned: rule.flags?.skipPinned !== false
     });
     

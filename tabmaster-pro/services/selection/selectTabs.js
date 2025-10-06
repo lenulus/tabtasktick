@@ -605,95 +605,24 @@ function evaluateSingleCondition(tab, condition, context) {
     isAudible: tab.audible || false,
     isActive: tab.active,
     isDupe: context.duplicates.has(tab.id),
-    domainCount: context.domainCounts.get(tab.domain) || 1
+    domainCount: context.domainCounts.get(tab.domain) || 1,
+    duplicate: context.duplicates.has(tab.id) // Alias for isDupe
   };
 
-  // Handle different condition formats
+  // V2 ENGINE: ONLY handle UI format { subject, operator, value }
+  const { subject, operator, value } = condition;
 
-  // Format 1: { eq: ['tab.domain', 'github.com'] }
-  // Format 2: { gt: ['tab.age', 1000] }
-  // Format 3: { is: ['tab.isDupe', true] }
-  if (condition.eq) {
-    const [path, expected] = condition.eq;
-    const actual = getValueFromPath(mappedTab, path, context);
-    return actual === expected;
-  }
-
-  if (condition.gt) {
-    const [path, threshold] = condition.gt;
-    const actual = getValueFromPath(mappedTab, path, context);
-    const normalizedThreshold = normalizeDurationValue(threshold);
-    return actual > normalizedThreshold;
-  }
-
-  if (condition.lt) {
-    const [path, threshold] = condition.lt;
-    const actual = getValueFromPath(mappedTab, path, context);
-    const normalizedThreshold = normalizeDurationValue(threshold);
-    return actual < normalizedThreshold;
-  }
-
-  if (condition.gte) {
-    const [path, threshold] = condition.gte;
-    const actual = getValueFromPath(mappedTab, path, context);
-    const normalizedThreshold = normalizeDurationValue(threshold);
-    return actual >= normalizedThreshold;
-  }
-
-  if (condition.lte) {
-    const [path, threshold] = condition.lte;
-    const actual = getValueFromPath(mappedTab, path, context);
-    const normalizedThreshold = normalizeDurationValue(threshold);
-    return actual <= normalizedThreshold;
-  }
-
-  if (condition.is) {
-    const [path, expected] = condition.is;
-    const actual = getValueFromPath(mappedTab, path, context);
-    return actual === expected;
-  }
-
-  if (condition.not) {
-    const [path, expected] = condition.not;
-    const actual = getValueFromPath(mappedTab, path, context);
-    return actual !== expected;
-  }
-
-  if (condition.in) {
-    const [path, values] = condition.in;
-    const actual = getValueFromPath(mappedTab, path, context);
-    return values.includes(actual);
-  }
-
-  if (condition.contains) {
-    const [path, substring] = condition.contains;
-    const actual = getValueFromPath(mappedTab, path, context);
-    return String(actual).includes(substring);
-  }
-
-  if (condition.matches || condition.regex) {
-    const [path, pattern] = condition.matches || condition.regex;
-    const actual = getValueFromPath(mappedTab, path, context);
-    // Remove leading/trailing slashes if present (e.g., "/pattern/" -> "pattern")
-    const cleanPattern = pattern.replace(/^\/|\/$/g, '');
-    return new RegExp(cleanPattern).test(String(actual));
-  }
-
-  // Legacy format: { property, operator, value }
-  const { property, operator, value } = condition;
-
-  if (!property || !operator) {
-    // No recognized condition format - should not match
-    console.warn('Unrecognized condition format:', condition);
+  if (!subject || !operator) {
+    console.warn('Invalid condition - missing subject or operator:', condition);
     return false;
   }
 
   // Get the actual value from the tab
-  let actualValue = mappedTab[property];
+  let actualValue = mappedTab[subject];
 
   // Handle nested properties (e.g., "tab.url")
-  if (property.includes('.')) {
-    const parts = property.split('.');
+  if (subject.includes('.')) {
+    const parts = subject.split('.');
     actualValue = mappedTab;
     for (const part of parts) {
       actualValue = actualValue?.[part];
@@ -713,26 +642,32 @@ function evaluateOperator(actual, operator, expected) {
   switch (operator) {
     case '=':
     case '==':
+    case 'eq':
     case 'equals':
       return actual == expected;
 
     case '!=':
+    case 'neq':
     case 'not_equals':
       return actual != expected;
 
     case '>':
+    case 'gt':
     case 'greater_than':
       return actual > expected;
 
     case '>=':
+    case 'gte':
     case 'greater_than_or_equal':
       return actual >= expected;
 
     case '<':
+    case 'lt':
     case 'less_than':
       return actual < expected;
 
     case '<=':
+    case 'lte':
     case 'less_than_or_equal':
       return actual <= expected;
 
