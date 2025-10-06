@@ -62,7 +62,7 @@ function getSampleRules() {
       enabled: false,
       when: {
         all: [
-          { subject: 'domainCount', operator: 'greater_than_or_equal', value: 3 }
+          { subject: 'domainCount', operator: 'gte', value: 3 }
         ]
       },
       then: [
@@ -882,12 +882,12 @@ function convertOldConditionsToNew(oldConditions) {
   
   switch (oldConditions.type) {
     case 'duplicate':
-      conditions.push({ subject: 'duplicate', operator: 'equals', value: true });
+      conditions.push({ subject: 'duplicate', operator: 'eq', value: true });
       break;
-      
+
     case 'domain_count':
       if (oldConditions.minCount) {
-        conditions.push({ subject: 'tab_count', operator: 'greater_than_or_equal', value: oldConditions.minCount });
+        conditions.push({ subject: 'tab_count', operator: 'gte', value: oldConditions.minCount });
       }
       break;
       
