@@ -46,7 +46,7 @@ function getSampleRules() {
       enabled: false,
       when: {
         all: [
-          { subject: 'duplicate', operator: 'equals', value: true }
+          { subject: 'duplicate', operator: 'is', value: true }
         ]
       },
       then: [
@@ -86,7 +86,7 @@ function getSampleRules() {
               { subject: 'domain', operator: 'contains', value: 'reddit.com' }
             ]
           },
-          { subject: 'age', operator: 'greater_than', value: 30 * 60 * 1000 }  // 30 minutes in ms
+          { subject: 'age', operator: 'gt', value: 30 * 60 * 1000 }  // 30 minutes in ms
         ]
       },
       then: [
@@ -103,7 +103,7 @@ function getSampleRules() {
       when: {
         all: [
           { subject: 'url', operator: 'regex', value: '^chrome://(extensions|downloads|settings|flags|history|bookmarks|newtab)' },
-          { subject: 'age', operator: 'greater_than', value: 30 * 60 * 1000 }  // 30 minutes in ms
+          { subject: 'age', operator: 'gt', value: 30 * 60 * 1000 }  // 30 minutes in ms
         ]
       },
       then: [
@@ -120,7 +120,7 @@ function getSampleRules() {
       when: {
         all: [
           { subject: 'category', operator: 'in', value: ['social'] },
-          { subject: 'age', operator: 'greater_than', value: 60 * 60 * 1000 }  // 60 minutes in ms
+          { subject: 'age', operator: 'gt', value: 60 * 60 * 1000 }  // 60 minutes in ms
         ]
       },
       then: [
@@ -152,7 +152,7 @@ function getSampleRules() {
       enabled: false,
       when: {
         all: [
-          { subject: 'age', operator: 'greater_than', value: 7 * 24 * 60 * 60 * 1000 }  // 7 days in ms
+          { subject: 'age', operator: 'gt', value: 7 * 24 * 60 * 60 * 1000 }  // 7 days in ms
         ]
       },
       then: [
@@ -177,8 +177,8 @@ function getSampleRules() {
               { subject: 'domain', operator: 'contains', value: 'spotify.com' }
             ]
           },
-          { subject: 'active', operator: 'equals', value: false },
-          { subject: 'age', operator: 'greater_than', value: 30 * 60 * 1000 }  // 30 minutes in ms
+          { subject: 'active', operator: 'is', value: false },
+          { subject: 'age', operator: 'gt', value: 30 * 60 * 1000 }  // 30 minutes in ms
         ]
       },
       then: [
@@ -901,8 +901,8 @@ function convertOldConditionsToNew(oldConditions) {
       }
       if (oldConditions.timeCriteria?.inactive) {
         conditions.push({
-          subject: 'last_access', 
-          operator: 'greater_than', 
+          subject: 'last_access',
+          operator: 'gt',
           value: `${oldConditions.timeCriteria.inactive}m`
         });
       }
@@ -918,7 +918,7 @@ function convertOldConditionsToNew(oldConditions) {
       if (oldConditions.domains) {
         conditions.push({
           any: oldConditions.domains.map(domain => ({
-            subject: 'domain', operator: 'equals', value: domain
+            subject: 'domain', operator: 'eq', value: domain
           }))
         });
       }
@@ -936,14 +936,14 @@ function convertOldConditionsToNew(oldConditions) {
     if (oldConditions.timeCriteria.age) {
       conditions.push({
         subject: 'age',
-        operator: 'greater_than',
+        operator: 'gt',
         value: `${oldConditions.timeCriteria.age}m`
       });
     }
     if (oldConditions.timeCriteria.notAccessed) {
       conditions.push({
         subject: 'last_access',
-        operator: 'greater_than',
+        operator: 'gt',
         value: `${oldConditions.timeCriteria.notAccessed}m`
       });
     }
