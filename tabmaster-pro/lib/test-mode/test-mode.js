@@ -478,8 +478,14 @@ export class TestMode {
           
           { action: 'executeRule', ruleId: 'Complex Rule' },
           { action: 'wait', ms: 1000 },
-          // Should bookmark: youtube/789 (not pinned, not muted), docs/doc1 (not muted), and github PR (> 1d old)
-          { action: 'assert', type: 'bookmarkCreated', count: 3, folder: 'Test Bookmarks' }
+          // Should bookmark 5 tabs:
+          // - youtube/456 (not pinned, not audible, muted tabs are not audible)
+          // - youtube/789 (not pinned, not audible)
+          // - docs/doc1 (regex match, not audible)
+          // - docs/doc2 (regex match, not audible, muted tabs are not audible)
+          // - github PR (regex match, age > 1d)
+          // youtube/123 is excluded (pinned=true)
+          { action: 'assert', type: 'bookmarkCreated', count: 5, folder: 'Test Bookmarks' }
           // Note: Can't verify exact URLs due to redirects (youtube adds www, docs.google redirects)
         ]
       },

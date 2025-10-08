@@ -682,7 +682,8 @@ function evaluateSingleCondition(tab, condition, context) {
     isActive: tab.active,
     isDupe: context.duplicates.has(tab.id),
     domainCount: context.domainCounts.get(tab.domain) || 1,
-    duplicate: context.duplicates.has(tab.id) // Alias for isDupe
+    duplicate: context.duplicates.has(tab.id), // Alias for isDupe
+    grouped: tab.groupId && tab.groupId !== -1 // Add grouped mapping
   };
 
   // V2 ENGINE: ONLY handle UI format { subject, operator, value }
@@ -706,8 +707,14 @@ function evaluateSingleCondition(tab, condition, context) {
     }
   }
 
+  // Normalize expected value for certain subjects (e.g., age comparisons)
+  let expectedValue = value;
+  if (subject === 'age' && typeof value === 'string') {
+    expectedValue = normalizeDurationValue(value);
+  }
+
   // Evaluate the operator
-  return evaluateOperator(actualValue, operator, value);
+  return evaluateOperator(actualValue, operator, expectedValue, subject);
 }
 
 /**
@@ -760,7 +767,13 @@ function evaluateOperator(actual, operator, expected) {
       return String(actual).toLowerCase().endsWith(String(expected).toLowerCase());
 
     case 'matches':
-      return new RegExp(expected, 'i').test(String(actual));
+    case 'regex':
+      try {
+        return new RegExp(expected, 'i').test(String(actual));
+      } catch (error) {
+        console.warn(`Invalid regex pattern: ${expected}`, error);
+        return false;
+      }
 
     case 'in':
       return Array.isArray(expected) ? expected.includes(actual) : expected == actual;
