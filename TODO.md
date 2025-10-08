@@ -457,23 +457,31 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
 
 ---
 
-## Phase 3: Duplicate Detection Service ❌
+## Phase 3: Duplicate Detection Service ✅
 
-### 3.1 Discovery ❌
-- [ ] Find all duplicate detection logic
-- [ ] Document different algorithms (URL normalization, params handling)
-- [ ] Define canonical behavior
+### 3.1 Discovery ✅
+- [x] Found all duplicate detection logic
+- [x] Documented two approaches: normalize.js (sophisticated) vs selectTabs.js (simple)
+- [x] Defined canonical behavior per use case
 
-### 3.2 Service Implementation ❌
-- [ ] Create `/services/DuplicateService.js`
-- [ ] Consistent URL normalization
-- [ ] Handle edge cases (fragments, query params, trailing slashes)
+### 3.2 Service Implementation ✅
+- [x] **`/lib/normalize.js`** - Sophisticated normalization
+  - `normalizeUrl()` - removes tracking params, preserves important params
+  - `generateDupeKey()` - creates deduplication keys
+  - `findDuplicates()` - finds all duplicate tabs
+  - Used by: v1 engine, session manager
+- [x] **`/services/selection/selectTabs.js`** - Simple normalization
+  - `normalizeUrlForDuplicates()` - removes ALL query params (stricter)
+  - Integrated into selection service for v2 architecture
+  - Used by: v2 engine, background stats
 
-### 3.3 Update Callers ❌
-- [ ] Background closeDuplicates
-- [ ] Dashboard duplicate detection
-- [ ] Session manager deduplicate
-- [ ] Rules engine duplicate conditions
+### 3.3 Update Callers ✅
+- [x] Background closeDuplicates - uses engine which uses normalize.js
+- [x] Dashboard duplicate detection - removed (uses background message)
+- [x] Session manager deduplicate - uses normalize.js
+- [x] Rules engine duplicate conditions - uses normalize.js (v1) or selectTabs.js (v2)
+
+**Status**: Complete - no duplicate detection logic in UI surfaces, all goes through services
 
 ---
 

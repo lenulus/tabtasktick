@@ -171,17 +171,87 @@ export async function getCurrentWindowId() {
  * @param {string} url - URL to normalize
  * @returns {string} Normalized URL for duplicate comparison
  */
+// List of tracking parameters to remove (copied from normalize.js)
+const TRACKING_PARAMS = new Set([
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+  'fbclid', 'gclid', 'msclkid', 'ref', 'referrer',
+  '_ga', '_gac', '_gid', '_gl', '_ke',
+  'mc_cid', 'mc_eid', 'mkt_tok',
+  'trk', 'trkCampaign', 'trkEmail',
+  's', 't', // Twitter sharing params
+  'tag' // Affiliate tracking (Amazon, etc.)
+]);
+
+// Special parameters that should be preserved for certain domains
+// CRITICAL: Prevents closing different YouTube videos, Google searches, etc. as duplicates
+const PRESERVED_PARAMS = {
+  'youtube.com': ['v', 'list', 't'],
+  'youtu.be': ['t'],
+  'github.com': ['q', 'type', 'language'],
+  'google.com': ['q', 'tbm', 'tbs'],
+  'amazon.com': ['k', 'i'],
+  'stackoverflow.com': ['q', 'tab', 'noredirect', 'lq']
+};
+
+/**
+ * Normalize a URL for duplicate detection.
+ * Removes tracking parameters but preserves important parameters for content-specific domains.
+ *
+ * IMPORTANT: This prevents closing different YouTube videos, Google searches, etc. as duplicates.
+ * Example:
+ *   - youtube.com?v=abc123 and youtube.com?v=xyz789 are NOT duplicates (different videos)
+ *   - example.com?utm_source=twitter and example.com?utm_source=facebook ARE duplicates (same page)
+ *
+ * @param {string} url - The URL to normalize
+ * @returns {string} The normalized URL
+ */
 export function normalizeUrlForDuplicates(url) {
   if (!url) return '';
 
-  try {
-    const u = new URL(url);
+  // Return non-URLs as-is
+  if (typeof url !== 'string') return url;
 
-    // Remove query parameters - treat example.com?a=1 and example.com?b=2 as duplicates
-    u.search = '';
+  try {
+    // Handle special protocols that URL constructor doesn't support well
+    if (url.startsWith('chrome://') ||
+        url.startsWith('chrome-extension://') ||
+        url.startsWith('data:') ||
+        url.startsWith('javascript:') ||
+        url.startsWith('about:')) {
+      // For chrome:// and similar, just remove the hash
+      const hashIndex = url.indexOf('#');
+      return hashIndex !== -1 ? url.substring(0, hashIndex).toLowerCase() : url.toLowerCase();
+    }
+
+    const u = new URL(url);
 
     // Remove fragment/anchor - treat example.com#a and example.com#b as duplicates
     u.hash = '';
+
+    // Process query parameters intelligently
+    const params = new URLSearchParams(u.search);
+    const domain = u.hostname;
+
+    // Get preserved params for this domain
+    const preservedForDomain = Object.entries(PRESERVED_PARAMS)
+      .find(([d]) => domain.includes(d))?.[1] || [];
+
+    // Filter out tracking parameters, but keep preserved ones
+    const filteredParams = new URLSearchParams();
+    for (const [key, value] of params) {
+      // Keep param if it's NOT a tracking param, OR if it's preserved for this domain
+      if (!TRACKING_PARAMS.has(key) || preservedForDomain.includes(key)) {
+        filteredParams.append(key, value);
+      }
+    }
+
+    // Sort parameters for consistent ordering
+    const sortedParams = new URLSearchParams(
+      [...filteredParams.entries()].sort(([a], [b]) => a.localeCompare(b))
+    );
+
+    // Only set search if there are params, otherwise clear it
+    u.search = sortedParams.toString();
 
     // Remove default ports for http/https
     if ((u.protocol === 'https:' && u.port === '443') ||
