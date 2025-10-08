@@ -2,7 +2,7 @@
 
 // Import Rules Engine modules
 import { RulesEngine } from '../lib/engine.js';
-import { normalizeUrl } from '../lib/normalize.js';
+import { normalizeUrlForDuplicates } from '../services/selection/selectTabs.js';
 import { GroupingScope, groupTabsByDomain as groupTabsByDomainService } from '../services/TabGrouping.js';
 
 // State management
@@ -145,7 +145,7 @@ function buildSessionStructure(tabs, windows, groups) {
 
   tabs.forEach(tab => {
     // Count URLs for duplicate detection
-    const normalizedUrl = normalizeUrl(tab.url);
+    const normalizedUrl = normalizeUrlForDuplicates(tab.url);
     urlCounts.set(normalizedUrl, (urlCounts.get(normalizedUrl) || 0) + 1);
 
     // Count domains for solo detection
@@ -587,18 +587,18 @@ function calculateSelectionStats() {
       const ungroupedTab = window.ungroupedTabs.find(t => t.id === tabId);
       if (ungroupedTab) {
         stats.windows.add(window.id);
-        const url = normalizeUrl(ungroupedTab.url);
+        const url = normalizeUrlForDuplicates(ungroupedTab.url);
         urls.set(url, (urls.get(url) || 0) + 1);
         stats.domains.add(getDomain(ungroupedTab.url));
       }
-      
+
       // Check grouped tabs
       window.groups.forEach(group => {
         const groupedTab = group.tabs.find(t => t.id === tabId);
         if (groupedTab) {
           stats.windows.add(window.id);
           stats.groups.add(group.id);
-          const url = normalizeUrl(groupedTab.url);
+          const url = normalizeUrlForDuplicates(groupedTab.url);
           urls.set(url, (urls.get(url) || 0) + 1);
           stats.domains.add(getDomain(groupedTab.url));
         }

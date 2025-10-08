@@ -2,7 +2,7 @@
 // Simple version without Chrome API dependencies
 
 import { describe, it, expect } from '@jest/globals';
-import { normalizeUrl, extractDomain, generateDupeKey, areDuplicates } from '../lib/normalize.js';
+import { normalizeUrl, extractDomain, generateDupeKey, areDuplicates } from '../services/selection/selectTabs.js';
 
 describe('normalizeUrl', () => {
   describe('basic normalization', () => {
@@ -44,8 +44,8 @@ describe('normalizeUrl', () => {
     it('should handle malformed URLs gracefully', () => {
       expect(normalizeUrl('not-a-url')).toBe('not-a-url');
       expect(normalizeUrl('')).toBe('');
-      expect(normalizeUrl(null)).toBe(null);
-      expect(normalizeUrl(undefined)).toBe(undefined);
+      expect(normalizeUrl(null)).toBe(''); // Null becomes empty string
+      expect(normalizeUrl(undefined)).toBe(''); // Undefined becomes empty string
     });
 
     it('should handle chrome:// URLs', () => {
@@ -106,14 +106,14 @@ describe('normalizeUrl', () => {
 
 describe('extractDomain', () => {
   it('should extract domain from valid URLs', () => {
-    expect(extractDomain('https://www.example.com/page')).toBe('www.example.com');
+    expect(extractDomain('https://www.example.com/page')).toBe('example.com'); // www removed
     expect(extractDomain('http://subdomain.example.com')).toBe('subdomain.example.com');
     expect(extractDomain('https://example.com:8080')).toBe('example.com');
   });
 
   it('should handle URLs without protocol', () => {
     expect(extractDomain('example.com/page')).toBe('example.com');
-    expect(extractDomain('www.example.com')).toBe('www.example.com');
+    expect(extractDomain('www.example.com')).toBe('example.com'); // www removed
   });
 
   it('should handle special URLs', () => {

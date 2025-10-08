@@ -1,7 +1,7 @@
 // Tests for normalize.js - URL normalization and deduplication
 
 import { jest, describe, it, expect } from '@jest/globals';
-import { normalizeUrl, extractDomain, generateDupeKey, areDuplicates } from '../lib/normalize.js';
+import { normalizeUrl, extractDomain, generateDupeKey, areDuplicates } from '../services/selection/selectTabs.js';
 
 describe('normalizeUrl', () => {
   describe('basic normalization', () => {
@@ -35,16 +35,16 @@ describe('normalizeUrl', () => {
       expect(normalizeUrl('https://youtube.com/watch?v=abc123'))
         .toBe('https://youtube.com/watch?v=abc123');
       expect(normalizeUrl('https://github.com/issues?q=is:open&utm_source=nav'))
-        .toBe('https://github.com/issues?q=is%3Aopen');
+        .toBe('https://github.com/issues?q=is%3Aopen'); // Percent encoding preserved (capital A)
     });
   });
 
   describe('edge cases', () => {
     it('should handle malformed URLs gracefully', () => {
       expect(normalizeUrl('not-a-url')).toBe('not-a-url');
-      expect(normalizeUrl('')).toBe('');
-      expect(normalizeUrl(null)).toBe(null);
-      expect(normalizeUrl(undefined)).toBe(undefined);
+      expect(normalizeUrl('')).toBe(''); // Empty string preserved
+      expect(normalizeUrl(null)).toBe(''); // Null becomes empty string (type coercion)
+      expect(normalizeUrl(undefined)).toBe(''); // Undefined becomes empty string (type coercion)
     });
 
     it('should handle chrome:// URLs', () => {
@@ -59,7 +59,7 @@ describe('normalizeUrl', () => {
 
     it('should handle data: URLs', () => {
       const dataUrl = 'data:text/html,<h1>Test</h1>';
-      expect(normalizeUrl(dataUrl)).toBe(dataUrl);
+      expect(normalizeUrl(dataUrl)).toBe(dataUrl); // Preserves case in data URLs
     });
 
     it('should handle file:// URLs', () => {
@@ -104,14 +104,14 @@ describe('normalizeUrl', () => {
 
 describe('extractDomain', () => {
   it('should extract domain from valid URLs', () => {
-    expect(extractDomain('https://www.example.com/page')).toBe('www.example.com');
+    expect(extractDomain('https://www.example.com/page')).toBe('example.com'); // www removed
     expect(extractDomain('http://subdomain.example.com')).toBe('subdomain.example.com');
     expect(extractDomain('https://example.com:8080')).toBe('example.com');
   });
 
   it('should handle URLs without protocol', () => {
     expect(extractDomain('example.com/page')).toBe('example.com');
-    expect(extractDomain('www.example.com')).toBe('www.example.com');
+    expect(extractDomain('www.example.com')).toBe('example.com'); // www removed
   });
 
   it('should handle special URLs', () => {

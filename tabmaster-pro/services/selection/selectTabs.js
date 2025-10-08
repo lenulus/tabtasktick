@@ -219,8 +219,9 @@ export function normalizeUrlForDuplicates(url) {
         url.startsWith('javascript:') ||
         url.startsWith('about:')) {
       // For chrome:// and similar, just remove the hash
+      // DON'T lowercase - preserves data: URL content and chrome:// paths
       const hashIndex = url.indexOf('#');
-      return hashIndex !== -1 ? url.substring(0, hashIndex).toLowerCase() : url.toLowerCase();
+      return hashIndex !== -1 ? url.substring(0, hashIndex) : url;
     }
 
     const u = new URL(url);
@@ -264,10 +265,15 @@ export function normalizeUrlForDuplicates(url) {
       u.pathname = u.pathname.slice(0, -1);
     }
 
-    return u.toString().toLowerCase();
+    // ONLY lowercase the hostname (for duplicate detection)
+    // DON'T lowercase path/query/fragment - preserves case-sensitive content
+    // and proper percent-encoding (%3A not %3a)
+    u.hostname = u.hostname.toLowerCase();
+
+    return u.toString();
   } catch {
-    // Invalid URLs - return as-is lowercased
-    return url.toLowerCase();
+    // Invalid URLs - return as-is (preserve case)
+    return url;
   }
 }
 
@@ -779,13 +785,45 @@ function evaluateOperator(actual, operator, expected) {
  * @private
  */
 function extractDomain(url) {
-  if (!url) return '';
+  if (!url) return 'unknown';
 
   try {
-    const u = new URL(url);
-    return u.hostname.toLowerCase().replace('www.', '');
+    // Handle special protocols
+    if (url.startsWith('chrome://')) {
+      return url.split('/')[2] ? `chrome://${url.split('/')[2]}` : 'chrome://';
+    }
+    if (url.startsWith('chrome-extension://')) {
+      return url.split('/')[2] || 'chrome-extension://';
+    }
+    if (url.startsWith('file://')) {
+      return 'file://';
+    }
+    if (url.startsWith('data:')) {
+      return 'data:';
+    }
+
+    // Try to parse as URL
+    let urlToParse = url;
+
+    // Add protocol if missing
+    if (!url.includes('://')) {
+      urlToParse = 'https://' + url;
+    }
+
+    const u = new URL(urlToParse);
+    const hostname = u.hostname || u.host;
+    if (!hostname) return 'unknown';
+
+    // Remove www prefix and lowercase
+    return hostname.toLowerCase().replace(/^www\./, '');
   } catch {
-    return '';
+    // Handle malformed URLs
+    if (url.includes('.') && !url.includes(' ')) {
+      // Might be a domain without protocol
+      const match = url.match(/^([^\/]+)/);
+      if (match) return match[1].toLowerCase().replace(/^www\./, '');
+    }
+    return 'unknown';
   }
 }
 
@@ -941,3 +979,110 @@ export async function getTabStatistics() {
 
   return stats;
 };
+
+/**
+ * Extract domain from URL - exported for engine compatibility
+ * @param {string} url - URL to extract domain from
+ * @returns {string} Domain (e.g., 'example.com')
+ */
+export { extractDomain };
+
+/**
+ * Generate duplicate key - alias for normalizeUrlForDuplicates
+ * Exported for backward compatibility with v1 engine
+ * @param {string} url - URL to generate key for
+ * @returns {string} Normalized URL for duplicate detection
+ */
+export function generateDupeKey(url) {
+  return normalizeUrlForDuplicates(url);
+}
+
+/**
+ * Extract origin information from a referrer URL
+ * Recognizes common sources like Gmail, search engines, social media
+ * @param {string} referrer - The referrer URL
+ * @returns {string} Origin identifier (e.g., 'gmail', 'search', 'direct')
+ */
+export function extractOrigin(referrer) {
+  if (!referrer) return 'direct';
+
+  // Check for known origins
+  if (referrer.includes('mail.google.com')) return 'gmail';
+  if (referrer.includes('google.com/search')) return 'search';
+  if (referrer.includes('bing.com/search')) return 'search';
+  if (referrer.includes('duckduckgo.com')) return 'search';
+  if (referrer.includes('reddit.com')) return 'reddit';
+  if (referrer.includes('twitter.com') || referrer.includes('x.com')) return 'twitter';
+  if (referrer.includes('facebook.com')) return 'facebook';
+  if (referrer.includes('linkedin.com')) return 'linkedin';
+  if (referrer.includes('slack.com')) return 'slack';
+
+  // Handle special protocols
+  if (referrer.startsWith('chrome://') ||
+      referrer.startsWith('chrome-extension://') ||
+      referrer.startsWith('file://') ||
+      referrer.startsWith('data:')) {
+    return 'direct';
+  }
+
+  // Extract domain as origin for others
+  const domain = extractDomain(referrer);
+  return domain || 'direct';
+}
+
+/**
+ * Normalize URL - alias for normalizeUrlForDuplicates
+ * Exported for backward compatibility
+ * @param {string} url - URL to normalize
+ * @returns {string} Normalized URL
+ */
+export function normalizeUrl(url) {
+  return normalizeUrlForDuplicates(url);
+}
+
+/**
+ * Check if two URLs or tab objects are duplicates
+ * @param {string|object} url1 - First URL or tab object
+ * @param {string|object} url2 - Second URL or tab object
+ * @returns {boolean} True if the URLs are duplicates
+ */
+export function areDuplicates(url1, url2) {
+  // Handle null/undefined
+  if (!url1 && !url2) return true;
+  if (!url1 || !url2) return false;
+
+  // Extract URLs from tab objects if necessary
+  const u1 = typeof url1 === 'object' ? url1.url : url1;
+  const u2 = typeof url2 === 'object' ? url2.url : url2;
+
+  // Generate and compare dupe keys
+  return generateDupeKey(u1) === generateDupeKey(u2);
+}
+
+/**
+ * Find all duplicate URLs in a list of tabs
+ * @param {Array} tabs - Array of tab objects
+ * @returns {Map} Map of dupe keys to arrays of duplicate tabs
+ */
+export function findDuplicates(tabs) {
+  const dupeGroups = new Map();
+
+  for (const tab of tabs) {
+    if (!tab.url) continue;
+
+    const dupeKey = generateDupeKey(tab.url);
+    if (!dupeGroups.has(dupeKey)) {
+      dupeGroups.set(dupeKey, []);
+    }
+    dupeGroups.get(dupeKey).push(tab);
+  }
+
+  // Filter out non-duplicates (single tab groups)
+  for (const [key, tabList] of dupeGroups.entries()) {
+    if (tabList.length <= 1) {
+      dupeGroups.delete(key);
+    }
+  }
+
+  return dupeGroups;
+}

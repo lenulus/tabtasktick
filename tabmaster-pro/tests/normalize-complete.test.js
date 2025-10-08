@@ -1,14 +1,14 @@
 // Complete tests for normalize.js - including findDuplicates and extractOrigin
 
 import { describe, it, expect } from '@jest/globals';
-import { 
-  normalizeUrl, 
-  extractDomain, 
-  generateDupeKey, 
-  areDuplicates, 
+import {
+  normalizeUrl,
+  extractDomain,
+  generateDupeKey,
+  areDuplicates,
   findDuplicates,
   extractOrigin
-} from '../lib/normalize.js';
+} from '../services/selection/selectTabs.js';
 
 describe('findDuplicates', () => {
   it('should find duplicate tabs', () => {
