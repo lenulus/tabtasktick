@@ -297,7 +297,9 @@ export class TestMode {
             action: 'createRule',
             rule: {
               name: 'Close Duplicates',
-              when: { all: [{ eq: ['tab.isDupe', true] }] },
+              when: {
+                all: [{ subject: 'duplicate', operator: 'equals', value: true }]
+              },
               then: [{ action: 'close-duplicates', keep: 'oldest' }]
             }
           },
@@ -325,11 +327,13 @@ export class TestMode {
           { action: 'createTab', url: 'https://google.com', count: 1 },
           
           // Create and execute grouping rule
-          { 
+          {
             action: 'createRule',
             rule: {
               name: 'Group by Domain',
-              when: { all: [{ gte: ['tab.countPerOrigin:domain', 2] }] },
+              when: {
+                all: [{ subject: 'domainCount', operator: 'greater_than_or_equal', value: 2 }]
+              },
               then: [{ action: 'group', by: 'domain' }]
             }
           },
@@ -358,7 +362,9 @@ export class TestMode {
             action: 'createRule',
             rule: {
               name: 'Group by Domain Reuse',
-              when: { all: [{ gte: ['tab.countPerOrigin:domain', 2] }] },
+              when: {
+                all: [{ subject: 'domainCount', operator: 'greater_than_or_equal', value: 2 }]
+              },
               then: [{ action: 'group', by: 'domain' }]
             }
           },
@@ -400,14 +406,14 @@ export class TestMode {
           { action: 'createTab', url: 'https://new-tab.com' },
           
           // Create rule for old tabs
-          { 
+          {
             action: 'createRule',
             rule: {
               name: 'Snooze Old Tabs',
-              when: { 
+              when: {
                 all: [
-                  { gt: ['tab.age', '1h'] },
-                  { eq: ['tab.isPinned', false] }
+                  { subject: 'age', operator: 'greater_than', value: '1h' },
+                  { subject: 'pinned', operator: 'equals', value: false }
                 ]
               },
               then: [{ action: 'snooze', for: '2h' }]
@@ -439,7 +445,7 @@ export class TestMode {
           { action: 'createTab', url: 'https://github.com/user/repo/pull/123', age: '2d' },
           
           // Rule with nested conditions
-          { 
+          {
             action: 'createRule',
             rule: {
               name: 'Complex Rule',
@@ -447,21 +453,21 @@ export class TestMode {
                 any: [
                   {
                     all: [
-                      { contains: ['tab.url', 'youtube.com'] },
-                      { eq: ['tab.isPinned', false] },
-                      { eq: ['tab.isMuted', false] }
+                      { subject: 'url', operator: 'contains', value: 'youtube.com' },
+                      { subject: 'pinned', operator: 'equals', value: false },
+                      { subject: 'audible', operator: 'equals', value: false }
                     ]
                   },
                   {
                     all: [
-                      { regex: ['tab.url', '/docs\\.google\\.com/'] },
-                      { eq: ['tab.isMuted', false] }
+                      { subject: 'url', operator: 'regex', value: 'docs\\.google\\.com' },
+                      { subject: 'audible', operator: 'equals', value: false }
                     ]
                   },
                   {
                     all: [
-                      { regex: ['tab.url', '/github\\.com\\/.*\\/pull/'] },
-                      { gt: ['tab.age', '1d'] }
+                      { subject: 'url', operator: 'regex', value: 'github\\.com\\/.*\\/pull' },
+                      { subject: 'age', operator: 'greater_than', value: '1d' }
                     ]
                   }
                 ]
@@ -482,12 +488,14 @@ export class TestMode {
         description: 'Test immediate, repeat, and once triggers',
         steps: [
           // Test immediate triggers with debouncing
-          { 
+          {
             action: 'createRule',
             rule: {
               name: 'Immediate Trigger',
               trigger: { immediate: true, debounce: '2s' },
-              when: { all: [{ contains: ['tab.url', 'trigger-test'] }] },
+              when: {
+                all: [{ subject: 'url', operator: 'contains', value: 'trigger-test' }]
+              },
               then: [{ action: 'group', name: 'Triggered' }]
             }
           },
@@ -512,7 +520,9 @@ export class TestMode {
             rule: {
               name: 'Scheduled Rule',
               trigger: { once: 'FUTURE:5000' },  // Special marker for 5 seconds in future
-              when: { all: [{ contains: ['tab.url', 'scheduled-test'] }] },
+              when: {
+                all: [{ subject: 'url', operator: 'contains', value: 'scheduled-test' }]
+              },
               then: [{ action: 'group', name: 'Scheduled Group' }]
             }
           },
@@ -545,8 +555,8 @@ export class TestMode {
               name: 'Pin Important Tabs',
               when: {
                 all: [
-                  { contains: ['tab.url', 'important'] },
-                  { eq: ['tab.isPinned', false] }
+                  { subject: 'url', operator: 'contains', value: 'important' },
+                  { subject: 'pinned', operator: 'equals', value: false }
                 ]
               },
               then: [{ action: 'pin' }]
@@ -561,7 +571,11 @@ export class TestMode {
             action: 'createRule',
             rule: {
               name: 'Mute Video Tabs',
-              when: { contains: ['tab.url', 'video-site.com'] },
+              when: {
+                all: [
+                  { subject: 'url', operator: 'contains', value: 'video-site.com' }
+                ]
+              },
               then: [{ action: 'mute' }]
             }
           },
@@ -576,8 +590,8 @@ export class TestMode {
               name: 'Unmute Important',
               when: {
                 all: [
-                  { eq: ['tab.isMuted', true] },
-                  { contains: ['tab.url', 'important'] }
+                  { subject: 'audible', operator: 'equals', value: true },
+                  { subject: 'url', operator: 'contains', value: 'important' }
                 ]
               },
               then: [{ action: 'unmute' }]
@@ -591,8 +605,8 @@ export class TestMode {
               name: 'Suspend News Tabs',
               when: {
                 all: [
-                  { contains: ['tab.url', 'news-site'] },
-                  { eq: ['tab.isPinned', false] }
+                  { subject: 'url', operator: 'contains', value: 'news-site' },
+                  { subject: 'pinned', operator: 'equals', value: false }
                 ]
               },
               then: [{ action: 'suspend' }]
@@ -609,8 +623,8 @@ export class TestMode {
               name: 'Unpin Work Tabs',
               when: {
                 all: [
-                  { contains: ['tab.url', 'work-app'] },
-                  { eq: ['tab.isPinned', true] }
+                  { subject: 'url', operator: 'contains', value: 'work-app' },
+                  { subject: 'pinned', operator: 'equals', value: true }
                 ]
               },
               then: [{ action: 'unpin' }]
@@ -638,8 +652,8 @@ export class TestMode {
               trigger: { repeat: '3s' },  // Repeat every 3 seconds
               when: {
                 all: [
-                  { contains: ['tab.url', 'repeat-test'] },
-                  { eq: ['tab.groupId', -1] }  // Not in a group
+                  { subject: 'url', operator: 'contains', value: 'repeat-test' },
+                  { subject: 'grouped', operator: 'equals', value: false }
                 ]
               },
               then: [{ action: 'group', name: 'Repeated Group' }]
@@ -692,7 +706,9 @@ export class TestMode {
             action: 'createRule',
             rule: {
               name: 'Group News Sites',
-              when: { eq: ['tab.category', 'news'] },
+              when: {
+                all: [{ subject: 'category', operator: 'in', value: ['news'] }]
+              },
               then: [{ action: 'group', name: 'News' }]
             }
           },
@@ -705,7 +721,9 @@ export class TestMode {
             action: 'createRule',
             rule: {
               name: 'Group Shopping Sites',
-              when: { eq: ['tab.category', 'shopping'] },
+              when: {
+                all: [{ subject: 'category', operator: 'in', value: ['shopping'] }]
+              },
               then: [{ action: 'group', name: 'Shopping' }]
             }
           },
@@ -718,7 +736,9 @@ export class TestMode {
             action: 'createRule',
             rule: {
               name: 'Group Social Sites',
-              when: { eq: ['tab.category', 'social'] },
+              when: {
+                all: [{ subject: 'category', operator: 'in', value: ['social'] }]
+              },
               then: [{ action: 'group', name: 'Social' }]
             }
           },
@@ -731,7 +751,9 @@ export class TestMode {
             action: 'createRule',
             rule: {
               name: 'Close Dev Tabs',
-              when: { eq: ['tab.category', 'dev'] },
+              when: {
+                all: [{ subject: 'category', operator: 'in', value: ['dev'] }]
+              },
               then: [{ action: 'close' }]
             }
           },
@@ -746,8 +768,8 @@ export class TestMode {
               name: 'Group Content Sites',
               when: {
                 any: [
-                  { eq: ['tab.category', 'news'] },
-                  { eq: ['tab.category', 'social'] }
+                  { subject: 'category', operator: 'in', value: ['news'] },
+                  { subject: 'category', operator: 'in', value: ['social'] }
                 ]
               },
               then: [{ action: 'group', name: 'Content' }]

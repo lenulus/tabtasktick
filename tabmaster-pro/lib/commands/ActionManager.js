@@ -4,6 +4,7 @@
 import { sortAndResolveCommands } from './Command.js';
 import { groupTabs } from '../../services/execution/groupTabs.js';
 import * as SnoozeService from '../../services/execution/SnoozeService.js';
+import * as SuspensionService from '../../services/execution/SuspensionService.js';
 
 /**
  * ActionManager handles command execution and dispatching
@@ -228,27 +229,13 @@ export class ActionManager {
       return { unmuted: command.targetIds };
     });
 
-    // Suspend/Discard handler
+    // Suspend/Discard handler - delegates to SuspensionService
     this.registerHandler('suspend', async (command, context) => {
-      if (!context.chrome?.tabs) {
-        throw new Error('Chrome tabs API not available');
+      if (!SuspensionService) {
+        throw new Error('SuspensionService is not available.');
       }
-
-      // Get tab info to check if active
-      const tabs = await context.chrome.tabs.query({
-        windowId: chrome.windows.WINDOW_ID_CURRENT
-      });
-
-      const suspended = [];
-      for (const tabId of command.targetIds) {
-        const tab = tabs.find(t => t.id === tabId);
-        if (tab && !tab.active) {
-          await context.chrome.tabs.discard(tabId);
-          suspended.push(tabId);
-        }
-      }
-
-      return { suspended };
+      const options = command.params || {};
+      return await SuspensionService.suspendTabs(command.targetIds, options);
     });
 
     // Group handler - delegates to GroupTabs service

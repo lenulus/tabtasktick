@@ -8,6 +8,7 @@
 
 import { selectTabsMatchingRule } from '../services/selection/selectTabs.js';
 import * as SnoozeService from '../services/execution/SnoozeService.js';
+import * as SuspensionService from '../services/execution/SuspensionService.js';
 import { validateActionList, sortActionsByPriority } from './action-validator.js';
 import { groupTabs } from '../services/execution/groupTabs.js';
 
@@ -264,8 +265,14 @@ async function executeAction(action, tab, context, dryRun) {
 
     case 'suspend':
     case 'discard':
-      if (!dryRun && context.chrome?.tabs && !tab.active) {
-        await context.chrome.tabs.discard(tab.id);
+      if (!dryRun) {
+        const result = await SuspensionService.suspendTabs([tab.id], action.params);
+        if (result.errors.length > 0) {
+          return { success: false, error: result.errors[0].error };
+        }
+        if (result.skipped.length > 0) {
+          return { success: false, error: 'Tab was skipped (active, pinned, or audible)' };
+        }
       }
       return { success: true, details: { suspended: tab.id } };
 

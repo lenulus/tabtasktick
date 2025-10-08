@@ -1137,6 +1137,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: true });
           break;
 
+        case 'suspendInactiveTabs':
+          // Suspend inactive, non-pinned tabs via engine for consistency
+          const engine = getEngine();
+          const tempSuspendRule = {
+            id: 'temp-suspend-inactive',
+            name: 'Suspend Inactive Tabs',
+            enabled: true,
+            conditions: {
+              all: [
+                { subject: 'active', operator: 'equals', value: false },
+                { subject: 'pinned', operator: 'equals', value: false }
+              ]
+            },
+            then: [{ action: 'suspend' }]
+          };
+          const suspendContext = await buildContext();
+          if (request.windowId) {
+            suspendContext.tabs = suspendContext.tabs.filter(t => t.windowId === request.windowId);
+          }
+          const suspendResult = await engine.runRules([tempSuspendRule], suspendContext);
+          sendResponse({
+            success: true,
+            suspended: suspendResult.totalActions || 0
+          });
+          break;
+
         case 'bookmarkTabs':
           const bookmarkParams = {};
           if (request.folder) bookmarkParams.folder = request.folder;

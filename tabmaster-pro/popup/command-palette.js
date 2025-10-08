@@ -270,17 +270,16 @@ const COMMANDS = [
     icon: '🔄',
     keywords: ['suspend', 'inactive', 'memory', 'save'],
     action: async () => {
-      const tabs = await chrome.tabs.query({ currentWindow: true, active: false, pinned: false });
-      let suspended = 0;
-      for (const tab of tabs) {
-        try {
-          await chrome.tabs.discard(tab.id);
-          suspended++;
-        } catch (e) {
-          // Some tabs can't be discarded
-        }
+      const currentWindow = await chrome.windows.getCurrent();
+      const result = await chrome.runtime.sendMessage({
+        action: 'suspendInactiveTabs',
+        windowId: currentWindow.id
+      });
+      if (result.suspended > 0) {
+        showNotification(`Suspended ${result.suspended} tab${result.suspended > 1 ? 's' : ''}`);
+      } else {
+        showNotification('No inactive tabs to suspend');
       }
-      showNotification(`Suspended ${suspended} tabs`);
       window.close();
     }
   },

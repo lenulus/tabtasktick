@@ -537,26 +537,25 @@ async function handleSuspendInactive() {
   try {
     const button = elements.suspendInactive;
     button.disabled = true;
-    
-    // Get inactive tabs (simplified version)
-    const tabs = await chrome.tabs.query({ active: false, currentWindow: true });
-    const inactiveTabs = tabs.filter(tab => !tab.pinned);
-    
-    if (inactiveTabs.length === 0) {
+
+    // Get current window ID for scoped suspension
+    const currentWindow = await chrome.windows.getCurrent();
+
+    // Send message to background to suspend via engine
+    const result = await sendMessage({
+      action: 'suspendInactiveTabs',
+      windowId: currentWindow.id
+    });
+
+    if (result.suspended > 0) {
+      showNotification(
+        `Suspended ${result.suspended} inactive tab${result.suspended > 1 ? 's' : ''}`,
+        'success'
+      );
+    } else {
       showNotification('No inactive tabs to suspend', 'info');
-      return;
     }
-    
-    // Discard inactive tabs
-    for (const tab of inactiveTabs) {
-      try {
-        await chrome.tabs.discard(tab.id);
-      } catch (error) {
-        console.error(`Failed to discard tab ${tab.id}:`, error);
-      }
-    }
-    
-    showNotification(`Suspended ${inactiveTabs.length} inactive tab${inactiveTabs.length > 1 ? 's' : ''}`, 'success');
+
     await loadStatistics();
   } catch (error) {
     console.error('Failed to suspend tabs:', error);

@@ -485,22 +485,94 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
 
 ---
 
-## Phase 4: Tab Suspension Service ❌
+## Phase 4: Tab Suspension Service 🔄
 
-### 4.1 Discovery ❌
-- [ ] Find all suspension/discard logic
-- [ ] Check for chrome.tabs.discard usage
-- [ ] Document current behavior
+**Status**: Reimplementing from feature branch following clean architecture
+**Reference**: See `docs/phase4-suspension-lessons.md` for lessons learned and implementation plan
 
-### 4.2 Service Implementation ❌
-- [ ] Create `/services/SuspensionService.js`
-- [ ] Handle memory monitoring
-- [ ] Respect pinned/active/playing tabs
+**Background**: Another AI tool implemented this in branch `feature/tab-suspension-service` (commit `803dd91`).
+The service API design was good, but had architectural conflicts (duplicate normalize.js, hardcoded selection logic).
+We're extracting the good parts and reimplementing cleanly on main branch.
 
-### 4.3 Update Callers ❌
-- [ ] Background service
-- [ ] Rules engine suspend action
-- [ ] Quick actions
+### 4.1 Discovery ✅
+- [x] Reviewed feature branch implementation
+- [x] Extracted lessons learned to `docs/phase4-suspension-lessons.md`
+- [x] Identified good patterns to keep (service API, options pattern, return structure)
+- [x] Identified issues to fix (normalize.js conflict, selection logic, incomplete audit)
+
+### 4.2 Grep for Existing Suspension Logic ⚠️
+- [ ] Run `git grep -n "chrome.tabs.discard"` to find all occurrences
+- [ ] Run `git grep -n "suspend"` in popup/dashboard/session
+- [ ] Document findings below
+
+**Findings**:
+- **Popup**: 2 locations with `chrome.tabs.discard()`
+  - `popup/popup.js:553` - Direct discard in `handleSuspendInactive()`
+  - `popup/command-palette.js:277` - Direct discard in command palette
+- **Dashboard**: No `chrome.tabs.discard()` calls, only reads `tab.discarded` property
+  - Constants defined for suspend action (dashboard/modules/core/constants.js:32)
+  - Rules view supports suspend action (dashboard/modules/views/rules.js:526, 971)
+  - Tabs view filters by suspended state (dashboard/modules/views/tabs.js:1075, 1147)
+  - Overview calculates suspended count (dashboard/modules/views/overview.js:48)
+  - **NO direct Chrome API calls - all display/filtering only** ✅
+- **Session Manager**: No suspension logic found
+- **Background**: No direct `chrome.tabs.discard()` calls (all go through engines)
+- **Engines**: All 4 engines have inline suspend implementation
+  - `lib/engine.js:448` - Inline discard in suspend case
+  - `lib/engine.v1.legacy.js:464` - Inline discard in suspend case
+  - `lib/engine.v2.services.js:268` - Inline discard in suspend case
+  - `lib/commands/ActionManager.js:246` - Inline discard in suspend handler
+
+### 4.3 Service Implementation ⚠️
+- [ ] Create `/services/execution/SuspensionService.js`
+- [ ] Copy good API design from feature branch
+- [ ] Use correct imports (no normalize.js, standalone service)
+- [ ] Options: `includePinned`, `includeActive`, `includeAudible`
+- [ ] Return: `{ suspended, skipped, errors }`
+
+### 4.4 Update Engines ⚠️
+- [ ] Add SuspensionService import to `lib/engine.js`
+- [ ] Add SuspensionService import to `lib/engine.v1.legacy.js`
+- [ ] Add SuspensionService import to `lib/engine.v2.services.js`
+- [ ] Add SuspensionService to `lib/commands/ActionManager.js`
+- [ ] Update suspend/discard case in all engines
+
+### 4.5 Add Background Message Handler ⚠️
+- [ ] Add `suspendInactiveTabs` case to background-integrated.js
+- [ ] Use `executeActionViaEngine()` pattern (NOT hardcoded selection)
+- [ ] Ensures engine selector (v1 vs v2) is respected
+- [ ] Consistent with other manual actions
+
+### 4.6 Update Popup ⚠️
+- [ ] Replace direct `chrome.tabs.discard()` calls with message passing
+- [ ] Update `handleSuspendInactive()` to use `sendMessage({ action: 'suspendInactiveTabs' })`
+- [ ] Show result count in notification
+
+### 4.7 Audit Dashboard & Session Manager ⚠️
+- [ ] Check dashboard for suspension UI/buttons
+- [ ] Check dashboard for `chrome.tabs.discard()` calls
+- [ ] Check session manager for suspension logic
+- [ ] Update any findings to use service/message passing
+
+### 4.8 Add to Test Runner ⚠️
+- [ ] Add suspension test scenario to `lib/test-mode/test-runner.js`
+- [ ] Test with v1 engine
+- [ ] Test with v2 engine
+- [ ] Verify both engines produce consistent results
+
+### 4.9 Testing & Validation ⚠️
+- [ ] Extension loads without errors
+- [ ] Popup "Suspend Inactive" button works
+- [ ] Background handler works via message
+- [ ] Rules engine suspend action works (v1)
+- [ ] Rules engine suspend action works (v2)
+- [ ] Test Runner scenario passes for both engines
+- [ ] Dashboard suspension (if exists) works
+- [ ] Session manager suspension (if exists) works
+- [ ] `npm test` passes (all suites)
+- [ ] No console errors in any surface
+
+**Estimated Time**: ~1 hour for complete implementation
 
 ---
 

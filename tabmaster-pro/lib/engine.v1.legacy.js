@@ -7,6 +7,7 @@
 // Integrates normalize.js for deduplication and predicate.js for condition evaluation
 
 import { compile, checkIsDupe } from './predicate.js';
+import * as SuspensionService from '../services/execution/SuspensionService.js';
 import { normalizeUrl, extractDomain, generateDupeKey, extractOrigin } from '../services/selection/selectTabs.js';
 import { validateActionList, sortActionsByPriority } from './action-validator.js';
 import { transformConditions } from './condition-transformer.js';
@@ -457,19 +458,13 @@ async function executeAction(action, tab, context, dryRun) {
     case 'suspend':
     case 'discard':
       console.log(`Executing suspend/discard action for tab ${tab.id}`);
-      if (!dryRun && context.chrome?.tabs) {
-        try {
-          // Don't discard active tabs
-          if (!tab.active) {
-            await context.chrome.tabs.discard(tab.id);
-            console.log(`Successfully suspended tab ${tab.id}`);
-          } else {
-            console.log(`Skipping suspend for active tab ${tab.id}`);
-            return { success: false, error: 'Cannot suspend active tab' };
-          }
-        } catch (error) {
-          console.error(`Failed to suspend tab ${tab.id}:`, error);
-          return { success: false, error: error.message };
+      if (!dryRun) {
+        const result = await SuspensionService.suspendTabs([tab.id], action.params);
+        if (result.errors.length > 0) {
+          return { success: false, error: result.errors[0].error };
+        }
+        if (result.skipped.length > 0) {
+          return { success: false, error: 'Tab was skipped (active, pinned, or audible)' };
         }
       }
       return { success: true, details: { suspended: tab.id } };
