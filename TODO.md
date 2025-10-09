@@ -678,16 +678,179 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ---
 
-## Phase 6: Rules Engine Cleanup ❌
+## Phase 6: Rules Engine Cleanup (v2.services only) 🔄
 
-### 6.1 Action Handlers ❌
-- [ ] Extract each action to use appropriate service
-- [ ] Remove all inline business logic
-- [ ] Keep only orchestration in engine.js
+**Status**: Planning complete, ready for implementation
+**Reference**: See `docs/phase6-engine-v2-services-cleanup.md` for detailed plan
+**Architecture Guardian**: APPROVED WITH MODIFICATIONS (MEDIUM-LOW risk)
 
-### 6.2 Condition Evaluators ❌
-- [ ] Review for duplicate logic
-- [ ] Extract complex conditions to services
+**Scope**: Only `lib/engine.v2.services.js` (574 lines)
+- Other 4 engines are deprecated and out of scope
+- Focus on extracting business logic to services
+- Fix critical bug: group action missing from switch
+
+**Critical Bug Discovered**: 🚨
+- Group action is imported but NOT in executeAction switch statement
+- Group actions in rules completely broken in v2 engine
+- Must add `case 'group'` to fix
+
+### 6.1 Create Missing Services ⚠️
+
+#### 6.1.1 Create time.js Utility (Lowest Risk)
+**File**: `/lib/utils/time.js` (~20 lines)
+- [ ] Extract `parseDuration` function from engine (lines 421-431)
+- [ ] Add unit tests for duration parsing
+- [ ] Handle edge cases (invalid input, negative values)
+
+**Expected**: Pure function, no Chrome API dependencies
+
+#### 6.1.2 Create BookmarkService (Clear Extraction)
+**File**: `/services/execution/BookmarkService.js` (~80 lines)
+- [ ] Extract bookmark logic from engine (lines 288-319)
+- [ ] Implement `bookmarkTabs(tabIds, options)` API
+- [ ] Implement `findOrCreateFolder(folderName)` helper
+- [ ] Add unit tests with Chrome API mocks
+- [ ] Remove TODO comment from engine
+
+**Expected**:
+- API: `bookmarkTabs([tabId], { folder: 'FolderName' })`
+- Handles folder lookup and creation
+- Returns: `{ success, bookmarked: [tabIds] }`
+
+#### 6.1.3 Create TabActionsService (Start Simple, Then Complex)
+**File**: `/services/execution/TabActionsService.js` (~150 lines)
+
+**Simple Actions** (28 lines extracted):
+- [ ] Implement `closeTabs(tabIds)` - lines 237-240
+- [ ] Implement `pinTabs(tabIds)` - lines 242-246
+- [ ] Implement `unpinTabs(tabIds)` - lines 248-252
+- [ ] Implement `muteTabs(tabIds)` - lines 254-258
+- [ ] Implement `unmuteTabs(tabIds)` - lines 260-264
+- [ ] Add unit tests for simple actions
+
+**Complex Action** (90 lines extracted):
+- [ ] Implement `moveTabsToWindow(tabIds, options)` - lines 321-411
+  - [ ] Preserve group metadata before move
+  - [ ] Handle new window creation
+  - [ ] Handle existing window move
+  - [ ] Restore window focus after operation
+  - [ ] Recreate groups in target window
+- [ ] Add comprehensive tests for move action
+- [ ] **CRITICAL**: Test window focus restoration
+  - [ ] Test: Move to new window → verify original window still focused
+  - [ ] Test: Move grouped tab → verify group recreated correctly
+  - [ ] Test: Move to existing window → verify focus restored
+
+**Expected**:
+- API: `moveTabsToWindow([tabId], { windowId, preserveGroup })`
+- Must preserve EXACT behavior (no modifications during extraction)
+- Returns: `{ success, moved: [tabIds], windowId, newWindow, regrouped }`
+
+### 6.2 Update engine.v2.services.js ⚠️
+
+**File**: `lib/engine.v2.services.js`
+
+#### Step 1: Add Service Imports
+- [ ] Import TabActionsService functions
+- [ ] Import BookmarkService
+- [ ] Import parseDuration from time.js
+
+#### Step 2: Fix Critical Bug - Add Group Action
+- [ ] Add `case 'group'` to executeAction switch
+- [ ] Call groupTabs service with proper options
+- [ ] Test that group actions in rules now work
+
+#### Step 3: Replace executeAction Switch Statement
+- [ ] Replace close action (lines 237-240) with service call
+- [ ] Replace pin action (lines 242-246) with service call
+- [ ] Replace unpin action (lines 248-252) with service call
+- [ ] Replace mute action (lines 254-258) with service call
+- [ ] Replace unmute action (lines 260-264) with service call
+- [ ] Replace bookmark action (lines 288-319) with service call
+- [ ] Replace move action (lines 321-411) with service call
+- [ ] Keep snooze action (already uses service) ✅
+- [ ] Keep suspend action (already uses service) ✅
+
+#### Step 4: Handle Dry-Run at Engine Level
+- [ ] Add dry-run check BEFORE calling services
+- [ ] Return preview without executing if dryRun=true
+- [ ] Services should NOT know about dry-run mode
+
+#### Step 5: Delete Inline Implementations
+- [ ] Delete parseDuration helper (lines 421-431)
+- [ ] Delete all inline Chrome API calls
+- [ ] Verify no business logic remains in engine
+
+**Expected Results**:
+- Engine: 574 → ~465 lines (-109 lines of business logic)
+- executeAction: 184 lines → ~40 lines of orchestration
+- No Chrome API calls remain in engine
+
+### 6.3 Testing & Validation ⚠️
+
+**Unit Tests**:
+- [ ] time.js - parseDuration with all edge cases
+- [ ] BookmarkService - bookmark creation, folder lookup
+- [ ] TabActionsService - all simple actions
+- [ ] TabActionsService - move action with focus management
+
+**Integration Tests**:
+- [ ] Update `tests/engine.test.js` for new service calls
+- [ ] Verify all action types work through engine
+- [ ] Test dry-run mode shows previews
+- [ ] Test error handling for each action
+
+**Test Runner Scenarios**:
+- [ ] Run all 9 scenarios in `lib/test-mode/test-mode.js`
+- [ ] Verify all pass with v2 engine
+- [ ] Compare before/after behavior
+- [ ] Ensure no regressions
+
+**Production Testing**:
+- [ ] Extension loads without errors
+- [ ] **CRITICAL**: Test group action in rules (was completely broken)
+- [ ] Test move action preserves groups
+- [ ] Test move action restores window focus
+- [ ] Test bookmark action creates folders
+- [ ] Test all simple actions (close, pin, mute)
+- [ ] Verify dry-run mode works
+- [ ] `npm test` passes all suites
+
+### 6.4 Rollback Plan ⚠️
+
+**If Move Action Behavior Changes**:
+- [ ] Keep original implementation commented in git history
+- [ ] Document exact differences in behavior
+- [ ] Decision: Revert service or update tests to match new behavior
+- [ ] Monitor user reports for 1 week after deployment
+
+**Success Criteria**:
+- [ ] All services created with tests
+- [ ] Engine delegates ALL actions to services
+- [ ] Group action now works (critical bug fixed)
+- [ ] All 9 Test Runner scenarios pass
+- [ ] No Chrome API calls in engine
+- [ ] Window focus restored correctly after move
+- [ ] No console errors
+- [ ] No user reports of broken functionality
+
+**Rollback Trigger**:
+- Move action changes window focus behavior unexpectedly
+- Group action breaks (worse than before)
+- Performance regression > 100ms
+- Console errors in production
+
+---
+
+**Estimated Time**: 4-6 hours total
+**Risk Level**: MEDIUM-LOW (revised from LOW by architecture guardian)
+**Critical**: Move action window focus management must be preserved exactly
+
+**Implementation Order** (guardian recommended):
+1. time.js (lowest risk)
+2. BookmarkService (clear extraction)
+3. TabActionsService (simple first, complex last)
+4. Update engine (add group case, replace inline calls)
 
 ---
 
