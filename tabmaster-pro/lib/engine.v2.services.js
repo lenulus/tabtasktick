@@ -11,6 +11,9 @@ import * as SnoozeService from '../services/execution/SnoozeService.js';
 import * as SuspensionService from '../services/execution/SuspensionService.js';
 import { validateActionList, sortActionsByPriority } from './action-validator.js';
 import { groupTabs } from '../services/execution/groupTabs.js';
+import { closeTabs, pinTabs, unpinTabs, muteTabs, unmuteTabs, moveTabsToWindow } from '../services/execution/TabActionsService.js';
+import { bookmarkTabs } from '../services/execution/BookmarkService.js';
+import { parseDuration } from './utils/time.js';
 
 /**
  * Run all enabled rules against the current context
@@ -227,207 +230,77 @@ export async function executeActions(actions, tabs, context, dryRun = false) {
 
 /**
  * Execute a single action on a tab
- * Simplified to just handle basic tab operations
+ * Delegates all actions to services - engine only handles orchestration and dry-run
  */
 async function executeAction(action, tab, context, dryRun) {
   const actionType = action.action || action.type;
 
+  // Handle dry-run mode at engine level (services don't know about dry-run)
+  if (dryRun) {
+    return {
+      success: true,
+      dryRun: true,
+      action: actionType,
+      tabId: tab.id,
+      details: { preview: true }
+    };
+  }
+
+  // Delegate all actions to services
   switch (actionType) {
     case 'close':
-      if (!dryRun && context.chrome?.tabs) {
-        await context.chrome.tabs.remove(tab.id);
-      }
-      return { success: true, details: { closed: tab.id } };
+      return await closeTabs([tab.id]);
 
     case 'pin':
-      if (!dryRun && context.chrome?.tabs) {
-        await context.chrome.tabs.update(tab.id, { pinned: true });
-      }
-      return { success: true, details: { pinned: tab.id } };
+      return await pinTabs([tab.id]);
 
     case 'unpin':
-      if (!dryRun && context.chrome?.tabs) {
-        await context.chrome.tabs.update(tab.id, { pinned: false });
-      }
-      return { success: true, details: { unpinned: tab.id } };
+      return await unpinTabs([tab.id]);
 
     case 'mute':
-      if (!dryRun && context.chrome?.tabs) {
-        await context.chrome.tabs.update(tab.id, { muted: true });
-      }
-      return { success: true, details: { muted: tab.id } };
+      return await muteTabs([tab.id]);
 
     case 'unmute':
-      if (!dryRun && context.chrome?.tabs) {
-        await context.chrome.tabs.update(tab.id, { muted: false });
-      }
-      return { success: true, details: { unmuted: tab.id } };
+      return await unmuteTabs([tab.id]);
 
     case 'suspend':
     case 'discard':
-      if (!dryRun) {
-        const result = await SuspensionService.suspendTabs([tab.id], action.params);
-        if (result.errors.length > 0) {
-          return { success: false, error: result.errors[0].error };
-        }
-        if (result.skipped.length > 0) {
-          return { success: false, error: 'Tab was skipped (active, pinned, or audible)' };
-        }
+      const result = await SuspensionService.suspendTabs([tab.id], action.params);
+      if (result.errors.length > 0) {
+        return { success: false, error: result.errors[0].error };
+      }
+      if (result.skipped.length > 0) {
+        return { success: false, error: 'Tab was skipped (active, pinned, or audible)' };
       }
       return { success: true, details: { suspended: tab.id } };
 
     case 'snooze':
       const duration = parseDuration(action.for || '1h');
       const snoozeUntil = Date.now() + duration;
-
-      if (!dryRun && SnoozeService) {
-        await SnoozeService.snoozeTabs([tab.id], snoozeUntil, `rule: ${context.ruleName || 'v2_rule'}`);
-      }
+      await SnoozeService.snoozeTabs([tab.id], snoozeUntil, `rule: ${context.ruleName || 'v2_rule'}`);
       return { success: true, details: { snoozed: tab.id, until: new Date(snoozeUntil).toISOString() } };
 
+    case 'group':
+      // CRITICAL BUG FIX: Group action was imported but not in switch statement!
+      return await groupTabs([tab.id], {
+        name: action.name,
+        byDomain: action.by === 'domain' || action.group_by === 'domain',
+        createIfMissing: action.createIfMissing !== false,
+        windowId: tab.windowId // Ensure grouping in correct window
+      });
+
     case 'bookmark':
-      // TODO: Move to BookmarkService
-      if (!dryRun && context.chrome?.bookmarks) {
-        let parentId = '2'; // Default: Other Bookmarks
-
-        // If 'to' folder is specified, find or create it
-        if (action.to) {
-          try {
-            const bookmarks = await context.chrome.bookmarks.search({ title: action.to });
-            const folder = bookmarks.find(b => !b.url); // Find folder (not URL bookmark)
-            if (folder) {
-              parentId = folder.id;
-            } else {
-              // Folder doesn't exist, create it in Other Bookmarks
-              const newFolder = await context.chrome.bookmarks.create({
-                parentId: '2',
-                title: action.to
-              });
-              parentId = newFolder.id;
-            }
-          } catch (error) {
-            console.warn('Failed to find/create bookmark folder:', action.to, error);
-          }
-        }
-
-        await context.chrome.bookmarks.create({
-          parentId,
-          title: tab.title,
-          url: tab.url
-        });
-      }
-      return { success: true, details: { bookmarked: tab.id } };
+      return await bookmarkTabs([tab.id], { folder: action.to });
 
     case 'move':
-      if (!dryRun && context.chrome?.tabs && context.chrome?.windows) {
-        const windowId = action.windowId || action.to;
-        const preserveGroup = action.preserveGroup !== false; // Default to true
-
-        if (!windowId) {
-          return { success: false, error: 'Move action requires windowId parameter' };
-        }
-
-        // Store original group info before moving
-        const originalGroupId = tab.groupId;
-        let groupTitle = null;
-        let groupColor = null;
-
-        if (originalGroupId && originalGroupId !== -1 && preserveGroup) {
-          try {
-            const group = await context.chrome.tabGroups.get(originalGroupId);
-            groupTitle = group.title;
-            groupColor = group.color;
-          } catch (e) {
-            // Group might not exist anymore
-          }
-        }
-
-        // Handle "new" window creation
-        if (windowId === 'new') {
-          // Store original focused window
-          const currentWindow = await context.chrome.windows.getCurrent();
-          const originalFocusedWindowId = currentWindow.id;
-
-          const newWindow = await context.chrome.windows.create({
-            tabId: tab.id,
-            focused: false
-          });
-
-          // Re-group if needed
-          if (groupTitle && preserveGroup) {
-            // Focus the new window to create group correctly
-            await context.chrome.windows.update(newWindow.id, { focused: true });
-
-            const newGroupId = await context.chrome.tabs.group({
-              tabIds: [tab.id]
-            });
-            await context.chrome.tabGroups.update(newGroupId, {
-              title: groupTitle,
-              color: groupColor
-            });
-
-            // Restore original focus
-            await context.chrome.windows.update(originalFocusedWindowId, { focused: true });
-          }
-
-          return {
-            success: true,
-            details: { moved: tab.id, windowId: newWindow.id, newWindow: true, regrouped: !!groupTitle }
-          };
-        }
-
-        // Move to existing window
-        await context.chrome.tabs.move(tab.id, {
-          windowId: parseInt(windowId),
-          index: -1
-        });
-
-        // Re-group if needed
-        if (groupTitle && preserveGroup) {
-          // Store original focused window
-          const currentWindow = await context.chrome.windows.getCurrent();
-          const originalFocusedWindowId = currentWindow.id;
-
-          // CRITICAL: Focus the target window first, otherwise Chrome creates group in focused window
-          await context.chrome.windows.update(parseInt(windowId), { focused: true });
-
-          const newGroupId = await context.chrome.tabs.group({
-            tabIds: [tab.id]
-          });
-          await context.chrome.tabGroups.update(newGroupId, {
-            title: groupTitle,
-            color: groupColor
-          });
-
-          // Restore original focus
-          await context.chrome.windows.update(originalFocusedWindowId, { focused: true });
-        }
-
-        return {
-          success: true,
-          details: { moved: tab.id, windowId: parseInt(windowId), newWindow: false, regrouped: !!groupTitle }
-        };
-      }
-      return { success: true, details: { moved: tab.id } };
+      return await moveTabsToWindow([tab.id], {
+        windowId: action.windowId || action.to,
+        preserveGroup: action.preserveGroup !== false
+      });
 
     default:
       return { success: false, error: `Unknown action: ${actionType}` };
   }
-}
-
-/**
- * Parse duration string into milliseconds
- */
-function parseDuration(duration) {
-  if (typeof duration === 'number') return duration;
-  if (typeof duration !== 'string') return 0;
-
-  const units = { m: 60 * 1000, h: 60 * 60 * 1000, d: 24 * 60 * 60 * 1000 };
-  const match = duration.match(/^(\d+)([mhd])$/);
-  if (!match) return 0;
-
-  const [, num, unit] = match;
-  return parseInt(num) * units[unit];
 }
 
 // Re-export for backward compatibility

@@ -16,6 +16,7 @@ export const chromeMock = {
   },
   
   tabGroups: {
+    get: jest.fn(() => Promise.resolve()),
     update: jest.fn(() => Promise.resolve()),
     query: jest.fn(() => Promise.resolve([])),
     TAB_GROUP_ID_NONE: -1
@@ -23,6 +24,7 @@ export const chromeMock = {
   
   windows: {
     get: jest.fn(() => Promise.resolve()),
+    getCurrent: jest.fn(() => Promise.resolve({ id: 1 })),
     getAll: jest.fn(() => Promise.resolve([])),
     create: jest.fn(() => Promise.resolve({ id: 1 })),
     update: jest.fn(() => Promise.resolve())
