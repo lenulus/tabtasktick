@@ -1358,7 +1358,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           const exportResult = await ExportImportService.exportData(
             request.options,
             state,
-            state.tabTimeData
+            tabTimeData
           );
           sendResponse(exportResult);
           break;
@@ -1808,7 +1808,7 @@ async function exportFromContextMenu(scope, windowId = null) {
     const exportResult = await ExportImportService.exportData(
       options,
       state,
-      state.tabTimeData
+      tabTimeData
     );
 
     if (exportResult.success) {
