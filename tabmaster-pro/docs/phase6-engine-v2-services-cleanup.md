@@ -417,23 +417,44 @@ async function executeAction(action, tab, context, dryRun) {
 
 ## Risks and Mitigations
 
+### Overall Risk Level: MEDIUM-LOW (revised from LOW)
+
+**Architecture Guardian Assessment**: While only touching one file reduces risk, the move action has 90 lines of complex window focus management that requires careful preservation.
+
 ### Risk #1: Breaking Group Actions
+**Severity**: LOW (actually fixing a bug)
 **Mitigation**:
 - Group actions are currently BROKEN (not in switch)
 - Adding them can only improve situation
 - Test extensively with grouping rules
+- Compare behavior with existing groupTabs service calls
 
 ### Risk #2: Move Action Behavior Change
+**Severity**: MEDIUM-HIGH (complex window focus orchestration)
 **Mitigation**:
-- Extract exact same logic to service
-- No behavior changes, just moved
-- Service has same focus management, group preservation
+- Extract EXACT same logic to service (no modifications)
+- Preserve all window focus management sequence
+- Service must handle: group preservation, focus restoration, new window creation
+- **Critical Test Cases**:
+  - Move tab to new window → verify focus returns to original window
+  - Move grouped tab → verify group is recreated in target window
+  - Move to existing window → verify focus restored after grouping
+- **Rollback Plan**: Keep original implementation commented until proven stable
 
 ### Risk #3: Service API Mismatches
+**Severity**: LOW-MEDIUM
 **Mitigation**:
 - Design services to match current behavior exactly
+- All services return consistent format: `{ success, results?, error?, details? }`
 - Add compatibility wrappers if needed
 - Comprehensive tests before deploying
+
+### Risk #4: Window Focus Regression
+**Severity**: MEDIUM (new risk identified by guardian)
+**Mitigation**:
+- Add explicit test for focus restoration after move
+- Test sequence: Original window A focused → Move tab to window B → Verify window A still focused
+- Monitor user reports for focus-related issues after deployment
 
 ---
 
@@ -456,29 +477,45 @@ async function executeAction(action, tab, context, dryRun) {
 
 Based on revised scope (only v2.services engine):
 
-### Severity: MEDIUM → LOW
+### Final Assessment: **APPROVE WITH MODIFICATIONS**
 
-**Reduced Risk**:
-- Only touching ONE engine file
-- Other engines deprecated, can ignore
-- Much smaller scope than original plan
+**Risk Level**: MEDIUM-LOW (revised from LOW)
+- Only touching ONE engine file ✅
+- Other engines deprecated, can ignore ✅
+- Move action has complex window focus management ⚠️
 
-**Remaining Issues**:
-- ❌ CRITICAL: Group action missing (easy fix)
-- ❌ HIGH: Move action inline (90 lines to extract)
-- ⚠️ MEDIUM: Bookmark TODO (31 lines to extract)
-- ⚠️ LOW: Simple actions inline (28 lines to extract)
+**Critical Findings**:
+- ❌ **CRITICAL**: Group action missing from switch (verified - completely broken)
+- ❌ **HIGH**: Move action has 90 lines of complex inline logic
+- ⚠️ **MEDIUM**: Bookmark has 31 lines inline with TODO comment
+- ⚠️ **LOW**: Simple actions (close/pin/mute) use inline Chrome API
 
-**Recommendation**: **APPROVE - PROCEED WITH PHASE 6.1**
+**Architectural Compliance**:
+- ✅ Services-First: Plan properly extracts ALL business logic
+- ✅ No Duplication: Eliminates ALL inline Chrome API calls
+- ✅ Separation of Concerns: Engine → orchestration, Services → execution
+- ✅ Explicit Parameters: Dry-run handled at engine level (correct)
+- ✅ Critical Bug Fix: Group action IS missing (verified)
 
-This is now a straightforward refactor:
-1. Create 3 small services (~250 lines total)
-2. Update 1 engine file (574 → 465 lines)
-3. Fix critical bug (group action missing)
-4. Extract business logic to services
+**Required Modifications**:
+1. ✅ Update risk level from LOW to MEDIUM-LOW
+2. ✅ Add window focus restoration test cases
+3. ✅ Add rollback plan for move action
+4. ✅ Ensure consistent service return format: `{ success, results?, error?, details? }`
 
-**Estimated Time**: 4-6 hours for complete implementation
-**Risk Level**: LOW (only touching v2 engine, others deprecated)
+**Implementation Order** (guardian recommended):
+1. Create time.js utility (lowest risk)
+2. Create BookmarkService (clear extraction)
+3. Create TabActionsService (start simple, then complex move action)
+4. Update engine (add group case, replace inline with services)
+
+**Recommendation**: **PROCEED WITH PHASE 6.1**
+
+This refactor is architecturally sound and fixes a critical bug. The focused scope (one file) is manageable, though move action complexity warrants careful testing.
+
+**Estimated Time**: 4-6 hours (realistic)
+**Actual Risk**: MEDIUM-LOW (not LOW)
+**Critical**: Move action window focus management must be preserved exactly
 
 ---
 
