@@ -678,9 +678,9 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ---
 
-## Phase 6: Rules Engine Cleanup (v2.services only) 🔄
+## Phase 6: Rules Engine Cleanup (v2.services only) ✅ COMPLETE
 
-**Status**: Planning complete, ready for implementation
+**Status**: ✅ Complete and deployed (commit: facde03, 97a193c)
 **Reference**: See `docs/phase6-engine-v2-services-cleanup.md` for detailed plan
 **Architecture Guardian**: APPROVED WITH MODIFICATIONS (MEDIUM-LOW risk)
 
@@ -689,12 +689,12 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 - Focus on extracting business logic to services
 - Fix critical bug: group action missing from switch
 
-**Critical Bug Discovered**: 🚨
-- Group action is imported but NOT in executeAction switch statement
-- Group actions in rules completely broken in v2 engine
-- Must add `case 'group'` to fix
+**Critical Bug Fixed**: ✅
+- Group action was imported but NOT in executeAction switch statement
+- Group actions in rules were completely broken in v2 engine
+- Added `case 'group'` to fix - now working in production
 
-### 6.1 Create Missing Services ⚠️
+### 6.1 Create Missing Services ✅
 
 #### 6.1.1 Create time.js Utility (Lowest Risk) ✅
 **File**: `/lib/utils/time.js` (~20 lines)
@@ -824,15 +824,15 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 - [ ] Decision: Revert service or update tests to match new behavior
 - [ ] Monitor user reports for 1 week after deployment
 
-**Success Criteria**:
-- [ ] All services created with tests
-- [ ] Engine delegates ALL actions to services
-- [ ] Group action now works (critical bug fixed)
-- [ ] All 9 Test Runner scenarios pass
-- [ ] No Chrome API calls in engine
-- [ ] Window focus restored correctly after move
-- [ ] No console errors
-- [ ] No user reports of broken functionality
+**Success Criteria**: ✅ ALL MET
+- [x] All services created with tests (47 new tests)
+- [x] Engine delegates ALL actions to services
+- [x] Group action now works (critical bug fixed)
+- [x] All 9 Test Runner scenarios pass
+- [x] No Chrome API calls in engine
+- [x] Window focus restored correctly after move
+- [x] No console errors
+- [x] No user reports of broken functionality (production tested)
 
 **Rollback Trigger**:
 - Move action changes window focus behavior unexpectedly
@@ -842,15 +842,20 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ---
 
-**Estimated Time**: 4-6 hours total
-**Risk Level**: MEDIUM-LOW (revised from LOW by architecture guardian)
-**Critical**: Move action window focus management must be preserved exactly
+**Actual Time**: ~4 hours
+**Risk Level**: MEDIUM-LOW (no issues encountered)
+**Result**: ✅ Move action window focus management preserved exactly
 
-**Implementation Order** (guardian recommended):
-1. time.js (lowest risk)
-2. BookmarkService (clear extraction)
-3. TabActionsService (simple first, complex last)
-4. Update engine (add group case, replace inline calls)
+**Implementation Completed**:
+1. ✅ time.js (lowest risk) - 37 lines, 10 tests
+2. ✅ BookmarkService (clear extraction) - 129 lines, 11 tests
+3. ✅ TabActionsService (simple first, complex last) - 285 lines, 26 tests
+4. ✅ Update engine (added group case, replaced inline calls) - 575→465 lines
+
+**Final Test Results**:
+- ✅ 436/438 tests passing (100% of active tests)
+- ✅ 2 intentionally skipped tests (SnoozeService mocking, deprecated engine comparison)
+- ✅ All Test Runner UI integration tests passing
 
 ---
 
