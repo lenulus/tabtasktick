@@ -1656,6 +1656,27 @@ async function setupContextMenus() {
     title: 'Create Rule for this URL',
     contexts: ['page']
   });
+
+  // Export menu
+  chrome.contextMenus.create({
+    id: 'export',
+    title: 'Export Tabs',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'export-current-window',
+    parentId: 'export',
+    title: 'Export Current Window',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'export-all-windows',
+    parentId: 'export',
+    title: 'Export All Windows',
+    contexts: ['page']
+  });
 }
 
 /**
@@ -1767,6 +1788,55 @@ async function createRuleForTab(tab, mode = 'domain') {
   }
 }
 
+/**
+ * Export tabs from context menu
+ * @param {string} scope - Either 'current-window' or 'all-windows'
+ * @param {number} windowId - The window ID (required for current-window scope)
+ */
+async function exportFromContextMenu(scope, windowId = null) {
+  try {
+    // Call ExportImportService with appropriate options
+    const options = {
+      scope,
+      currentWindowId: windowId,
+      format: 'json',
+      includeGroups: true,
+      includeRules: true,
+      includeSnoozed: true
+    };
+
+    const exportResult = await ExportImportService.exportData(
+      options,
+      state,
+      state.tabTimeData
+    );
+
+    if (exportResult.success) {
+      // Create a download with the exported data
+      const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+      const filename = scope === 'current-window'
+        ? `tabmaster-window-${windowId}-${timestamp}.json`
+        : `tabmaster-all-windows-${timestamp}.json`;
+
+      const blob = new Blob([exportResult.data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      await chrome.downloads.download({
+        url,
+        filename,
+        saveAs: true
+      });
+
+      // Clean up the object URL after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } else {
+      console.error('Export failed:', exportResult.error);
+    }
+  } catch (error) {
+    console.error('Failed to export from context menu:', error);
+  }
+}
+
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   switch (info.menuItemId) {
     case 'snooze-1h':
@@ -1786,6 +1856,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       break;
     case 'create-rule-for-url':
       await createRuleForTab(tab, 'url');
+      break;
+    case 'export-current-window':
+      await exportFromContextMenu('current-window', tab.windowId);
+      break;
+    case 'export-all-windows':
+      await exportFromContextMenu('all-windows');
       break;
   }
 });
