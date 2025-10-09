@@ -860,15 +860,76 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ---
 
-## Phase 7: Dead Code Removal ❌
+## Phase 7: Dead Code Removal 🔄
 
-### 7.1 Unused Files ❌
-- [ ] Audit all files in `/lib/`
-- [ ] Check for unused imports
-- [ ] Delete preview.js if truly unused
-- [ ] Clean up test files
+**Status**: Ready for implementation
+**Reference**: See `docs/phase7-dead-code-removal.md` for detailed plan
+**Architecture Guardian**: APPROVED with MANDATORY modifications (complete engine removal)
+**Risk Level**: MEDIUM
 
-### 7.2 Commented Code ❌
+**Scope**: Remove 1,706+ lines of deprecated engine code
+- Delete 4 deprecated engines (engine.js, engine.v1.legacy.js, 2x command pattern engines)
+- Fix or delete broken session.js import
+- Update all imports to v2-services only
+- Simplify engineLoader.js to single engine
+
+**Critical Finding**: session.js has broken import (RulesEngine class doesn't exist)
+**Guardian Mandate**: "Dead code is deleted immediately" - NO exceptions for "validation"
+
+### 7.1 Unused Files (Dead Engine Removal) ⚠️
+
+#### Step 1: Investigate session.js
+- [ ] Check if session manager is used in production
+- [ ] Decision: Fix broken import OR delete entire feature
+- [ ] Test session manager if keeping it
+
+#### Step 2: Update All Imports to v2-services
+- [ ] Update background-integrated.js (remove v1 imports)
+- [ ] Update session/session.js (fix RulesEngine or delete)
+- [ ] Update test-engine-sandbox.js (remove v1)
+- [ ] Update tests/engine.test.js (import from v2-services)
+- [ ] Update tests/engine-compatibility.test.js (remove v1)
+- [ ] Update tests/disabled-rule-test.test.js (import from v2-services)
+- [ ] Update tests/utils/test-helpers.js (import from v2-services)
+
+#### Step 3: Run Tests (Pre-Deletion Validation)
+- [ ] Run `npm test` - verify 436/438 passing
+- [ ] Test extension loads
+- [ ] Verify background service worker runs
+- [ ] Success criteria: No imports from engines to be deleted
+
+#### Step 4: Delete Deprecated Engines
+- [ ] Delete `lib/engine.js` (644 lines - V1 original)
+- [ ] Delete `lib/engine.v1.legacy.js` (644 lines - V1 copy)
+- [ ] Delete `lib/engine.v2.command.full.js` (~200 lines - experimental)
+- [ ] Delete `lib/engine.v2.command.compact.js` (~200 lines - experimental)
+- [ ] Total: ~1,706+ lines removed
+
+#### Step 5: Update engineLoader.js
+- [ ] Remove 'v1-legacy' from ENGINES object
+- [ ] Keep only 'v2-services'
+- [ ] Update descriptions
+
+#### Step 6: Run Final Tests
+- [ ] Run `npm test` - verify 436/438 passing
+- [ ] Test extension loads
+- [ ] Run all 9 Test Runner scenarios
+- [ ] Verify no console errors
+
+#### Step 7: Commit & Push
+- [ ] Commit with detailed message
+- [ ] Push to remote
+
+**Expected Results**:
+- 1,706+ lines deleted
+- Zero imports of deprecated engines
+- engineLoader.js supports only v2-services
+- All tests passing
+- No regressions
+
+### 7.2 Commented Code & TODO Cleanup ❌
+**Status**: Deferred until 7.1 complete
+
 - [ ] Remove all commented-out code blocks
 - [ ] Remove TODO comments for completed work
 - [ ] Remove console.logs from production code
