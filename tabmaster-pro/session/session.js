@@ -1032,13 +1032,13 @@ async function handleSnapshot() {
 }
 
 async function handleImport() {
-  // TODO: Implement import
-  console.log('Import session');
+  // Redirect to dashboard which has comprehensive import UI
+  window.open('../dashboard/dashboard.html#import', '_blank');
 }
 
 async function handleExport() {
-  // TODO: Implement export
-  console.log('Export session');
+  // Redirect to dashboard which has comprehensive export UI
+  window.open('../dashboard/dashboard.html#export', '_blank');
 }
 
 // Create session snapshot
