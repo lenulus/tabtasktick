@@ -260,7 +260,7 @@ describe('normalizeUrlForDuplicates - Real-world scenarios', () => {
     // All should normalize to the same URL (same video)
     expect(norm1).toBe(norm2);
     expect(norm2).toBe(norm3);
-    expect(norm1).toContain('v=dqw4w9wgxcq'); // Lowercased
+    expect(norm1).toContain('v=dQw4w9WgXcQ'); // Case preserved in query params
   });
 
   it('should handle Google search with multiple tracking params', () => {
