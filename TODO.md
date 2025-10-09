@@ -562,22 +562,154 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
 
 ---
 
-## Phase 5: Export/Import Service ❌
+## Phase 5: Export/Import Service 🔄
 
-### 5.1 Discovery ❌
-- [ ] Find all export implementations
-- [ ] Find all import implementations
-- [ ] Document formats and differences
+**Status**: Ready for implementation (lessons learned documented)
+**Reference**: See `docs/phase5-export-import-lessons.md` for detailed analysis
+**Branch**: `feature/export-import-service` has working implementation (commit 0aefb44)
 
-### 5.2 Service Implementation ❌
-- [ ] Create `/services/ExportImportService.js`
-- [ ] Single format definition
-- [ ] Handle all data types (tabs, groups, rules, settings)
+**Background**: Feature branch created `ExportImportService.js` (608 lines) that consolidates
+all export/import logic. Main branch has ~817 lines in background + 390 lines in dashboard
+(duplicate implementations). Need to extract service and remove duplicates following Phase 1-4 pattern.
 
-### 5.3 Update Callers ❌
-- [ ] Dashboard export/import
-- [ ] Session manager export/import
-- [ ] Popup export button
+### 5.1 Discovery ✅
+- [x] Found all export/import implementations
+- [x] Documented current state in lessons learned doc
+- [x] Analyzed feature branch implementation
+- [x] Identified architectural issues and solutions
+
+**Findings**:
+- **Background**: 817 lines of export/import logic (lines 1878-2695)
+  - `exportData()`, `buildJSONExport()`, `buildCSVExport()`, `buildMarkdownExport()`
+  - `importData()` - monolithic 443-line function
+  - Global state coupling: `state.rules`, `state.tabTimeData`, `state.settings`
+- **Dashboard**: 390 lines in `export-import.js` - complete duplicate UI implementation
+  - `handleExport()`, `handleImport()`, file upload, drag & drop
+  - Download blob creation (duplicate of background logic)
+- **Popup**: 72 lines - partial duplicate (export only)
+  - `handleExport()` - simplified version
+- **Session Manager**: Stubbed TODO placeholders only (not implemented)
+- **Options Page**: References export/import but no implementation
+
+### 5.2 Extract Service from Feature Branch ⚠️
+- [ ] Switch to `feature/export-import-service` branch
+- [ ] Copy `services/ExportImportService.js` to main branch
+- [ ] Review for any merge conflicts with main
+- [ ] Verify SnoozeService import (should use `./execution/SnoozeService.js`)
+- [ ] Place in `/services/` directory (not nested, standalone service)
+
+**Service API** (from feature branch):
+- `exportData(tabs, windows, groups, options, state, tabTimeData)` - explicit parameters
+- `importData(data, options, context)` - explicit context parameter
+- `buildJSONExport(...)` - 129 lines
+- `buildCSVExport(...)` - 42 lines
+- `buildMarkdownExport(...)` - 162 lines
+- Helper functions: `getTimeAgo()`, `getTimeUntil()`, `getColorHex()`, etc.
+
+### 5.3 Refactor Service for Dependency Injection ⚠️
+- [ ] Review global state dependencies
+- [ ] Ensure all parameters are explicit (no hidden globals)
+- [ ] Add JSDoc comments for all functions
+- [ ] Consider splitting into smaller focused functions:
+  - [ ] `exportTabs()` - tab export logic
+  - [ ] `exportRules()` - rule export logic
+  - [ ] `exportSnoozed()` - snoozed tabs export
+  - [ ] `importTabs()` - tab import logic
+  - [ ] `importRules()` - rule import logic
+  - [ ] `importSnoozed()` - snoozed tabs import
+
+### 5.4 Update Background Service ⚠️
+- [ ] Import ExportImportService at top of `background-integrated.js`
+- [ ] Update `exportData` message handler (lines 1355-1358)
+  - [ ] Pass explicit parameters to service (tabs, windows, groups, state, etc.)
+  - [ ] Remove inline implementation
+- [ ] Update `importData` message handler (lines 1359-1362)
+  - [ ] Pass explicit context to service
+  - [ ] Remove inline implementation (lines 2253-2695)
+- [ ] **Delete old implementations**:
+  - [ ] Remove `exportData()` function (lines 1878-1911)
+  - [ ] Remove `buildJSONExport()` (lines 1913-2041)
+  - [ ] Remove `buildCSVExport()` (lines 2043-2084)
+  - [ ] Remove `buildMarkdownExport()` (lines 2086-2247)
+  - [ ] Remove `importData()` function (lines 2253-2695)
+  - [ ] Remove helper functions (getTimeAgo, getTimeUntil, etc.)
+- [ ] **Expected reduction**: ~787 lines removed from background
+
+### 5.5 Update Dashboard ⚠️
+- [ ] Verify `dashboard/export-import.js` uses message passing to background
+  - [ ] `handleExport()` should send `{ action: 'exportData', options }`
+  - [ ] `handleImport()` should send `{ action: 'importData', data, options }`
+- [ ] Remove any duplicate export/import business logic
+- [ ] Keep only UI interactions:
+  - [ ] File upload handling
+  - [ ] Drag & drop
+  - [ ] Download blob creation (keep - this is UI concern)
+  - [ ] Import preview UI
+  - [ ] Confirmation dialogs
+- [ ] **Expected reduction**: ~200 lines of business logic removed
+
+### 5.6 Update Popup ⚠️
+- [ ] Review `popup/popup.js` export implementation (lines ~72 total)
+- [ ] Ensure it uses message passing: `{ action: 'exportData', options }`
+- [ ] Remove any duplicate business logic
+- [ ] Keep only UI interactions (download trigger)
+- [ ] **Expected reduction**: ~50 lines removed
+
+### 5.7 Implement Session Manager Export/Import ⚠️
+- [ ] Replace TODO placeholders in `session/session.js`
+- [ ] `handleExport()` - redirect to dashboard or use message passing
+  - [ ] Option 1: `window.open('dashboard.html#export')` - reuse dashboard UI
+  - [ ] Option 2: Message to background + download (like popup)
+- [ ] `handleImport()` - redirect to dashboard or use message passing
+  - [ ] Option 1: `window.open('dashboard.html#import')` - reuse dashboard UI
+  - [ ] Option 2: File picker + message to background
+- [ ] **Decision**: Recommend Option 1 (reuse dashboard UI) for consistency
+- [ ] **Expected addition**: ~20 lines
+
+### 5.8 Update Options Page ⚠️
+- [ ] Check if `options/options.js` references export/import
+- [ ] If yes, ensure it redirects to dashboard or uses message passing
+- [ ] If no, remove any dead code references
+
+### 5.9 Testing & Validation ⚠️
+- [ ] Extension loads without errors
+- [ ] Background message handlers work
+- [ ] **Dashboard export**:
+  - [ ] JSON format exports correctly
+  - [ ] CSV format exports correctly
+  - [ ] Markdown format exports correctly
+  - [ ] All scope options work (current-window, all-windows)
+  - [ ] Include options work (rules, snoozed, settings, statistics)
+- [ ] **Dashboard import**:
+  - [ ] File upload works
+  - [ ] Drag & drop works
+  - [ ] Preview shows correct data
+  - [ ] Import scopes work (new-windows, current-window, replace-all)
+  - [ ] Partial failures report errors
+  - [ ] Window/group ID remapping works
+  - [ ] Rule import/merge works
+  - [ ] Snoozed tabs import works
+- [ ] **Popup export** works
+- [ ] **Session manager** export/import works (or redirects to dashboard)
+- [ ] Test with large datasets (200+ tabs, 50+ rules)
+- [ ] `npm test` passes (all suites)
+- [ ] No console errors in any surface
+
+### 5.10 Documentation & Cleanup ⚠️
+- [ ] Add JSDoc comments to ExportImportService
+- [ ] Update CLAUDE.md with service location
+- [ ] Remove dead code and imports
+- [ ] Update this TODO.md to mark complete
+- [ ] Create commit with detailed changelog
+
+**Estimated Time**: 4-6 hours for complete implementation
+**Expected Results**:
+- Remove ~1,279 lines of duplicate code
+- Add ~638 lines (service + integration)
+- **Net reduction: ~641 lines**
+- Single source of truth for export/import
+- Fully testable service layer
+- Consistent behavior across all surfaces
 
 ---
 
