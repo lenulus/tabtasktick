@@ -1805,32 +1805,32 @@ async function exportFromContextMenu(scope, windowId = null) {
       includeSnoozed: true
     };
 
-    const exportResult = await ExportImportService.exportData(
+    const exportData = await ExportImportService.exportData(
       options,
       state,
       tabTimeData
     );
 
-    if (exportResult.success) {
+    // ExportImportService returns the raw export data object, not {success, data}
+    if (exportData && !exportData.error) {
       // Create a download with the exported data
       const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
       const filename = scope === 'current-window'
         ? `tabmaster-window-${windowId}-${timestamp}.json`
         : `tabmaster-all-windows-${timestamp}.json`;
 
-      const blob = new Blob([exportResult.data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
+      const content = JSON.stringify(exportData, null, 2);
+
+      // Service workers can't use URL.createObjectURL, so we use data URL instead
+      const dataUrl = 'data:application/json;charset=utf-8,' + encodeURIComponent(content);
 
       await chrome.downloads.download({
-        url,
+        url: dataUrl,
         filename,
         saveAs: true
       });
-
-      // Clean up the object URL after a delay
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
     } else {
-      console.error('Export failed:', exportResult.error);
+      console.error('Export failed:', exportData?.error || 'Unknown error');
     }
   } catch (error) {
     console.error('Failed to export from context menu:', error);
