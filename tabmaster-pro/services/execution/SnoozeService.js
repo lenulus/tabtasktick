@@ -5,9 +5,23 @@
 
 // Service state
 let snoozedTabs = [];
+let isInitialized = false;
 const SNOOZE_STORAGE_KEY = 'snoozedTabs';
 const ALARM_PREFIX = 'snooze_wake_';
 const PERIODIC_ALARM_NAME = 'snooze_periodic_check';
+
+/**
+ * Ensures the service is initialized by loading from storage if needed.
+ * This handles service worker restarts where module state is reset.
+ */
+async function ensureInitialized() {
+  if (!isInitialized) {
+    const data = await chrome.storage.local.get(SNOOZE_STORAGE_KEY);
+    snoozedTabs = data[SNOOZE_STORAGE_KEY] || [];
+    isInitialized = true;
+    console.log(`SnoozeService lazy-initialized with ${snoozedTabs.length} snoozed tabs.`);
+  }
+}
 
 /**
  * Initializes the SnoozeService.
@@ -16,6 +30,7 @@ const PERIODIC_ALARM_NAME = 'snooze_periodic_check';
 export async function initialize() {
   const data = await chrome.storage.local.get(SNOOZE_STORAGE_KEY);
   snoozedTabs = data[SNOOZE_STORAGE_KEY] || [];
+  isInitialized = true;
   console.log(`SnoozeService initialized with ${snoozedTabs.length} snoozed tabs.`);
   await setupAlarms();
 }
@@ -28,6 +43,7 @@ export async function initialize() {
  * @returns {Promise<object[]>} The newly created snoozed tab objects.
  */
 export async function snoozeTabs(tabIds, snoozeUntil, reason = 'manual') {
+  await ensureInitialized();
   const newSnoozedTabs = [];
   const now = Date.now();
 
@@ -67,6 +83,7 @@ export async function snoozeTabs(tabIds, snoozeUntil, reason = 'manual') {
  * @returns {Promise<number[]>} The newly created chrome.tabs.Tab IDs.
  */
 export async function wakeTabs(snoozedTabIds, options = {}) {
+    await ensureInitialized();
     const { makeActive = false } = options;
     const newTabIds = [];
 
@@ -100,6 +117,7 @@ export async function wakeTabs(snoozedTabIds, options = {}) {
  * @returns {Promise<object[]>} An array of all snoozed tab objects.
  */
 export async function getSnoozedTabs() {
+  await ensureInitialized();
   return [...snoozedTabs];
 }
 
@@ -108,6 +126,7 @@ export async function getSnoozedTabs() {
  * @param {string} snoozedTabId - The ID of the snoozed tab to delete.
  */
 export async function deleteSnoozedTab(snoozedTabId) {
+  await ensureInitialized();
   const initialLength = snoozedTabs.length;
   snoozedTabs = snoozedTabs.filter(tab => tab.id !== snoozedTabId);
   if (snoozedTabs.length < initialLength) {
@@ -140,6 +159,7 @@ export async function rescheduleSnoozedTab(snoozedTabId, newSnoozeUntil) {
  * @param {object} alarm - The alarm that fired.
  */
 export async function handleAlarm(alarm) {
+  await ensureInitialized();
   if (alarm.name.startsWith(ALARM_PREFIX)) {
     const snoozedTabId = alarm.name.substring(ALARM_PREFIX.length);
     console.log(`Waking tab for alarm: ${alarm.name}`);
