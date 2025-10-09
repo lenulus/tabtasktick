@@ -9,17 +9,12 @@ const SNOOZE_STORAGE_KEY = 'snoozedTabs';
 const ALARM_PREFIX = 'snooze_wake_';
 const PERIODIC_ALARM_NAME = 'snooze_periodic_check';
 
-// Injected dependencies
-let chromeApi;
-
 /**
  * Initializes the SnoozeService.
  * Must be called once when the extension starts.
- * @param {object} injectedChromeApi - The chrome extension API object.
  */
-export async function initialize(injectedChromeApi) {
-  chromeApi = injectedChromeApi;
-  const data = await chromeApi.storage.local.get(SNOOZE_STORAGE_KEY);
+export async function initialize() {
+  const data = await chrome.storage.local.get(SNOOZE_STORAGE_KEY);
   snoozedTabs = data[SNOOZE_STORAGE_KEY] || [];
   console.log(`SnoozeService initialized with ${snoozedTabs.length} snoozed tabs.`);
   await setupAlarms();
@@ -38,7 +33,7 @@ export async function snoozeTabs(tabIds, snoozeUntil, reason = 'manual') {
 
   for (const tabId of tabIds) {
     try {
-      const tab = await chromeApi.tabs.get(tabId);
+      const tab = await chrome.tabs.get(tabId);
       const snoozedTab = {
         id: `snoozed_${now}_${tab.id}`,
         url: tab.url,
@@ -52,14 +47,14 @@ export async function snoozeTabs(tabIds, snoozeUntil, reason = 'manual') {
       };
       snoozedTabs.push(snoozedTab);
       newSnoozedTabs.push(snoozedTab);
-      chromeApi.alarms.create(`${ALARM_PREFIX}${snoozedTab.id}`, { when: snoozeUntil });
+      chrome.alarms.create(`${ALARM_PREFIX}${snoozedTab.id}`, { when: snoozeUntil });
     } catch (error) {
       console.error(`Could not find tab with ID ${tabId} to snooze.`, error);
     }
   }
 
   await saveSnoozedTabs();
-  await chromeApi.tabs.remove(tabIds);
+  await chrome.tabs.remove(tabIds);
 
   console.log(`Snoozed ${newSnoozedTabs.length} tabs until ${new Date(snoozeUntil).toLocaleString()}`);
   return newSnoozedTabs;
@@ -80,7 +75,7 @@ export async function wakeTabs(snoozedTabIds, options = {}) {
 
     for (const tab of tabsToWake) {
       try {
-        const newTab = await chromeApi.tabs.create({
+        const newTab = await chrome.tabs.create({
           url: tab.url,
           active: makeActive,
         });
@@ -88,7 +83,7 @@ export async function wakeTabs(snoozedTabIds, options = {}) {
           await restoreTabToGroup(newTab.id, tab.groupId);
         }
         newTabIds.push(newTab.id);
-        chromeApi.alarms.clear(`${ALARM_PREFIX}${tab.id}`);
+        chrome.alarms.clear(`${ALARM_PREFIX}${tab.id}`);
       } catch (error) {
         console.error(`Error waking tab ${tab.id}:`, error);
       }
@@ -116,7 +111,7 @@ export async function deleteSnoozedTab(snoozedTabId) {
   const initialLength = snoozedTabs.length;
   snoozedTabs = snoozedTabs.filter(tab => tab.id !== snoozedTabId);
   if (snoozedTabs.length < initialLength) {
-    chromeApi.alarms.clear(`${ALARM_PREFIX}${snoozedTabId}`);
+    chrome.alarms.clear(`${ALARM_PREFIX}${snoozedTabId}`);
     await saveSnoozedTabs();
     console.log(`Deleted snoozed tab: ${snoozedTabId}`);
   }
@@ -132,7 +127,7 @@ export async function rescheduleSnoozedTab(snoozedTabId, newSnoozeUntil) {
   const tabIndex = snoozedTabs.findIndex(tab => tab.id === snoozedTabId);
   if (tabIndex > -1) {
     snoozedTabs[tabIndex].snoozeUntil = newSnoozeUntil;
-    chromeApi.alarms.create(`${ALARM_PREFIX}${snoozedTabs[tabIndex].id}`, { when: newSnoozeUntil });
+    chrome.alarms.create(`${ALARM_PREFIX}${snoozedTabs[tabIndex].id}`, { when: newSnoozeUntil });
     await saveSnoozedTabs();
     console.log(`Rescheduled snoozed tab ${snoozedTabId} to ${new Date(newSnoozeUntil).toLocaleString()}`);
     return { ...snoozedTabs[tabIndex] };
@@ -161,7 +156,7 @@ export async function handleAlarm(alarm) {
  * Saves the current snoozed tabs array to local storage.
  */
 async function saveSnoozedTabs() {
-  return chromeApi.storage.local.set({ [SNOOZE_STORAGE_KEY]: snoozedTabs });
+  return chrome.storage.local.set({ [SNOOZE_STORAGE_KEY]: snoozedTabs });
 }
 
 /**
@@ -169,14 +164,14 @@ async function saveSnoozedTabs() {
  */
 async function setupAlarms() {
   // Create the fallback periodic alarm
-  chromeApi.alarms.create(PERIODIC_ALARM_NAME, {
+  chrome.alarms.create(PERIODIC_ALARM_NAME, {
     delayInMinutes: 5,
     periodInMinutes: 5,
   });
 
   // Re-create precise alarms for all snoozed tabs
   for (const tab of snoozedTabs) {
-    chromeApi.alarms.create(`${ALARM_PREFIX}${tab.id}`, { when: tab.snoozeUntil });
+    chrome.alarms.create(`${ALARM_PREFIX}${tab.id}`, { when: tab.snoozeUntil });
   }
   console.log(`Set up ${snoozedTabs.length} precise snooze alarms.`);
 }
@@ -203,9 +198,9 @@ async function restoreTabToGroup(newTabId, originalGroupId) {
     if (!originalGroupId) return;
     try {
       // Check if the group still exists
-      await chromeApi.tabGroups.get(originalGroupId);
+      await chrome.tabGroups.get(originalGroupId);
       // If it exists, add the tab to it
-      await chromeApi.tabs.group({ tabIds: [newTabId], groupId: originalGroupId });
+      await chrome.tabs.group({ tabIds: [newTabId], groupId: originalGroupId });
     } catch (error) {
       // Group likely doesn't exist anymore, which is fine.
       console.log(`Could not restore tab ${newTabId} to group ${originalGroupId}. Group may no longer exist.`);

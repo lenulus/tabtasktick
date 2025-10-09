@@ -314,7 +314,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   console.log('TabMaster Pro installed');
   await loadDomainCategories();
   await initializeExtension();
-  await SnoozeService.initialize(chrome);
+  await SnoozeService.initialize();
   await setupContextMenus();
   await loadSettings();
   await loadRules();
@@ -328,7 +328,7 @@ chrome.runtime.onStartup.addListener(async () => {
   await loadDomainCategories();
   await loadSettings();
   await loadRules();
-  await SnoozeService.initialize(chrome);
+  await SnoozeService.initialize();
   await loadActivityLog();
   await initializeTabTimeTracking();
   await initializeScheduler();
