@@ -64,9 +64,7 @@ describe('Engine Tests [V2 Services]', () => {
 
       const context = {
         tabs,
-        windows: [],
-        chrome: mockChrome,
-        idx: engine.buildIndices ? engine.buildIndices(tabs) : null
+        windows: []
       };
 
       // Test selectTabsMatchingRule
@@ -109,9 +107,7 @@ describe('Engine Tests [V2 Services]', () => {
 
       const context = {
         tabs,
-        windows: [],
-        chrome: mockChrome,
-        idx: engine.buildIndices ? engine.buildIndices(tabs) : null
+        windows: []
       };
 
       const result = await engine.runRules(rules, context, { dryRun: true });
@@ -181,9 +177,7 @@ describe('Engine Tests [V2 Services]', () => {
 
       const context = {
         tabs,
-        windows: [],
-        chrome: mockChrome,
-        idx: engine.buildIndices ? engine.buildIndices(tabs) : null
+        windows: []
       };
 
       if (engine.selectTabsMatchingRule) {

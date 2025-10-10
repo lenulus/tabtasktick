@@ -335,18 +335,18 @@ describe('Engine - executeActions', () => {
       { action: 'close' },
       { action: 'group', name: 'Test' } // Should not execute on closed tabs
     ];
-    
+
     chromeMock.tabs.remove.mockResolvedValue(undefined);
     chromeMock.tabGroups.query.mockResolvedValue([]);
     chromeMock.tabs.group.mockResolvedValue(100);
     chromeMock.tabGroups.update.mockResolvedValue({});
-    
-    const results = await executeActions(actions, tabs, { chrome: chromeMock }, false);
-    
+
+    const results = await executeActions(actions, tabs, {}, false);
+
     // Close action executed on both tabs
     const closeResults = results.filter(r => r.action === 'close');
     expect(closeResults).toHaveLength(2);
-    
+
     // Group action should not be executed since tabs were closed
     const groupResults = results.filter(r => r.action === 'group');
     expect(groupResults).toHaveLength(0);
@@ -367,25 +367,33 @@ describe('Engine - runRules', () => {
       createTab({ url: 'https://example.com?ref=test', id: 2 }),
       createTab({ url: 'https://github.com', category: 'dev', id: 3 })
     ];
-    
+
     const rules = [
       createRule({
         id: 'dedup',
         name: 'Remove Duplicates',
-        when: { is: ['tab.isDupe', true] },
-        then: [{ action: 'close' }]
+        when: {
+          all: [
+            { subject: 'isDupe', operator: 'equals', value: true }
+          ]
+        },
+        then: [{ type: 'close' }]
       }),
       createRule({
         id: 'group-dev',
         name: 'Group Dev',
-        when: { eq: ['tab.category', 'dev'] },
-        then: [{ action: 'group', name: 'Development' }]
+        when: {
+          all: [
+            { subject: 'category', operator: 'equals', value: 'dev' }
+          ]
+        },
+        then: [{ type: 'group', name: 'Development' }]
       })
     ];
-    
-    const context = { tabs, chrome: chromeMock };
+
+    const context = { tabs, windows: [] };
     const results = await runRules(rules, context, { dryRun: true });
-    
+
     expect(results.rules).toHaveLength(2);
     expect(results.totalMatches).toBe(2); // 1 dupe + 1 dev
     expect(results.totalActions).toBe(2);
@@ -502,7 +510,9 @@ describe('Engine - previewRule (via selectTabsMatchingRule)', () => {
 
 describe('Engine - Complex Scenarios', () => {
   beforeEach(() => {
+    global.chrome = chromeMock;
     resetChromeMocks();
+    jest.clearAllMocks();
   });
   
   test('should handle research explosion clamping', async () => {
@@ -532,6 +542,12 @@ describe('Engine - Complex Scenarios', () => {
 
     chromeMock.tabs.group.mockResolvedValue(100);
     chromeMock.tabGroups.update.mockResolvedValue({});
+    chromeMock.tabs.get.mockImplementation(tabId => Promise.resolve(tabs.find(t => t.id === tabId)));
+    chromeMock.tabGroups.query.mockResolvedValue([]);
+    chromeMock.windows.getAll.mockResolvedValue([{ id: 1, focused: true }]);
+    chromeMock.windows.update.mockResolvedValue({});
+    chromeMock.storage.local.set.mockResolvedValue({});
+    chromeMock.storage.local.get.mockResolvedValue({});
 
     const context = createTestContext(tabs);
     const results = await runRules([rule], context, { dryRun: false });
@@ -559,21 +575,13 @@ describe('Engine - Complex Scenarios', () => {
     });
 
     // Mock tabs.get for the service
-    chromeMock.tabs.get
-      .mockResolvedValueOnce(tabs[0])
-      .mockResolvedValueOnce(tabs[1]);
+    chromeMock.tabs.get.mockImplementation(tabId => Promise.resolve(tabs.find(t => t.id === tabId)));
 
-    // First call: No existing groups
-    chromeMock.tabGroups.query.mockResolvedValueOnce([]);
-    // Second call: Return the created group
-    chromeMock.tabGroups.query.mockResolvedValueOnce([
-      { id: 100, title: 'Gmail Session' }
-    ]);
-
-    chromeMock.tabs.group
-      .mockResolvedValueOnce(100) // First tab creates the group
-      .mockResolvedValueOnce({}); // Second tab adds to existing group
+    chromeMock.tabGroups.query.mockResolvedValue([]);
+    chromeMock.tabs.group.mockResolvedValue(100);
     chromeMock.tabGroups.update.mockResolvedValue({});
+    chromeMock.windows.getAll.mockResolvedValue([{ id: 1, focused: true }]);
+    chromeMock.windows.update.mockResolvedValue({});
 
     const context = createTestContext(tabs);
     const results = await runRules([rule], context, { dryRun: false });
