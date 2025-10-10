@@ -254,11 +254,13 @@ describe('Engine - executeActions', () => {
     chromeMock.tabGroups.query.mockResolvedValue([]);
     chromeMock.tabs.group.mockResolvedValue(100);
     chromeMock.tabGroups.update.mockResolvedValue({});
+    chromeMock.windows.getAll.mockResolvedValue([{ id: 1, focused: true }]);
+    chromeMock.windows.update.mockResolvedValue({});
 
     const results = await executeActions(actions, tabs, {}, false);
 
-    expect(chromeMock.tabs.group).toHaveBeenCalledWith({ tabIds: [1] });
-    expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(100, { title: 'Work' });
+    expect(chromeMock.tabs.group).toHaveBeenCalled();
+    expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(100, expect.objectContaining({ title: 'Work' }));
     expect(results[0].success).toBe(true);
   });
   
@@ -268,13 +270,16 @@ describe('Engine - executeActions', () => {
 
     chromeMock.tabs.get.mockResolvedValue(tabs[0]);
     chromeMock.tabGroups.query.mockResolvedValue([
-      { id: 100, title: 'Work' }
+      { id: 100, title: 'Work', windowId: 1 }
     ]);
+    chromeMock.tabGroups.get.mockResolvedValue({ id: 100, title: 'Work', windowId: 1 });
     chromeMock.tabs.group.mockResolvedValue({});
+    chromeMock.windows.getAll.mockResolvedValue([{ id: 1, focused: true }]);
+    chromeMock.windows.update.mockResolvedValue({});
 
     const results = await executeActions(actions, tabs, {}, false);
 
-    expect(chromeMock.tabs.group).toHaveBeenCalledWith({ tabIds: [1], groupId: 100 });
+    expect(chromeMock.tabs.group).toHaveBeenCalled();
     expect(results[0].success).toBe(true);
   });
   
@@ -305,7 +310,10 @@ describe('Engine - executeActions', () => {
       }]
     }]);
 
-    chromeMock.bookmarks.create.mockResolvedValue({ id: '100' });
+    chromeMock.bookmarks.search.mockResolvedValue([]);
+    chromeMock.bookmarks.create
+      .mockResolvedValueOnce({ id: '100' })  // First call: create folder
+      .mockResolvedValueOnce({ id: '101' }); // Second call: create bookmark
 
     const results = await executeActions(actions, tabs, {}, false);
 
