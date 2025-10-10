@@ -81,20 +81,14 @@ describe(`Engine Compatibility Tests [Testing: ${SELECTED_ENGINE}]`, () => {
         idx: engine.buildIndices ? engine.buildIndices(tabs) : null
       };
 
-      // Test evaluateRule if it exists
-      if (engine.evaluateRule) {
-        const matches = engine.evaluateRule(rule, context);
-        console.log(`[${SELECTED_ENGINE}] evaluateRule found ${matches.length} matches`);
-        expect(matches).toHaveLength(2);
-        expect(matches.map(t => t.id)).toEqual([1, 3]);
-      }
-
-      // Test selectTabsMatchingRule if it exists
+      // Test selectTabsMatchingRule
       if (engine.selectTabsMatchingRule) {
         const matches = await engine.selectTabsMatchingRule(rule, tabs);
         console.log(`[${SELECTED_ENGINE}] selectTabsMatchingRule found ${matches.length} matches`);
         expect(matches).toHaveLength(2);
         expect(matches.map(t => t.id)).toEqual([1, 3]);
+      } else {
+        console.log(`[${SELECTED_ENGINE}] does not have selectTabsMatchingRule, skipping`);
       }
     });
 
@@ -204,8 +198,8 @@ describe(`Engine Compatibility Tests [Testing: ${SELECTED_ENGINE}]`, () => {
         idx: engine.buildIndices ? engine.buildIndices(tabs) : null
       };
 
-      if (engine.evaluateRule) {
-        const matches = engine.evaluateRule(rule, context);
+      if (engine.selectTabsMatchingRule) {
+        const matches = await engine.selectTabsMatchingRule(rule, tabs);
         console.log(`[${SELECTED_ENGINE}] found ${matches.length} duplicate(s)`);
         // Should find at least one duplicate
         expect(matches.length).toBeGreaterThan(0);
@@ -214,49 +208,3 @@ describe(`Engine Compatibility Tests [Testing: ${SELECTED_ENGINE}]`, () => {
   });
 });
 
-// Comparison test that runs all engines
-describe('Engine Comparison Tests', () => {
-  test.skip('all engines should produce same results for basic rules', async () => {
-    const tabs = [
-      { id: 1, url: 'https://github.com/repo1', domain: 'github.com' },
-      { id: 2, url: 'https://google.com/search', domain: 'google.com' },
-      { id: 3, url: 'https://github.com/repo2', domain: 'github.com' }
-    ];
-
-    const rule = {
-      id: 'test',
-      name: 'Test rule',
-      enabled: true,
-      when: {
-        all: [
-          { eq: ['tab.domain', 'github.com'] }
-        ]
-      },
-      then: [
-        { action: 'pin' }
-      ]
-    };
-
-    const results = {};
-
-    for (const [name, engine] of Object.entries(engines)) {
-      if (engine.evaluateRule) {
-        const context = { tabs, windows: [], idx: engine.buildIndices?.(tabs) };
-        const matches = engine.evaluateRule(rule, context);
-        results[name] = matches.map(t => t.id).sort();
-      } else if (engine.selectTabsMatchingRule) {
-        const matches = await engine.selectTabsMatchingRule(rule, tabs);
-        results[name] = matches.map(t => t.id).sort();
-      }
-    }
-
-    console.log('Comparison results:', results);
-
-    // All engines should produce the same result
-    const allResults = Object.values(results);
-    const firstResult = allResults[0];
-    for (const result of allResults) {
-      expect(result).toEqual(firstResult);
-    }
-  });
-});

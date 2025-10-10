@@ -936,14 +936,120 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ---
 
-## Phase 8: Documentation ❌
+## Phase 8: Power User Features ❌
 
-### 8.1 Service Documentation ❌
+**Status**: Future milestone - after Phase 7 complete
+**Priority**: Medium - enhances workflow efficiency for power users
+
+### 8.1 Window-Scoped Operations ❌
+
+#### 8.1.1 Snooze Window (Context Menu)
+- [ ] Add "Snooze Window" to window context menu
+- [ ] Implementation:
+  - [ ] New service method: `snoozeWindow(windowId, duration)`
+  - [ ] Get all tabs in window: `chrome.tabs.query({ windowId })`
+  - [ ] Route through SnoozeService.snoozeTabs()
+  - [ ] Restore: Create new window, restore all tabs to it
+  - [ ] Preserve window properties (position, size, state)
+- [ ] UI: Duration picker in context menu submenu
+  - [ ] Quick options: 30m, 1h, 2h, Tomorrow
+  - [ ] Custom duration option
+- [ ] Testing:
+  - [ ] Test with 50+ tabs in window
+  - [ ] Verify window properties restored
+  - [ ] Test with grouped tabs (groups preserved)
+
+**Use Case**: "I have a work window with 30 tabs open, need to focus on personal stuff for a few hours, then restore the entire work context later"
+
+#### 8.1.2 De-Duplicate Scoped to Window
+- [ ] Add window scope option to duplicate detection
+- [ ] Implementation options:
+
+  **Option A: Context Menu**
+  - [ ] Add "Remove Duplicates in Window" to window context menu
+  - [ ] Calls `close-duplicates` action with window filter
+
+  **Option B: Rules with Per-Window Mode**
+  - [ ] Add `scope: 'window'` option to rules
+  - [ ] Rule only matches tabs in same window as triggering context
+  - [ ] Example:
+    ```javascript
+    {
+      when: { isDupe: true },
+      then: [{ action: 'close-duplicates', keep: 'oldest' }],
+      scope: 'window'  // Only dedupe within each window independently
+    }
+    ```
+
+  **Option C: Both**
+  - [ ] Context menu for manual operation
+  - [ ] Per-window mode for rules
+
+- [ ] Service updates:
+  - [ ] Update `selectTabs()` to support `windowId` filter
+  - [ ] Update `close-duplicates` to accept `windowScope` option
+  - [ ] Group duplicates per-window instead of globally
+
+**Use Case**: "I have work tabs and personal tabs in separate windows, both have duplicate GitHub tabs, but I want to only dedupe within each window (keep 1 GitHub tab per window, not 1 globally)"
+
+**Recommended**: Implement Option C (both context menu and rules support)
+
+### 8.2 Scheduled Export Snapshots ❌
+
+#### 8.2.1 Automatic Export Service
+- [ ] Create `/services/ScheduledExportService.js`
+- [ ] Features:
+  - [ ] Schedule exports: hourly, daily, weekly
+  - [ ] Configurable export format (JSON, CSV, Markdown)
+  - [ ] Configurable retention (keep last N snapshots)
+  - [ ] Auto-cleanup old snapshots
+  - [ ] Export location: Downloads folder with timestamped names
+
+#### 8.2.2 Chrome Alarms Integration
+- [ ] Use `chrome.alarms` API for scheduling
+- [ ] Alarm names: `snapshot-hourly`, `snapshot-daily`, `snapshot-weekly`
+- [ ] On alarm: trigger export via ExportImportService
+- [ ] Persist export history in `chrome.storage.local`
+
+#### 8.2.3 Settings UI
+- [ ] Add "Automatic Snapshots" section to Settings page
+- [ ] Options:
+  - [ ] Enable/disable scheduled exports
+  - [ ] Frequency: Off, Hourly, Daily, Weekly
+  - [ ] Format: JSON, CSV, Markdown
+  - [ ] Retention: Keep last 5/10/20/50 snapshots
+  - [ ] Export scope: All tabs, Active window only, Ungrouped tabs only
+- [ ] Display:
+  - [ ] Last snapshot time
+  - [ ] Next snapshot scheduled time
+  - [ ] Storage space used
+  - [ ] List of recent snapshots with restore button
+
+#### 8.2.4 Snapshot Management
+- [ ] View snapshot history
+- [ ] Restore from snapshot (via import)
+- [ ] Delete individual snapshots
+- [ ] Manual snapshot button (trigger immediate export)
+- [ ] Export snapshots to external location
+
+**Use Case**: "I want daily backups of my tabs in case I accidentally close something important or Chrome crashes"
+
+**Implementation Notes**:
+- Service worker persistence: Store schedule in chrome.storage.local
+- Use chrome.downloads.download() to save files
+- Filename format: `tabmaster-snapshot-2025-10-09-14-30.json`
+- Consider max storage limits (quota API)
+
+---
+
+## Phase 9: Documentation ❌
+
+### 9.1 Service Documentation ❌
 - [ ] Document each service API
 - [ ] Add JSDoc comments
 - [ ] Create service usage examples
 
-### 8.2 Update Architecture Docs ❌
+### 9.2 Update Architecture Docs ❌
 - [ ] Update CLAUDE.md with service list
 - [ ] Create service dependency diagram
 - [ ] Document data flow

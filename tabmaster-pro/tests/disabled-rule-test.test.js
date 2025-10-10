@@ -4,10 +4,11 @@
  */
 
 import { jest } from '@jest/globals';
-import { evaluateRule, previewRule, buildIndices, runRules } from '../lib/engine.js';
+import { selectTabsMatchingRule } from '../services/selection/selectTabs.js';
+import { runRules } from '../lib/engine.js';
 
 describe('Issue #1: Disabled Rules Testing', () => {
-  test('evaluateRule should work on disabled rules', () => {
+  test('evaluateRule should work on disabled rules', async () => {
     const rule = {
       id: 'test-rule',
       name: 'Test Disabled Rule',
@@ -27,13 +28,9 @@ describe('Issue #1: Disabled Rules Testing', () => {
       { id: 2, url: 'https://google.com', title: 'Google' }
     ];
 
-    const context = {
-      tabs,
-      windows: [],
-      idx: buildIndices(tabs)
-    };
+    const windows = [];
 
-    const matches = evaluateRule(rule, context);
+    const matches = await selectTabsMatchingRule(rule, tabs, windows);
 
     // Should match the example.com tab even though rule is disabled
     expect(matches).toHaveLength(1);
@@ -41,7 +38,7 @@ describe('Issue #1: Disabled Rules Testing', () => {
     expect(matches[0].url).toBe('https://example.com');
   });
 
-  test('previewRule should work on disabled rules', () => {
+  test('previewRule should work on disabled rules', async () => {
     const rule = {
       id: 'preview-test',
       name: 'Preview Disabled Rule',
@@ -61,21 +58,17 @@ describe('Issue #1: Disabled Rules Testing', () => {
       { id: 2, url: 'https://example.com', title: 'Example' }
     ];
 
-    const context = {
-      tabs,
-      windows: [],
-      idx: buildIndices(tabs)
-    };
+    const windows = [];
 
-    const preview = previewRule(rule, context);
+    const matches = await selectTabsMatchingRule(rule, tabs, windows);
 
     // Should preview the test.com tab even though rule is disabled
-    expect(preview.totalMatches).toBe(1);
-    expect(preview.matches).toHaveLength(1);
-    expect(preview.matches[0].id).toBe(1);
+    expect(matches.length).toBe(1);
+    expect(matches).toHaveLength(1);
+    expect(matches[0].id).toBe(1);
   });
 
-  test('enabled rules should still work normally', () => {
+  test('enabled rules should still work normally', async () => {
     const rule = {
       id: 'enabled-rule',
       name: 'Enabled Rule',
@@ -95,13 +88,9 @@ describe('Issue #1: Disabled Rules Testing', () => {
       { id: 2, url: 'https://example.com', title: 'Example' }
     ];
 
-    const context = {
-      tabs,
-      windows: [],
-      idx: buildIndices(tabs)
-    };
+    const windows = [];
 
-    const matches = evaluateRule(rule, context);
+    const matches = await selectTabsMatchingRule(rule, tabs, windows);
 
     // Should match the github.com tab
     expect(matches).toHaveLength(1);
@@ -145,7 +134,6 @@ describe('Issue #1: Disabled Rules Testing', () => {
     const context = {
       tabs,
       windows: [],
-      idx: buildIndices(tabs),
       chrome: {
         tabs: {
           remove: jest.fn().mockResolvedValue(undefined)
@@ -184,7 +172,6 @@ describe('Issue #1: Disabled Rules Testing', () => {
     const context = {
       tabs,
       windows: [],
-      idx: buildIndices(tabs),
       chrome: {
         tabs: {
           remove: jest.fn().mockResolvedValue(undefined)

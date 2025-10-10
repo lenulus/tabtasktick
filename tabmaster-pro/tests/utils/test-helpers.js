@@ -3,7 +3,7 @@
 import { chromeMock } from './chrome-mock.js';
 import { createTab, addTimeTracking } from './tab-factory.js';
 
-// Import buildIndices at the top level
+// Import buildIndices for tests that still need it (e.g., predicate.test.js)
 import { buildIndices } from '../../lib/engine.js';
 
 // Helper to create a test context with tabs, windows, and indices
@@ -12,31 +12,34 @@ export function createTestContext(tabs, windows = null, timeData = null) {
   if (!windows) {
     // Create windows based on unique windowIds in tabs
     const windowIds = [...new Set(tabs.map(t => t.windowId || 1))];
-    windows = windowIds.map(id => ({ 
-      id, 
-      tabCount: tabs.filter(t => (t.windowId || 1) === id).length 
+    windows = windowIds.map(id => ({
+      id,
+      tabCount: tabs.filter(t => (t.windowId || 1) === id).length
     }));
   }
-  
+
   // Ensure all tabs have windowId
   tabs.forEach(tab => {
     if (!tab.windowId) tab.windowId = 1;
   });
-  
-  // Build indices using the engine's function
+
+  // Build indices for tests that need them (predicate tests, etc.)
+  // V2's selectTabsMatchingRule() builds its own indices internally,
+  // but some tests (like predicate.test.js) test the predicate compiler
+  // directly and need the indices in the context
   const idx = buildIndices(tabs);
-  
+
   const context = {
     tabs,
     windows,
     idx
   };
-  
+
   // Add time data if provided
   if (timeData) {
     context.timeData = timeData;
   }
-  
+
   return context;
 }
 
