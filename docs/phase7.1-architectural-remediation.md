@@ -173,124 +173,208 @@ npm test -- tests/engine.test.js
 
 ---
 
-## Fix #2: Extract URL Utilities
+## Fix #2: Remove buildIndices and Migrate to SelectionService
 
 ### Priority: HIGH
-### Complexity: SIMPLE
-### Estimated Time: 45 mins
+### Complexity: MEDIUM
+### Estimated Time: 90 mins (revised from 45 mins)
 
 ### Current State
 
-**Location**: `/lib/engine.v2.services.js` lines 335-357 in `buildIndices` function
+**Problem**: Duplicate URL normalization implementations violate DRY principle
 
-**Duplicate Logic**:
-- `extractDomain(url)` - extracts hostname from URL
-- `normalizeUrl(url)` - removes tracking params, hash, lowercases
+**Location 1**: `/lib/engine.v2.services.js` lines 250-300 - `buildIndices` function
+- Simple normalization (removes utm_* params, hash, lowercase)
+- Used by 4 locations in background-integrated.js
+- Marked as deprecated but still actively used
 
-**Similar Logic Exists In**:
-- `/services/selection/selectTabs.js` - has its own URL normalization
+**Location 2**: `/services/selection/selectTabs.js` - `buildRuleContext` function
+- Sophisticated normalization (preserves YouTube `v`, Google `q`, etc.)
+- Production V2 implementation
+- Used by SelectionService
+
+**Current Usage of buildIndices**:
+- `background-integrated.js:478` - Manual rule execution
+- `background-integrated.js:602` - Rule preview
+- `background-integrated.js:699` - Execute all rules
+- `background-integrated.js:950` - Temporary rules (executeActionViaEngine)
+- `background-integrated.js:1351` - Test assertions (analyzeDuplicates)
 
 ### Target State
 
-**New File**: `/lib/utils/urlUtils.js` (~50 lines with tests)
+**Delete**: `buildIndices` from engine entirely
+**Migrate**: All background.js usage to SelectionService
+**Result**: Single source of truth for URL normalization
 
-**API Design**:
-```javascript
-/**
- * Extract domain from URL
- * @param {string} url - Full URL
- * @returns {string} Hostname without www
- */
-export function extractDomain(url)
+### Why This Approach?
 
-/**
- * Normalize URL for comparison
- * @param {string} url - Full URL
- * @returns {string} Normalized URL (no tracking params, no hash, lowercase)
- */
-export function normalizeUrl(url)
-
-/**
- * Generate duplicate detection key
- * @param {string} url - Full URL
- * @returns {string} Duplicate key for grouping
- */
-export function generateDupeKey(url)
-```
+1. **Services-First Architecture**: Background should use services, not deprecated engine functions
+2. **Single Source of Truth**: SelectionService `buildRuleContext` is the production implementation
+3. **Better Normalization**: SelectionService preserves important params (YouTube videos, Google searches)
+4. **Removes Dead Code**: Eliminates deprecated function that was kept for V1 compatibility
 
 ### Implementation Steps
 
-#### Step 1: Create Utilities (20 mins)
+#### Step 1: Audit buildIndices Usage (15 mins)
 
-1. Create `/lib/utils/urlUtils.js`
-2. Move `extractDomain` from engine.v2.services.js:335-343
-3. Move `normalizeUrl` from engine.v2.services.js:346-357
-4. Add `generateDupeKey` as alias to `normalizeUrl`
-5. Add JSDoc comments
-6. Export all functions
+Map all 5 usage locations in background-integrated.js:
+- Line 478: `getStatistics()` - needs tab indices
+- Line 602: `previewRule()` - needs context with indices
+- Line 699: `executeAllRules()` - needs context with indices
+- Line 950: `executeActionViaEngine()` - only for V1 check, can be removed
+- Line 1351: `analyzeDuplicates()` - test helper, needs dupeKey grouping
 
-#### Step 2: Add Utility Tests (15 mins)
+#### Step 2: Create Helper in Background (30 mins)
 
-Create `/tests/lib/utils/urlUtils.test.js`
-
-**Test Coverage**:
-- extractDomain: valid URLs, www removal, edge cases
-- normalizeUrl: tracking params, hash removal, case normalization
-- generateDupeKey: same as normalizeUrl
-
-**Example Test**:
+**Add to background-integrated.js**:
 ```javascript
-test('should extract domain without www', () => {
-  expect(extractDomain('https://www.example.com/path')).toBe('example.com');
-  expect(extractDomain('https://example.com')).toBe('example.com');
-});
+import { buildRuleContext } from './services/selection/selectTabs.js';
 
-test('should remove tracking params', () => {
-  const url = 'https://example.com?utm_source=test&id=123';
-  const normalized = normalizeUrl(url);
-  expect(normalized).not.toContain('utm_source');
-  expect(normalized).toContain('id=123');
-});
+/**
+ * Build context for engine execution
+ * Replaces deprecated buildIndices with SelectionService
+ */
+function buildContextForEngine(tabs, windows = null) {
+  // Use SelectionService to build context (adds dupeKey, domain, etc.)
+  const context = buildRuleContext(tabs, windows || []);
+
+  // Return structure compatible with old buildIndices format
+  return {
+    byDomain: context.byDomain,
+    byOrigin: context.byOrigin,
+    byDupeKey: context.byDupeKey,
+    byCategory: context.byCategory,
+    duplicates: context.duplicates,
+    domainCounts: context.domainCounts
+  };
+}
 ```
 
-#### Step 3: Update buildIndices (5 mins)
+#### Step 3: Update Background Usage (30 mins)
+
+**Replace all 5 buildIndices calls**:
+
+1. **Line 478** (getStatistics):
+   ```javascript
+   // OLD
+   const idx = buildIndices(tabs);
+
+   // NEW
+   const idx = buildContextForEngine(tabs);
+   ```
+
+2. **Line 602** (previewRule):
+   ```javascript
+   // OLD
+   const idx = buildIndices(tabs);
+
+   // NEW
+   const idx = buildContextForEngine(tabs);
+   ```
+
+3. **Line 699** (executeAllRules):
+   ```javascript
+   // OLD
+   const idx = buildIndices(tabs);
+
+   // NEW
+   const idx = buildContextForEngine(tabs);
+   ```
+
+4. **Line 950** (executeActionViaEngine):
+   ```javascript
+   // OLD
+   if (buildIndices && typeof buildIndices === 'function') {
+     const filteredTabs = allTabs.filter(t => tabIds.includes(t.id));
+     context.idx = buildIndices(filteredTabs);
+   }
+
+   // NEW
+   // Remove entire block - V2 doesn't need idx in context
+   // SelectionService adds dupeKey directly to tabs
+   ```
+
+5. **Line 1351** (analyzeDuplicates):
+   ```javascript
+   // OLD
+   const { buildIndices: buildIndicesForTest } = getEngine();
+   const testIndices = buildIndicesForTest(testTabs);
+
+   // NEW
+   const testIndices = buildContextForEngine(testTabs);
+   ```
+
+#### Step 4: Remove buildIndices from Engine (5 mins)
 
 **File**: `/lib/engine.v2.services.js`
 
-**Changes**:
-1. Add import:
-   ```javascript
-   import { extractDomain, normalizeUrl } from '../utils/urlUtils.js';
-   ```
+**Delete lines 250-300**:
+- Remove entire `buildIndices` function
+- Remove `extractDomain` helper
+- Remove `normalizeUrl` helper
 
-2. Replace inline functions (lines 335-357) with imported functions
+**Update evaluateRule** (line 311):
+```javascript
+// OLD
+context.idx = buildIndices(context.tabs);
 
-3. Keep the deprecated warning
+// NEW
+// Remove line - evaluateRule is deprecated anyway
+```
 
-**Expected reduction**: No line count change (just replaces inline with imports)
+#### Step 5: Update getEngine() (5 mins)
 
-#### Step 4: Run Tests (5 mins)
+**File**: `background-integrated.js` line 17-23
+
+```javascript
+// OLD
+return {
+  runRules: engine.runRules,
+  previewRule: engine.previewRule,
+  buildIndices: engine.buildIndices,
+  executeActions: engine.executeActions
+};
+
+// NEW
+return {
+  runRules: engine.runRules,
+  previewRule: engine.previewRule,
+  executeActions: engine.executeActions
+};
+```
+
+#### Step 6: Run Tests (5 mins)
 
 ```bash
 npm test
-npm test -- tests/lib/utils/urlUtils.test.js
 ```
 
 **Success Criteria**:
-- All tests passing
-- buildIndices still works (backward compatibility)
-- No duplicate implementations
+- All 410 tests passing
+- No imports of buildIndices remain
+- Background functions work correctly
+- Duplicate detection uses SelectionService normalization
 
-### Risk Assessment: LOW
+### Risk Assessment: MEDIUM
 
 **What Could Break**:
-- buildIndices output format changes
-- URL normalization differences
+- Background statistics calculations
+- Rule preview functionality
+- Execute all rules functionality
+- Test assertions in analyzeDuplicates
 
 **Mitigation**:
-- Extract exact logic (no modifications)
-- Tests verify same output
+- SelectionService `buildRuleContext` returns same structure
+- Tabs get dupeKey added by SelectionService (same as before)
+- Test in browser before committing
 - Easy rollback (single commit)
+
+**Testing Required**:
+- ✅ Popup "Close Duplicates" button
+- ✅ Dashboard statistics display
+- ✅ Rule preview in Rules page
+- ✅ Execute all rules functionality
+- ✅ Test Runner assertions
 
 ---
 
@@ -342,8 +426,8 @@ const rule = {
 
 | Component | Target Coverage |
 |-----------|----------------|
-| closeDuplicates.js | 100% |
-| urlUtils.js | 100% |
+| closeDuplicates.js | 100% ✅ |
+| buildRuleContext (SelectionService) | Maintain 95%+ |
 | engine.v2.services.js | Maintain 95%+ |
 
 ---
@@ -353,16 +437,17 @@ const rule = {
 ### Recommended Sequence
 
 ```
-1. Fix #1: DuplicateService (2 hours)
-   ├─ Create service file
-   ├─ Add tests
-   ├─ Update engine
-   └─ Verify tests pass
+1. Fix #1: DuplicateService (2 hours) ✅ COMPLETE
+   ├─ Create service file ✅
+   ├─ Add tests ✅
+   ├─ Update engine ✅
+   └─ Verify tests pass ✅
 
-2. Fix #2: URL Utilities (45 mins)
-   ├─ Create utilities file
-   ├─ Add tests
-   ├─ Update buildIndices
+2. Fix #2: Remove buildIndices (90 mins)
+   ├─ Create buildContextForEngine helper in background
+   ├─ Replace 5 buildIndices calls
+   ├─ Delete buildIndices from engine
+   ├─ Update getEngine()
    └─ Verify tests pass
 
 3. Final Testing (30 mins)
@@ -434,12 +519,13 @@ git checkout -b hotfix/restore-stable
 
 ### Success Metrics
 
-| Metric | Before | Target |
-|--------|--------|--------|
-| Engine LOC | 460 | ~380 |
-| Duplicate implementations | 2 | 0 |
-| Test coverage | 99.2% | >99% |
-| Architectural violations | 2 | 0 |
+| Metric | Before | After Fix #1 | Target (After Fix #2) |
+|--------|--------|--------------|----------------------|
+| Engine LOC | 460 | 384 ✅ | ~330 |
+| Duplicate implementations | 2 | 1 | 0 |
+| Test coverage | 99.2% | 99.5% ✅ | >99% |
+| Architectural violations | 2 | 1 | 0 |
+| closeDuplicates tests | 0 | 14 ✅ | 14 |
 
 ---
 
