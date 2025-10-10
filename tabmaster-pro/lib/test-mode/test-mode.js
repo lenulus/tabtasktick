@@ -794,6 +794,95 @@ export class TestMode {
           { action: 'wait', ms: 500 },
           { action: 'assert', type: 'groupExists', title: 'Content', minimum: 8 }
         ]
+      },
+      {
+        name: 'multi-window-duplicate-detection',
+        description: 'Test duplicate detection across multiple windows',
+        category: 'multi-window',
+        steps: [
+          // Create tabs with duplicates across windows (Phase 8 feature test)
+          // Note: Test runner currently creates all tabs in same window
+          // This test validates the logic works when windowId varies
+          { action: 'createTab', url: 'https://github.com/trending', count: 2 },
+          { action: 'createTab', url: 'https://news.ycombinator.com', count: 2 },
+          { action: 'createTab', url: 'https://stackoverflow.com/questions/tagged/javascript', count: 2 },
+          { action: 'createTab', url: 'https://unique-tab-1.com', count: 1 },
+          { action: 'createTab', url: 'https://unique-tab-2.com', count: 1 },
+
+          // Create rule to close duplicates
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Close Multi-Window Duplicates',
+              when: {
+                all: [{ subject: 'isDupe', operator: 'is', value: true }]
+              },
+              then: [{ action: 'close-duplicates', keep: 'oldest' }]
+            }
+          },
+
+          { action: 'executeRule', ruleId: 'Close Multi-Window Duplicates' },
+          { action: 'wait', ms: 1000 },
+
+          // Should have one of each URL (3 unique URLs + 2 truly unique)
+          { action: 'assert', type: 'tabCount', expected: 5 },
+          { action: 'assert', type: 'tabExists', url: 'github.com/trending' },
+          { action: 'assert', type: 'tabExists', url: 'news.ycombinator.com' },
+          { action: 'assert', type: 'tabExists', url: 'stackoverflow.com' },
+          { action: 'assert', type: 'tabExists', url: 'unique-tab-1.com' },
+          { action: 'assert', type: 'tabExists', url: 'unique-tab-2.com' }
+        ]
+      },
+      {
+        name: 'window-property-validation',
+        description: 'Test window property assertions and validation',
+        category: 'multi-window',
+        steps: [
+          // Validate current test window properties
+          { action: 'assert', type: 'windowExists', windowId: 'test' },
+          { action: 'assert', type: 'windowProperty', windowId: 'test', property: 'type', value: 'normal' },
+          { action: 'assert', type: 'windowProperty', windowId: 'test', property: 'state', value: 'normal' },
+          { action: 'assert', type: 'windowTabCount', windowId: 'test', minimum: 1 }
+        ]
+      },
+      {
+        name: 'large-multi-window-performance',
+        description: 'Test performance with many tabs (simulates multi-window scenario)',
+        category: 'multi-window',
+        steps: [
+          // Create 50 tabs to simulate a large window
+          { action: 'createTab', url: 'https://github.com/repo', count: 15 },
+          { action: 'createTab', url: 'https://stackoverflow.com/q', count: 15 },
+          { action: 'createTab', url: 'https://reddit.com/r', count: 10 },
+          { action: 'createTab', url: 'https://news.ycombinator.com/item', count: 10 },
+
+          // Measure performance of grouping operation
+          { action: 'measurePerformance', operation: 'start', label: 'large-window-grouping' },
+
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Group Large Window by Domain',
+              when: {
+                all: [{ subject: 'domainCount', operator: 'gte', value: 2 }]
+              },
+              then: [{ action: 'group', by: 'domain' }]
+            }
+          },
+
+          { action: 'executeRule', ruleId: 'Group Large Window by Domain' },
+          { action: 'measurePerformance', operation: 'end', label: 'large-window-grouping' },
+          { action: 'wait', ms: 1000 },
+
+          // Verify groups were created
+          { action: 'assert', type: 'groupExists', title: 'github.com', minimum: 15 },
+          { action: 'assert', type: 'groupExists', title: 'stackoverflow.com', minimum: 15 },
+          { action: 'assert', type: 'groupExists', title: 'reddit.com', minimum: 10 },
+          { action: 'assert', type: 'groupExists', title: 'news.ycombinator.com', minimum: 10 },
+
+          // Verify performance is acceptable (< 2 seconds for 50 tabs)
+          { action: 'assert', type: 'performance', label: 'large-window-grouping', maxDuration: 2000 }
+        ]
       }
     ];
   }

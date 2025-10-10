@@ -29,7 +29,10 @@ export class Assertions {
       triggerScheduled: this.assertTriggerScheduled.bind(this),
       groupCount: this.assertGroupCount.bind(this),
       tabNotExists: this.assertTabNotExists.bind(this),
-      bookmarkExists: this.assertBookmarkExists.bind(this)
+      bookmarkExists: this.assertBookmarkExists.bind(this),
+      windowExists: this.assertWindowExists.bind(this),
+      windowProperty: this.assertWindowProperty.bind(this),
+      windowTabCount: this.assertWindowTabCount.bind(this)
     };
   }
 
@@ -875,6 +878,128 @@ export class Assertions {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
     if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
     return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+  }
+
+  /**
+   * Assert window exists
+   */
+  async assertWindowExists(params) {
+    const { windowId } = params;
+    const resolvedWindowId = windowId === 'test' ? this.testMode.testWindow?.id : windowId;
+
+    if (!resolvedWindowId) {
+      return {
+        passed: false,
+        message: 'Window ID not resolved (test window may not exist)'
+      };
+    }
+
+    try {
+      const window = await chrome.windows.get(resolvedWindowId);
+      return {
+        passed: true,
+        message: `Window ${resolvedWindowId} exists`,
+        actual: window
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Window ${resolvedWindowId} does not exist: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Assert window property has expected value
+   */
+  async assertWindowProperty(params) {
+    const { windowId, property, value } = params;
+    const resolvedWindowId = windowId === 'test' ? this.testMode.testWindow?.id : windowId;
+
+    if (!resolvedWindowId) {
+      return {
+        passed: false,
+        message: 'Window ID not resolved (test window may not exist)'
+      };
+    }
+
+    try {
+      const window = await chrome.windows.get(resolvedWindowId);
+      const actualValue = this.getNestedProperty(window, property);
+      const passed = actualValue === value;
+
+      return {
+        passed,
+        actual: actualValue,
+        expected: value,
+        message: passed
+          ? `Window ${resolvedWindowId} ${property} is ${value}`
+          : `Window ${resolvedWindowId} ${property} is ${actualValue}, expected ${value}`
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Failed to check window property: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Assert window tab count
+   */
+  async assertWindowTabCount(params) {
+    const { windowId, expected, minimum, maximum } = params;
+    const resolvedWindowId = windowId === 'test' ? this.testMode.testWindow?.id : windowId;
+
+    if (!resolvedWindowId) {
+      return {
+        passed: false,
+        message: 'Window ID not resolved (test window may not exist)'
+      };
+    }
+
+    try {
+      const tabs = await chrome.tabs.query({ windowId: resolvedWindowId });
+      const actual = tabs.length;
+
+      let passed = true;
+      let condition = '';
+
+      if (expected !== undefined) {
+        passed = actual === expected;
+        condition = `equals ${expected}`;
+      } else if (minimum !== undefined && maximum !== undefined) {
+        passed = actual >= minimum && actual <= maximum;
+        condition = `between ${minimum} and ${maximum}`;
+      } else if (minimum !== undefined) {
+        passed = actual >= minimum;
+        condition = `>= ${minimum}`;
+      } else if (maximum !== undefined) {
+        passed = actual <= maximum;
+        condition = `<= ${maximum}`;
+      }
+
+      return {
+        passed,
+        actual,
+        expected: expected || { minimum, maximum },
+        message: passed
+          ? `Window ${resolvedWindowId} has ${actual} tabs (${condition})`
+          : `Window ${resolvedWindowId} has ${actual} tabs, expected ${condition}`
+      };
+    } catch (error) {
+      return {
+        passed: false,
+        message: `Failed to count window tabs: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Get nested property from object using dot notation
+   */
+  getNestedProperty(obj, path) {
+    return path.split('.').reduce((current, prop) => current?.[prop], obj);
   }
 
   /**
