@@ -14,23 +14,60 @@ This phase maintains the services-first architecture and zero-violation standard
 
 ## Architecture Review Summary
 
-An architectural review was conducted on 2025-10-10. Key findings:
+Two architectural reviews conducted on 2025-10-10:
 
-### ✅ Architectural Strengths
+### Review #1: Initial Phase 8 Plans
+
+**✅ Architectural Strengths:**
 - Strong service-first foundation in place
 - Clear separation between selection and execution services
 - Existing `selectTabs()` already supports `windowId` filtering
 - Consistent patterns for service methods
 
-### 🚨 Critical Issues Identified & Resolved in This Plan
-1. **Window Properties Storage**: Window metadata (position, size, state) must NOT be stored in SnoozeService (tab-centric). Solution: Create dedicated WindowSnoozeService.
-2. **Missing WindowService**: Need single source of truth for window operations. Solution: Create `/services/execution/WindowService.js`.
-3. **Context Menu Handler Location**: Handlers must be THIN and delegate immediately to services. Solution: Define clear boundaries in background.js.
+**🚨 Critical Issues Identified & Resolved:**
+1. **Window Properties Storage**: Window metadata must NOT be stored in SnoozeService. Solution: Create dedicated storage.
+2. **Missing WindowService**: Need single source of truth. Solution: Create `/services/execution/WindowService.js`.
+3. **Context Menu Handler Location**: Handlers must be THIN. Solution: Define clear boundaries in background.js.
 
-### 📋 Testing Gap Identified
-- **No multi-window test infrastructure exists**
-- Need window test utilities and multi-window test scenarios
+**📋 Testing Gap Identified:**
+- No multi-window test infrastructure exists
 - Must build test infrastructure BEFORE implementing features
+
+### Review #2: Service-to-Service Dependencies
+
+**Key Discovery:** `ExportImportService.js` already contains robust window creation/restoration logic (lines 348-485)
+
+**Question:** Should WindowService depend on ExportImportService to reuse this logic?
+
+**✅ Architectural Decision: YES - Service dependencies are acceptable**
+
+**Precedent Found:**
+- `ExportImportService` already imports and uses `SnoozeService` (line 2, 181, 533)
+- This establishes that service-to-service dependencies ARE acceptable in this codebase
+
+**Dependency Guidelines Established:**
+
+✅ **ALLOWED:**
+- Execution → Execution (same layer) - e.g., WindowService → ExportImportService
+- Execution → Selection (for filtering needs)
+- Selection → Selection (same layer)
+
+❌ **FORBIDDEN:**
+- Selection → Execution (wrong direction)
+- Circular dependencies
+- Cross-layer violations
+
+**Benefits of Reusing ExportImportService:**
+- DRY principle - no duplicate window creation code
+- Battle-tested logic for window/tab restoration
+- Maintains single source of truth
+- Follows existing architectural patterns
+- Significantly simplifies Phase 8.1 implementation
+
+**Impact on Implementation:**
+- Phase 8.1 is now SIMPLER - reuse existing window creation logic
+- WindowService becomes a coordination layer, not reimplementation
+- Estimated time reduced from 6-8 hours to 4-6 hours
 
 ---
 
@@ -279,11 +316,17 @@ const MULTI_WINDOW_TESTS = {
 ## Phase 8.1: WindowService + Basic Operations
 
 **Priority**: HIGH
-**Estimated Time**: 6-8 hours
+**Estimated Time**: 4-6 hours (REDUCED - reusing ExportImportService)
 **Depends On**: Phase 8.0 (test infrastructure)
 
 ### Overview
-Create the WindowService as the single source of truth for all window-level operations. This service coordinates with existing services (SnoozeService, SelectionService, etc.) but owns all window-specific logic.
+Create the WindowService as the coordination layer for window-level operations. This service reuses ExportImportService's battle-tested window creation/restoration logic and coordinates with SnoozeService for tab management.
+
+**Key Simplification:** Instead of reimplementing window creation, WindowService delegates to ExportImportService's existing `importData()` function, which already handles:
+- Window creation with metadata preservation
+- Tab restoration with proper window assignment
+- Group restoration
+- Batch operations with error handling
 
 ### Architecture
 
@@ -296,18 +339,23 @@ Create the WindowService as the single source of truth for all window-level oper
                          ▼
 ┌─────────────────────────────────────────────────────────┐
 │              WindowService (NEW)                         │
-│  - snoozeWindow()                                       │
-│  - restoreWindow()                                      │
-│  - getWindowMetadata()                                  │
-│  - deduplicateWindow()                                  │
-└────────┬───────────────────┬────────────────────────────┘
-         │                   │
-         ▼                   ▼
-┌────────────────┐   ┌──────────────────┐
-│ SnoozeService  │   │ SelectionService │
-│ (existing)     │   │ (existing)       │
-└────────────────┘   └──────────────────┘
+│  - snoozeWindow()     - Coordinates snooze               │
+│  - restoreWindow()    - Delegates to ExportImportService │
+│  - deduplicateWindow() - Window-scoped deduplication     │
+│  - getWindowStats()   - Window information               │
+└────────┬──────────────────┬────────────────────────────┘
+         │                  │
+         ▼                  ▼
+┌────────────────┐   ┌──────────────────────┐
+│ SnoozeService  │   │ ExportImportService  │
+│ (existing)     │   │ (existing - REUSE!)  │
+└────────────────┘   └──────────────────────┘
 ```
+
+**Service Dependency:** WindowService → ExportImportService
+- **Allowed:** Both are execution services (same layer)
+- **Benefit:** Reuses 137 lines of tested window creation logic
+- **Precedent:** ExportImportService → SnoozeService already exists
 
 ### File: `/services/execution/WindowService.js`
 
@@ -315,16 +363,20 @@ Create the WindowService as the single source of truth for all window-level oper
 /**
  * WindowService
  *
- * Single source of truth for window-level operations.
- * Coordinates with other services but owns window-specific logic.
+ * Coordinates window-level operations by delegating to existing services.
  *
- * Architecture:
- * - Execution service (performs actions on windows)
- * - Delegates tab operations to existing services
- * - Stores window metadata separately from tab data
+ * Dependencies:
+ * - ExportImportService: Reuses window creation/restoration logic
+ * - SnoozeService: Tab snoozing and metadata
+ * - SelectionService: Window-scoped tab selection
+ *
+ * This service maintains a single source of truth by delegating
+ * complex window operations to ExportImportService rather than
+ * duplicating window creation logic.
  */
 
-import { snoozeTabs, restoreSnoozedTabs } from './SnoozeService.js';
+import { importData } from '../ExportImportService.js';
+import { snoozeTabs, getSnoozedTabs } from './SnoozeService.js';
 import { selectTabs } from '../selection/selectTabs.js';
 import { closeDuplicates } from './closeDuplicates.js';
 
@@ -441,8 +493,13 @@ export async function snoozeWindow(windowId, duration, options = {}) {
 /**
  * Restore snoozed window
  *
- * Creates new window with stored metadata, then delegates
- * tab restoration to SnoozeService.
+ * Delegates to ExportImportService's importData() which handles:
+ * - Window creation with metadata preservation
+ * - Tab restoration with proper window assignment
+ * - Group restoration
+ * - Batch operations and error handling
+ *
+ * This reuses 137 lines of battle-tested window creation logic.
  *
  * @param {string} snoozeId - Window snooze ID
  * @returns {Promise<Object>} - Result with new window ID and restored tabs
@@ -462,46 +519,53 @@ export async function restoreWindow(snoozeId) {
     throw new Error(`No snoozed tabs found for window: ${snoozeId}`);
   }
 
-  // 3. Create new window with stored properties
-  const newWindow = await chrome.windows.create({
-    left: windowMeta.left,
-    top: windowMeta.top,
-    width: windowMeta.width,
-    height: windowMeta.height,
-    state: windowMeta.state,
-    type: windowMeta.type,
-    focused: true,
-    url: snoozedTabs[0].url // Chrome requires at least one URL
-  });
+  // 3. Format data for ExportImportService
+  // This matches the structure ExportImportService expects
+  const importPayload = {
+    session: {
+      windows: [{
+        id: `w${windowMeta.windowId}`,
+        windowId: windowMeta.windowId,
+        state: windowMeta.state,
+        type: windowMeta.type,
+        focused: true
+      }],
+      tabs: snoozedTabs.map(tab => ({
+        id: `t${tab.id}`,
+        windowId: `w${windowMeta.windowId}`,
+        url: tab.url,
+        title: tab.title,
+        pinned: tab.pinned || false,
+        groupId: tab.groupId || null
+      })),
+      groups: [] // Groups handled separately if needed
+    }
+  };
 
-  // 4. Get the first tab (created with window)
-  const firstTab = newWindow.tabs[0];
-
-  // 5. Restore remaining tabs to new window
-  const restoredTabs = await restoreSnoozedTabs(
-    snoozedTabs.map(t => t.id),
-    { targetWindowId: newWindow.id }
+  // 4. Delegate to ExportImportService
+  // This handles all window creation, tab restoration, and error handling
+  const result = await importData(
+    importPayload,
+    {
+      scope: 'new-windows',  // Create new window with metadata
+      importGroups: true     // Restore tab groups if present
+    },
+    {}, // state (not needed for window restoration)
+    null, // loadRules (not needed)
+    null  // scheduler (not needed)
   );
 
-  // 6. Remove the placeholder first tab if needed
-  if (snoozedTabs.length > 1) {
-    await chrome.tabs.remove(firstTab.id);
+  // 5. Clean up metadata after successful restoration
+  if (result.success) {
+    await deleteWindowMetadata(snoozeId);
   }
-
-  // 7. Restore window state if not 'normal'
-  if (windowMeta.state !== 'normal') {
-    await chrome.windows.update(newWindow.id, {
-      state: windowMeta.state
-    });
-  }
-
-  // 8. Clean up metadata
-  await deleteWindowMetadata(snoozeId);
 
   return {
-    windowId: newWindow.id,
-    restoredTabs,
-    metadata: windowMeta
+    windowId: result.imported.windows > 0 ? 'new window created' : null,
+    tabCount: result.imported.tabs,
+    groupCount: result.imported.groups,
+    metadata: windowMeta,
+    errors: result.errors
   };
 }
 
@@ -1189,14 +1253,16 @@ Add to `/options/options.html`:
 
 ## Implementation Timeline
 
-| Phase | Estimated Time | Priority |
-|-------|---------------|----------|
-| 8.0 - Test Infrastructure | 4-6 hours | CRITICAL |
-| 8.1 - WindowService | 6-8 hours | HIGH |
-| 8.2 - Window Deduplication | 4-6 hours | MEDIUM |
-| 8.3 - Snooze/Restore UI | 4-6 hours | MEDIUM |
-| 8.4 - Scheduled Exports | 8-10 hours | LOW |
-| **Total** | **26-36 hours** | |
+| Phase | Estimated Time | Priority | Notes |
+|-------|---------------|----------|-------|
+| 8.0 - Test Infrastructure | 4-6 hours | CRITICAL | Must complete first |
+| 8.1 - WindowService | 4-6 hours | HIGH | **REDUCED** - reuses ExportImportService |
+| 8.2 - Window Deduplication | 4-6 hours | MEDIUM | |
+| 8.3 - Snooze/Restore UI | 4-6 hours | MEDIUM | |
+| 8.4 - Scheduled Exports | 8-10 hours | LOW | Defer if time-constrained |
+| **Total** | **24-34 hours** | | **REDUCED from 26-36** |
+
+**Time Savings:** 2 hours saved on Phase 8.1 by reusing ExportImportService instead of reimplementing window creation logic.
 
 **Recommended Approach**: Implement phases 8.0-8.2 first (core functionality), then evaluate if 8.3-8.4 are needed based on user demand.
 

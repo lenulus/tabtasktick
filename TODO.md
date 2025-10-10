@@ -1020,16 +1020,26 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 **Status**: Design complete - ready for implementation
 **Priority**: Medium - enhances workflow efficiency for power users
 **Full Design**: See `/docs/phase8-window-operations.md`
-**Estimated Time**: 26-36 hours total
+**Estimated Time**: 24-34 hours total (REDUCED - reusing ExportImportService)
 
-### Architecture Review (2025-10-10)
+### Architecture Reviews (2025-10-10)
+
+**Review #1 - Initial Phase 8 Plans:**
 ✅ Architectural review complete by architecture-guardian
 🚨 Critical issues identified and resolved in design:
 - Window metadata must be stored separately (not in SnoozeService)
 - Need dedicated WindowService as single source of truth
 - Context menu handlers must be THIN (delegate to services)
+- **Key Finding**: Multi-window test infrastructure MUST be built first
 
-**Key Finding**: Multi-window test infrastructure MUST be built before implementation
+**Review #2 - Service Dependencies:**
+✅ Architectural decision: Service-to-service dependencies ARE acceptable
+📦 **Discovery**: ExportImportService already has window creation logic (lines 348-485)
+✅ **Decision**: WindowService will reuse ExportImportService (execution → execution allowed)
+📊 **Precedent**: ExportImportService → SnoozeService dependency already exists
+📝 **Guidelines**: Created `/services/ARCHITECTURE.md` with dependency rules
+
+**Impact**: Phase 8.1 simplified - reuse existing tested logic instead of reimplementation
 
 ### Phase 8.0: Multi-Window Test Infrastructure ❌
 **Priority**: CRITICAL - Must complete first
@@ -1052,14 +1062,17 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ### Phase 8.1: WindowService + Basic Operations ❌
 **Priority**: HIGH
-**Time**: 6-8 hours
+**Time**: 4-6 hours (REDUCED - reusing ExportImportService)
 **Depends On**: Phase 8.0
 
+**Key Simplification**: WindowService delegates to ExportImportService for window creation instead of reimplementing
+
 - [ ] Create `/services/execution/WindowService.js`
+  - [ ] Document dependencies on ExportImportService
   - [ ] `getAllWindows()` - Get all windows with tabs
   - [ ] `getWindowMetadata()` - Get window properties
-  - [ ] `snoozeWindow()` - Snooze entire window
-  - [ ] `restoreWindow()` - Restore snoozed window
+  - [ ] `snoozeWindow()` - Coordinate window snooze
+  - [ ] `restoreWindow()` - Delegate to ExportImportService.importData()
   - [ ] `deduplicateWindow()` - Window-scoped deduplication
   - [ ] `getWindowStats()` - Window statistics
 - [ ] Update SnoozeService
@@ -1070,9 +1083,9 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
   - [ ] "Remove Duplicates in Window" → WindowService
 - [ ] Create `/tests/WindowService.test.js`
   - [ ] Test with 50+ tabs per window
-  - [ ] Verify property preservation
+  - [ ] Verify ExportImportService integration
   - [ ] Test cross-service coordination
-- [ ] Success: All WindowService tests passing, zero violations
+- [ ] Success: All WindowService tests passing, zero violations, DRY maintained
 
 ### Phase 8.2: Window-Scoped Deduplication ❌
 **Priority**: MEDIUM
@@ -1136,16 +1149,22 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 - [ ] Success: Automatic backups working, storage managed properly
 
 ### Implementation Timeline
-| Phase | Time | Priority | Status |
-|-------|------|----------|--------|
-| 8.0 - Test Infrastructure | 4-6h | CRITICAL | ❌ |
-| 8.1 - WindowService | 6-8h | HIGH | ❌ |
-| 8.2 - Window Deduplication | 4-6h | MEDIUM | ❌ |
-| 8.3 - Snooze/Restore UI | 4-6h | MEDIUM | ❌ |
-| 8.4 - Scheduled Exports | 8-10h | LOW | ❌ |
-| **Total** | **26-36h** | | |
+| Phase | Time | Priority | Status | Notes |
+|-------|------|----------|--------|-------|
+| 8.0 - Test Infrastructure | 4-6h | CRITICAL | ❌ | Must complete first |
+| 8.1 - WindowService | 4-6h | HIGH | ❌ | **REDUCED** - reuses ExportImportService |
+| 8.2 - Window Deduplication | 4-6h | MEDIUM | ❌ | |
+| 8.3 - Snooze/Restore UI | 4-6h | MEDIUM | ❌ | |
+| 8.4 - Scheduled Exports | 8-10h | LOW | ❌ | Defer if time-constrained |
+| **Total** | **24-34h** | | | **REDUCED from 26-36h** |
+
+**Time Savings**: 2 hours saved on Phase 8.1 by reusing ExportImportService
 
 **Recommended**: Implement 8.0-8.2 first (core functionality), evaluate 8.3-8.4 based on demand
+
+**New Artifacts**:
+- `/services/ARCHITECTURE.md` - Service dependency rules and guidelines
+- Updated Phase 8 design doc with service dependency analysis
 
 ---
 
