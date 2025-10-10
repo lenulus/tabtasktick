@@ -125,9 +125,8 @@ export class Assertions {
         };
       }
     } else if (url) {
-      const tabs = await chrome.tabs.query({ 
-        windowId: this.testMode.testWindow?.id
-      });
+      // Query ALL tabs across all windows for multi-window tests
+      const tabs = await chrome.tabs.query({});
       // Filter by URL substring
       const matchingTabs = tabs.filter(t => t.url.includes(url));
       tab = matchingTabs[0];

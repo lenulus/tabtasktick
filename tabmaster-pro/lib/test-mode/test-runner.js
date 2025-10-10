@@ -26,6 +26,7 @@ export class TestRunner {
   initializeExecutors() {
     return {
       createWindow: this.executeCreateWindow.bind(this),
+      updateWindow: this.executeUpdateWindow.bind(this),
       createTab: this.executeCreateTab.bind(this),
       createRule: this.executeCreateRule.bind(this),
       executeRule: this.executeExecuteRule.bind(this),
@@ -96,20 +97,30 @@ export class TestRunner {
       type = 'normal'
     } = step;
 
-    // Create the window
+    // Create the window - Chrome doesn't support 'maximized' or 'minimized' in create()
+    // We'll create as 'normal' first, then update state if needed
     const windowOptions = {
-      state,
       focused,
       width,
       height,
       type
     };
 
+    // Only include normal/fullscreen state in create (other states must be set via update)
+    if (state === 'normal' || state === 'fullscreen') {
+      windowOptions.state = state;
+    }
+
     // Only set position if provided (Chrome will auto-position otherwise)
     if (left !== undefined) windowOptions.left = left;
     if (top !== undefined) windowOptions.top = top;
 
-    const window = await chrome.windows.create(windowOptions);
+    let window = await chrome.windows.create(windowOptions);
+
+    // Update state if maximized/minimized (these states aren't supported in create)
+    if (state === 'maximized' || state === 'minimized') {
+      window = await chrome.windows.update(window.id, { state });
+    }
 
     // Track this window as a test window
     if (!this.testMode.testWindowIds) {
@@ -128,6 +139,41 @@ export class TestRunner {
       windowId: window.id,
       state: window.state,
       type: window.type
+    };
+  }
+
+  /**
+   * Execute updateWindow step
+   */
+  async executeUpdateWindow(step) {
+    const { windowId, useCaptured, state, focused, left, top, width, height } = step;
+
+    // Resolve window ID from captured data if needed
+    let resolvedWindowId = windowId;
+    if (useCaptured) {
+      resolvedWindowId = this.capturedData[windowId];
+      if (!resolvedWindowId) {
+        throw new Error(`No captured window ID found for: ${windowId}`);
+      }
+    }
+
+    // Build update properties
+    const updateInfo = {};
+    if (state !== undefined) updateInfo.state = state;
+    if (focused !== undefined) updateInfo.focused = focused;
+    if (left !== undefined) updateInfo.left = left;
+    if (top !== undefined) updateInfo.top = top;
+    if (width !== undefined) updateInfo.width = width;
+    if (height !== undefined) updateInfo.height = height;
+
+    const window = await chrome.windows.update(resolvedWindowId, updateInfo);
+
+    console.log(`Updated window ${resolvedWindowId}:`, updateInfo);
+
+    return {
+      windowId: window.id,
+      state: window.state,
+      focused: window.focused
     };
   }
 
@@ -505,16 +551,32 @@ export class TestRunner {
    * Execute captureState step
    */
   async executeCaptureState(step) {
-    const { name } = step;
-    
+    const { name, captureAs } = step;
+
+    // Query ALL tabs across all windows for multi-window tests
+    const allTabs = await chrome.tabs.query({});
+
     const state = {
-      name,
+      name: name || captureAs,
       timestamp: Date.now(),
-      tabs: await chrome.tabs.query({ windowId: this.testMode.testWindow.id }),
+      tabs: allTabs,
+      tabCount: allTabs.length,
       rules: await this.getRules(),
       memory: await this.getMemoryUsage(),
       statistics: await chrome.runtime.sendMessage({ action: 'getStatistics' })
     };
+
+    // Log tab details for debugging
+    console.log(`=== State Capture: ${state.name} ===`);
+    console.log(`Total tabs: ${allTabs.length}`);
+    allTabs.forEach(tab => {
+      console.log(`  ${tab.id}: ${tab.url} (window ${tab.windowId})`);
+    });
+
+    // Store captured state if requested
+    if (captureAs) {
+      this.capturedData[captureAs] = state;
+    }
 
     return state;
   }

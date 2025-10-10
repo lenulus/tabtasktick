@@ -813,9 +813,10 @@ export class TestMode {
           { action: 'createTab', url: 'https://stackoverflow.com/questions/tagged/javascript', count: 1, useCaptured: 'window1' },
           { action: 'createTab', url: 'https://stackoverflow.com/questions/tagged/javascript', count: 1, useCaptured: 'window3' },
 
-          // Unique tabs
-          { action: 'createTab', url: 'https://unique-tab-1.com', count: 1, useCaptured: 'window1' },
-          { action: 'createTab', url: 'https://unique-tab-2.com', count: 1, useCaptured: 'window2' },
+          // Unique tabs (ensure each window has at least one unique tab so it doesn't auto-close)
+          { action: 'createTab', url: 'https://www.wikipedia.org/', count: 1, useCaptured: 'window1' },
+          { action: 'createTab', url: 'https://www.w3.org/', count: 1, useCaptured: 'window2' },
+          { action: 'createTab', url: 'https://www.mozilla.org/', count: 1, useCaptured: 'window3' },
 
           { action: 'wait', ms: 500 },
 
@@ -834,14 +835,15 @@ export class TestMode {
           { action: 'executeRule', ruleId: 'Close Multi-Window Duplicates' },
           { action: 'wait', ms: 1000 },
 
-          // Should have one of each URL across all windows (3 duplicate URLs + 2 unique = 5 total)
+          // Should have one of each URL across all windows (3 duplicate URLs + 3 unique = 6 total)
           { action: 'assert', type: 'tabExists', url: 'github.com/trending' },
           { action: 'assert', type: 'tabExists', url: 'news.ycombinator.com' },
           { action: 'assert', type: 'tabExists', url: 'stackoverflow.com' },
-          { action: 'assert', type: 'tabExists', url: 'unique-tab-1.com' },
-          { action: 'assert', type: 'tabExists', url: 'unique-tab-2.com' },
+          { action: 'assert', type: 'tabExists', url: 'wikipedia.org' },
+          { action: 'assert', type: 'tabExists', url: 'w3.org' },
+          { action: 'assert', type: 'tabExists', url: 'mozilla.org' },
 
-          // Verify we actually have 3 windows
+          // Verify we actually have 3 windows (each has at least one unique tab)
           { action: 'assert', type: 'windowExists', windowId: 'window1', useCaptured: true },
           { action: 'assert', type: 'windowExists', windowId: 'window2', useCaptured: true },
           { action: 'assert', type: 'windowExists', windowId: 'window3', useCaptured: true }
@@ -856,21 +858,24 @@ export class TestMode {
           { action: 'createWindow', captureAs: 'normalWindow', state: 'normal' },
           { action: 'createWindow', captureAs: 'maximizedWindow', state: 'maximized' },
 
-          // Add tabs to each window
-          { action: 'createTab', url: 'https://test1.com', count: 3, useCaptured: 'normalWindow' },
-          { action: 'createTab', url: 'https://test2.com', count: 5, useCaptured: 'maximizedWindow' },
+          // Add tabs to each window (note: windows.create() adds 1 default new tab)
+          { action: 'createTab', url: 'data:text/html,<h1>Test Window 1</h1>', count: 3, useCaptured: 'normalWindow' },
+          { action: 'createTab', url: 'data:text/html,<h1>Test Window 2</h1>', count: 5, useCaptured: 'maximizedWindow' },
 
           { action: 'wait', ms: 500 },
 
-          // Validate window properties
+          // Validate window properties (expect +1 tab from default new tab)
           { action: 'assert', type: 'windowExists', windowId: 'normalWindow', useCaptured: true },
           { action: 'assert', type: 'windowProperty', windowId: 'normalWindow', property: 'type', value: 'normal', useCaptured: true },
           { action: 'assert', type: 'windowProperty', windowId: 'normalWindow', property: 'state', value: 'normal', useCaptured: true },
-          { action: 'assert', type: 'windowTabCount', windowId: 'normalWindow', expected: 3, useCaptured: true },
+          { action: 'assert', type: 'windowTabCount', windowId: 'normalWindow', expected: 4, useCaptured: true },
 
           { action: 'assert', type: 'windowExists', windowId: 'maximizedWindow', useCaptured: true },
           { action: 'assert', type: 'windowProperty', windowId: 'maximizedWindow', property: 'state', value: 'maximized', useCaptured: true },
-          { action: 'assert', type: 'windowTabCount', windowId: 'maximizedWindow', expected: 5, useCaptured: true }
+          { action: 'assert', type: 'windowTabCount', windowId: 'maximizedWindow', expected: 6, useCaptured: true },
+
+          // Restore maximized window to normal so it doesn't block test harness interaction
+          { action: 'updateWindow', windowId: 'maximizedWindow', state: 'normal', useCaptured: true }
         ]
       },
       {
@@ -878,11 +883,11 @@ export class TestMode {
         description: 'Test performance with many tabs (simulates multi-window scenario)',
         category: 'multi-window',
         steps: [
-          // Create 50 tabs to simulate a large window
-          { action: 'createTab', url: 'https://github.com/repo', count: 15 },
-          { action: 'createTab', url: 'https://stackoverflow.com/q', count: 15 },
-          { action: 'createTab', url: 'https://reddit.com/r', count: 10 },
-          { action: 'createTab', url: 'https://news.ycombinator.com/item', count: 10 },
+          // Create 50 tabs to simulate a large window (use root URLs to avoid 404s)
+          { action: 'createTab', url: 'https://github.com', count: 15 },
+          { action: 'createTab', url: 'https://stackoverflow.com', count: 15 },
+          { action: 'createTab', url: 'https://reddit.com', count: 10 },
+          { action: 'createTab', url: 'https://news.ycombinator.com', count: 10 },
 
           // Measure performance of grouping operation
           { action: 'measurePerformance', operation: 'start', label: 'large-window-grouping' },
