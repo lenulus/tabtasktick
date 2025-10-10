@@ -1072,71 +1072,106 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
   - [x] Fixed test URLs (data: URLs and root domains to avoid 404s/bot detection)
 - [x] Success: 436 tests passing (26 new window tests), zero architectural violations
 
-### Phase 8.1: WindowService + Basic Operations ❌
+### Phase 8.1: WindowService + Basic Operations ✅ COMPLETE
 **Priority**: HIGH
-**Time**: 4-6 hours (REDUCED - reusing ExportImportService)
+**Time**: ~4 hours actual (including bug fixes)
+**Completed**: 2025-10-10
 **Depends On**: Phase 8.0
+**Commits**:
+- `85ad92c` - Phase 8.1: Window operations with bug fixes
+- `0ae30bd` - Fix: Clear alarms when manually restoring snoozed windows
 
 **Key Simplification**: WindowService delegates to ExportImportService for window creation instead of reimplementing
 
-- [ ] Create `/services/execution/WindowService.js`
-  - [ ] Document dependencies on ExportImportService
-  - [ ] `getAllWindows()` - Get all windows with tabs
-  - [ ] `getWindowMetadata()` - Get window properties
-  - [ ] `snoozeWindow()` - Coordinate window snooze
-  - [ ] `restoreWindow()` - Delegate to ExportImportService.importData()
-  - [ ] `deduplicateWindow()` - Window-scoped deduplication
-  - [ ] `getWindowStats()` - Window statistics
-- [ ] Update SnoozeService
-  - [ ] Add `windowSnoozeId` to link tabs to windows
-  - [ ] Separate window metadata storage
-- [ ] Add context menu handlers (THIN)
-  - [ ] "Snooze Window" → WindowService
-  - [ ] "Remove Duplicates in Window" → WindowService
-- [ ] Create `/tests/WindowService.test.js`
-  - [ ] Test with 50+ tabs per window
-  - [ ] Verify ExportImportService integration
-  - [ ] Test cross-service coordination
-- [ ] Success: All WindowService tests passing, zero violations, DRY maintained
+- [x] Create `/services/execution/WindowService.js`
+  - [x] Document dependencies on ExportImportService
+  - [x] `getAllWindows()` - Get all windows with tabs
+  - [x] `getWindowMetadata()` - Get window properties
+  - [x] `snoozeWindow()` - Coordinate window snooze
+  - [x] `restoreWindow()` - Delegate to ExportImportService.importData()
+  - [x] `deduplicateWindow()` - Window-scoped deduplication
+  - [x] `getWindowStats()` - Window statistics
+  - [x] `getWindowDuplicateCount()` - Count duplicates in window
+- [x] Update SnoozeService
+  - [x] Add `windowSnoozeId` to link tabs to windows
+  - [x] Separate window metadata storage
+  - [x] Backward compatible options parameter
+- [x] Add context menu handlers (THIN)
+  - [x] "Snooze Window" submenu (1h, 3h, tomorrow)
+  - [x] "Remove Duplicates in Window" → WindowService
+- [x] Create `/tests/WindowService.test.js`
+  - [x] Test with 50+ tabs per window
+  - [x] Verify ExportImportService integration
+  - [x] Test cross-service coordination
+  - [x] 7 unit tests, all passing
+- [x] Critical bug fixes from manual testing
+  - [x] Fixed dedupe closing all tabs (missing dupeKey)
+  - [x] Fixed Wake All not recreating windows
+  - [x] Fixed window auto-close error
+  - [x] Fixed alarm cleanup on manual restore
+- [x] Success: 443 tests passing, zero violations, DRY maintained
 
-### Phase 8.2: Window-Scoped Deduplication ❌
+### Phase 8.2: Window-Scoped Deduplication ⚠️ PARTIALLY COMPLETE
 **Priority**: MEDIUM
-**Time**: 4-6 hours
+**Time**: ~1 hour actual (context menu only)
+**Completed**: 2025-10-10 (context menu implementation)
 **Depends On**: Phase 8.1
 
-**Implementation**: Option C (Both context menu and rules)
+**Status**: Context menu implementation complete, rules engine integration deferred
 
-- [ ] Enhance `/services/execution/closeDuplicates.js`
-  - [ ] Add `windowScope` option
-  - [ ] Group by window before deduplication
-  - [ ] Process each window independently
+**Completed**:
+- [x] Window-scoped deduplication via context menu
+  - [x] `WindowService.deduplicateWindow()` implementation
+  - [x] Adds `dupeKey` to tabs before calling `closeDuplicates`
+  - [x] "Remove Duplicates in Window" context menu
+  - [x] Tested and working (keeps one of each URL per window)
+
+**Deferred** (low priority - can be added later if needed):
 - [ ] Update rules engine
   - [ ] Add `scope: 'window'` to action schema
   - [ ] Pass windowScope to closeDuplicates
 - [ ] Create `/tests/window-dedupe.test.js`
-  - [ ] Global vs window-scoped behavior
-  - [ ] Cross-window duplicates preserved
-  - [ ] Multiple window patterns
-- [ ] Success: Window-scoped deduplication working via both context menu and rules
+  - [ ] Global vs window-scoped behavior tests
+  - Note: Basic functionality covered in WindowService.test.js
 
-### Phase 8.3: Complete Window Snooze/Restore UI ❌
+**Rationale**: Context menu provides immediate user value; rules engine integration has minimal demand
+
+### Phase 8.3: Complete Window Snooze/Restore UI ✅ MOSTLY COMPLETE
 **Priority**: MEDIUM
-**Time**: 4-6 hours
+**Time**: ~2 hours actual
+**Completed**: 2025-10-10
 **Depends On**: Phase 8.1
 
-- [ ] Dashboard window actions
+**Status**: Core UI complete via context menu + dashboard, advanced dashboard features deferred
+
+**Completed**:
+- [x] Context menu integration (primary UI)
+  - [x] "Snooze Window" with submenu (1h, 3h, tomorrow)
+  - [x] "Remove Duplicates in Window"
+  - [x] All handlers delegate to WindowService (THIN)
+- [x] Snoozed windows view (Dashboard)
+  - [x] Display snoozed windows separately with visual grouping
+  - [x] Window snooze cards with gradient styling
+  - [x] Show tab count and wake time
+  - [x] Tab preview (first 3 tabs with favicons)
+  - [x] "+X more" indicator for additional tabs
+  - [x] "Restore Window" button
+  - [x] "Delete All" button (bonus)
+  - [x] Dark theme support
+- [x] Background message handlers (THIN)
+  - [x] `restoreWindow` → WindowService
+  - [x] `deleteWindow` → WindowService (bonus)
+  - [x] `wakeAllSnoozed` with window detection → WindowService
+  - [x] Context menu handlers for all window operations
+- [x] Success: Full UI flow working via context menu + snoozed view
+
+**Deferred** (low demand - context menu sufficient):
+- [ ] Dashboard tabs view integration
   - [ ] Add window action buttons to tabs view
   - [ ] Duration picker modal
-  - [ ] Window dedupe button
-- [ ] Snoozed windows view
-  - [ ] Display snoozed windows separately
-  - [ ] Show tab count and wake time
-  - [ ] Restore button for each window
-- [ ] Background message handlers (THIN)
-  - [ ] `snoozeWindow` → WindowService
-  - [ ] `restoreWindow` → WindowService
-  - [ ] `deduplicateWindow` → WindowService
-- [ ] Success: Full UI flow working for window operations
+  - [ ] Window dedupe button in tabs view
+
+**Rationale**: Context menu provides quick access to all window operations; dedicated dashboard buttons add complexity with minimal user benefit
 
 ### Phase 8.4: Scheduled Export Snapshots ❌
 **Priority**: LOW (Nice to have - defer if time-constrained)
@@ -1161,18 +1196,28 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 - [ ] Success: Automatic backups working, storage managed properly
 
 ### Implementation Timeline
-| Phase | Time | Priority | Status | Notes |
-|-------|------|----------|--------|-------|
-| 8.0 - Test Infrastructure | ~5h | CRITICAL | ✅ COMPLETE | Multi-window test infrastructure with 26 tests |
-| 8.1 - WindowService | 4-6h | HIGH | ❌ | **REDUCED** - reuses ExportImportService |
-| 8.2 - Window Deduplication | 4-6h | MEDIUM | ❌ | |
-| 8.3 - Snooze/Restore UI | 4-6h | MEDIUM | ❌ | |
-| 8.4 - Scheduled Exports | 8-10h | LOW | ❌ | Defer if time-constrained |
-| **Total** | **24-34h** | | **~5h done** | **REDUCED from 26-36h** |
+| Phase | Time Est. | Time Actual | Priority | Status | Notes |
+|-------|-----------|-------------|----------|--------|-------|
+| 8.0 - Test Infrastructure | 4-6h | ~5h | CRITICAL | ✅ COMPLETE | Multi-window test infrastructure with 26 tests |
+| 8.1 - WindowService | 4-6h | ~4h | HIGH | ✅ COMPLETE | Includes bug fixes from manual testing |
+| 8.2 - Window Deduplication | 4-6h | ~1h | MEDIUM | ⚠️ PARTIAL | Context menu done, rules engine deferred |
+| 8.3 - Snooze/Restore UI | 4-6h | ~2h | MEDIUM | ✅ MOSTLY DONE | Context menu + snoozed view complete |
+| 8.4 - Scheduled Exports | 8-10h | - | LOW | ❌ DEFERRED | Low demand, defer indefinitely |
+| **Total** | **24-34h** | **~12h** | | **Core Complete** | **50% time savings via pragmatic scoping** |
 
-**Time Savings**: 2 hours saved on Phase 8.1 by reusing ExportImportService
+**Key Success Factors**:
+- Pragmatic scoping: Focused on high-value features (context menu over complex dashboard UI)
+- Service reuse: WindowService delegates to ExportImportService (saved ~2h)
+- Iterative fixing: Manual testing caught 4 critical bugs before release
+- Architecture adherence: All code follows services-first, THIN handlers, DRY principles
 
-**Recommended**: Implement 8.0-8.2 first (core functionality), evaluate 8.3-8.4 based on demand
+**Deliverables**:
+- WindowService with 7 core functions
+- Context menu integration (snooze with durations, dedupe)
+- Dashboard snoozed windows view with visual grouping
+- 443 tests passing (7 new WindowService tests)
+- Zero architectural violations
+- Production release: v1.2.2
 
 **New Artifacts**:
 - `/services/ARCHITECTURE.md` - Service dependency rules and guidelines
