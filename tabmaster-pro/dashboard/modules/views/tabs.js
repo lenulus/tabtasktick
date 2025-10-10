@@ -367,21 +367,7 @@ export function renderGridView(tabs) {
       e.preventDefault();
       showTabDetails(tab);
     });
-    
-    // Add hover handlers for inline info (disabled popup preview)
-    // card.addEventListener('mouseenter', () => {
-    //   if (previewCard) {
-    //     // Pass the element first, then the tab object
-    //     previewCard.show(card, tab);
-    //   }
-    // });
-    // 
-    // card.addEventListener('mouseleave', () => {
-    //   if (previewCard) {
-    //     previewCard.hide();
-    //   }
-    // });
-    
+
     grid.appendChild(card);
   });
 }

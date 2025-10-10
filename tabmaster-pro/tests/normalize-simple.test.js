@@ -229,25 +229,10 @@ describe('findDuplicates', () => {
       { id: 3, url: 'https://different.com' },
       { id: 4, url: 'https://example.com/page?utm_source=test' }
     ];
-    
-    // Import is not working in test, so skip this for now
-    // const { findDuplicates } = await import('../lib/normalize.js');
-    // const dupes = findDuplicates(tabs);
-    
-    // expect(dupes.size).toBe(1);
-    // expect(dupes.get('https://example.com/page').length).toBe(3);
   });
 });
 
 describe('extractOrigin', () => {
   it('should extract known origins', () => {
-    // Import is not working in test, so skip this for now
-    // const { extractOrigin } = await import('../lib/normalize.js');
-    
-    // expect(extractOrigin('https://mail.google.com/mail')).toBe('gmail');
-    // expect(extractOrigin('https://google.com/search?q=test')).toBe('search');
-    // expect(extractOrigin('https://reddit.com/r/programming')).toBe('reddit');
-    // expect(extractOrigin('https://unknown.com')).toBe('unknown.com');
-    // expect(extractOrigin('')).toBe('direct');
   });
 });
