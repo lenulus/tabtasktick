@@ -247,68 +247,12 @@ export { selectTabsMatchingRule } from '../services/selection/selectTabs.js';
  * @deprecated Use selectTabsMatchingRule from SelectionService
  * Provided for backward compatibility with tests
  */
-export function buildIndices(tabs) {
-  console.warn('buildIndices is deprecated. Use selectTabsMatchingRule from SelectionService');
-
-  const byDomain = {};
-  const byOrigin = {};
-  const byDupeKey = {};
-  const byCategory = {};
-
-  for (const tab of tabs) {
-    // Extract domain from URL
-    const extractDomain = (url) => {
-      if (!url) return '';
-      try {
-        const u = new URL(url);
-        return u.hostname.toLowerCase().replace('www.', '');
-      } catch {
-        return '';
-      }
-    };
-
-    // Simple URL normalization
-    const normalizeUrl = (url) => {
-      if (!url) return '';
-      try {
-        const u = new URL(url);
-        // Remove tracking params
-        ['utm_source', 'utm_medium', 'utm_campaign'].forEach(p => u.searchParams.delete(p));
-        u.hash = '';
-        return u.toString().toLowerCase();
-      } catch {
-        return url.toLowerCase();
-      }
-    };
-
-    tab.domain = tab.domain || extractDomain(tab.url);
-    tab.dupeKey = tab.dupeKey || normalizeUrl(tab.url);
-    tab.origin = tab.origin || extractDomain(tab.referrer || '');
-    tab.category = tab.category || 'unknown';
-
-    if (tab.lastAccessed) {
-      tab.age = Date.now() - tab.lastAccessed;
-    }
-
-    (byDomain[tab.domain] ||= []).push(tab);
-    (byOrigin[tab.origin] ||= []).push(tab);
-    (byDupeKey[tab.dupeKey] ||= []).push(tab);
-    (byCategory[tab.category] ||= []).push(tab);
-  }
-
-  return { byDomain, byOrigin, byDupeKey, byCategory };
-}
-
-/**
- * @deprecated Use selectTabsMatchingRule from SelectionService
- * Provided for backward compatibility with tests
- */
 export function evaluateRule(rule, context, options = {}) {
   console.warn('evaluateRule is deprecated. Use selectTabsMatchingRule from SelectionService');
 
-  // Build indices if needed
+  // Context should already have idx from test-helpers.js
   if (!context.idx) {
-    context.idx = buildIndices(context.tabs);
+    console.error('evaluateRule: context.idx is missing. Tests should use createTestContext() from test-helpers.js');
   }
 
   // Simple matching for test compatibility

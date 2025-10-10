@@ -2,9 +2,51 @@
 
 import { chromeMock } from './chrome-mock.js';
 import { createTab, addTimeTracking } from './tab-factory.js';
+import { extractDomain, normalizeUrlForDuplicates, extractOrigin } from '../../services/selection/selectTabs.js';
+import { getCategoriesForDomain } from '../../lib/domain-categories.js';
 
-// Import buildIndices for tests that still need it (e.g., predicate.test.js)
-import { buildIndices } from '../../lib/engine.v2.services.js';
+/**
+ * Build indices for test contexts
+ * Replaces deprecated engine.buildIndices
+ */
+function buildIndicesForTests(tabs) {
+  const byDomain = {};
+  const byOrigin = {};
+  const byDupeKey = {};
+  const byCategory = {};
+
+  // Enhance tabs with derived fields and build indices
+  for (const tab of tabs) {
+    tab.domain = tab.domain || extractDomain(tab.url);
+    tab.dupeKey = tab.dupeKey || normalizeUrlForDuplicates(tab.url);
+    tab.origin = tab.origin || extractOrigin(tab.referrer || '');
+
+    // Get categories for this domain
+    const categories = getCategoriesForDomain(tab.domain);
+    tab.category = categories.length > 0 ? categories[0] : 'unknown';
+    tab.categories = categories.length > 0 ? categories : ['unknown'];
+
+    // Calculate age - prefer createdAt (from test data) over lastAccessed
+    if (tab.createdAt) {
+      tab.age = Date.now() - tab.createdAt;
+    } else if (tab.lastAccessed) {
+      tab.age = Date.now() - tab.lastAccessed;
+    }
+
+    // Calculate time since last access
+    if (tab.last_access) {
+      tab.last_access = Date.now() - tab.last_access;
+    }
+
+    // Add to indices
+    (byDomain[tab.domain] ||= []).push(tab);
+    (byOrigin[tab.origin] ||= []).push(tab);
+    (byDupeKey[tab.dupeKey] ||= []).push(tab);
+    (byCategory[tab.category] ||= []).push(tab);
+  }
+
+  return { byDomain, byOrigin, byDupeKey, byCategory };
+}
 
 // Helper to create a test context with tabs, windows, and indices
 export function createTestContext(tabs, windows = null, timeData = null) {
@@ -23,11 +65,11 @@ export function createTestContext(tabs, windows = null, timeData = null) {
     if (!tab.windowId) tab.windowId = 1;
   });
 
-  // Build indices for tests that need them (predicate tests, etc.)
+  // Build indices using SelectionService logic
   // V2's selectTabsMatchingRule() builds its own indices internally,
   // but some tests (like predicate.test.js) test the predicate compiler
   // directly and need the indices in the context
-  const idx = buildIndices(tabs);
+  const idx = buildIndicesForTests(tabs);
 
   const context = {
     tabs,

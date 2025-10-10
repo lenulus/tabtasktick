@@ -7,8 +7,9 @@ import * as engine from './lib/engine.v2.services.js';
 import { createChromeScheduler } from './lib/scheduler.js';
 import * as SnoozeService from './services/execution/SnoozeService.js';
 import * as ExportImportService from './services/ExportImportService.js';
-import { getTabStatistics } from './services/selection/selectTabs.js';
+import { getTabStatistics, extractDomain, normalizeUrlForDuplicates, extractOrigin } from './services/selection/selectTabs.js';
 import { getCurrentWindowId } from './services/TabGrouping.js';
+import { getCategoriesForDomain } from './lib/domain-categories.js';
 
 console.log('Background service worker loaded with Rules Engine V2');
 
@@ -17,8 +18,58 @@ function getEngine() {
   return {
     runRules: engine.runRules,
     previewRule: engine.previewRule,
-    buildIndices: engine.buildIndices,
     executeActions: engine.executeActions
+  };
+}
+
+/**
+ * Build context for engine execution
+ * Uses SelectionService's buildRuleContext logic for consistency
+ * @param {Array} tabs - Array of tabs
+ * @param {Array} windows - Array of windows
+ * @returns {Object} Context object with tabs, windows, chrome, and idx
+ */
+function buildContextForEngine(tabs, windows) {
+  const byDomain = {};
+  const byOrigin = {};
+  const byDupeKey = {};
+  const byCategory = {};
+
+  // Enhance tabs with derived fields and build indices
+  for (const tab of tabs) {
+    tab.domain = tab.domain || extractDomain(tab.url);
+    tab.dupeKey = tab.dupeKey || normalizeUrlForDuplicates(tab.url);
+    tab.origin = tab.origin || extractOrigin(tab.referrer || '');
+
+    // Get categories for this domain
+    const categories = getCategoriesForDomain(tab.domain);
+    tab.category = categories.length > 0 ? categories[0] : 'unknown';
+    tab.categories = categories.length > 0 ? categories : ['unknown'];
+
+    // Calculate age - prefer createdAt (from test data) over lastAccessed
+    if (tab.createdAt) {
+      tab.age = Date.now() - tab.createdAt;
+    } else if (tab.lastAccessed) {
+      tab.age = Date.now() - tab.lastAccessed;
+    }
+
+    // Calculate time since last access
+    if (tab.last_access) {
+      tab.last_access = Date.now() - tab.last_access;
+    }
+
+    // Add to indices
+    (byDomain[tab.domain] ||= []).push(tab);
+    (byOrigin[tab.origin] ||= []).push(tab);
+    (byDupeKey[tab.dupeKey] ||= []).push(tab);
+    (byCategory[tab.category] ||= []).push(tab);
+  }
+
+  return {
+    tabs,
+    windows,
+    chrome,
+    idx: { byDomain, byOrigin, byDupeKey, byCategory }
   };
 }
 
@@ -471,19 +522,11 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
     });
     
     // Get the current engine
-    const { runRules, buildIndices } = getEngine();
+    const { runRules } = getEngine();
     console.log(`Using engine: ${state.testEngine} for rule execution`);
 
-    // Build indices to enhance tabs with dupeKeys and other fields
-    const idx = buildIndices(tabs);
-
-    // Build context for engine
-    const context = {
-      tabs,
-      windows,
-      chrome,
-      idx
-    };
+    // Build context for engine using SelectionService
+    const context = buildContextForEngine(tabs, windows);
     
     console.log('Running rule with dryRun=false');
 
@@ -595,19 +638,11 @@ async function previewRule(ruleId) {
     });
     
     // Get the current engine
-    const { previewRule: previewRuleEngine, buildIndices } = getEngine();
+    const { previewRule: previewRuleEngine } = getEngine();
     console.log(`Using engine: ${state.testEngine} for preview`);
 
-    // Build indices to enhance tabs with dupeKeys and other fields
-    const idx = buildIndices(tabs);
-
-    // Build context
-    const context = {
-      tabs,
-      windows,
-      chrome,
-      idx
-    };
+    // Build context for engine using SelectionService
+    const context = buildContextForEngine(tabs, windows);
 
     // Use engine's preview function
     const preview = await previewRuleEngine(rule, context, {
@@ -692,19 +727,11 @@ async function executeAllRules() {
     });
 
     // Get the current engine
-    const { runRules, buildIndices } = getEngine();
+    const { runRules } = getEngine();
     console.log(`Using engine: ${state.testEngine} for executing all rules`);
 
-    // Build indices to enhance tabs with dupeKeys and other fields
-    const idx = buildIndices(tabs);
-
-    // Build context
-    const context = {
-      tabs,
-      windows,
-      chrome,
-      idx
-    };
+    // Build context for engine using SelectionService
+    const context = buildContextForEngine(tabs, windows);
 
     // Run all rules
     // Rules execute as-is (deterministic) - pinned condition should be in rule definitions
@@ -935,20 +962,20 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
   });
 
   // Get the current engine
-  const { runRules, buildIndices } = getEngine();
+  const { runRules } = getEngine();
 
-  // Build context - pass ALL tabs but filter in the rule
+  // Build context for engine using SelectionService
+  // Note: Pass all tabs to context, but build indices only for target tabs
+  const filteredTabs = allTabs.filter(t => tabIds.includes(t.id));
+  const contextForFiltered = buildContextForEngine(filteredTabs, windows);
+
+  // But use all tabs in context for rule evaluation
   const context = {
     tabs: allTabs,
     windows,
-    chrome
+    chrome,
+    idx: contextForFiltered.idx
   };
-
-  // Only add idx for v1 engine (buildIndices exists and is a function)
-  if (buildIndices && typeof buildIndices === 'function') {
-    const filteredTabs = allTabs.filter(t => tabIds.includes(t.id));
-    context.idx = buildIndices(filteredTabs);
-  }
 
   // Create a temporary rule that matches only our target tabs
   const tempRule = {
@@ -1347,11 +1374,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'analyzeDuplicates':
           // Analyze duplicates for test assertions
           const testTabs = (Array.isArray(request.tabs) ? request.tabs : null) || await chrome.tabs.query({});
-          const { buildIndices: buildIndicesForTest } = getEngine();
-          const testIndices = buildIndicesForTest(testTabs);
+          const testWindows = await chrome.windows.getAll();
+          const testContext = buildContextForEngine(testTabs, testWindows);
           const dupeGroups = [];
-          
-          for (const [dupeKey, tabs] of Object.entries(testIndices.byDupeKey)) {
+
+          for (const [dupeKey, tabs] of Object.entries(testContext.idx.byDupeKey)) {
             if (tabs.length > 1) {
               dupeGroups.push({
                 dupeKey,
@@ -1360,7 +1387,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               });
             }
           }
-          
+
           sendResponse({ groups: dupeGroups });
           break;
           
