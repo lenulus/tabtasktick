@@ -220,15 +220,16 @@ describe('Engine - executeActions', () => {
   test('should execute close action in dry run mode', async () => {
     const tabs = [createTab({ id: 1 })];
     const actions = [{ action: 'close' }];
-    
-    const results = await executeActions(actions, tabs, { chrome: chromeMock }, true);
-    
+
+    const results = await executeActions(actions, tabs, {}, true);
+
     expect(results).toHaveLength(1);
     expect(results[0]).toMatchObject({
       tabId: 1,
       action: 'close',
       success: true,
-      details: { closed: 1 }
+      dryRun: true,
+      details: { preview: true }
     });
     expect(chromeMock.tabs.remove).not.toHaveBeenCalled();
   });
@@ -236,11 +237,11 @@ describe('Engine - executeActions', () => {
   test('should execute close action for real', async () => {
     const tabs = [createTab({ id: 1 })];
     const actions = [{ action: 'close' }];
-    
+
     chromeMock.tabs.remove.mockResolvedValue(undefined);
-    
-    const results = await executeActions(actions, tabs, { chrome: chromeMock }, false);
-    
+
+    const results = await executeActions(actions, tabs, {}, false);
+
     expect(chromeMock.tabs.remove).toHaveBeenCalledWith(1);
     expect(results[0].success).toBe(true);
   });

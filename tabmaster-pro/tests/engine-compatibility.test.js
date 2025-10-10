@@ -54,11 +54,11 @@ describe('Engine Tests [V2 Services]', () => {
         enabled: true,
         when: {
           all: [
-            { eq: ['tab.domain', 'github.com'] }
+            { subject: 'domain', operator: 'equals', value: 'github.com' }
           ]
         },
         then: [
-          { action: 'pin' }
+          { type: 'pin' }
         ]
       };
 
@@ -72,11 +72,11 @@ describe('Engine Tests [V2 Services]', () => {
       // Test selectTabsMatchingRule
       if (engine.selectTabsMatchingRule) {
         const matches = await engine.selectTabsMatchingRule(rule, tabs);
-        console.log(`[${SELECTED_ENGINE}] selectTabsMatchingRule found ${matches.length} matches`);
+        console.log(`[V2 Services] selectTabsMatchingRule found ${matches.length} matches`);
         expect(matches).toHaveLength(2);
         expect(matches.map(t => t.id)).toEqual([1, 3]);
       } else {
-        console.log(`[${SELECTED_ENGINE}] does not have selectTabsMatchingRule, skipping`);
+        console.log(`[V2 Services] does not have selectTabsMatchingRule, skipping`);
       }
     });
 
@@ -84,7 +84,7 @@ describe('Engine Tests [V2 Services]', () => {
       const engine = getEngine();
 
       if (!engine.runRules) {
-        console.log(`[${SELECTED_ENGINE}] does not have runRules, skipping`);
+        console.log(`[V2 Services] does not have runRules, skipping`);
         return;
       }
 
@@ -99,11 +99,11 @@ describe('Engine Tests [V2 Services]', () => {
         enabled: true,
         when: {
           all: [
-            { gt: ['tab.age', 7 * 24 * 60 * 60 * 1000] }
+            { subject: 'age', operator: 'greaterThan', value: 7 * 24 * 60 * 60 * 1000 }
           ]
         },
         then: [
-          { action: 'close' }
+          { type: 'close' }
         ]
       }];
 
@@ -116,7 +116,7 @@ describe('Engine Tests [V2 Services]', () => {
 
       const result = await engine.runRules(rules, context, { dryRun: true });
 
-      console.log(`[${SELECTED_ENGINE}] runRules result:`, {
+      console.log(`[V2 Services] runRules result:`, {
         totalMatches: result.totalMatches,
         totalActions: result.totalActions,
         rulesExecuted: result.rules?.length || result.rulesExecuted
@@ -131,7 +131,7 @@ describe('Engine Tests [V2 Services]', () => {
       const engine = getEngine();
 
       if (!engine.buildIndices) {
-        console.log(`[${SELECTED_ENGINE}] does not have buildIndices, skipping`);
+        console.log(`[V2 Services] does not have buildIndices, skipping`);
         return;
       }
 
@@ -143,7 +143,7 @@ describe('Engine Tests [V2 Services]', () => {
 
       const indices = engine.buildIndices(tabs);
 
-      console.log(`[${SELECTED_ENGINE}] buildIndices created:`, {
+      console.log(`[V2 Services] buildIndices created:`, {
         domains: Object.keys(indices.byDomain),
         githubTabs: indices.byDomain['github.com']?.length || 0,
         stackTabs: indices.byDomain['stackoverflow.com']?.length || 0
@@ -171,11 +171,11 @@ describe('Engine Tests [V2 Services]', () => {
         enabled: true,
         when: {
           all: [
-            { is: ['tab.isDupe', true] }
+            { subject: 'isDupe', operator: 'equals', value: true }
           ]
         },
         then: [
-          { action: 'close' }
+          { type: 'close' }
         ]
       };
 
@@ -188,7 +188,7 @@ describe('Engine Tests [V2 Services]', () => {
 
       if (engine.selectTabsMatchingRule) {
         const matches = await engine.selectTabsMatchingRule(rule, tabs);
-        console.log(`[${SELECTED_ENGINE}] found ${matches.length} duplicate(s)`);
+        console.log(`[V2 Services] found ${matches.length} duplicate(s)`);
         // Should find at least one duplicate
         expect(matches.length).toBeGreaterThan(0);
       }
