@@ -205,9 +205,26 @@ export async function restoreWindow(snoozeId) {
     null  // scheduler (not needed)
   );
 
-  // 5. Clean up metadata after successful restoration
+  // 5. Clean up after successful restoration
   if (result.success) {
+    // Delete window metadata
     await deleteWindowMetadata(snoozeId);
+
+    // CRITICAL: Clear alarms and remove tabs from SnoozeService storage
+    // The tabs were restored via importData (not wakeTabs), so we need
+    // to manually clean up the snooze state
+    for (const tab of snoozedTabs) {
+      // Clear the alarm for this tab
+      await chrome.alarms.clear(`snooze_wake_${tab.id}`);
+    }
+
+    // Remove all tabs from SnoozeService storage
+    const tabIds = snoozedTabs.map(t => t.id);
+    const allSnoozed = await chrome.storage.local.get('snoozedTabs');
+    const remainingSnoozed = (allSnoozed.snoozedTabs || []).filter(
+      t => !tabIds.includes(t.id)
+    );
+    await chrome.storage.local.set({ snoozedTabs: remainingSnoozed });
   }
 
   return {
