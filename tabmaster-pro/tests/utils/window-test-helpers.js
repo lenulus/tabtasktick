@@ -1,5 +1,35 @@
 // Window Test Helpers - Utilities for multi-window testing scenarios
 // Part of Phase 8.0: Multi-Window Test Infrastructure
+//
+// PURPOSE:
+// This file provides pure JavaScript utility functions for creating mock window
+// and tab data for Jest unit tests. These helpers generate test data structures
+// that mimic Chrome's window and tab objects, but DO NOT call any Chrome APIs.
+//
+// DISTINCTION FROM lib/test-mode/assertions.js:
+// - window-test-helpers.js (THIS FILE):
+//   - For Jest unit tests (/tests/*.test.js)
+//   - Pure JavaScript functions with NO Chrome API calls
+//   - Generates mock data structures for testing
+//   - Assertion helpers use plain JavaScript (throw errors)
+//   - Fast, isolated, no real browser required
+//
+// - lib/test-mode/assertions.js:
+//   - For integration tests (test-panel UI)
+//   - Calls real Chrome APIs (chrome.windows.*, chrome.tabs.*)
+//   - Validates actual browser state
+//   - Runs in real Chrome extension context
+//   - Slower, requires actual browser windows/tabs
+//
+// USAGE:
+// Import these helpers in Jest test files to create realistic multi-window
+// test scenarios for validating business logic without browser overhead.
+//
+// Example:
+//   import { createMultiWindowScenario } from './utils/window-test-helpers.js';
+//   const { windows, tabs } = createMultiWindowScenario({
+//     windows: [{ id: 1, tabCount: 10 }, { id: 2, tabCount: 5 }]
+//   });
 
 import { createWindow, createTab, resetCounters } from './tab-factory.js';
 
