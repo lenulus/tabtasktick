@@ -97,7 +97,7 @@ describe('Engine Tests [V2 Services]', () => {
         enabled: true,
         when: {
           all: [
-            { subject: 'age', operator: 'greaterThan', value: 7 * 24 * 60 * 60 * 1000 }
+            { subject: 'age', operator: 'gt', value: 7 * 24 * 60 * 60 * 1000 }
           ]
         },
         then: [

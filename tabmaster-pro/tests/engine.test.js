@@ -397,6 +397,13 @@ describe('Engine - runRules', () => {
     const context = { tabs, windows: [] };
     const results = await runRules(rules, context, { dryRun: true });
 
+    console.log('Multiple rules test results:', {
+      rulesExecuted: results.rules.length,
+      totalMatches: results.totalMatches,
+      totalActions: results.totalActions,
+      ruleDetails: results.rules.map(r => ({ name: r.ruleName, matches: r.matchCount }))
+    });
+
     expect(results.rules).toHaveLength(2);
     expect(results.totalMatches).toBeGreaterThanOrEqual(2); // At least 1 dupe + 1 dev
     expect(results.totalActions).toBeGreaterThanOrEqual(2);
@@ -533,14 +540,14 @@ describe('Engine - Complex Scenarios', () => {
       name: 'Clamp Research Explosions',
       when: {
         all: [
-          { subject: 'domainCount', operator: 'greaterThanOrEqual', value: 8 },
-          { subject: 'age', operator: 'greaterThanOrEqual', value: '2h' }
+          { subject: 'domainCount', operator: 'gte', value: 8 },
+          { subject: 'age', operator: 'gte', value: '2h' }
         ]
       },
       then: [
         { type: 'group', by: 'domain' },
         { type: 'snooze', for: '12h' }
-      ]
+        ]
     });
 
     chromeMock.tabs.group.mockResolvedValue(100);
@@ -553,9 +560,31 @@ describe('Engine - Complex Scenarios', () => {
     chromeMock.storage.local.get.mockResolvedValue({});
 
     const context = createTestContext(tabs);
+
+    // Debug: Check tabs before passing to runRules
+    console.log('Before runRules - tabs:', tabs.slice(0, 2).map(t => ({
+      id: t.id,
+      url: t.url,
+      createdAt: t.createdAt,
+      domain: t.domain,
+      age: t.age,
+      hasCreatedAt: !!t.createdAt
+    })));
+
+    console.log('Before runRules - rule:', JSON.stringify(rule.when, null, 2));
+
     const results = await runRules([rule], context, { dryRun: false });
 
-    expect(results.totalMatches).toBeGreaterThanOrEqual(1); // At least some tabs should match
+    console.log('Research explosion test results:', {
+      totalMatches: results.totalMatches,
+      totalActions: results.totalActions,
+      rulesExecuted: results.rules.length,
+      errors: results.errors,
+      rules: results.rules
+    });
+
+    // Fixed: Was using camelCase 'greaterThanOrEqual', V2 needs 'gte' or 'greater_than_or_equal'
+    expect(results.totalMatches).toBe(10); // All github tabs should match
     expect(results.totalActions).toBeGreaterThan(0);
     // Note: SnoozeService mock assertion removed - the real service is called, not the mock
   });

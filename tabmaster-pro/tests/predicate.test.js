@@ -1,11 +1,13 @@
 // Tests for predicate.js - Rule condition compilation
+// SKIPPED: predicate.js was part of V1 engine, removed in Phase 7.2
+// V2 uses DSL format conditions instead of predicate functions
 
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { compile, evaluateCondition } from '../lib/predicate.js';
 import { createTab, addTimeTracking, createTabGroup } from './utils/tab-factory.js';
 import { createTestContext } from './utils/test-helpers.js';
 
-describe('predicate compiler', () => {
+describe.skip('predicate compiler', () => {
   describe('simple equality conditions', () => {
     it('should compile eq (equals) condition', () => {
       const condition = { eq: ['tab.url', 'https://example.com'] };
