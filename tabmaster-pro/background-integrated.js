@@ -76,6 +76,7 @@ const state = {
   activityLog: [], // Track recent activities
   testEngine: 'v1', // Track which engine to use for tests
   settings: {
+    skipPinnedByDefault: true, // Safe default: protect pinned tabs
     autoCloseEnabled: true,
     autoGroupEnabled: true,
     duplicateDetection: true,
@@ -354,6 +355,49 @@ async function initializeExtension() {
 }
 
 // ============================================================================
+// Pinned Tab Protection Helper
+// ============================================================================
+
+/**
+ * Inject pinned condition into rule when skipPinnedByDefault is enabled
+ * This allows UI to enforce pinned protection without engine having default behavior
+ */
+function injectPinnedCondition(rule, skipPinned) {
+  if (!skipPinned) return rule;
+
+  // Clone rule to avoid mutating original
+  const modifiedRule = { ...rule };
+  const when = modifiedRule.when || modifiedRule.conditions;
+
+  if (!when) return rule;
+
+  // Add pinned: false condition to existing conditions
+  const pinnedCondition = { subject: 'pinned', operator: 'equals', value: false };
+
+  if (when.all) {
+    modifiedRule.when = {
+      ...when,
+      all: [...when.all, pinnedCondition]
+    };
+  } else if (when.any) {
+    // Wrap any in all with pinned condition
+    modifiedRule.when = {
+      all: [
+        { any: when.any },
+        pinnedCondition
+      ]
+    };
+  } else {
+    // Simple condition, wrap in all
+    modifiedRule.when = {
+      all: [when, pinnedCondition]
+    };
+  }
+
+  return modifiedRule;
+}
+
+// ============================================================================
 // Rules Engine 2.0 Implementation
 // ============================================================================
 
@@ -461,9 +505,9 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
 
     // Run the single rule
     // For manual execution, force execution even if rule is disabled
+    // Rule executes as-is (deterministic) - pinned condition should be in rule definition
     const results = await runRules([rule], context, {
       dryRun: false,
-      skipPinned: rule.flags?.skipPinned !== false,
       forceExecution: triggerType === 'manual'
     });
     
@@ -676,9 +720,9 @@ async function executeAllRules() {
     };
 
     // Run all rules
+    // Rules execute as-is (deterministic) - pinned condition should be in rule definitions
     const results = await runRules(enabledRules, context, {
-      dryRun: false,
-      skipPinned: true
+      dryRun: false
     });
     
     // Log activity
@@ -932,9 +976,9 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
   };
 
   // Execute through engine
+  // Don't inject pinned condition for manual operations on user-selected tabs
   const results = await runRules([tempRule], context, {
     dryRun: false,
-    skipPinned: false,
     forceExecution: true
   });
 
@@ -1157,6 +1201,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           if (request.windowId) {
             suspendContext.tabs = suspendContext.tabs.filter(t => t.windowId === request.windowId);
           }
+          // Rule already has pinned: false condition hardcoded
           const suspendResult = await engine.runRules([tempSuspendRule], suspendContext);
           sendResponse({
             success: true,
@@ -1416,8 +1461,10 @@ async function findAndCloseDuplicates() {
   };
 
   // Execute via engine.runRules to get proper tab enhancement
+  // Inject pinned condition if skipPinnedByDefault is enabled
+  const ruleToRun = injectPinnedCondition(tempRule, state.settings.skipPinnedByDefault);
   const result = await engine.runRules(
-    [tempRule],
+    [ruleToRun],
     { chrome },
     { dryRun: false }
   );
@@ -1469,8 +1516,10 @@ async function groupByDomain(callerWindowId = null, currentWindowOnly = false, w
   };
 
   // Execute via engine.runRules to get proper tab enhancement
+  // Inject pinned condition if skipPinnedByDefault is enabled
+  const ruleToRun = injectPinnedCondition(tempRule, state.settings.skipPinnedByDefault);
   const result = await engine.runRules(
-    [tempRule],
+    [ruleToRun],
     { chrome },
     { dryRun: false }
   );

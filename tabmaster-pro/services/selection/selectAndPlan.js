@@ -8,9 +8,10 @@ import { Command, createCommandFromAction } from '../../lib/commands/Command.js'
  * Select tabs matching a rule and generate commands for execution
  * @param {Object} rule - Rule with conditions and actions
  * @param {Object} context - Context with tabs and windows
+ * @param {Object} options - Selection options (e.g., skipPinned)
  * @returns {Object} { matches, commands }
  */
-export async function selectAndPlanActions(rule, context) {
+export async function selectAndPlanActions(rule, context, options = {}) {
   // 1. Select matching tabs
   const matches = await selectTabsMatchingRule(rule, context.tabs, context.windows);
 

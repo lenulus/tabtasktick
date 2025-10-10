@@ -694,17 +694,27 @@ function evaluateSingleCondition(tab, condition, context) {
     return false;
   }
 
-  // Get the actual value from the tab
-  let actualValue = mappedTab[subject];
+  // Get the actual value from the tab or window
+  let actualValue;
 
+  // Handle window.* properties
+  if (subject.startsWith('window.')) {
+    const windowProp = subject.replace('window.', '');
+    const window = context.windows?.find(w => w.id === tab.windowId);
+    actualValue = window?.[windowProp];
+  }
   // Handle nested properties (e.g., "tab.url")
-  if (subject.includes('.')) {
+  else if (subject.includes('.')) {
     const parts = subject.split('.');
     actualValue = mappedTab;
     for (const part of parts) {
       actualValue = actualValue?.[part];
       if (actualValue === undefined) break;
     }
+  }
+  // Handle direct properties
+  else {
+    actualValue = mappedTab[subject];
   }
 
   // Normalize expected value for certain subjects (e.g., age comparisons)

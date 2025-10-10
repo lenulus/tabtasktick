@@ -70,6 +70,7 @@ async function loadSettings() {
     document.getElementById('autoCloseEnabled').checked = currentSettings.autoCloseEnabled;
     document.getElementById('autoGroupEnabled').checked = currentSettings.autoGroupEnabled;
     document.getElementById('duplicateDetection').checked = currentSettings.duplicateDetection;
+    document.getElementById('skipPinnedByDefault').checked = currentSettings.skipPinnedByDefault ?? true;
     document.getElementById('maxTabsWarning').value = currentSettings.maxTabsWarning || 100;
     document.getElementById('defaultSnoozeMinutes').value = currentSettings.defaultSnoozeMinutes || 60;
     
@@ -109,6 +110,7 @@ async function saveSettings() {
     autoCloseEnabled: document.getElementById('autoCloseEnabled').checked,
     autoGroupEnabled: document.getElementById('autoGroupEnabled').checked,
     duplicateDetection: document.getElementById('duplicateDetection').checked,
+    skipPinnedByDefault: document.getElementById('skipPinnedByDefault').checked,
     maxTabsWarning: parseInt(document.getElementById('maxTabsWarning').value),
     defaultSnoozeMinutes: parseInt(document.getElementById('defaultSnoozeMinutes').value),
     memoryThreshold: parseInt(document.getElementById('memoryThreshold').value),
@@ -643,6 +645,7 @@ function setupEventListeners() {
   document.getElementById('autoCloseEnabled').addEventListener('change', saveSettings);
   document.getElementById('autoGroupEnabled').addEventListener('change', saveSettings);
   document.getElementById('duplicateDetection').addEventListener('change', saveSettings);
+  document.getElementById('skipPinnedByDefault').addEventListener('change', saveSettings);
   document.getElementById('maxTabsWarning').addEventListener('change', saveSettings);
   document.getElementById('defaultSnoozeMinutes').addEventListener('change', saveSettings);
   

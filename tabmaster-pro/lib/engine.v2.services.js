@@ -131,23 +131,35 @@ export async function executeActions(actions, tabs, context, dryRun = false) {
         const keepStrategy = action.keep || 'oldest'; // Default to keeping oldest
         let tabsToClose = [];
 
-        if (keepStrategy === 'none') {
+        if (keepStrategy === 'all') {
+          // Keep all - don't close any (no-op)
+          tabsToClose = [];
+        } else if (keepStrategy === 'none') {
           // Close all duplicates
           tabsToClose = dupeTabs;
         } else {
           // Sort tabs to identify which to keep
           const sortedDupes = [...dupeTabs].sort((a, b) => {
-            // Sort by creation time (use ID as proxy if no createdAt)
-            const aTime = a.createdAt || a.id;
-            const bTime = b.createdAt || b.id;
-            return aTime - bTime; // Oldest first
+            if (keepStrategy === 'oldest' || keepStrategy === 'newest') {
+              // Sort by creation time (use ID as proxy if no createdAt)
+              const aTime = a.createdAt || a.id;
+              const bTime = b.createdAt || b.id;
+              return aTime - bTime; // Oldest first
+            }
+            else if (keepStrategy === 'mru' || keepStrategy === 'lru') {
+              // Sort by last access time (with fallbacks)
+              const aAccess = a.lastAccessed || a.createdAt || a.id || 0;
+              const bAccess = b.lastAccessed || b.createdAt || b.id || 0;
+              return aAccess - bAccess; // LRU first, MRU last
+            }
+            return 0;
           });
 
-          if (keepStrategy === 'oldest') {
-            // Keep first (oldest), close the rest
+          if (keepStrategy === 'oldest' || keepStrategy === 'lru') {
+            // Keep first in sorted array
             tabsToClose = sortedDupes.slice(1);
-          } else if (keepStrategy === 'newest') {
-            // Keep last (newest), close the rest
+          } else if (keepStrategy === 'newest' || keepStrategy === 'mru') {
+            // Keep last in sorted array
             tabsToClose = sortedDupes.slice(0, -1);
           }
         }

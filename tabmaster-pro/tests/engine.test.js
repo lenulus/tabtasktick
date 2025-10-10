@@ -116,28 +116,30 @@ describe('Engine - selectTabsMatchingRule', () => {
     expect(matches.map(t => t.id)).toEqual([1, 3]);
   });
   
-  test.skip('should skip pinned tabs when configured (V2 does not support skipPinned option yet)', async () => {
+  test('should skip pinned tabs when configured', async () => {
     const tabs = [
-      createTab({ url: 'https://example.com', isPinned: true, id: 1 }),
-      createTab({ url: 'https://example.com', isPinned: false, id: 2 })
+      createTab({ url: 'https://example.com', pinned: true, id: 1 }),
+      createTab({ url: 'https://example.com', pinned: false, id: 2 })
     ];
 
+    // When skipPinnedByDefault is true, UI injects pinned condition
     const rule = createRule({
       when: {
         all: [
-          { subject: 'domain', operator: 'equals', value: 'example.com' }
+          { subject: 'domain', operator: 'equals', value: 'example.com' },
+          { subject: 'pinned', operator: 'equals', value: false }
         ]
       }
     });
 
     const context = createTestContext(tabs);
-    const matches = await selectTabsMatchingRule(rule, context.tabs, context.windows, { skipPinned: true });
+    const matches = await selectTabsMatchingRule(rule, context.tabs, context.windows);
 
     expect(matches).toHaveLength(1);
     expect(matches[0].id).toBe(2);
   });
   
-  test.skip('should match based on window tab count (V2 does not support window.* properties yet)', async () => {
+  test('should match based on window tab count', async () => {
     const tabs = [
       createTab({ url: 'https://example.com', windowId: 1, id: 1 }),
       createTab({ url: 'https://other.com', windowId: 2, id: 2 })
@@ -460,23 +462,25 @@ describe('Engine - previewRule (via selectTabsMatchingRule)', () => {
     });
   });
   
-  test.skip('should show skip pinned in preview (V2 does not support skipPinned option yet)', async () => {
+  test('should show skip pinned in preview', async () => {
     const tabs = [
-      createTab({ url: 'https://example.com', isPinned: true, id: 1 }),
-      createTab({ url: 'https://example.com', isPinned: false, id: 2 })
+      createTab({ url: 'https://example.com', pinned: true, id: 1 }),
+      createTab({ url: 'https://example.com', pinned: false, id: 2 })
     ];
 
+    // When skipPinnedByDefault is true, UI injects pinned condition
     const rule = createRule({
       when: {
         all: [
-          { subject: 'domain', operator: 'equals', value: 'example.com' }
+          { subject: 'domain', operator: 'equals', value: 'example.com' },
+          { subject: 'pinned', operator: 'equals', value: false }
         ]
       },
       then: [{ action: 'close' }]
     });
 
     const context = createTestContext(tabs);
-    const matches = await selectTabsMatchingRule(rule, context.tabs, context.windows, { skipPinned: true });
+    const matches = await selectTabsMatchingRule(rule, context.tabs, context.windows);
 
     expect(matches).toHaveLength(1);
     expect(matches[0].id).toBe(2);
