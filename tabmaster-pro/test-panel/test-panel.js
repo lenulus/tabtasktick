@@ -6,7 +6,7 @@ import { TestMode } from '../lib/test-mode/test-mode.js';
 let testMode = null;
 let isTestModeActive = false;
 let currentResults = null;
-let selectedEngine = 'v1'; // Default to production engine
+let selectedEngine = 'v2-services'; // V2 Services is now the only engine
 const logs = [];
 
 // DOM Elements
@@ -81,7 +81,7 @@ async function onEngineChange() {
     log(`Failed to switch engine: ${error.message}`, 'error');
 
     // Revert selection
-    elements.engineSelect.value = selectedEngine === newEngine ? 'v1' : selectedEngine;
+    elements.engineSelect.value = selectedEngine === newEngine ? 'v2-services' : selectedEngine;
     selectedEngine = elements.engineSelect.value;
   }
 }

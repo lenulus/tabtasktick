@@ -4,7 +4,7 @@ import { chromeMock } from './chrome-mock.js';
 import { createTab, addTimeTracking } from './tab-factory.js';
 
 // Import buildIndices for tests that still need it (e.g., predicate.test.js)
-import { buildIndices } from '../../lib/engine.js';
+import { buildIndices } from '../../lib/engine.v2.services.js';
 
 // Helper to create a test context with tabs, windows, and indices
 export function createTestContext(tabs, windows = null, timeData = null) {

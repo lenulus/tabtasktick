@@ -1,12 +1,8 @@
 // Background Service Worker for TabMaster Pro
 // Integrated with new Rules Engine 2.0 (engine.js + scheduler.js)
 
-// Import all engine versions
-import * as engineV1 from './lib/engine.js';
-import * as engineV2Services from './lib/engine.v2.services.js';
-// Command pattern engines would need their dependencies fixed first
-// import * as engineV2CommandFull from './lib/engine.v2.command.full.js';
-// import * as engineV2CommandCompact from './lib/engine.v2.command.compact.js';
+// Import V2 engine (V1 removed in Phase 7.2)
+import * as engine from './lib/engine.v2.services.js';
 
 import { createChromeScheduler } from './lib/scheduler.js';
 import * as SnoozeService from './services/execution/SnoozeService.js';
@@ -14,22 +10,13 @@ import * as ExportImportService from './services/ExportImportService.js';
 import { getTabStatistics } from './services/selection/selectTabs.js';
 import { getCurrentWindowId } from './services/TabGrouping.js';
 
-console.log('Background service worker loaded with Rules Engine 2.0');
+console.log('Background service worker loaded with Rules Engine V2');
 
-// Engine selector
-const engines = {
-  'v1': engineV1,
-  'v2-services': engineV2Services,
-  // 'v2-command-full': engineV2CommandFull,
-  // 'v2-command-compact': engineV2CommandCompact
-};
-
-// Get the active engine's functions
+// Get the engine's functions (V2 only)
 function getEngine() {
-  const engine = engines[state.testEngine] || engines['v1'];
   return {
     runRules: engine.runRules,
-    previewRule: engine.previewRule || engine.previewRuleEngine,
+    previewRule: engine.previewRule,
     buildIndices: engine.buildIndices,
     executeActions: engine.executeActions
   };

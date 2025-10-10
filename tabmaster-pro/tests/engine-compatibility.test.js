@@ -1,26 +1,14 @@
-// Engine Compatibility Test Suite
-// Tests all engine versions to ensure they produce the same results
+// Engine Test Suite
+// Tests the V2 Services engine (V1 removed in Phase 7.2)
 
 import { jest } from '@jest/globals';
 
-// Import all engine versions
-import * as engineV1 from '../lib/engine.v1.legacy.js';
-import * as engineV2Services from '../lib/engine.v2.services.js';
+// Import V2 engine
+import * as engine from '../lib/engine.v2.services.js';
 
-// Helper to select engine based on environment variable
-const SELECTED_ENGINE = process.env.TEST_ENGINE || 'v1';
+const getEngine = () => engine;
 
-const engines = {
-  'v1': engineV1,
-  'v2-services': engineV2Services,
-  // Command pattern engines need their dependencies mocked first
-  // 'v2-command-full': engineV2CommandFull,
-  // 'v2-command-compact': engineV2CommandCompact
-};
-
-const getEngine = () => engines[SELECTED_ENGINE];
-
-describe(`Engine Compatibility Tests [Testing: ${SELECTED_ENGINE}]`, () => {
+describe('Engine Tests [V2 Services]', () => {
   // Mock Chrome API
   const mockChrome = {
     tabs: {

@@ -1,7 +1,7 @@
 // Session Manager - Bulk tab management interface for Rules Engine 2.0
 
 // Import Rules Engine modules
-import { RulesEngine } from '../lib/engine.js';
+import { previewRule } from '../lib/engine.v2.services.js';
 import { normalizeUrlForDuplicates } from '../services/selection/selectTabs.js';
 import { GroupingScope, groupTabsByDomain as groupTabsByDomainService } from '../services/TabGrouping.js';
 
@@ -958,8 +958,7 @@ async function handleDryRun() {
     };
     
     // Run engine in dry-run mode
-    const engine = new RulesEngine();
-    const results = await engine.previewRule(rule, context);
+    const results = await previewRule(rule, context);
     
     // Display results
     const affectedCount = results.actions.reduce((sum, action) => sum + action.tabs.length, 0);

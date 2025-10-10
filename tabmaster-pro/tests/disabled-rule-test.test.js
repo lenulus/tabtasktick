@@ -5,9 +5,23 @@
 
 import { jest } from '@jest/globals';
 import { selectTabsMatchingRule } from '../services/selection/selectTabs.js';
-import { runRules } from '../lib/engine.js';
+import { runRules } from '../lib/engine.v2.services.js';
+
+// Mock global chrome API
+global.chrome = {
+  tabs: {
+    remove: jest.fn().mockResolvedValue(undefined),
+    query: jest.fn().mockResolvedValue([]),
+    update: jest.fn().mockResolvedValue({}),
+    group: jest.fn().mockResolvedValue(1)
+  }
+};
 
 describe('Issue #1: Disabled Rules Testing', () => {
+  beforeEach(() => {
+    // Reset all mocks before each test
+    jest.clearAllMocks();
+  });
   test('evaluateRule should work on disabled rules', async () => {
     const rule = {
       id: 'test-rule',
@@ -133,12 +147,7 @@ describe('Issue #1: Disabled Rules Testing', () => {
 
     const context = {
       tabs,
-      windows: [],
-      chrome: {
-        tabs: {
-          remove: jest.fn().mockResolvedValue(undefined)
-        }
-      }
+      windows: []
     };
 
     const results = await runRules([disabledRule, enabledRule], context, { dryRun: false });
@@ -171,12 +180,7 @@ describe('Issue #1: Disabled Rules Testing', () => {
 
     const context = {
       tabs,
-      windows: [],
-      chrome: {
-        tabs: {
-          remove: jest.fn().mockResolvedValue(undefined)
-        }
-      }
+      windows: []
     };
 
     // With forceExecution: true, disabled rule should execute
@@ -189,6 +193,6 @@ describe('Issue #1: Disabled Rules Testing', () => {
     expect(results.rules).toHaveLength(1);
     expect(results.rules[0].ruleName).toBe('Disabled Manual Rule');
     expect(results.totalMatches).toBe(1);
-    expect(context.chrome.tabs.remove).toHaveBeenCalledWith(1);
+    expect(global.chrome.tabs.remove).toHaveBeenCalledWith(1);
   });
 });

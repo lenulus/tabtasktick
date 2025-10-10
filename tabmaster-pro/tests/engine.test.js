@@ -4,7 +4,7 @@ import { jest } from '@jest/globals';
 import {
   executeActions,
   runRules
-} from '../lib/engine.js';
+} from '../lib/engine.v2.services.js';
 import { selectTabsMatchingRule } from '../services/selection/selectTabs.js';
 import { createTab } from './utils/tab-factory.js';
 import { createRule } from './utils/rule-factory.js';
@@ -254,7 +254,7 @@ describe('Engine - executeActions', () => {
     chromeMock.tabs.group.mockResolvedValue(100);
     chromeMock.tabGroups.update.mockResolvedValue({});
 
-    const results = await executeActions(actions, tabs, { chrome: chromeMock }, false);
+    const results = await executeActions(actions, tabs, {}, false);
 
     expect(chromeMock.tabs.group).toHaveBeenCalledWith({ tabIds: [1] });
     expect(chromeMock.tabGroups.update).toHaveBeenCalledWith(100, { title: 'Work' });
@@ -271,7 +271,7 @@ describe('Engine - executeActions', () => {
     ]);
     chromeMock.tabs.group.mockResolvedValue({});
 
-    const results = await executeActions(actions, tabs, { chrome: chromeMock }, false);
+    const results = await executeActions(actions, tabs, {}, false);
 
     expect(chromeMock.tabs.group).toHaveBeenCalledWith({ tabIds: [1], groupId: 100 });
     expect(results[0].success).toBe(true);
@@ -292,7 +292,7 @@ describe('Engine - executeActions', () => {
   test('should bookmark tabs', async () => {
     const tabs = [createTab({ id: 1, url: 'https://example.com', title: 'Example' })];
     const actions = [{ action: 'bookmark', to: 'Read Later' }];
-    
+
     chromeMock.bookmarks.getTree.mockResolvedValue([{
       id: '0',
       children: [{
@@ -303,11 +303,11 @@ describe('Engine - executeActions', () => {
         title: 'Other Bookmarks'
       }]
     }]);
-    
+
     chromeMock.bookmarks.create.mockResolvedValue({ id: '100' });
-    
-    const results = await executeActions(actions, tabs, { chrome: chromeMock }, false);
-    
+
+    const results = await executeActions(actions, tabs, {}, false);
+
     expect(chromeMock.bookmarks.create).toHaveBeenCalledWith({
       parentId: '2',
       title: 'Read Later'
@@ -405,17 +405,21 @@ describe('Engine - runRules', () => {
   
   test('should execute actions in dry run mode', async () => {
     const tabs = [createTab({ url: 'https://example.com', id: 1 })];
-    
+
     const rules = [
       createRule({
-        when: { eq: ['tab.domain', 'example.com'] },
-        then: [{ action: 'close' }]
+        when: {
+          all: [
+            { subject: 'domain', operator: 'equals', value: 'example.com' }
+          ]
+        },
+        then: [{ type: 'close' }]
       })
     ];
-    
-    const context = { tabs, chrome: chromeMock };
+
+    const context = { tabs, windows: [] };
     const results = await runRules(rules, context, { dryRun: true });
-    
+
     expect(chromeMock.tabs.remove).not.toHaveBeenCalled();
     expect(results.totalMatches).toBe(1);
     expect(results.totalActions).toBe(1);
@@ -496,33 +500,33 @@ describe('Engine - Complex Scenarios', () => {
     const tabs = [];
     // Create 10 github tabs
     for (let i = 1; i <= 10; i++) {
-      tabs.push(createTab({ 
-        url: `https://github.com/repo${i}`, 
+      tabs.push(createTab({
+        url: `https://github.com/repo${i}`,
         createdAt: Date.now() - 3 * 60 * 60 * 1000, // 3 hours ago
-        id: i 
+        id: i
       }));
     }
-    
+
     const rule = createRule({
       name: 'Clamp Research Explosions',
-      when: { 
+      when: {
         all: [
-          { gte: ['tab.countPerOrigin:domain', 8] },
-          { gte: ['tab.age', '2h'] }
+          { subject: 'domainCount', operator: 'greaterThanOrEqual', value: 8 },
+          { subject: 'age', operator: 'greaterThanOrEqual', value: '2h' }
         ]
       },
       then: [
-        { action: 'group', by: 'domain' },
-        { action: 'snooze', for: '12h' }
+        { type: 'group', by: 'domain' },
+        { type: 'snooze', for: '12h' }
       ]
     });
-    
+
     chromeMock.tabs.group.mockResolvedValue(100);
     chromeMock.tabGroups.update.mockResolvedValue({});
-    
+
     const context = createTestContext(tabs);
-    const results = await runRules([rule], { ...context, chrome: chromeMock }, { dryRun: false });
-    
+    const results = await runRules([rule], context, { dryRun: false });
+
     expect(results.totalMatches).toBe(10); // All github tabs match
     expect(results.totalActions).toBeGreaterThan(0);
     // Note: SnoozeService mock assertion removed - the real service is called, not the mock
@@ -537,8 +541,12 @@ describe('Engine - Complex Scenarios', () => {
 
     const rule = createRule({
       name: 'Gmail Spawn Group',
-      when: { eq: ['tab.origin', 'gmail'] },
-      then: [{ action: 'group', name: 'Gmail Session' }]
+      when: {
+        all: [
+          { subject: 'origin', operator: 'equals', value: 'gmail' }
+        ]
+      },
+      then: [{ type: 'group', name: 'Gmail Session' }]
     });
 
     // Mock tabs.get for the service
@@ -559,7 +567,7 @@ describe('Engine - Complex Scenarios', () => {
     chromeMock.tabGroups.update.mockResolvedValue({});
 
     const context = createTestContext(tabs);
-    const results = await runRules([rule], { ...context, chrome: chromeMock }, { dryRun: false });
+    const results = await runRules([rule], context, { dryRun: false });
 
     expect(results.totalMatches).toBe(2);
     // The implementation now groups all tabs at once for efficiency

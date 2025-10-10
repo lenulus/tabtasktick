@@ -1,21 +1,14 @@
 // lib/engineLoader.js
-// Engine selection and loading abstraction
-// Allows switching between v1 and v2 engines across all surfaces
+// Engine loader - V2 Services only (V1 removed in Phase 7.2)
 
 const STORAGE_KEY = 'activeEngine';
-const DEFAULT_ENGINE = 'v2-services'; // V2 is now stable and default
+const DEFAULT_ENGINE = 'v2-services';
 
-// Available engines
+// Available engines (V2 only)
 const ENGINES = {
-  'v1-legacy': {
-    name: 'V1 Legacy',
-    description: 'Original engine - for validation only',
-    path: './engine.v1.legacy.js',
-    module: null // Lazy loaded
-  },
   'v2-services': {
-    name: 'V2 Services (Default)',
-    description: 'Services-first architecture - stable and tested',
+    name: 'V2 Services',
+    description: 'Services-first architecture - production engine',
     path: './engine.v2.services.js',
     module: null // Lazy loaded
   }
