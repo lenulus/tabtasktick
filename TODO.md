@@ -1015,109 +1015,137 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ---
 
-## Phase 8: Power User Features ❌
+## Phase 8: Window Operations ❌
 
-**Status**: Future milestone - after Phase 7 complete
+**Status**: Design complete - ready for implementation
 **Priority**: Medium - enhances workflow efficiency for power users
+**Full Design**: See `/docs/phase8-window-operations.md`
+**Estimated Time**: 26-36 hours total
 
-### 8.1 Window-Scoped Operations ❌
+### Architecture Review (2025-10-10)
+✅ Architectural review complete by architecture-guardian
+🚨 Critical issues identified and resolved in design:
+- Window metadata must be stored separately (not in SnoozeService)
+- Need dedicated WindowService as single source of truth
+- Context menu handlers must be THIN (delegate to services)
 
-#### 8.1.1 Snooze Window (Context Menu)
-- [ ] Add "Snooze Window" to window context menu
-- [ ] Implementation:
-  - [ ] New service method: `snoozeWindow(windowId, duration)`
-  - [ ] Get all tabs in window: `chrome.tabs.query({ windowId })`
-  - [ ] Route through SnoozeService.snoozeTabs()
-  - [ ] Restore: Create new window, restore all tabs to it
-  - [ ] Preserve window properties (position, size, state)
-- [ ] UI: Duration picker in context menu submenu
-  - [ ] Quick options: 30m, 1h, 2h, Tomorrow
-  - [ ] Custom duration option
-- [ ] Testing:
-  - [ ] Test with 50+ tabs in window
-  - [ ] Verify window properties restored
-  - [ ] Test with grouped tabs (groups preserved)
+**Key Finding**: Multi-window test infrastructure MUST be built before implementation
 
-**Use Case**: "I have a work window with 30 tabs open, need to focus on personal stuff for a few hours, then restore the entire work context later"
+### Phase 8.0: Multi-Window Test Infrastructure ❌
+**Priority**: CRITICAL - Must complete first
+**Time**: 4-6 hours
 
-#### 8.1.2 De-Duplicate Scoped to Window
-- [ ] Add window scope option to duplicate detection
-- [ ] Implementation options:
+- [ ] Create `/tests/utils/window-test-helpers.js`
+  - [ ] `createMockWindow()` - Mock window objects
+  - [ ] `createMultiWindowScenario()` - Multi-window test data
+  - [ ] `createTabsWithCrossWindowDuplicates()` - Duplicate testing
+  - [ ] Window property assertions
+- [ ] Create `/tests/window-operations.test.js`
+  - [ ] Cross-window duplicate detection tests
+  - [ ] Large multi-window scenarios (5 windows × 50 tabs)
+  - [ ] Window property preservation tests
+- [ ] Enhance Test Runner for multi-window support
+  - [ ] Add multi-window test category
+  - [ ] Window-level assertions
+  - [ ] Performance benchmarks
+- [ ] Success: Can create 10+ windows with 100+ tabs each for testing
 
-  **Option A: Context Menu**
-  - [ ] Add "Remove Duplicates in Window" to window context menu
-  - [ ] Calls `close-duplicates` action with window filter
+### Phase 8.1: WindowService + Basic Operations ❌
+**Priority**: HIGH
+**Time**: 6-8 hours
+**Depends On**: Phase 8.0
 
-  **Option B: Rules with Per-Window Mode**
-  - [ ] Add `scope: 'window'` option to rules
-  - [ ] Rule only matches tabs in same window as triggering context
-  - [ ] Example:
-    ```javascript
-    {
-      when: { isDupe: true },
-      then: [{ action: 'close-duplicates', keep: 'oldest' }],
-      scope: 'window'  // Only dedupe within each window independently
-    }
-    ```
+- [ ] Create `/services/execution/WindowService.js`
+  - [ ] `getAllWindows()` - Get all windows with tabs
+  - [ ] `getWindowMetadata()` - Get window properties
+  - [ ] `snoozeWindow()` - Snooze entire window
+  - [ ] `restoreWindow()` - Restore snoozed window
+  - [ ] `deduplicateWindow()` - Window-scoped deduplication
+  - [ ] `getWindowStats()` - Window statistics
+- [ ] Update SnoozeService
+  - [ ] Add `windowSnoozeId` to link tabs to windows
+  - [ ] Separate window metadata storage
+- [ ] Add context menu handlers (THIN)
+  - [ ] "Snooze Window" → WindowService
+  - [ ] "Remove Duplicates in Window" → WindowService
+- [ ] Create `/tests/WindowService.test.js`
+  - [ ] Test with 50+ tabs per window
+  - [ ] Verify property preservation
+  - [ ] Test cross-service coordination
+- [ ] Success: All WindowService tests passing, zero violations
 
-  **Option C: Both**
-  - [ ] Context menu for manual operation
-  - [ ] Per-window mode for rules
+### Phase 8.2: Window-Scoped Deduplication ❌
+**Priority**: MEDIUM
+**Time**: 4-6 hours
+**Depends On**: Phase 8.1
 
-- [ ] Service updates:
-  - [ ] Update `selectTabs()` to support `windowId` filter
-  - [ ] Update `close-duplicates` to accept `windowScope` option
-  - [ ] Group duplicates per-window instead of globally
+**Implementation**: Option C (Both context menu and rules)
 
-**Use Case**: "I have work tabs and personal tabs in separate windows, both have duplicate GitHub tabs, but I want to only dedupe within each window (keep 1 GitHub tab per window, not 1 globally)"
+- [ ] Enhance `/services/execution/closeDuplicates.js`
+  - [ ] Add `windowScope` option
+  - [ ] Group by window before deduplication
+  - [ ] Process each window independently
+- [ ] Update rules engine
+  - [ ] Add `scope: 'window'` to action schema
+  - [ ] Pass windowScope to closeDuplicates
+- [ ] Create `/tests/window-dedupe.test.js`
+  - [ ] Global vs window-scoped behavior
+  - [ ] Cross-window duplicates preserved
+  - [ ] Multiple window patterns
+- [ ] Success: Window-scoped deduplication working via both context menu and rules
 
-**Recommended**: Implement Option C (both context menu and rules support)
+### Phase 8.3: Complete Window Snooze/Restore UI ❌
+**Priority**: MEDIUM
+**Time**: 4-6 hours
+**Depends On**: Phase 8.1
 
-### 8.2 Scheduled Export Snapshots ❌
+- [ ] Dashboard window actions
+  - [ ] Add window action buttons to tabs view
+  - [ ] Duration picker modal
+  - [ ] Window dedupe button
+- [ ] Snoozed windows view
+  - [ ] Display snoozed windows separately
+  - [ ] Show tab count and wake time
+  - [ ] Restore button for each window
+- [ ] Background message handlers (THIN)
+  - [ ] `snoozeWindow` → WindowService
+  - [ ] `restoreWindow` → WindowService
+  - [ ] `deduplicateWindow` → WindowService
+- [ ] Success: Full UI flow working for window operations
 
-#### 8.2.1 Automatic Export Service
-- [ ] Create `/services/ScheduledExportService.js`
-- [ ] Features:
-  - [ ] Schedule exports: hourly, daily, weekly
-  - [ ] Configurable export format (JSON, CSV, Markdown)
-  - [ ] Configurable retention (keep last N snapshots)
-  - [ ] Auto-cleanup old snapshots
-  - [ ] Export location: Downloads folder with timestamped names
+### Phase 8.4: Scheduled Export Snapshots ❌
+**Priority**: LOW (Nice to have - defer if time-constrained)
+**Time**: 8-10 hours
+**Depends On**: Phases 8.1-8.3
 
-#### 8.2.2 Chrome Alarms Integration
-- [ ] Use `chrome.alarms` API for scheduling
-- [ ] Alarm names: `snapshot-hourly`, `snapshot-daily`, `snapshot-weekly`
-- [ ] On alarm: trigger export via ExportImportService
-- [ ] Persist export history in `chrome.storage.local`
+**Note**: Most complex feature - implement only if needed
 
-#### 8.2.3 Settings UI
-- [ ] Add "Automatic Snapshots" section to Settings page
-- [ ] Options:
+- [ ] Create `/services/execution/ScheduledExportService.js`
+  - [ ] Schedule exports with chrome.alarms
+  - [ ] Automatic cleanup of old snapshots
+  - [ ] Storage quota monitoring
+- [ ] Settings UI
   - [ ] Enable/disable scheduled exports
-  - [ ] Frequency: Off, Hourly, Daily, Weekly
-  - [ ] Format: JSON, CSV, Markdown
-  - [ ] Retention: Keep last 5/10/20/50 snapshots
-  - [ ] Export scope: All tabs, Active window only, Ungrouped tabs only
-- [ ] Display:
-  - [ ] Last snapshot time
-  - [ ] Next snapshot scheduled time
-  - [ ] Storage space used
-  - [ ] List of recent snapshots with restore button
+  - [ ] Frequency: Hourly, Daily, Weekly
+  - [ ] Retention: Keep last N snapshots
+  - [ ] View snapshot history
+- [ ] Snapshot management
+  - [ ] Restore from snapshot
+  - [ ] Delete individual snapshots
+  - [ ] Manual snapshot trigger
+- [ ] Success: Automatic backups working, storage managed properly
 
-#### 8.2.4 Snapshot Management
-- [ ] View snapshot history
-- [ ] Restore from snapshot (via import)
-- [ ] Delete individual snapshots
-- [ ] Manual snapshot button (trigger immediate export)
-- [ ] Export snapshots to external location
+### Implementation Timeline
+| Phase | Time | Priority | Status |
+|-------|------|----------|--------|
+| 8.0 - Test Infrastructure | 4-6h | CRITICAL | ❌ |
+| 8.1 - WindowService | 6-8h | HIGH | ❌ |
+| 8.2 - Window Deduplication | 4-6h | MEDIUM | ❌ |
+| 8.3 - Snooze/Restore UI | 4-6h | MEDIUM | ❌ |
+| 8.4 - Scheduled Exports | 8-10h | LOW | ❌ |
+| **Total** | **26-36h** | | |
 
-**Use Case**: "I want daily backups of my tabs in case I accidentally close something important or Chrome crashes"
-
-**Implementation Notes**:
-- Service worker persistence: Store schedule in chrome.storage.local
-- Use chrome.downloads.download() to save files
-- Filename format: `tabmaster-snapshot-2025-10-09-14-30.json`
-- Consider max storage limits (quota API)
+**Recommended**: Implement 8.0-8.2 first (core functionality), evaluate 8.3-8.4 based on demand
 
 ---
 
