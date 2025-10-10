@@ -87,10 +87,13 @@ Two architectural reviews conducted on 2025-10-10:
 
 **Status**: ✅ COMPLETE (2025-10-10)
 **Priority**: CRITICAL - Must complete before any feature implementation
-**Actual Time**: ~3 hours
+**Actual Time**: ~5 hours (including integration debugging)
 **Commits**:
-- `ef3ebb5` - Phase 8.0: Add multi-window test infrastructure
-- `cdce0d6` - Phase 8.0: Add multi-window test scenarios and assertions to test-panel
+- `ef3ebb5` - Phase 8.0: Add multi-window test infrastructure (Jest helpers + 26 unit tests)
+- `cdce0d6` - Phase 8.0: Add multi-window test scenarios and assertions to test-panel (3 integration tests)
+- `e737e70` - Docs: Add Phase 8.0 completion status and clarify test helper purpose
+- `9faf8de` - Phase 8.0: Add multi-window support to test runner (CRITICAL FIX)
+- `6b180fb` - Phase 8.0: Fix multi-window test runner integration issues (final fixes)
 
 ### Why This Comes First
 - Current test suite has ZERO multi-window testing capability

@@ -1015,12 +1015,13 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ---
 
-## Phase 8: Window Operations ❌
+## Phase 8: Window Operations 🚧 IN PROGRESS
 
-**Status**: Design complete - ready for implementation
+**Status**: Phase 8.0 Complete ✅ - Phase 8.1 Ready to Begin
 **Priority**: Medium - enhances workflow efficiency for power users
 **Full Design**: See `/docs/phase8-window-operations.md`
 **Estimated Time**: 24-34 hours total (REDUCED - reusing ExportImportService)
+**Time Spent**: ~5 hours (Phase 8.0 complete)
 
 ### Architecture Reviews (2025-10-10)
 
@@ -1041,24 +1042,35 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 **Impact**: Phase 8.1 simplified - reuse existing tested logic instead of reimplementation
 
-### Phase 8.0: Multi-Window Test Infrastructure ❌
+### Phase 8.0: Multi-Window Test Infrastructure ✅ COMPLETE
 **Priority**: CRITICAL - Must complete first
-**Time**: 4-6 hours
+**Time**: ~5 hours (including integration debugging)
+**Completed**: 2025-10-10
+**Commits**:
+- `ef3ebb5` - Phase 8.0: Add multi-window test infrastructure (Jest helpers + 26 unit tests)
+- `cdce0d6` - Phase 8.0: Add multi-window test scenarios and assertions to test-panel (3 integration tests)
+- `e737e70` - Docs: Add Phase 8.0 completion status and clarify test helper purpose
+- `9faf8de` - Phase 8.0: Add multi-window support to test runner (CRITICAL FIX)
+- `6b180fb` - Phase 8.0: Fix multi-window test runner integration issues (final fixes)
 
-- [ ] Create `/tests/utils/window-test-helpers.js`
-  - [ ] `createMockWindow()` - Mock window objects
-  - [ ] `createMultiWindowScenario()` - Multi-window test data
-  - [ ] `createTabsWithCrossWindowDuplicates()` - Duplicate testing
-  - [ ] Window property assertions
-- [ ] Create `/tests/window-operations.test.js`
-  - [ ] Cross-window duplicate detection tests
-  - [ ] Large multi-window scenarios (5 windows × 50 tabs)
-  - [ ] Window property preservation tests
-- [ ] Enhance Test Runner for multi-window support
-  - [ ] Add multi-window test category
-  - [ ] Window-level assertions
-  - [ ] Performance benchmarks
-- [ ] Success: Can create 10+ windows with 100+ tabs each for testing
+- [x] Create `/tests/utils/window-test-helpers.js`
+  - [x] `createMockWindow()` - Mock window objects
+  - [x] `createMultiWindowScenario()` - Multi-window test data
+  - [x] `createTabsWithCrossWindowDuplicates()` - Duplicate testing
+  - [x] Window property assertions (11 helper functions total)
+- [x] Create `/tests/window-operations.test.js`
+  - [x] Cross-window duplicate detection tests
+  - [x] Large multi-window scenarios (5 windows × 50 tabs)
+  - [x] Window property preservation tests
+  - [x] 26 Jest unit tests passing
+- [x] Enhance Test Runner for multi-window support
+  - [x] Add multi-window test category (3 new integration scenarios)
+  - [x] Window-level assertions (3 new assertion types)
+  - [x] Performance benchmarks (large-multi-window-performance scenario)
+  - [x] Fixed window query scope (search all windows, not just test window)
+  - [x] Fixed Chrome API limitations (maximized/minimized state handling)
+  - [x] Fixed test URLs (data: URLs and root domains to avoid 404s/bot detection)
+- [x] Success: 436 tests passing (26 new window tests), zero architectural violations
 
 ### Phase 8.1: WindowService + Basic Operations ❌
 **Priority**: HIGH
@@ -1151,12 +1163,12 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 ### Implementation Timeline
 | Phase | Time | Priority | Status | Notes |
 |-------|------|----------|--------|-------|
-| 8.0 - Test Infrastructure | 4-6h | CRITICAL | ❌ | Must complete first |
+| 8.0 - Test Infrastructure | ~5h | CRITICAL | ✅ COMPLETE | Multi-window test infrastructure with 26 tests |
 | 8.1 - WindowService | 4-6h | HIGH | ❌ | **REDUCED** - reuses ExportImportService |
 | 8.2 - Window Deduplication | 4-6h | MEDIUM | ❌ | |
 | 8.3 - Snooze/Restore UI | 4-6h | MEDIUM | ❌ | |
 | 8.4 - Scheduled Exports | 8-10h | LOW | ❌ | Defer if time-constrained |
-| **Total** | **24-34h** | | | **REDUCED from 26-36h** |
+| **Total** | **24-34h** | | **~5h done** | **REDUCED from 26-36h** |
 
 **Time Savings**: 2 hours saved on Phase 8.1 by reusing ExportImportService
 
