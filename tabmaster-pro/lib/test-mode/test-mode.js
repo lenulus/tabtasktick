@@ -800,16 +800,26 @@ export class TestMode {
         description: 'Test duplicate detection across multiple windows',
         category: 'multi-window',
         steps: [
-          // Create tabs with duplicates across windows (Phase 8 feature test)
-          // Note: Test runner currently creates all tabs in same window
-          // This test validates the logic works when windowId varies
-          { action: 'createTab', url: 'https://github.com/trending', count: 2 },
-          { action: 'createTab', url: 'https://news.ycombinator.com', count: 2 },
-          { action: 'createTab', url: 'https://stackoverflow.com/questions/tagged/javascript', count: 2 },
-          { action: 'createTab', url: 'https://unique-tab-1.com', count: 1 },
-          { action: 'createTab', url: 'https://unique-tab-2.com', count: 1 },
+          // Create 3 windows for cross-window duplicate testing
+          { action: 'createWindow', captureAs: 'window1' },
+          { action: 'createWindow', captureAs: 'window2', left: 100, top: 100 },
+          { action: 'createWindow', captureAs: 'window3', left: 200, top: 200 },
 
-          // Create rule to close duplicates
+          // Create duplicates across windows
+          { action: 'createTab', url: 'https://github.com/trending', count: 1, useCaptured: 'window1' },
+          { action: 'createTab', url: 'https://github.com/trending', count: 1, useCaptured: 'window2' },
+          { action: 'createTab', url: 'https://news.ycombinator.com', count: 1, useCaptured: 'window2' },
+          { action: 'createTab', url: 'https://news.ycombinator.com', count: 1, useCaptured: 'window3' },
+          { action: 'createTab', url: 'https://stackoverflow.com/questions/tagged/javascript', count: 1, useCaptured: 'window1' },
+          { action: 'createTab', url: 'https://stackoverflow.com/questions/tagged/javascript', count: 1, useCaptured: 'window3' },
+
+          // Unique tabs
+          { action: 'createTab', url: 'https://unique-tab-1.com', count: 1, useCaptured: 'window1' },
+          { action: 'createTab', url: 'https://unique-tab-2.com', count: 1, useCaptured: 'window2' },
+
+          { action: 'wait', ms: 500 },
+
+          // Create rule to close duplicates globally (across all windows)
           {
             action: 'createRule',
             rule: {
@@ -824,13 +834,17 @@ export class TestMode {
           { action: 'executeRule', ruleId: 'Close Multi-Window Duplicates' },
           { action: 'wait', ms: 1000 },
 
-          // Should have one of each URL (3 unique URLs + 2 truly unique)
-          { action: 'assert', type: 'tabCount', expected: 5 },
+          // Should have one of each URL across all windows (3 duplicate URLs + 2 unique = 5 total)
           { action: 'assert', type: 'tabExists', url: 'github.com/trending' },
           { action: 'assert', type: 'tabExists', url: 'news.ycombinator.com' },
           { action: 'assert', type: 'tabExists', url: 'stackoverflow.com' },
           { action: 'assert', type: 'tabExists', url: 'unique-tab-1.com' },
-          { action: 'assert', type: 'tabExists', url: 'unique-tab-2.com' }
+          { action: 'assert', type: 'tabExists', url: 'unique-tab-2.com' },
+
+          // Verify we actually have 3 windows
+          { action: 'assert', type: 'windowExists', windowId: 'window1', useCaptured: true },
+          { action: 'assert', type: 'windowExists', windowId: 'window2', useCaptured: true },
+          { action: 'assert', type: 'windowExists', windowId: 'window3', useCaptured: true }
         ]
       },
       {
@@ -838,11 +852,25 @@ export class TestMode {
         description: 'Test window property assertions and validation',
         category: 'multi-window',
         steps: [
-          // Validate current test window properties
-          { action: 'assert', type: 'windowExists', windowId: 'test' },
-          { action: 'assert', type: 'windowProperty', windowId: 'test', property: 'type', value: 'normal' },
-          { action: 'assert', type: 'windowProperty', windowId: 'test', property: 'state', value: 'normal' },
-          { action: 'assert', type: 'windowTabCount', windowId: 'test', minimum: 1 }
+          // Create windows with different states
+          { action: 'createWindow', captureAs: 'normalWindow', state: 'normal' },
+          { action: 'createWindow', captureAs: 'maximizedWindow', state: 'maximized' },
+
+          // Add tabs to each window
+          { action: 'createTab', url: 'https://test1.com', count: 3, useCaptured: 'normalWindow' },
+          { action: 'createTab', url: 'https://test2.com', count: 5, useCaptured: 'maximizedWindow' },
+
+          { action: 'wait', ms: 500 },
+
+          // Validate window properties
+          { action: 'assert', type: 'windowExists', windowId: 'normalWindow', useCaptured: true },
+          { action: 'assert', type: 'windowProperty', windowId: 'normalWindow', property: 'type', value: 'normal', useCaptured: true },
+          { action: 'assert', type: 'windowProperty', windowId: 'normalWindow', property: 'state', value: 'normal', useCaptured: true },
+          { action: 'assert', type: 'windowTabCount', windowId: 'normalWindow', expected: 3, useCaptured: true },
+
+          { action: 'assert', type: 'windowExists', windowId: 'maximizedWindow', useCaptured: true },
+          { action: 'assert', type: 'windowProperty', windowId: 'maximizedWindow', property: 'state', value: 'maximized', useCaptured: true },
+          { action: 'assert', type: 'windowTabCount', windowId: 'maximizedWindow', expected: 5, useCaptured: true }
         ]
       },
       {
@@ -1270,12 +1298,31 @@ export class TestMode {
         }
       }
 
-      // Remove all test tabs
-      if (this.testWindow) {
-        await chrome.windows.remove(this.testWindow.id);
-        // Wait a bit to ensure the window and its tabs are fully removed
-        // This prevents suspended tabs from reloading and triggering production rules
+      // Remove all test windows (including additional windows created during tests)
+      if (this.testWindowIds && this.testWindowIds.size > 0) {
+        console.log(`Closing ${this.testWindowIds.size} test windows...`);
+        for (const windowId of this.testWindowIds) {
+          try {
+            await chrome.windows.remove(windowId);
+          } catch (error) {
+            console.log(`Failed to remove test window ${windowId}:`, error.message);
+          }
+        }
+        this.testWindowIds.clear();
+        // Wait a bit to ensure windows and tabs are fully removed
         await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // Remove main test window if it exists and wasn't already removed
+      if (this.testWindow) {
+        try {
+          await chrome.windows.remove(this.testWindow.id);
+          // Wait a bit to ensure the window and its tabs are fully removed
+          // This prevents suspended tabs from reloading and triggering production rules
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+          console.log('Test window already closed or error:', error.message);
+        }
       }
 
       // Remove all test rules

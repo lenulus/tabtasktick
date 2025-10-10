@@ -25,6 +25,7 @@ export class TestRunner {
    */
   initializeExecutors() {
     return {
+      createWindow: this.executeCreateWindow.bind(this),
       createTab: this.executeCreateTab.bind(this),
       createRule: this.executeCreateRule.bind(this),
       executeRule: this.executeExecuteRule.bind(this),
@@ -81,35 +82,109 @@ export class TestRunner {
   }
 
   /**
+   * Execute createWindow step
+   */
+  async executeCreateWindow(step) {
+    const {
+      captureAs,
+      state = 'normal',
+      focused = false,
+      left,
+      top,
+      width = 800,
+      height = 600,
+      type = 'normal'
+    } = step;
+
+    // Create the window
+    const windowOptions = {
+      state,
+      focused,
+      width,
+      height,
+      type
+    };
+
+    // Only set position if provided (Chrome will auto-position otherwise)
+    if (left !== undefined) windowOptions.left = left;
+    if (top !== undefined) windowOptions.top = top;
+
+    const window = await chrome.windows.create(windowOptions);
+
+    // Track this window as a test window
+    if (!this.testMode.testWindowIds) {
+      this.testMode.testWindowIds = new Set();
+    }
+    this.testMode.testWindowIds.add(window.id);
+
+    // Capture window ID if requested
+    if (captureAs) {
+      this.capturedData[captureAs] = window.id;
+    }
+
+    console.log(`Created test window ${window.id} (${state}, ${type})`);
+
+    return {
+      windowId: window.id,
+      state: window.state,
+      type: window.type
+    };
+  }
+
+  /**
    * Execute createTab step
    */
   async executeCreateTab(step) {
-    const { url, count = 1, age, pinned = false, muted = false, active = false } = step;
+    const {
+      url,
+      count = 1,
+      age,
+      pinned = false,
+      muted = false,
+      active = false,
+      windowId: specifiedWindowId,
+      useCaptured
+    } = step;
     const tabIds = [];
 
-    // Ensure test window exists and is valid
-    if (!this.testMode.testWindow?.id) {
-      // Try to create test window if it doesn't exist
-      console.log('Test window not initialized, creating new window');
-      await this.testMode.createTestWindow();
+    // Determine which window to use
+    let windowId;
 
-      if (!this.testMode.testWindow?.id) {
-        throw new Error('Failed to create test window');
-      }
-    }
-
-    // Check if test window still exists
-    let windowId = this.testMode.testWindow.id;
-    try {
-      await chrome.windows.get(windowId);
-    } catch (error) {
-      // Window no longer exists, recreate it
-      console.log('Test window no longer exists, recreating');
-      await this.testMode.createTestWindow();
-      windowId = this.testMode.testWindow.id;
-
+    if (useCaptured) {
+      // Use a captured window ID
+      windowId = this.capturedData[useCaptured];
       if (!windowId) {
-        throw new Error('Failed to recreate test window');
+        throw new Error(`No captured window ID found for: ${useCaptured}`);
+      }
+    } else if (specifiedWindowId) {
+      // Use explicitly specified window ID
+      windowId = specifiedWindowId;
+    } else {
+      // Default to test window
+      // Ensure test window exists and is valid
+      if (!this.testMode.testWindow?.id) {
+        // Try to create test window if it doesn't exist
+        console.log('Test window not initialized, creating new window');
+        await this.testMode.createTestWindow();
+
+        if (!this.testMode.testWindow?.id) {
+          throw new Error('Failed to create test window');
+        }
+      }
+
+      // Check if test window still exists
+      windowId = this.testMode.testWindow.id;
+      try {
+        await chrome.windows.get(windowId);
+      } catch (error) {
+        // Window no longer exists, recreate it
+        console.log('Test window no longer exists, recreating');
+        await this.testMode.createTestWindow();
+        windowId = this.testMode.testWindow.id;
+
+        if (!windowId) {
+          throw new Error('Failed to recreate test window');
+        }
       }
     }
 
@@ -259,7 +334,16 @@ export class TestRunner {
    * Execute assert step
    */
   async executeAssert(step) {
-    const { type, captureAs, ...params } = step;
+    const { type, captureAs, useCaptured, ...params } = step;
+
+    // Resolve captured window ID if useCaptured is specified
+    if (useCaptured && params.windowId) {
+      const capturedId = this.capturedData[params.windowId];
+      if (!capturedId) {
+        throw new Error(`No captured ID found for: ${params.windowId}`);
+      }
+      params.windowId = capturedId;
+    }
 
     const assertion = await this.assertions.assert(type, params);
 
