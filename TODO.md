@@ -978,14 +978,15 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
   - Duplicate detection (DuplicateService)
   - Index building (buildContextForEngine)
 
-### 7.2 Commented Code & TODO Cleanup ❌
-**Status**: Ready to start (7.1.1 complete)
+### 7.2 Commented Code & TODO Cleanup ✅
+**Status**: COMPLETE
 **Priority**: LOW-MEDIUM
-**Estimated Time**: 1-2 hours
+**Completed**: 2025-10-10
 
 **Scope**:
-- [ ] Remove all commented-out code blocks
-- [ ] Remove TODO comments for completed work
+- [x] Remove all commented-out code blocks
+- [x] Remove TODO comments for completed work
+- [x] Remove duplicate DSL export/import UI
 - [ ] ~~Remove console.logs from production code~~ **DEFERRED**
   - **Decision**: Keep console.logs during active development
   - **Rationale**: Cuts down on debug time, no need to reimplement
@@ -996,10 +997,21 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
     - Default: 'info' (keeps current behavior)
     - Production: Can set to 'error' or 'none' via options page
 
-**Success Criteria**:
-- Zero commented-out code blocks
-- Zero stale TODO comments
-- Code is clean and readable
+**Results**:
+- ✅ Removed 24 lines of stale commented code
+  - `dashboard/modules/views/tabs.js`: disabled hover preview handlers (14 lines)
+  - `tests/normalize-simple.test.js`: skipped test code (10 lines)
+- ✅ Removed 292 lines of duplicate DSL UI
+  - Export/Import DSL buttons removed from Rules Engine view
+  - DSL modal markup removed (44 lines HTML)
+  - 9 DSL functions removed (248 lines JS)
+  - Functionality available in Export/Import view
+- ✅ All 410 tests passing
+- ✅ Zero architectural violations
+
+**Commits**:
+- `40f8294` - Phase 7.2: Remove commented code blocks
+- `26a954a` - Remove duplicate DSL export/import UI from Rules Engine
 
 ---
 
