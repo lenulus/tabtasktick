@@ -39,11 +39,19 @@ export async function initialize() {
  * Snoozes one or more tabs.
  * @param {number[]} tabIds - An array of chrome.tabs.Tab IDs to snooze.
  * @param {number} snoozeUntil - The timestamp (in ms) when the tabs should wake up.
- * @param {string} [reason='manual'] - The reason for snoozing.
+ * @param {Object} [options={}] - Options for snoozing.
+ * @param {string} [options.reason='manual'] - The reason for snoozing.
+ * @param {string} [options.windowSnoozeId] - If part of a window snooze, the window snooze ID.
  * @returns {Promise<object[]>} The newly created snoozed tab objects.
  */
-export async function snoozeTabs(tabIds, snoozeUntil, reason = 'manual') {
+export async function snoozeTabs(tabIds, snoozeUntil, options = {}) {
   await ensureInitialized();
+
+  // Support legacy signature: snoozeTabs(tabIds, snoozeUntil, 'reason')
+  const isLegacyCall = typeof options === 'string';
+  const reason = isLegacyCall ? options : (options.reason || 'manual');
+  const windowSnoozeId = isLegacyCall ? null : options.windowSnoozeId;
+
   const newSnoozedTabs = [];
   const now = Date.now();
 
@@ -61,6 +69,12 @@ export async function snoozeTabs(tabIds, snoozeUntil, reason = 'manual') {
         groupId: tab.groupId > 0 ? tab.groupId : null,
         createdAt: now,
       };
+
+      // Add windowSnoozeId if this tab is part of a snoozed window
+      if (windowSnoozeId) {
+        snoozedTab.windowSnoozeId = windowSnoozeId;
+      }
+
       snoozedTabs.push(snoozedTab);
       newSnoozedTabs.push(snoozedTab);
       chrome.alarms.create(`${ALARM_PREFIX}${snoozedTab.id}`, { when: snoozeUntil });

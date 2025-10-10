@@ -25,7 +25,7 @@ export async function loadSnoozedView() {
 function renderSnoozedTimeline(snoozedTabs) {
   const timeline = document.getElementById('snoozedTimeline');
   timeline.innerHTML = '';
-  
+
   if (snoozedTabs.length === 0) {
     timeline.innerHTML = `
       <div class="empty-state">
@@ -35,56 +35,123 @@ function renderSnoozedTimeline(snoozedTabs) {
     `;
     return;
   }
-  
+
+  // Separate window snoozes from individual tabs
+  const { windowSnoozes, individualTabs } = separateWindowSnoozes(snoozedTabs);
+
   // Group by wake time
-  const groups = groupSnoozedByTime(snoozedTabs);
-  
+  const groups = groupSnoozedByTime([...windowSnoozes, ...individualTabs]);
+
   // Add timeline line
   timeline.innerHTML = '<div class="timeline-line"></div>';
-  
-  Object.entries(groups).forEach(([timeLabel, tabs]) => {
+
+  Object.entries(groups).forEach(([timeLabel, items]) => {
     const section = document.createElement('div');
     section.className = 'timeline-section';
-    
+
     section.innerHTML = `
       <div class="timeline-header">
         <div class="timeline-dot"></div>
         <div class="timeline-time">${timeLabel}</div>
       </div>
       <div class="timeline-tabs">
-        ${tabs.map(tab => `
-          <div class="tab-card ${tab.groupId ? 'grouped' : ''}">
-            <div class="tab-header">
-              <img src="${tab.favicon || '../icons/icon-16.png'}" class="tab-favicon">
-              <div class="tab-title">${tab.title}</div>
-            </div>
-            <div class="tab-url">${tab.url}</div>
-            <div class="tab-meta">
-              <span class="wake-time">🕐 ${getExactWakeTime(tab.snoozeUntil || tab.wakeTime)}</span>
-              ${tab.groupId ? '<span class="group-indicator">📁 Grouped</span>' : ''}
-              <span class="snooze-reason">${tab.snoozeReason || 'manual'}</span>
-            </div>
-            <div class="tab-actions">
-              <button class="btn-small wake-btn" data-tab-id="${tab.id}">Wake Now</button>
-              <button class="btn-small delete-btn" data-tab-id="${tab.id}" data-tab-url="${tab.url}" title="Delete snoozed tab">Delete</button>
-            </div>
-          </div>
-        `).join('')}
+        ${items.map(item => {
+          if (item.isWindowSnooze) {
+            // Render window snooze group
+            return `
+              <div class="window-snooze-card">
+                <div class="window-snooze-header">
+                  <div class="window-icon">🪟</div>
+                  <div class="window-info">
+                    <div class="window-title">Snoozed Window (${item.tabs.length} tabs)</div>
+                    <div class="window-meta">
+                      <span class="wake-time">🕐 ${getExactWakeTime(item.snoozeUntil)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="window-tabs-preview">
+                  ${item.tabs.slice(0, 3).map(tab => `
+                    <div class="tab-preview">
+                      <img src="${tab.favIconUrl || '../icons/icon-16.png'}" class="tab-favicon-small">
+                      <span class="tab-title-small">${tab.title || tab.url}</span>
+                    </div>
+                  `).join('')}
+                  ${item.tabs.length > 3 ? `<div class="more-tabs">+${item.tabs.length - 3} more</div>` : ''}
+                </div>
+                <div class="window-actions">
+                  <button class="btn-small restore-window-btn" data-window-snooze-id="${item.windowSnoozeId}">Restore Window</button>
+                  <button class="btn-small delete-window-btn" data-window-snooze-id="${item.windowSnoozeId}">Delete All</button>
+                </div>
+              </div>
+            `;
+          } else {
+            // Render individual tab
+            return `
+              <div class="tab-card ${item.groupId ? 'grouped' : ''}">
+                <div class="tab-header">
+                  <img src="${item.favicon || '../icons/icon-16.png'}" class="tab-favicon">
+                  <div class="tab-title">${item.title}</div>
+                </div>
+                <div class="tab-url">${item.url}</div>
+                <div class="tab-meta">
+                  <span class="wake-time">🕐 ${getExactWakeTime(item.snoozeUntil || item.wakeTime)}</span>
+                  ${item.groupId ? '<span class="group-indicator">📁 Grouped</span>' : ''}
+                  <span class="snooze-reason">${item.snoozeReason || 'manual'}</span>
+                </div>
+                <div class="tab-actions">
+                  <button class="btn-small wake-btn" data-tab-id="${item.id}">Wake Now</button>
+                  <button class="btn-small delete-btn" data-tab-id="${item.id}" data-tab-url="${item.url}" title="Delete snoozed tab">Delete</button>
+                </div>
+              </div>
+            `;
+          }
+        }).join('')}
       </div>
     `;
-    
+
     timeline.appendChild(section);
   });
 }
 
-function groupSnoozedByTime(tabs) {
+/**
+ * Separate window snoozes from individual tab snoozes
+ */
+function separateWindowSnoozes(snoozedTabs) {
+  const windowGroups = new Map(); // windowSnoozeId -> tabs[]
+  const individualTabs = [];
+
+  for (const tab of snoozedTabs) {
+    if (tab.windowSnoozeId) {
+      if (!windowGroups.has(tab.windowSnoozeId)) {
+        windowGroups.set(tab.windowSnoozeId, []);
+      }
+      windowGroups.get(tab.windowSnoozeId).push(tab);
+    } else {
+      individualTabs.push(tab);
+    }
+  }
+
+  // Convert window groups to objects for easier rendering
+  const windowSnoozes = Array.from(windowGroups.entries()).map(([windowSnoozeId, tabs]) => ({
+    isWindowSnooze: true,
+    windowSnoozeId,
+    tabs,
+    snoozeUntil: tabs[0]?.snoozeUntil // All tabs in window have same snoozeUntil
+  }));
+
+  return { windowSnoozes, individualTabs };
+}
+
+function groupSnoozedByTime(items) {
   const groups = {};
   const now = Date.now();
-  
-  tabs.forEach(tab => {
-    const diff = (tab.snoozeUntil || tab.wakeTime) - now;
+
+  items.forEach(item => {
+    // Handle both tabs and window snooze objects
+    const timestamp = item.snoozeUntil || item.wakeTime;
+    const diff = timestamp - now;
     let label;
-    
+
     if (diff <= 3600000) { // 1 hour
       label = 'Within 1 hour';
     } else if (diff <= 86400000) { // 1 day
@@ -96,13 +163,13 @@ function groupSnoozedByTime(tabs) {
     } else {
       label = 'Later';
     }
-    
+
     if (!groups[label]) {
       groups[label] = [];
     }
-    groups[label].push(tab);
+    groups[label].push(item);
   });
-  
+
   return groups;
 }
 
@@ -187,7 +254,7 @@ function setupSnoozedEventListeners() {
     return;
   }
 
-  // Event delegation for Wake Now and Delete buttons
+  // Event delegation for all buttons
   timeline.addEventListener('click', async (e) => {
     if (e.target.classList.contains('wake-btn')) {
       const tabId = e.target.dataset.tabId;
@@ -200,8 +267,59 @@ function setupSnoozedEventListeners() {
       if (confirm('Delete this snoozed tab?')) {
         await deleteTab(tabId, tabUrl);
       }
+    } else if (e.target.classList.contains('restore-window-btn')) {
+      const windowSnoozeId = e.target.dataset.windowSnoozeId;
+      if (windowSnoozeId) {
+        await restoreWindow(windowSnoozeId);
+      }
+    } else if (e.target.classList.contains('delete-window-btn')) {
+      const windowSnoozeId = e.target.dataset.windowSnoozeId;
+      if (windowSnoozeId && confirm('Delete all tabs in this snoozed window?')) {
+        await deleteWindow(windowSnoozeId);
+      }
     }
   });
+}
+
+async function restoreWindow(windowSnoozeId) {
+  try {
+    console.log('Restoring snoozed window:', windowSnoozeId);
+    const result = await sendMessage({
+      action: 'restoreWindow',
+      windowSnoozeId
+    });
+    console.log('Restore result:', result);
+    if (result && result.success) {
+      // Reload the snoozed view
+      await loadSnoozedView();
+    } else {
+      console.error('Failed to restore window:', result?.error || 'Unknown error');
+      alert(`Failed to restore window: ${result?.error || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Failed to restore window:', error);
+    alert(`Failed to restore window: ${error.message}`);
+  }
+}
+
+async function deleteWindow(windowSnoozeId) {
+  try {
+    console.log('Deleting snoozed window:', windowSnoozeId);
+    const result = await sendMessage({
+      action: 'deleteWindow',
+      windowSnoozeId
+    });
+    if (result && result.success) {
+      // Reload the snoozed view
+      await loadSnoozedView();
+    } else {
+      console.error('Failed to delete window:', result?.error || 'Unknown error');
+      alert(`Failed to delete window: ${result?.error || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Failed to delete window:', error);
+    alert(`Failed to delete window: ${error.message}`);
+  }
 }
 
 // Helper function

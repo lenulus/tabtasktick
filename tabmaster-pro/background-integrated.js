@@ -6,6 +6,7 @@ import * as engine from './lib/engine.v2.services.js';
 
 import { createChromeScheduler } from './lib/scheduler.js';
 import * as SnoozeService from './services/execution/SnoozeService.js';
+import * as WindowService from './services/execution/WindowService.js';
 import * as ExportImportService from './services/ExportImportService.js';
 import { getTabStatistics, extractDomain, normalizeUrlForDuplicates, extractOrigin } from './services/selection/selectTabs.js';
 import { getCurrentWindowId } from './services/TabGrouping.js';
@@ -1278,14 +1279,84 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           
         case 'wakeAllSnoozed':
           const allSnoozed = await SnoozeService.getSnoozedTabs();
-          const allIds = allSnoozed.map(t => t.id);
-          await SnoozeService.wakeTabs(allIds);
-          sendResponse({ success: true, count: allIds.length });
+
+          // Separate window snoozes from individual tab snoozes
+          const windowSnoozes = new Map(); // windowSnoozeId -> tab ids
+          const individualTabs = [];
+
+          for (const tab of allSnoozed) {
+            if (tab.windowSnoozeId) {
+              if (!windowSnoozes.has(tab.windowSnoozeId)) {
+                windowSnoozes.set(tab.windowSnoozeId, []);
+              }
+              windowSnoozes.get(tab.windowSnoozeId).push(tab.id);
+            } else {
+              individualTabs.push(tab.id);
+            }
+          }
+
+          // Restore window snoozes first (recreates windows)
+          for (const [windowSnoozeId, tabIds] of windowSnoozes) {
+            try {
+              await WindowService.restoreWindow(windowSnoozeId);
+            } catch (error) {
+              console.error(`Failed to restore window ${windowSnoozeId}:`, error);
+              // Fall back to individual tab wake if window restore fails
+              await SnoozeService.wakeTabs(tabIds);
+            }
+          }
+
+          // Then wake individual tabs (opens in current window)
+          if (individualTabs.length > 0) {
+            await SnoozeService.wakeTabs(individualTabs);
+          }
+
+          sendResponse({
+            success: true,
+            count: allSnoozed.length,
+            windows: windowSnoozes.size,
+            individualTabs: individualTabs.length
+          });
           break;
 
         case 'deleteSnoozedTab':
           await SnoozeService.deleteSnoozedTab(request.tabId);
           sendResponse({ success: true });
+          break;
+
+        case 'restoreWindow':
+          try {
+            const restoreResult = await WindowService.restoreWindow(request.windowSnoozeId);
+            sendResponse({ success: true, result: restoreResult });
+          } catch (error) {
+            console.error('Failed to restore window:', error);
+            sendResponse({ success: false, error: error.message });
+          }
+          break;
+
+        case 'deleteWindow':
+          try {
+            // Get all tabs for this window snooze
+            const allSnoozed = await SnoozeService.getSnoozedTabs();
+            const windowTabs = allSnoozed.filter(t => t.windowSnoozeId === request.windowSnoozeId);
+            const tabIds = windowTabs.map(t => t.id);
+
+            // Delete all tabs in window snooze
+            for (const tabId of tabIds) {
+              await SnoozeService.deleteSnoozedTab(tabId);
+            }
+
+            // Delete window metadata
+            const stored = await chrome.storage.local.get('windowMetadata');
+            const allMetadata = stored.windowMetadata || {};
+            delete allMetadata[request.windowSnoozeId];
+            await chrome.storage.local.set({ windowMetadata: allMetadata });
+
+            sendResponse({ success: true, deletedCount: tabIds.length });
+          } catch (error) {
+            console.error('Failed to delete window:', error);
+            sendResponse({ success: false, error: error.message });
+          }
           break;
 
         case 'clearTestSnoozedTabs':
@@ -1740,6 +1811,40 @@ async function setupContextMenus() {
     title: 'Export All Windows',
     contexts: ['page']
   });
+
+  // Window operations menu
+  chrome.contextMenus.create({
+    id: 'snooze-window',
+    title: 'Snooze Window',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'snooze-window-1h',
+    parentId: 'snooze-window',
+    title: 'For 1 hour',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'snooze-window-3h',
+    parentId: 'snooze-window',
+    title: 'For 3 hours',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'snooze-window-tomorrow',
+    parentId: 'snooze-window',
+    title: 'Until tomorrow',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'dedupe-window',
+    title: 'Remove Duplicates in Window',
+    contexts: ['page']
+  });
 }
 
 /**
@@ -1925,6 +2030,42 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       break;
     case 'export-all-windows':
       await exportFromContextMenu('all-windows');
+      break;
+    case 'snooze-window-1h':
+      // THIN - delegate to WindowService
+      await WindowService.snoozeWindow(
+        tab.windowId,
+        1000 * 60 * 60 // 1 hour
+      );
+      console.log('Window snoozed for 1 hour');
+      break;
+    case 'snooze-window-3h':
+      // THIN - delegate to WindowService
+      await WindowService.snoozeWindow(
+        tab.windowId,
+        1000 * 60 * 60 * 3 // 3 hours
+      );
+      console.log('Window snoozed for 3 hours');
+      break;
+    case 'snooze-window-tomorrow':
+      // THIN - delegate to WindowService
+      const tomorrowWindow = new Date();
+      tomorrowWindow.setDate(tomorrowWindow.getDate() + 1);
+      tomorrowWindow.setHours(9, 0, 0, 0);
+      await WindowService.snoozeWindow(
+        tab.windowId,
+        tomorrowWindow.getTime() - Date.now()
+      );
+      console.log('Window snoozed until tomorrow');
+      break;
+    case 'dedupe-window':
+      // THIN - delegate to WindowService
+      const result = await WindowService.deduplicateWindow(
+        tab.windowId,
+        'oldest',
+        false
+      );
+      console.log('Window deduplicated:', result);
       break;
   }
 });
