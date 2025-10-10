@@ -938,8 +938,43 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 - UI shows only V2 option
 - V2 is now the only production engine
 
+### 7.1.1 Architectural Remediation ❌
+**Status**: BLOCKED - Must complete before Phase 7.2
+**Priority**: HIGH
+**Reference**: See `docs/phase7.1-architectural-remediation.md`
+**Estimated Time**: 4.5 hours
+
+**Architecture Guardian Review**: APPROVED WITH MODIFICATIONS (7/10)
+- Identified 2 architectural violations after V1 removal
+- Business logic in engine (close-duplicates)
+- Duplicate URL normalization (buildIndices)
+
+**Required Actions**:
+- [ ] **Fix #1: Extract close-duplicates to DuplicateService** (2 hours)
+  - [ ] Create `/services/execution/closeDuplicates.js`
+  - [ ] Add comprehensive tests (9 test cases)
+  - [ ] Update engine to use service
+  - [ ] Verify all tests pass
+- [ ] **Fix #2: Extract URL utilities** (45 mins)
+  - [ ] Create `/lib/utils/urlUtils.js`
+  - [ ] Add utility tests
+  - [ ] Update buildIndices to use utilities
+  - [ ] Verify backward compatibility
+- [ ] **Final Testing** (30 mins)
+  - [ ] Full regression test suite
+  - [ ] Test with 200+ tabs
+  - [ ] Performance validation
+- [ ] **Documentation Update** (15 mins)
+  - [ ] Mark Phase 7.1.1 complete in TODO.md
+
+**Success Criteria**:
+- All tests passing (410/411 expected)
+- Engine reduced to ~380 lines
+- Zero duplicate implementations
+- Zero architectural violations
+
 ### 7.2 Commented Code & TODO Cleanup ❌
-**Status**: Deferred until 7.1 complete
+**Status**: Blocked until 7.1.1 complete
 
 - [ ] Remove all commented-out code blocks
 - [ ] Remove TODO comments for completed work
