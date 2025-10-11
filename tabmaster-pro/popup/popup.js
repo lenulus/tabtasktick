@@ -213,112 +213,216 @@ function updateSnoozedList(snoozedTabs) {
     elements.wakeAllBtn.style.display = snoozedTabs.length > 0 ? 'flex' : 'none';
   }
   elements.snoozedList.innerHTML = '';
-  
-  // Sort by wake time (backend uses wakeTime, not snoozeUntil)
-  snoozedTabs.sort((a, b) => (a.wakeTime || a.snoozeUntil || 0) - (b.wakeTime || b.snoozeUntil || 0));
-  
-  // Group tabs by time period
-  const groups = groupSnoozedTabsByPeriod(snoozedTabs);
-  
+
+  // Separate window snoozes from individual tabs
+  const { windowSnoozes, individualTabs } = separateWindowSnoozes(snoozedTabs);
+
+  // Combine and sort by wake time
+  const allItems = [...windowSnoozes, ...individualTabs];
+  allItems.sort((a, b) => {
+    const timeA = a.snoozeUntil || a.wakeTime || 0;
+    const timeB = b.snoozeUntil || b.wakeTime || 0;
+    return timeA - timeB;
+  });
+
+  // Group items by time period
+  const groups = groupSnoozedTabsByPeriod(allItems);
+
   groups.forEach(group => {
     // Add group header
     const groupHeader = document.createElement('div');
     groupHeader.className = 'snoozed-group-header';
     groupHeader.innerHTML = `
       <span class="group-title">${group.title}</span>
-      <span class="group-count">(${group.tabs.length})</span>
+      <span class="group-count">(${group.items.length})</span>
     `;
     elements.snoozedList.appendChild(groupHeader);
-    
-    // Add tabs in group
-    group.tabs.forEach(tab => {
-      const tabEl = document.createElement('div');
-      tabEl.className = 'snoozed-tab';
-      
-      const timeRemaining = getTimeRemaining(tab.wakeTime || tab.snoozeUntil);
-      const favicon = tab.favicon || '../icons/icon-16.png';
-      
-      tabEl.innerHTML = `
-        <img src="${favicon}" class="snoozed-favicon" onerror="this.src='../icons/icon-16.png'">
-        <div class="snoozed-info">
-          <div class="snoozed-title" title="${tab.title}">${tab.title}</div>
-          <div class="snoozed-time">${timeRemaining}</div>
-        </div>
-        <div class="snoozed-actions">
-          <button class="snoozed-action wake-btn" data-tab-id="${tab.id}" title="Wake now">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </button>
-          <button class="snoozed-action reschedule-btn" data-tab-id="${tab.id}" title="Reschedule">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <polyline points="1 4 1 10 7 10"></polyline>
-              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-            </svg>
-          </button>
-          <button class="snoozed-action delete-btn" data-tab-id="${tab.id}" title="Delete">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-      `;
-      
-      // Add action event listeners
-      const wakeBtn = tabEl.querySelector('.wake-btn');
-      const rescheduleBtn = tabEl.querySelector('.reschedule-btn');
-      const deleteBtn = tabEl.querySelector('.delete-btn');
 
-      wakeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        wakeSnoozedTab(tab.id || tab.url); // Use URL as fallback ID
-      });
-
-      rescheduleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        rescheduleSnoozedTab(tab);
-      });
-
-      deleteBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if (confirm(`Delete snoozed tab "${tab.title}"?`)) {
-          await deleteSnoozedTab(tab.id || tab.url);
-        }
-      });
-
-      elements.snoozedList.appendChild(tabEl);
+    // Add items in group (windows or individual tabs)
+    group.items.forEach(item => {
+      if (item.isWindowSnooze) {
+        // Render window snooze group
+        const windowEl = createWindowSnoozeElement(item);
+        elements.snoozedList.appendChild(windowEl);
+      } else {
+        // Render individual tab
+        const tabEl = createSnoozedTabElement(item);
+        elements.snoozedList.appendChild(tabEl);
+      }
     });
   });
 }
 
-function groupSnoozedTabsByPeriod(tabs) {
-  const now = Date.now();
-  const groups = {
-    soon: { title: 'Next Hour', tabs: [] },
-    today: { title: 'Today', tabs: [] },
-    tomorrow: { title: 'Tomorrow', tabs: [] },
-    later: { title: 'Later', tabs: [] }
-  };
-  
-  tabs.forEach(tab => {
-    const diff = (tab.wakeTime || tab.snoozeUntil || 0) - now;
-    const hours = diff / (1000 * 60 * 60);
-    
-    if (hours <= 1) {
-      groups.soon.tabs.push(tab);
-    } else if (hours <= 24) {
-      groups.today.tabs.push(tab);
-    } else if (hours <= 48) {
-      groups.tomorrow.tabs.push(tab);
+/**
+ * Separate window snoozes from individual tab snoozes
+ */
+function separateWindowSnoozes(snoozedTabs) {
+  const windowGroups = new Map(); // windowSnoozeId -> tabs[]
+  const individualTabs = [];
+
+  for (const tab of snoozedTabs) {
+    if (tab.windowSnoozeId) {
+      if (!windowGroups.has(tab.windowSnoozeId)) {
+        windowGroups.set(tab.windowSnoozeId, []);
+      }
+      windowGroups.get(tab.windowSnoozeId).push(tab);
     } else {
-      groups.later.tabs.push(tab);
+      individualTabs.push(tab);
+    }
+  }
+
+  // Convert window groups to objects for easier rendering
+  const windowSnoozes = Array.from(windowGroups.entries()).map(([windowSnoozeId, tabs]) => ({
+    isWindowSnooze: true,
+    windowSnoozeId,
+    tabs,
+    snoozeUntil: tabs[0]?.snoozeUntil, // All tabs in window have same snoozeUntil
+    wakeTime: tabs[0]?.wakeTime // Fallback for legacy
+  }));
+
+  return { windowSnoozes, individualTabs };
+}
+
+/**
+ * Create DOM element for window snooze group
+ */
+function createWindowSnoozeElement(windowSnooze) {
+  const windowEl = document.createElement('div');
+  windowEl.className = 'snoozed-window';
+
+  const timeRemaining = getTimeRemaining(windowSnooze.snoozeUntil || windowSnooze.wakeTime);
+  const tabCount = windowSnooze.tabs.length;
+
+  windowEl.innerHTML = `
+    <div class="snoozed-window-icon">🪟</div>
+    <div class="snoozed-info">
+      <div class="snoozed-title">Window (${tabCount} tab${tabCount !== 1 ? 's' : ''})</div>
+      <div class="snoozed-time">${timeRemaining}</div>
+    </div>
+    <div class="snoozed-actions">
+      <button class="snoozed-action wake-window-btn" data-window-snooze-id="${windowSnooze.windowSnoozeId}" title="Restore window">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </button>
+      <button class="snoozed-action delete-window-btn" data-window-snooze-id="${windowSnooze.windowSnoozeId}" title="Delete window">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  `;
+
+  // Add action event listeners
+  const wakeBtn = windowEl.querySelector('.wake-window-btn');
+  const deleteBtn = windowEl.querySelector('.delete-window-btn');
+
+  wakeBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await restoreWindowSnooze(windowSnooze.windowSnoozeId);
+  });
+
+  deleteBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (confirm(`Delete snoozed window with ${tabCount} tabs?`)) {
+      await deleteWindowSnooze(windowSnooze.windowSnoozeId);
     }
   });
-  
+
+  return windowEl;
+}
+
+/**
+ * Create DOM element for individual snoozed tab
+ */
+function createSnoozedTabElement(tab) {
+  const tabEl = document.createElement('div');
+  tabEl.className = 'snoozed-tab';
+
+  const timeRemaining = getTimeRemaining(tab.wakeTime || tab.snoozeUntil);
+  const favicon = tab.favicon || tab.favIconUrl || '../icons/icon-16.png';
+
+  tabEl.innerHTML = `
+    <img src="${favicon}" class="snoozed-favicon" onerror="this.src='../icons/icon-16.png'">
+    <div class="snoozed-info">
+      <div class="snoozed-title" title="${tab.title}">${tab.title}</div>
+      <div class="snoozed-time">${timeRemaining}</div>
+    </div>
+    <div class="snoozed-actions">
+      <button class="snoozed-action wake-btn" data-tab-id="${tab.id}" title="Wake now">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </button>
+      <button class="snoozed-action reschedule-btn" data-tab-id="${tab.id}" title="Reschedule">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+      </button>
+      <button class="snoozed-action delete-btn" data-tab-id="${tab.id}" title="Delete">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  `;
+
+  // Add action event listeners
+  const wakeBtn = tabEl.querySelector('.wake-btn');
+  const rescheduleBtn = tabEl.querySelector('.reschedule-btn');
+  const deleteBtn = tabEl.querySelector('.delete-btn');
+
+  wakeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    wakeSnoozedTab(tab.id || tab.url); // Use URL as fallback ID
+  });
+
+  rescheduleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    rescheduleSnoozedTab(tab);
+  });
+
+  deleteBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (confirm(`Delete snoozed tab "${tab.title}"?`)) {
+      await deleteSnoozedTab(tab.id || tab.url);
+    }
+  });
+
+  return tabEl;
+}
+
+function groupSnoozedTabsByPeriod(items) {
+  const now = Date.now();
+  const groups = {
+    soon: { title: 'Next Hour', items: [] },
+    today: { title: 'Today', items: [] },
+    tomorrow: { title: 'Tomorrow', items: [] },
+    later: { title: 'Later', items: [] }
+  };
+
+  items.forEach(item => {
+    const diff = (item.snoozeUntil || item.wakeTime || 0) - now;
+    const hours = diff / (1000 * 60 * 60);
+
+    if (hours <= 1) {
+      groups.soon.items.push(item);
+    } else if (hours <= 24) {
+      groups.today.items.push(item);
+    } else if (hours <= 48) {
+      groups.tomorrow.items.push(item);
+    } else {
+      groups.later.items.push(item);
+    }
+  });
+
   // Return only non-empty groups
-  return Object.values(groups).filter(g => g.tabs.length > 0);
+  return Object.values(groups).filter(g => g.items.length > 0);
 }
 
 // ============================================================================
@@ -695,6 +799,50 @@ async function deleteSnoozedTab(tabId) {
   } catch (error) {
     console.error('Failed to delete tab:', error);
     showNotification('Failed to delete tab', 'error');
+  }
+}
+
+async function restoreWindowSnooze(windowSnoozeId) {
+  try {
+    console.log('Restoring snoozed window:', windowSnoozeId);
+    const result = await sendMessage({
+      action: 'restoreWindow',
+      windowSnoozeId
+    });
+
+    if (result && result.success) {
+      await loadSnoozedTabs();
+      await loadStatistics();
+      showNotification('Window restored', 'success');
+    } else {
+      console.error('Failed to restore window:', result?.error || 'Unknown error');
+      showNotification(`Failed to restore window: ${result?.error || 'Unknown error'}`, 'error');
+    }
+  } catch (error) {
+    console.error('Failed to restore window:', error);
+    showNotification('Failed to restore window', 'error');
+  }
+}
+
+async function deleteWindowSnooze(windowSnoozeId) {
+  try {
+    console.log('Deleting snoozed window:', windowSnoozeId);
+    const result = await sendMessage({
+      action: 'deleteWindow',
+      windowSnoozeId
+    });
+
+    if (result && result.success) {
+      await loadSnoozedTabs();
+      await loadStatistics();
+      showNotification('Snoozed window deleted', 'success');
+    } else {
+      console.error('Failed to delete window:', result?.error || 'Unknown error');
+      showNotification(`Failed to delete window: ${result?.error || 'Unknown error'}`, 'error');
+    }
+  } catch (error) {
+    console.error('Failed to delete window:', error);
+    showNotification('Failed to delete window', 'error');
   }
 }
 

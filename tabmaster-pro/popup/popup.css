@@ -551,6 +551,48 @@ section h3 {
   pointer-events: auto;
 }
 
+/* Window snooze styling */
+.snoozed-window {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.snoozed-window:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.snoozed-window:hover .snoozed-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.snoozed-window-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.snoozed-window .snoozed-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.snoozed-window .snoozed-title {
+  color: white;
+  font-weight: 500;
+}
+
+.snoozed-window .snoozed-time {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 .snoozed-favicon {
   width: 16px;
   height: 16px;
