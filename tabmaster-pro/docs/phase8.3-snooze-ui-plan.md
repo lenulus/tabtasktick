@@ -1,14 +1,38 @@
 # Phase 8.3: Window Snooze UI Enhancement - Implementation Plan
 
 **Date Created**: 2025-10-11
-**Status**: Planning
+**Date Updated**: 2025-10-10 (Architecture Review)
+**Status**: Planning - Revised for Services-First Architecture
 **Prerequisites**: Phase 8.1 (WindowService), Phase 8.2 (DeduplicationOrchestrator)
 
 ## Overview
 
 Complete the window snooze/restore user experience by integrating the existing SnoozeModal component into Dashboard and Popup with intelligent window detection. The context menu provides quick presets (1h, 3h, tomorrow), but Dashboard and Popup need access to the full range of custom durations and smart scheduling options.
 
-**Key Principle**: Maximize window preservation - snooze complete windows as windows, individual tabs as tabs, with metadata to restore them to their original location when possible.
+**Key Principles**:
+1. **Maximize window preservation** - snooze complete windows as windows, individual tabs as tabs, with metadata to restore them to their original location when possible
+2. **Services-First Architecture** - All business logic in shared services, UI layers stay thin
+3. **No Duplication** - Detection and execution logic exists in ONE place, used by all surfaces
+
+## Architectural Approach
+
+This implementation follows TabMaster Pro's **services-first architecture**:
+
+### Three New Services (Business Logic)
+1. **`/services/selection/detectSnoozeOperations.js`** - Analyzes tabs to determine window vs individual snooze strategy
+2. **`/services/execution/executeSnoozeOperations.js`** - Coordinates WindowService and SnoozeService to execute operations
+3. **`/services/utils/snoozeFormatters.js`** - Formats operation titles for UI display
+
+### Thin UI Layers (Presentation Only)
+- **Dashboard**: Calls detection service → shows modal → calls execution service
+- **Popup**: Calls detection service → shows modal → calls execution service
+- **No duplicate logic** - both use identical service calls
+
+This ensures:
+- ✅ One source of truth for all business logic
+- ✅ Consistent behavior across Dashboard, Popup, and future surfaces
+- ✅ Easy testing (services can be unit tested independently)
+- ✅ Easy maintenance (changes in one place affect all surfaces)
 
 ---
 
@@ -193,6 +217,29 @@ async function restoreTabToSourceWindow(snoozedTab) {
 
 ---
 
+## Architecture: Services-First Implementation
+
+Following TabMaster Pro's core architecture principle: **All business logic in services, UI layers stay thin**.
+
+### New Services
+
+#### 1. Detection Service
+**File**: `/services/selection/detectSnoozeOperations.js`
+**Purpose**: Analyze selected tabs and determine optimal snooze strategy (windows vs individual tabs)
+**Export**: `detectSnoozeOperations(selectedTabs)` → returns `{ type, operations }`
+
+#### 2. Execution Service
+**File**: `/services/execution/executeSnoozeOperations.js`
+**Purpose**: Execute snooze operations (coordinate WindowService and SnoozeService)
+**Export**: `executeSnoozeOperations(operations, until, settings)` → executes snooze
+
+#### 3. Formatting Utilities
+**File**: `/services/utils/snoozeFormatters.js`
+**Purpose**: Format snooze operation titles for UI display
+**Export**: `formatSnoozeTitle(operations)` → returns title string
+
+---
+
 ## Component Changes
 
 ### 1. SnoozeModal Enhancement
@@ -217,29 +264,12 @@ show(options = {}) {
 }
 ```
 
-**Title Logic**:
+**Title Logic** (uses formatting service):
 ```javascript
-function getTitle(options) {
-  if (options.type === 'window') {
-    return 'Snooze Window';
-  } else if (options.type === 'windows') {
-    return `Snooze ${options.windowIds.length} Windows`;
-  } else if (options.type === 'mixed') {
-    const windowCount = operations.filter(op => op.type === 'window').length;
-    const tabCount = operations.filter(op => op.type === 'tabs')
-      .reduce((sum, op) => sum + op.tabs.length, 0);
+import { formatSnoozeTitle } from '/services/utils/snoozeFormatters.js';
 
-    if (windowCount > 0 && tabCount > 0) {
-      return `Snooze ${windowCount} Window${windowCount > 1 ? 's' : ''} + ${tabCount} Tab${tabCount > 1 ? 's' : ''}`;
-    } else if (windowCount > 0) {
-      return `Snooze ${windowCount} Window${windowCount > 1 ? 's' : ''}`;
-    } else {
-      return `Snooze ${tabCount} Tab${tabCount > 1 ? 's' : ''}`;
-    }
-  } else {
-    const count = options.selectedTabs.length || 1;
-    return count === 1 ? 'Snooze Tab' : `Snooze ${count} Tabs`;
-  }
+function getTitle(options) {
+  return formatSnoozeTitle(options);
 }
 ```
 
@@ -251,7 +281,7 @@ onSnooze(duration, options) {
 }
 ```
 
-### 2. Dashboard Integration
+### 2. Dashboard Integration (THIN UI Layer)
 
 **File**: `/dashboard/dashboard.js`
 
@@ -269,84 +299,36 @@ async function handleSnooze() {
 }
 ```
 
-**New Snooze Button Handler**:
+**New Snooze Button Handler** (calls services only):
 ```javascript
-async function handleSnooze() {
-  const selectedTabs = getSelectedTabs();
+import { detectSnoozeOperations } from '/services/selection/detectSnoozeOperations.js';
+import { executeSnoozeOperations } from '/services/execution/executeSnoozeOperations.js';
 
-  // 1. Detect operations (windows vs individual tabs)
-  const operations = await detectSnoozeOperations(selectedTabs);
+async function handleSnooze() {
+  const selectedTabs = getSelectedTabs(); // UI tracks user selection
+
+  // 1. Call detection service (business logic)
+  const result = await detectSnoozeOperations(selectedTabs);
 
   // 2. Show SnoozeModal with detected operations
   const modal = new SnoozeModal();
   modal.show({
-    type: operations.type,  // 'tabs' | 'window' | 'windows' | 'mixed'
-    operations: operations.list
+    type: result.type,
+    operations: result.operations
   });
 
-  // 3. Handle snooze callback
+  // 3. Handle snooze callback - call execution service
   modal.onSnooze = async (duration) => {
-    await executeSnoozeOperations(operations.list, duration);
+    await executeSnoozeOperations(result.operations, Date.now() + duration);
     modal.hide();
     refreshDashboard();
   };
 }
-
-async function detectSnoozeOperations(selectedTabs) {
-  const tabsByWindow = groupBy(selectedTabs, 'windowId');
-  const operations = [];
-
-  for (const [windowId, tabs] of Object.entries(tabsByWindow)) {
-    const allTabsInWindow = await chrome.tabs.query({ windowId: parseInt(windowId) });
-
-    if (tabs.length === allTabsInWindow.length) {
-      // Complete window
-      operations.push({ type: 'window', windowId: parseInt(windowId), tabs });
-    } else {
-      // Partial window - individual tabs
-      operations.push({ type: 'tabs', tabs, sourceWindowId: parseInt(windowId) });
-    }
-  }
-
-  // Determine overall type
-  const hasWindows = operations.some(op => op.type === 'window');
-  const hasTabs = operations.some(op => op.type === 'tabs');
-
-  let type;
-  if (hasWindows && hasTabs) {
-    type = 'mixed';
-  } else if (hasWindows) {
-    type = operations.length === 1 ? 'window' : 'windows';
-  } else {
-    type = 'tabs';
-  }
-
-  return { type, list: operations };
-}
-
-async function executeSnoozeOperations(operations, duration) {
-  for (const op of operations) {
-    if (op.type === 'window') {
-      // Snooze entire window
-      await chrome.runtime.sendMessage({
-        action: 'snoozeWindow',
-        windowId: op.windowId,
-        until: Date.now() + duration
-      });
-    } else {
-      // Snooze individual tabs with source window metadata
-      await chrome.runtime.sendMessage({
-        action: 'snoozeTabs',
-        tabIds: op.tabs.map(t => t.id),
-        until: Date.now() + duration,
-        sourceWindowId: op.sourceWindowId  // NEW: Store original window
-      });
-    }
-  }
-}
 ```
 
-### 3. Popup Integration
+**No business logic in Dashboard** - all detection and execution delegated to services.
+
+### 3. Popup Integration (THIN UI Layer)
 
 **File**: `/popup/popup.js` and `/popup/popup.html`
 
@@ -359,34 +341,39 @@ async function executeSnoozeOperations(operations, duration) {
 </button>
 ```
 
-**New Handler in JS**:
+**New Handler in JS** (uses same services as Dashboard):
 ```javascript
+import { detectSnoozeOperations } from '/services/selection/detectSnoozeOperations.js';
+import { executeSnoozeOperations } from '/services/execution/executeSnoozeOperations.js';
+
 // Add event listener
 document.getElementById('snoozeWindowBtn').addEventListener('click', handleSnoozeWindow);
 
 async function handleSnoozeWindow() {
-  const currentWindow = await chrome.windows.getCurrent();
+  // Get all tabs in current window
+  const currentWindow = await chrome.windows.getLastFocused();
+  const tabs = await chrome.tabs.query({ windowId: currentWindow.id });
+
+  // Use same detection service as Dashboard
+  const result = await detectSnoozeOperations(tabs);
 
   // Show SnoozeModal
   const modal = new SnoozeModal();
   modal.show({
-    type: 'window',
-    windowId: currentWindow.id
+    type: result.type,
+    operations: result.operations
   });
 
-  // Handle snooze callback
+  // Handle snooze callback - use same execution service
   modal.onSnooze = async (duration) => {
-    await chrome.runtime.sendMessage({
-      action: 'snoozeWindow',
-      windowId: currentWindow.id,
-      until: Date.now() + duration
-    });
-
+    await executeSnoozeOperations(result.operations, Date.now() + duration);
     modal.hide();
     window.close(); // Close popup after snoozing
   };
 }
 ```
+
+**No duplicate logic** - Popup uses the exact same services as Dashboard.
 
 ### 4. SnoozeService Enhancement
 
@@ -427,20 +414,16 @@ async snoozeTab(tabId, until, options = {}) {
 }
 ```
 
-**Enhanced Restoration**:
+**Enhanced Restoration** (with explicit settings parameter):
 ```javascript
-async restoreTab(snoozedTabId) {
+async restoreTab(snoozedTabId, restorationMode = 'original') {
   const snoozedTab = this.snoozedTabs.get(snoozedTabId);
   if (!snoozedTab) return null;
-
-  // 1. Get user's restoration preference
-  const settings = await chrome.storage.local.get('settings');
-  const restorationMode = settings?.settings?.snooze?.tabRestoration || 'original';
 
   let targetWindowId = null;
   let createdNewWindow = false;
 
-  // 2. Determine target window based on user preference
+  // Determine target window based on explicit parameter
   switch (restorationMode) {
     case 'original':
       // Try to restore to source window if it exists
@@ -473,7 +456,7 @@ async restoreTab(snoozedTabId) {
       break;
   }
 
-  // 3. Create tab in target window (unless we already created window)
+  // Create tab in target window (unless we already created window)
   let newTab;
   if (!createdNewWindow) {
     newTab = await chrome.tabs.create({
@@ -487,7 +470,7 @@ async restoreTab(snoozedTabId) {
     newTab = tabs[0];
   }
 
-  // 4. Cleanup
+  // Cleanup
   this.snoozedTabs.delete(snoozedTabId);
   await this.save();
 
@@ -501,7 +484,9 @@ async restoreTab(snoozedTabId) {
 }
 ```
 
-### 5. Background Message Handlers
+**Key Change**: Settings passed as explicit parameter, not fetched internally. Background handler will fetch settings and pass them.
+
+### 5. Background Message Handlers (THIN Coordinator)
 
 **File**: `/background-integrated.js`
 
@@ -518,6 +503,22 @@ case 'snoozeTabs':
   break;
 ```
 
+**Update restoreTab Handler** (pass settings explicitly):
+```javascript
+case 'restoreTab':
+  // Fetch settings and pass as parameter (no hidden dependencies)
+  const settings = await chrome.storage.local.get('settings');
+  const restorationMode = settings?.settings?.snooze?.tabRestoration || 'original';
+
+  const result = await SnoozeService.restoreTab(
+    request.snoozedTabId,
+    restorationMode  // Explicit parameter
+  );
+
+  sendResponse(result);
+  break;
+```
+
 **Existing snoozeWindow Handler** (already works from Phase 8.1):
 ```javascript
 case 'snoozeWindow':
@@ -531,14 +532,197 @@ case 'snoozeWindow':
 
 ---
 
+## Service Implementations (Business Logic Layer)
+
+### Service 1: Detection Service
+
+**File**: `/services/selection/detectSnoozeOperations.js`
+
+```javascript
+/**
+ * Analyzes selected tabs and determines optimal snooze strategy.
+ * Detects when entire windows are selected vs partial selections.
+ *
+ * @param {Array} selectedTabs - Array of tab objects with windowId
+ * @returns {Promise<Object>} { type: 'tabs'|'window'|'windows'|'mixed', operations: Array }
+ */
+export async function detectSnoozeOperations(selectedTabs) {
+  // Group tabs by window
+  const tabsByWindow = selectedTabs.reduce((acc, tab) => {
+    if (!acc[tab.windowId]) acc[tab.windowId] = [];
+    acc[tab.windowId].push(tab);
+    return acc;
+  }, {});
+
+  const operations = [];
+
+  // Check each window to see if all tabs are selected
+  for (const [windowId, tabs] of Object.entries(tabsByWindow)) {
+    const allTabsInWindow = await chrome.tabs.query({
+      windowId: parseInt(windowId)
+    });
+
+    if (tabs.length === allTabsInWindow.length) {
+      // Complete window selected → snooze as window
+      operations.push({
+        type: 'window',
+        windowId: parseInt(windowId),
+        tabs
+      });
+    } else {
+      // Partial window → snooze as individual tabs with source
+      operations.push({
+        type: 'tabs',
+        tabs,
+        sourceWindowId: parseInt(windowId)
+      });
+    }
+  }
+
+  // Determine overall operation type
+  const hasWindows = operations.some(op => op.type === 'window');
+  const hasTabs = operations.some(op => op.type === 'tabs');
+
+  let type;
+  if (hasWindows && hasTabs) {
+    type = 'mixed';
+  } else if (hasWindows) {
+    type = operations.length === 1 ? 'window' : 'windows';
+  } else {
+    type = 'tabs';
+  }
+
+  return { type, operations };
+}
+```
+
+### Service 2: Execution Service
+
+**File**: `/services/execution/executeSnoozeOperations.js`
+
+```javascript
+/**
+ * Executes snooze operations by coordinating WindowService and SnoozeService.
+ * Handles both complete window snoozing and individual tab snoozing.
+ *
+ * @param {Array} operations - Array of operation objects from detectSnoozeOperations
+ * @param {number} until - Timestamp when items should wake (milliseconds)
+ * @returns {Promise<Object>} { success: boolean, windowCount: number, tabCount: number }
+ */
+export async function executeSnoozeOperations(operations, until) {
+  let windowCount = 0;
+  let tabCount = 0;
+
+  for (const op of operations) {
+    if (op.type === 'window') {
+      // Snooze entire window via WindowService
+      await chrome.runtime.sendMessage({
+        action: 'snoozeWindow',
+        windowId: op.windowId,
+        until: until
+      });
+      windowCount++;
+    } else {
+      // Snooze individual tabs via SnoozeService with source window
+      await chrome.runtime.sendMessage({
+        action: 'snoozeTabs',
+        tabIds: op.tabs.map(t => t.id),
+        until: until,
+        sourceWindowId: op.sourceWindowId
+      });
+      tabCount += op.tabs.length;
+    }
+  }
+
+  return {
+    success: true,
+    windowCount,
+    tabCount
+  };
+}
+```
+
+### Service 3: Formatting Utilities
+
+**File**: `/services/utils/snoozeFormatters.js`
+
+```javascript
+/**
+ * Formats snooze operation titles for display in UI.
+ * Handles tabs, windows, and mixed operations.
+ *
+ * @param {Object} options - Operation options from detectSnoozeOperations
+ * @returns {string} Formatted title string
+ */
+export function formatSnoozeTitle(options) {
+  const { type, operations = [], selectedTabs = [], windowIds = [] } = options;
+
+  if (type === 'window') {
+    return 'Snooze Window';
+  }
+
+  if (type === 'windows') {
+    const count = windowIds.length || operations.filter(op => op.type === 'window').length;
+    return `Snooze ${count} Windows`;
+  }
+
+  if (type === 'mixed') {
+    const windowCount = operations.filter(op => op.type === 'window').length;
+    const tabCount = operations
+      .filter(op => op.type === 'tabs')
+      .reduce((sum, op) => sum + op.tabs.length, 0);
+
+    if (windowCount > 0 && tabCount > 0) {
+      const windowPart = `${windowCount} Window${windowCount > 1 ? 's' : ''}`;
+      const tabPart = `${tabCount} Tab${tabCount > 1 ? 's' : ''}`;
+      return `Snooze ${windowPart} + ${tabPart}`;
+    } else if (windowCount > 0) {
+      return `Snooze ${windowCount} Window${windowCount > 1 ? 's' : ''}`;
+    } else {
+      return `Snooze ${tabCount} Tab${tabCount > 1 ? 's' : ''}`;
+    }
+  }
+
+  // Default: tabs
+  const count = selectedTabs.length || 1;
+  return count === 1 ? 'Snooze Tab' : `Snooze ${count} Tabs`;
+}
+```
+
+---
+
 ## Testing Plan
 
 ### Unit Tests
 
+**detectSnoozeOperations.test.js** - New service tests:
+- [ ] Single complete window detection (Scenario 1)
+- [ ] Partial window detection (Scenario 2)
+- [ ] Multiple complete windows detection (Scenario 3)
+- [ ] Mixed selection detection (Scenario 4)
+- [ ] Cross-window partial selection (Scenario 5)
+- [ ] Empty selection handling
+- [ ] Single tab selection
+
+**executeSnoozeOperations.test.js** - New service tests:
+- [ ] Execute window snooze operation
+- [ ] Execute tab snooze operation with sourceWindowId
+- [ ] Execute mixed operations (windows + tabs)
+- [ ] Return correct counts (windowCount, tabCount)
+
+**snoozeFormatters.test.js** - New utility tests:
+- [ ] Format single tab title
+- [ ] Format multiple tabs title
+- [ ] Format single window title
+- [ ] Format multiple windows title
+- [ ] Format mixed operations title
+
 **SnoozeService.test.js** - Add tests for `sourceWindowId`:
 - [ ] Snooze tab with sourceWindowId stores metadata
-- [ ] Restore to source window when it exists
+- [ ] Restore to source window when it exists (restorationMode='original')
 - [ ] Fallback to current window when source closed
+- [ ] Always restore to current (restorationMode='current')
+- [ ] Always restore to new window (restorationMode='new')
 - [ ] Handle missing sourceWindowId (backward compatibility)
 
 **WindowService.test.js** - Already has window snooze tests from Phase 8.1:
@@ -580,51 +764,82 @@ case 'snoozeWindow':
 
 ---
 
-## Implementation Order
+## Implementation Order (Services-First)
 
-1. **Options Page - Settings UI** (30 min)
+### Phase 1: Service Layer (Business Logic)
+
+1. **Detection Service** (1 hour)
+   - Create `/services/selection/detectSnoozeOperations.js`
+   - Implement window vs tab detection algorithm
+   - Write unit tests for all 5 scenarios
+   - Ensure all edge cases covered (empty selection, single tab)
+
+2. **Formatting Utilities** (30 min)
+   - Create `/services/utils/snoozeFormatters.js`
+   - Implement `formatSnoozeTitle()` function
+   - Write unit tests for all title variations
+
+3. **Execution Service** (45 min)
+   - Create `/services/execution/executeSnoozeOperations.js`
+   - Implement coordination logic for WindowService and SnoozeService
+   - Write unit tests for operation execution
+
+4. **SnoozeService Enhancement** (45 min)
+   - Add `sourceWindowId` parameter to `snoozeTab()`
+   - Update `restoreTab()` signature to accept explicit `restorationMode`
+   - Implement three restoration modes: original, current, new
+   - Write unit tests for all three modes + backward compatibility
+
+### Phase 2: Configuration Layer
+
+5. **Options Page - Settings UI** (30 min)
    - Add "Snooze Settings" section to options.html
    - Add tab restoration radio buttons
    - Add save/load logic for `settings.snooze.tabRestoration`
    - Set default to `'original'`
    - Test settings persistence
 
-2. **SnoozeService Enhancement** (45 min)
-   - Add `sourceWindowId` parameter to `snoozeTab()`
-   - Update `restoreTab()` with user preference logic
-   - Implement three restoration modes: original, current, new
-   - Add unit tests for all three modes
-   - Test backward compatibility (null sourceWindowId)
+### Phase 3: Background Coordination
 
-3. **SnoozeModal Enhancement** (45 min)
+6. **Background Handlers** (15 min)
+   - Update `snoozeTabs` handler to accept `sourceWindowId`
+   - Update `restoreTab` handler to fetch settings and pass explicitly
+   - Verify `snoozeWindow` handler (already exists)
+
+### Phase 4: UI Layer (Thin Presentation)
+
+7. **SnoozeModal Enhancement** (30 min)
    - Update `show()` signature to accept options object
-   - Add title generation logic for mixed operations
+   - Import and use `formatSnoozeTitle()` from service
    - Update callback signature
    - Test with different operation types
 
-4. **Dashboard Integration** (1.5 hours)
-   - Implement `detectSnoozeOperations()` algorithm
-   - Implement `executeSnoozeOperations()`
-   - Update "Snooze" button handler
-   - Test all 5 scenarios (especially scenario 4: mixed operations)
+8. **Dashboard Integration** (45 min)
+   - Import detection and execution services
+   - Update "Snooze" button handler to call services
+   - Remove all business logic from Dashboard
+   - Test UI integration
 
-5. **Popup Integration** (30 min)
+9. **Popup Integration** (30 min)
    - Add "Snooze Window" button to HTML
-   - Add event handler
+   - Import same services as Dashboard
+   - Add event handler that calls services
    - Load SnoozeModal component (add script tag)
    - Test window snoozing from popup
 
-6. **Background Handlers** (15 min)
-   - Update `snoozeTabs` to accept `sourceWindowId`
-   - Verify `snoozeWindow` handler (already exists)
+### Phase 5: Validation
 
-7. **Testing & Validation** (1 hour)
-   - Run unit tests
-   - Manual testing of all scenarios
-   - Test all three restoration modes
-   - Edge case testing (closed windows, multiple tabs)
+10. **Testing & Validation** (1 hour)
+    - Run all unit tests (services first)
+    - Manual testing of all scenarios
+    - Test all three restoration modes
+    - Verify no duplicate logic between Dashboard and Popup
+    - Edge case testing (closed windows, multiple tabs)
+    - Regression testing (existing snooze functionality)
 
-**Total Estimated Time**: ~5 hours
+**Total Estimated Time**: ~6 hours
+
+**Key Difference**: Services are built and tested first, then UI layers become simple consumers.
 
 ---
 
@@ -729,6 +944,17 @@ case 'snoozeWindow':
 
 ## Success Criteria
 
+### Architecture Compliance ✅
+- [ ] **Services-First**: All business logic in `/services/*`, not in UI layers
+- [ ] **No Duplication**: Detection logic exists in ONE place (detectSnoozeOperations service)
+- [ ] **No Duplication**: Execution logic exists in ONE place (executeSnoozeOperations service)
+- [ ] **Thin UI**: Dashboard contains zero business logic (only calls services)
+- [ ] **Thin UI**: Popup contains zero business logic (only calls services)
+- [ ] **Shared Services**: Dashboard and Popup use identical service calls
+- [ ] **Explicit Parameters**: Settings passed as parameters, not fetched internally
+- [ ] **Separation of Concerns**: Selection (detection) separate from Execution
+
+### Functional Requirements ✅
 - [ ] **Settings UI**: Tab restoration setting added to Options page
 - [ ] **Settings UI**: Default is "Restore to original window (if available)"
 - [ ] **Settings UI**: All three modes work correctly (original, current, new)
@@ -741,14 +967,19 @@ case 'snoozeWindow':
 - [ ] **Restoration**: 'original' mode falls back to current window when source closed
 - [ ] **Restoration**: 'current' mode always restores to focused window
 - [ ] **Restoration**: 'new' mode creates new window for each tab
-- [ ] **SnoozeModal**: Shows correct titles for all operation types
+- [ ] **SnoozeModal**: Shows correct titles for all operation types (uses formatSnoozeTitle service)
 - [ ] **SnoozeModal**: All 6 presets work for both tabs and windows
 - [ ] **SnoozeModal**: Custom date/time picker works for both tabs and windows
 - [ ] **SnoozeModal**: Loads correctly in both Dashboard and Popup
+
+### Testing & Quality ✅
+- [ ] **Unit Tests**: detectSnoozeOperations has 100% coverage (all 5 scenarios)
+- [ ] **Unit Tests**: executeSnoozeOperations has 100% coverage
+- [ ] **Unit Tests**: formatSnoozeTitle has 100% coverage
+- [ ] **Unit Tests**: SnoozeService restoration modes all tested
 - [ ] **Backward Compatibility**: Old snoozed tabs without sourceWindowId restore correctly
-- [ ] **Testing**: Zero regressions in existing snooze functionality
-- [ ] **Testing**: All unit tests passing
-- [ ] **Testing**: Manual validation of all test scenarios passing
+- [ ] **Regression Testing**: Zero regressions in existing snooze functionality
+- [ ] **Manual Testing**: All integration scenarios passing
 
 ---
 

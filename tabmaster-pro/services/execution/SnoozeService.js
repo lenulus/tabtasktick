@@ -3,6 +3,8 @@
  * This service is the single source of truth for all snooze-related operations.
  */
 
+import { cleanupOrphanedWindowMetadata } from './WindowService.js';
+
 // Service state
 let snoozedTabs = [];
 let isInitialized = false;
@@ -42,6 +44,8 @@ export async function initialize() {
  * @param {Object} [options={}] - Options for snoozing.
  * @param {string} [options.reason='manual'] - The reason for snoozing.
  * @param {string} [options.windowSnoozeId] - If part of a window snooze, the window snooze ID.
+ * @param {number} [options.sourceWindowId] - The window ID tabs came from (for restoration).
+ * @param {string} [options.restorationMode='original'] - Where to restore tabs ('original', 'current', 'new').
  * @returns {Promise<object[]>} The newly created snoozed tab objects.
  */
 export async function snoozeTabs(tabIds, snoozeUntil, options = {}) {
@@ -51,6 +55,8 @@ export async function snoozeTabs(tabIds, snoozeUntil, options = {}) {
   const isLegacyCall = typeof options === 'string';
   const reason = isLegacyCall ? options : (options.reason || 'manual');
   const windowSnoozeId = isLegacyCall ? null : options.windowSnoozeId;
+  const sourceWindowId = isLegacyCall ? null : options.sourceWindowId;
+  const restorationMode = isLegacyCall ? 'original' : (options.restorationMode || 'original');
 
   const newSnoozedTabs = [];
   const now = Date.now();
@@ -68,11 +74,17 @@ export async function snoozeTabs(tabIds, snoozeUntil, options = {}) {
         originalTabId: tab.id,
         groupId: tab.groupId > 0 ? tab.groupId : null,
         createdAt: now,
+        restorationMode,
       };
 
       // Add windowSnoozeId if this tab is part of a snoozed window
       if (windowSnoozeId) {
         snoozedTab.windowSnoozeId = windowSnoozeId;
+      }
+
+      // Add sourceWindowId to track where tab came from
+      if (sourceWindowId) {
+        snoozedTab.sourceWindowId = sourceWindowId;
       }
 
       snoozedTabs.push(snoozedTab);
@@ -94,21 +106,51 @@ export async function snoozeTabs(tabIds, snoozeUntil, options = {}) {
  * Wakes one or more previously snoozed tabs.
  * @param {string[]} snoozedTabIds - An array of snoozed tab IDs to wake.
  * @param {object} [options={}] - Options for the wake operation.
+ * @param {boolean} [options.makeActive=false] - Whether to make the first restored tab active.
+ * @param {number} [options.targetWindowId] - Override: specific window to restore to (ignores restorationMode).
  * @returns {Promise<number[]>} The newly created chrome.tabs.Tab IDs.
  */
 export async function wakeTabs(snoozedTabIds, options = {}) {
     await ensureInitialized();
-    const { makeActive = false } = options;
+    const { makeActive = true, targetWindowId } = options; // Default to active for better UX
     const newTabIds = [];
 
     const tabsToWake = snoozedTabs.filter(tab => snoozedTabIds.includes(tab.id));
     const remainingTabs = snoozedTabs.filter(tab => !snoozedTabIds.includes(tab.id));
 
-    for (const tab of tabsToWake) {
+    for (let i = 0; i < tabsToWake.length; i++) {
+      const tab = tabsToWake[i];
       try {
+        // Determine window for restoration based on restorationMode
+        // Default to 'original' for backward compatibility with tabs that don't have restorationMode set
+        const mode = tab.restorationMode || 'original';
+        let windowId;
+
+        if (targetWindowId) {
+          // Override: use explicit target window
+          windowId = targetWindowId;
+        } else if (mode === 'original' && tab.sourceWindowId) {
+          // Try to restore to original window
+          try {
+            await chrome.windows.get(tab.sourceWindowId);
+            windowId = tab.sourceWindowId;
+          } catch (e) {
+            // Original window doesn't exist, fall back to current
+            windowId = (await chrome.windows.getCurrent()).id;
+          }
+        } else if (mode === 'current') {
+          // Restore to current window
+          windowId = (await chrome.windows.getCurrent()).id;
+        } else if (mode === 'original' && !tab.sourceWindowId) {
+          // Legacy tab without sourceWindowId - restore to current window
+          windowId = (await chrome.windows.getCurrent()).id;
+        }
+        // If mode === 'new', windowId stays undefined (creates new window)
+
         const newTab = await chrome.tabs.create({
           url: tab.url,
-          active: makeActive,
+          active: i === 0 ? makeActive : false, // Only make first tab active
+          windowId, // undefined creates new window
         });
         if (tab.groupId) {
           await restoreTabToGroup(newTab.id, tab.groupId);
@@ -212,6 +254,7 @@ async function setupAlarms() {
 
 /**
  * Periodically checks for any tabs that should have woken up but didn't.
+ * Also cleans up orphaned window metadata.
  */
 async function checkMissedAlarms() {
   const now = Date.now();
@@ -220,6 +263,13 @@ async function checkMissedAlarms() {
     console.warn(`Found ${missedTabs.length} missed snoozed tabs. Waking them now.`);
     const missedTabIds = missedTabs.map(tab => tab.id);
     await wakeTabs(missedTabIds);
+  }
+
+  // Clean up orphaned window metadata (Phase 8.3)
+  try {
+    await cleanupOrphanedWindowMetadata();
+  } catch (error) {
+    console.error('Failed to cleanup orphaned window metadata:', error);
   }
 }
 

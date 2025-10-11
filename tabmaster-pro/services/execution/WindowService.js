@@ -14,7 +14,7 @@
  */
 
 import { importData } from '../ExportImportService.js';
-import { snoozeTabs } from './SnoozeService.js';
+import { snoozeTabs, deleteSnoozedTab } from './SnoozeService.js';
 import { selectTabs } from '../selection/selectTabs.js';
 import { deduplicateWindow as deduplicateWindowOrchestrator } from './DeduplicationOrchestrator.js';
 
@@ -79,6 +79,36 @@ async function deleteWindowMetadata(snoozeId) {
 }
 
 /**
+ * Clean up orphaned window metadata (metadata without corresponding snoozed tabs)
+ * This handles edge cases where window metadata exists but tabs were cleaned up
+ */
+export async function cleanupOrphanedWindowMetadata() {
+  const stored = await chrome.storage.local.get([WINDOW_METADATA_KEY, 'snoozedTabs']);
+  const allMetadata = stored[WINDOW_METADATA_KEY] || {};
+  const snoozedTabs = stored.snoozedTabs || [];
+
+  // Get all window snooze IDs that have associated tabs
+  const activeWindowSnoozeIds = new Set(
+    snoozedTabs
+      .filter(tab => tab.windowSnoozeId)
+      .map(tab => tab.windowSnoozeId)
+  );
+
+  // Find orphaned metadata (no tabs reference this window snooze)
+  const orphanedIds = Object.keys(allMetadata).filter(
+    snoozeId => !activeWindowSnoozeIds.has(snoozeId)
+  );
+
+  if (orphanedIds.length > 0) {
+    console.log(`Cleaning up ${orphanedIds.length} orphaned window metadata entries:`, orphanedIds);
+    orphanedIds.forEach(id => delete allMetadata[id]);
+    await chrome.storage.local.set({ [WINDOW_METADATA_KEY]: allMetadata });
+  }
+
+  return { cleaned: orphanedIds.length, orphanedIds };
+}
+
+/**
  * Snooze entire window
  *
  * Stores window metadata separately, then delegates tab snoozing
@@ -94,8 +124,10 @@ export async function snoozeWindow(windowId, duration, options = {}) {
   const windowMeta = await getWindowMetadata(windowId);
 
   // 2. Create unique snooze ID for this window
-  const snoozeId = `window_snooze_${Date.now()}_${windowId}`;
-  const snoozeUntil = Date.now() + duration;
+  // CRITICAL: Use same timestamp for both snoozeId and snoozeUntil calculation
+  const now = Date.now();
+  const snoozeId = `window_snooze_${now}_${windowId}`;
+  const snoozeUntil = now + duration;
 
   // 3. Store window metadata with snooze info
   await storeWindowMetadata({
@@ -155,18 +187,34 @@ export async function snoozeWindow(windowId, duration, options = {}) {
  * @returns {Promise<Object>} - Result with new window ID and restored tabs
  */
 export async function restoreWindow(snoozeId) {
-  // 1. Retrieve window metadata
-  const windowMeta = await retrieveWindowMetadata(snoozeId);
-
-  if (!windowMeta) {
-    throw new Error(`No window metadata found for snooze ID: ${snoozeId}`);
-  }
-
-  // 2. Get all snoozed tabs for this window
+  // 1. Get all snoozed tabs for this window FIRST
   const snoozedTabs = await getSnoozedTabsForWindow(snoozeId);
 
   if (snoozedTabs.length === 0) {
-    throw new Error(`No snoozed tabs found for window: ${snoozeId}`);
+    // No tabs found - clean up any orphaned metadata and fail
+    const windowMeta = await retrieveWindowMetadata(snoozeId);
+    if (windowMeta) {
+      await deleteWindowMetadata(snoozeId);
+    }
+    throw new Error(`No snoozed tabs found for window: ${snoozeId}. Metadata has been cleaned up.`);
+  }
+
+  // 2. Retrieve window metadata (optional - used for position/size)
+  let windowMeta = await retrieveWindowMetadata(snoozeId);
+
+  if (!windowMeta) {
+    // Missing metadata isn't fatal - we have the tabs!
+    // Create fallback metadata and continue with restore
+    console.warn(`Window metadata missing for ${snoozeId}, using fallback. This may be due to a timing issue during snooze.`);
+    windowMeta = {
+      snoozeId,
+      windowId: parseInt(snoozeId.split('_').pop()), // Extract original window ID
+      state: 'normal',
+      type: 'normal',
+      focused: true
+    };
+    // Clean up any other orphaned metadata while we're at it
+    await cleanupOrphanedWindowMetadata();
   }
 
   // 3. Format data for ExportImportService
@@ -205,29 +253,35 @@ export async function restoreWindow(snoozeId) {
     null  // scheduler (not needed)
   );
 
-  // 5. Clean up after successful restoration
-  if (result.success) {
-    // Delete window metadata
+  // 5. Clean up after restoration
+  // Always clean up, even if there were some errors during import
+  // (importData may partially succeed - some tabs restored, some failed)
+  console.log('Window restore result:', result);
+  console.log(`Cleaning up ${snoozedTabs.length} tabs for window ${snoozeId}`);
+
+  // Delete window metadata (if it exists)
+  const metadataExists = await retrieveWindowMetadata(snoozeId);
+  if (metadataExists) {
     await deleteWindowMetadata(snoozeId);
-
-    // CRITICAL: Clear alarms and remove tabs from SnoozeService storage
-    // The tabs were restored via importData (not wakeTabs), so we need
-    // to manually clean up the snooze state
-    for (const tab of snoozedTabs) {
-      // Clear the alarm for this tab
-      await chrome.alarms.clear(`snooze_wake_${tab.id}`);
-    }
-
-    // Remove all tabs from SnoozeService storage
-    const tabIds = snoozedTabs.map(t => t.id);
-    const allSnoozed = await chrome.storage.local.get('snoozedTabs');
-    const remainingSnoozed = (allSnoozed.snoozedTabs || []).filter(
-      t => !tabIds.includes(t.id)
-    );
-    await chrome.storage.local.set({ snoozedTabs: remainingSnoozed });
+    console.log('Window metadata deleted');
   }
 
+  // CRITICAL: Remove tabs from SnoozeService
+  // The tabs were restored via importData (not wakeTabs), so we need
+  // to manually clean up via SnoozeService which manages both storage and in-memory cache
+  const tabIds = snoozedTabs.map(t => t.id);
+  console.log('Cleaning up snoozed tabs via SnoozeService:', tabIds);
+
+  // Delete each tab through SnoozeService (updates both storage and in-memory state)
+  for (const tabId of tabIds) {
+    await deleteSnoozedTab(tabId);
+    console.log(`Deleted snoozed tab: ${tabId}`);
+  }
+
+  console.log('Window restore cleanup complete');
+
   return {
+    success: true,
     windowId: result.imported.windows > 0 ? 'new window created' : null,
     tabCount: result.imported.tabs,
     groupCount: result.imported.groups,

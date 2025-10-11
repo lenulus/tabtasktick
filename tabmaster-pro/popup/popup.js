@@ -15,6 +15,7 @@ const elements = {
   closeDuplicates: document.getElementById('closeDuplicates'),
   groupByDomain: document.getElementById('groupByDomain'),
   snoozeCurrent: document.getElementById('snoozeCurrent'),
+  snoozeWindow: document.getElementById('snoozeWindow'),
   suspendInactive: document.getElementById('suspendInactive'),
   
   // Sections
@@ -329,6 +330,7 @@ function setupEventListeners() {
   elements.closeDuplicates.addEventListener('click', handleCloseDuplicates);
   elements.groupByDomain.addEventListener('click', handleGroupByDomain);
   elements.snoozeCurrent.addEventListener('click', handleSnoozeCurrentToggle);
+  elements.snoozeWindow.addEventListener('click', handleSnoozeWindow);
   elements.suspendInactive.addEventListener('click', handleSuspendInactive);
 
   // Header Actions
@@ -470,6 +472,88 @@ async function handleSnoozeTabs(snoozeData) {
   } catch (error) {
     console.error('Failed to snooze tabs:', error);
     showNotification('Failed to snooze tabs', 'error');
+  }
+}
+
+/**
+ * Phase 8.3: Snooze entire current window
+ * Uses message passing for ONE execution path (architecture fix)
+ */
+async function handleSnoozeWindow() {
+  try {
+    // Get all tabs in current window
+    const currentWindow = await chrome.windows.getCurrent({ populate: true });
+    const tabIds = currentWindow.tabs.map(t => t.id);
+
+    if (tabIds.length === 0) {
+      showNotification('No tabs to snooze', 'warning');
+      return;
+    }
+
+    // THIN UI Layer: Send message to background for detection (business logic)
+    const { operations, summary } = await sendMessage({
+      action: 'detectSnoozeOperations',
+      tabIds
+    });
+
+    if (operations.length === 0) {
+      showNotification('No tabs to snooze', 'warning');
+      return;
+    }
+
+    // Show modal with operations and summary (new format)
+    snoozeModal.show({ operations, summary });
+
+    // Set up modal callbacks
+    snoozeModal.onSnooze = async (snoozeData) => {
+      try {
+        const { timestamp, operations, summary } = snoozeData;
+
+        // THIN UI Layer: Send message to background for execution (ONE execution path)
+        const result = await sendMessage({
+          action: 'executeSnoozeOperations',
+          operations,
+          snoozeUntil: timestamp,
+          options: {
+            reason: 'manual',
+            // restorationMode will be pulled from settings by background handler
+          }
+        });
+
+        if (result.success) {
+          const minutes = Math.floor((timestamp - Date.now()) / 60000);
+          const { windowCount, individualTabCount, totalTabs } = summary;
+
+          let message;
+          if (windowCount > 0 && individualTabCount === 0) {
+            message = `Snoozed ${windowCount} window${windowCount !== 1 ? 's' : ''} for ${getReadableDuration(minutes)}`;
+          } else {
+            message = `Snoozed ${totalTabs} tab${totalTabs !== 1 ? 's' : ''} for ${getReadableDuration(minutes)}`;
+          }
+
+          showNotification(message, 'success');
+
+          // Refresh statistics
+          await loadStatistics();
+          await loadSnoozedTabs();
+
+          // Close popup after window snooze
+          setTimeout(() => window.close(), 1000);
+        } else {
+          showNotification(`Snooze completed with ${result.errors.length} error(s)`, 'warning');
+        }
+      } catch (error) {
+        console.error('Failed to snooze window:', error);
+        showNotification('Failed to snooze window', 'error');
+      }
+    };
+
+    snoozeModal.onCancel = () => {
+      // Modal handles its own cleanup
+    };
+  } catch (error) {
+    console.error('Failed to prepare window snooze:', error);
+    showNotification('Failed to prepare window snooze', 'error');
   }
 }
 

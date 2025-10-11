@@ -73,6 +73,7 @@ async function loadSettings() {
     document.getElementById('skipPinnedByDefault').checked = currentSettings.skipPinnedByDefault ?? true;
     document.getElementById('maxTabsWarning').value = currentSettings.maxTabsWarning || 100;
     document.getElementById('defaultSnoozeMinutes').value = currentSettings.defaultSnoozeMinutes || 60;
+    document.getElementById('tabRestorationMode').value = currentSettings.tabRestorationMode || 'original';
     
     // Memory threshold
     const memoryThreshold = document.getElementById('memoryThreshold');
@@ -113,6 +114,7 @@ async function saveSettings() {
     skipPinnedByDefault: document.getElementById('skipPinnedByDefault').checked,
     maxTabsWarning: parseInt(document.getElementById('maxTabsWarning').value),
     defaultSnoozeMinutes: parseInt(document.getElementById('defaultSnoozeMinutes').value),
+    tabRestorationMode: document.getElementById('tabRestorationMode').value,
     memoryThreshold: parseInt(document.getElementById('memoryThreshold').value),
     whitelist: whitelistDomains,
     tabPreviewSettings: {
@@ -648,6 +650,7 @@ function setupEventListeners() {
   document.getElementById('skipPinnedByDefault').addEventListener('change', saveSettings);
   document.getElementById('maxTabsWarning').addEventListener('change', saveSettings);
   document.getElementById('defaultSnoozeMinutes').addEventListener('change', saveSettings);
+  document.getElementById('tabRestorationMode').addEventListener('change', saveSettings);
   
   // Memory threshold slider
   const memoryThreshold = document.getElementById('memoryThreshold');

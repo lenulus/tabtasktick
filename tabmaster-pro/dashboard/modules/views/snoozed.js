@@ -290,6 +290,8 @@ async function restoreWindow(windowSnoozeId) {
     });
     console.log('Restore result:', result);
     if (result && result.success) {
+      // Small delay to ensure storage write completes before UI refresh
+      await new Promise(resolve => setTimeout(resolve, 100));
       // Reload the snoozed view
       await loadSnoozedView();
     } else {

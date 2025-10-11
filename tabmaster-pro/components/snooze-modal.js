@@ -126,17 +126,35 @@ class SnoozeModal {
     }
   }
   
-  show(selectedTabs = []) {
-    this.selectedTabs = selectedTabs;
+  /**
+   * Show the snooze modal
+   * @param {Array|Object} input - Either:
+   *   - Array of tab objects (legacy support)
+   *   - Object with { operations, summary } from detectSnoozeOperations service
+   */
+  show(input = []) {
+    // Support both legacy array format and new service format
+    if (Array.isArray(input)) {
+      // Legacy: array of tabs
+      this.selectedTabs = input;
+      this.operations = null;
+      this.summary = null;
+    } else {
+      // New: service format with operations and summary
+      this.operations = input.operations || [];
+      this.summary = input.summary || {};
+      this.selectedTabs = []; // Not used in new format
+    }
+
     this.create();
     this.attachEventListeners();
-    
+
     // Show modal with animation
     requestAnimationFrame(() => {
       this.backdrop.classList.add('show');
       this.modal.classList.add('show');
     });
-    
+
     // Focus first preset button
     const firstButton = this.modal.querySelector('.preset-button');
     if (firstButton) {
@@ -155,24 +173,88 @@ class SnoozeModal {
     }, 300);
   }
   
+  /**
+   * Get the title for the modal based on operations/summary or legacy tab count
+   * Uses formatting service if available, falls back to simple formatting
+   */
+  getModalTitle() {
+    // If we have operations and summary from detection service
+    if (this.operations && this.summary) {
+      // Try to use the formatter service if available in window
+      if (window.formatSnoozeTitle) {
+        return window.formatSnoozeTitle({ operations: this.operations, summary: this.summary });
+      }
+
+      // Fallback formatting without service
+      const { windowCount, individualTabCount } = this.summary;
+      if (windowCount > 0 && individualTabCount === 0) {
+        return windowCount === 1 ? 'Snooze Window' : `Snooze ${windowCount} Windows`;
+      }
+      return `Snooze ${this.summary.totalTabs} Tab${this.summary.totalTabs !== 1 ? 's' : ''}`;
+    }
+
+    // Legacy: use tab count
+    const tabCount = this.selectedTabs.length || 1;
+    return tabCount === 1 ? 'Snooze Tab' : `Snooze ${tabCount} Tabs`;
+  }
+
+  /**
+   * Get the button text based on operations/summary or legacy tab count
+   */
+  getButtonText() {
+    // If we have summary from detection service
+    if (this.summary && this.summary.totalTabs) {
+      const { windowCount, individualTabCount } = this.summary;
+      if (windowCount > 0 && individualTabCount === 0) {
+        return windowCount === 1 ? 'Snooze Window' : `Snooze ${windowCount} Windows`;
+      }
+      return `Snooze ${this.summary.totalTabs} Tab${this.summary.totalTabs !== 1 ? 's' : ''}`;
+    }
+
+    // Legacy: use tab count
+    const tabCount = this.selectedTabs.length || 1;
+    return tabCount === 1 ? 'Snooze Tab' : `Snooze ${tabCount} Tabs`;
+  }
+
+  /**
+   * Get the info message based on operations/summary
+   */
+  getInfoMessage() {
+    if (this.summary && this.summary.totalTabs > 1) {
+      // Try to use the formatter service if available
+      if (window.formatSnoozeDescription) {
+        return window.formatSnoozeDescription({ operations: this.operations, summary: this.summary });
+      }
+
+      // Fallback
+      const { windowCount, individualTabCount, totalTabs } = this.summary;
+      if (windowCount > 0 && individualTabCount > 0) {
+        return `Snoozing ${windowCount} window${windowCount !== 1 ? 's' : ''} and ${individualTabCount} tab${individualTabCount !== 1 ? 's' : ''}`;
+      }
+      return `Snoozing ${totalTabs} selected tabs together`;
+    }
+    return null;
+  }
+
   create() {
     // Create backdrop
     this.backdrop = document.createElement('div');
     this.backdrop.className = 'snooze-backdrop';
-    
+
     // Create modal
     this.modal = document.createElement('div');
     this.modal.className = 'snooze-modal';
     this.modal.setAttribute('role', 'dialog');
     this.modal.setAttribute('aria-labelledby', 'snooze-title');
     this.modal.setAttribute('aria-describedby', 'snooze-description');
-    
-    const tabCount = this.selectedTabs.length || 1;
-    const tabText = tabCount === 1 ? 'Tab' : `${tabCount} Tabs`;
-    
+
+    const modalTitle = this.getModalTitle();
+    const buttonText = this.getButtonText();
+    const infoMessage = this.getInfoMessage();
+
     this.modal.innerHTML = `
       <div class="snooze-header">
-        <h2 id="snooze-title">Snooze ${tabText}</h2>
+        <h2 id="snooze-title">${modalTitle}</h2>
         <button class="snooze-close" aria-label="Close dialog">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -180,7 +262,7 @@ class SnoozeModal {
           </svg>
         </button>
       </div>
-      
+
       <div class="snooze-content">
         <div class="snooze-presets">
           <h3>Quick Presets</h3>
@@ -194,7 +276,7 @@ class SnoozeModal {
             `).join('')}
           </div>
         </div>
-        
+
         <div class="snooze-custom">
           <h3>Custom Time</h3>
           <div class="custom-inputs">
@@ -209,21 +291,21 @@ class SnoozeModal {
           </div>
           <div class="custom-preview" id="custom-preview"></div>
         </div>
-        
-        ${tabCount > 1 ? `
+
+        ${infoMessage ? `
           <div class="snooze-info" id="snooze-description">
             <span class="info-icon">💡</span>
-            <span>Snoozing ${tabCount} selected tabs together</span>
+            <span>${infoMessage}</span>
           </div>
         ` : ''}
       </div>
-      
+
       <div class="snooze-footer">
         <button class="snooze-button secondary" id="snooze-cancel">Cancel</button>
-        <button class="snooze-button primary" id="snooze-confirm" disabled>Snooze ${tabText}</button>
+        <button class="snooze-button primary" id="snooze-confirm" disabled>${buttonText}</button>
       </div>
     `;
-    
+
     // Add to DOM
     document.body.appendChild(this.backdrop);
     document.body.appendChild(this.modal);
@@ -424,14 +506,22 @@ class SnoozeModal {
   
   handleConfirm() {
     if (!this.selectedTime || !this.onSnooze) return;
-    
+
     const snoozeData = {
       timestamp: this.selectedTime,
-      presetId: this.selectedPresetId,
-      tabIds: this.selectedTabs.map(tab => tab.id),
-      tabCount: this.selectedTabs.length || 1
+      presetId: this.selectedPresetId
     };
-    
+
+    // Include operations and summary if using new format
+    if (this.operations && this.summary) {
+      snoozeData.operations = this.operations;
+      snoozeData.summary = this.summary;
+    } else {
+      // Legacy format
+      snoozeData.tabIds = this.selectedTabs.map(tab => tab.id);
+      snoozeData.tabCount = this.selectedTabs.length || 1;
+    }
+
     this.onSnooze(snoozeData);
     this.hide();
   }

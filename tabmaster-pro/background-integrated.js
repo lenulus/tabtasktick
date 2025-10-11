@@ -12,6 +12,10 @@ import { getTabStatistics, extractDomain, normalizeUrlForDuplicates, extractOrig
 import { getCurrentWindowId } from './services/TabGrouping.js';
 import { getCategoriesForDomain } from './lib/domain-categories.js';
 
+// Phase 8.3: Import snooze operation services for proper message routing
+import { detectSnoozeOperations } from './services/selection/detectSnoozeOperations.js';
+import { executeSnoozeOperations } from './services/execution/executeSnoozeOperations.js';
+
 console.log('Background service worker loaded with Rules Engine V2');
 
 // Get the engine's functions (V2 only)
@@ -1193,8 +1197,39 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           // Convert minutes to milliseconds for backward compatibility
           const duration = request.minutes ? request.minutes * 60 * 1000 : request.duration;
           const snoozeUntil = Date.now() + duration;
-          await SnoozeService.snoozeTabs(request.tabIds, snoozeUntil, request.reason);
+          // Get restoration mode from settings (explicit parameter passing)
+          const restorationMode = request.restorationMode || state.settings.tabRestorationMode || 'original';
+          await SnoozeService.snoozeTabs(request.tabIds, snoozeUntil, {
+            reason: request.reason,
+            restorationMode,
+            sourceWindowId: request.sourceWindowId,
+            windowSnoozeId: request.windowSnoozeId
+          });
           sendResponse({ success: true });
+          break;
+
+        case 'detectSnoozeOperations':
+          // Phase 8.3: Smart window detection service
+          // UI sends tab IDs, service determines if it's a window snooze or individual tabs
+          const detection = await detectSnoozeOperations(request.tabIds);
+          sendResponse(detection);
+          break;
+
+        case 'executeSnoozeOperations':
+          // Phase 8.3: Execute snooze operations (window or tabs)
+          // This is the ONE execution path for all snooze operations from UI
+          const execOptions = {
+            ...request.options,
+            // Apply settings for UI operations (convenience defaults)
+            // Rules should pass explicit parameters and won't hit this path
+            restorationMode: request.options?.restorationMode || state.settings.tabRestorationMode || 'original'
+          };
+          const snoozeExecResult = await executeSnoozeOperations({
+            operations: request.operations,
+            snoozeUntil: request.snoozeUntil,
+            options: execOptions
+          });
+          sendResponse(snoozeExecResult);
           break;
 
         case 'suspendInactiveTabs':
@@ -2008,16 +2043,29 @@ async function exportFromContextMenu(scope, windowId = null) {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   switch (info.menuItemId) {
     case 'snooze-1h':
-      await SnoozeService.snoozeTabs([tab.id], Date.now() + 60 * 60 * 1000, 'context_menu_1h');
+      // Use new options signature with settings applied (convenience defaults)
+      await SnoozeService.snoozeTabs([tab.id], Date.now() + 60 * 60 * 1000, {
+        reason: 'context_menu_1h',
+        restorationMode: state.settings.tabRestorationMode || 'original',
+        sourceWindowId: tab.windowId
+      });
       break;
     case 'snooze-3h':
-      await SnoozeService.snoozeTabs([tab.id], Date.now() + 3 * 60 * 60 * 1000, 'context_menu_3h');
+      await SnoozeService.snoozeTabs([tab.id], Date.now() + 3 * 60 * 60 * 1000, {
+        reason: 'context_menu_3h',
+        restorationMode: state.settings.tabRestorationMode || 'original',
+        sourceWindowId: tab.windowId
+      });
       break;
     case 'snooze-tomorrow':
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(9, 0, 0, 0);
-      await SnoozeService.snoozeTabs([tab.id], tomorrow.getTime(), 'context_menu_tomorrow');
+      await SnoozeService.snoozeTabs([tab.id], tomorrow.getTime(), {
+        reason: 'context_menu_tomorrow',
+        restorationMode: state.settings.tabRestorationMode || 'original',
+        sourceWindowId: tab.windowId
+      });
       break;
     case 'create-rule-for-domain':
       await createRuleForTab(tab, 'domain');
@@ -2032,29 +2080,41 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       await exportFromContextMenu('all-windows');
       break;
     case 'snooze-window-1h':
-      // THIN - delegate to WindowService
+      // THIN - delegate to WindowService with options (settings applied)
       await WindowService.snoozeWindow(
         tab.windowId,
-        1000 * 60 * 60 // 1 hour
+        1000 * 60 * 60, // 1 hour
+        {
+          reason: 'context_menu_window_1h',
+          restorationMode: state.settings.tabRestorationMode || 'original'
+        }
       );
       console.log('Window snoozed for 1 hour');
       break;
     case 'snooze-window-3h':
-      // THIN - delegate to WindowService
+      // THIN - delegate to WindowService with options (settings applied)
       await WindowService.snoozeWindow(
         tab.windowId,
-        1000 * 60 * 60 * 3 // 3 hours
+        1000 * 60 * 60 * 3, // 3 hours
+        {
+          reason: 'context_menu_window_3h',
+          restorationMode: state.settings.tabRestorationMode || 'original'
+        }
       );
       console.log('Window snoozed for 3 hours');
       break;
     case 'snooze-window-tomorrow':
-      // THIN - delegate to WindowService
+      // THIN - delegate to WindowService with options (settings applied)
       const tomorrowWindow = new Date();
       tomorrowWindow.setDate(tomorrowWindow.getDate() + 1);
       tomorrowWindow.setHours(9, 0, 0, 0);
       await WindowService.snoozeWindow(
         tab.windowId,
-        tomorrowWindow.getTime() - Date.now()
+        tomorrowWindow.getTime() - Date.now(),
+        {
+          reason: 'context_menu_window_tomorrow',
+          restorationMode: state.settings.tabRestorationMode || 'original'
+        }
       );
       console.log('Window snoozed until tomorrow');
       break;

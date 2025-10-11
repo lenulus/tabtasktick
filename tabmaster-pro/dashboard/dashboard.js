@@ -29,7 +29,7 @@ import {
 
 import state from './modules/core/state.js';
 
-// Import shared utilities  
+// Import shared utilities
 import {
   handleTabSelection,
   clearSelection,
@@ -37,6 +37,11 @@ import {
   showRenameWindowsDialog,
   selectionState
 } from './modules/core/shared-utils.js';
+
+// Phase 8.3: Snooze formatters for SnoozeModal component
+// Note: Detection and execution services are called via message passing (background handlers)
+// Only formatters are imported here for the modal component to use
+import { formatSnoozeTitle, formatSnoozeDescription } from '../services/utils/snoozeFormatters.js';
 
 // Import view modules
 import { 
@@ -663,51 +668,88 @@ async function showMoveToWindowDialog(tabIds) {
 }
 
 async function showSnoozeDialog(tabIds) {
-  // Get tab details for the selected tabs
-  const tabs = await chrome.tabs.query({});
-  const selectedTabsData = tabs.filter(tab => tabIds.includes(tab.id));
-  
-  // Try to initialize if not already done
-  if (!snoozeModalInstance && typeof SnoozeModal !== 'undefined') {
-    console.log('Initializing SnoozeModal on demand');
-    snoozeModalInstance = new SnoozeModal();
-  }
-  
-  if (!snoozeModalInstance || typeof snoozeModalInstance.show !== 'function') {
-    console.error('SnoozeModal not initialized properly');
-    showNotification('Snooze feature is not available', 'error');
-    return;
-  }
-  
-  snoozeModalInstance.show(selectedTabsData);
-  
-  // Set up modal callbacks
-  snoozeModalInstance.onSnooze = async (snoozeData) => {
-    try {
-      const { timestamp, presetId, tabIds: snoozeTabIds, tabCount } = snoozeData;
-      const minutes = Math.floor((timestamp - Date.now()) / 60000);
-      
-      await sendMessage({
-        action: 'snoozeTabs',
-        tabIds: tabIds,
-        minutes: minutes
-      });
-      
-      const tabText = tabCount === 1 ? 'tab' : `${tabCount} tabs`;
-      showNotification(`Snoozed ${tabText} for ${getReadableDuration(minutes)}`, 'success');
-      
-      // Clear selection and reload data
-      clearSelection();
-      await refreshData();
-    } catch (error) {
-      console.error('Failed to snooze tabs:', error);
-      showNotification('Failed to snooze tabs', 'error');
+  // Phase 8.3: Use message passing for ONE execution path (architecture fix)
+  try {
+    // THIN UI Layer: Send message to background for detection (business logic)
+    const { operations, summary } = await sendMessage({
+      action: 'detectSnoozeOperations',
+      tabIds
+    });
+
+    if (operations.length === 0) {
+      showNotification('No tabs to snooze', 'warning');
+      return;
     }
-  };
-  
-  snoozeModalInstance.onCancel = () => {
-    // Modal handles its own cleanup
-  };
+
+    // Try to initialize if not already done
+    if (!snoozeModalInstance && typeof SnoozeModal !== 'undefined') {
+      console.log('Initializing SnoozeModal on demand');
+      snoozeModalInstance = new SnoozeModal();
+
+      // Expose formatters to window for SnoozeModal
+      // These are loaded via module script in dashboard.html
+      if (window.formatSnoozeTitle) {
+        // Formatters already loaded
+      }
+    }
+
+    if (!snoozeModalInstance || typeof snoozeModalInstance.show !== 'function') {
+      console.error('SnoozeModal not initialized properly');
+      showNotification('Snooze feature is not available', 'error');
+      return;
+    }
+
+    // Show modal with operations and summary (new format)
+    snoozeModalInstance.show({ operations, summary });
+
+    // Set up modal callbacks
+    snoozeModalInstance.onSnooze = async (snoozeData) => {
+      try {
+        const { timestamp, operations, summary } = snoozeData;
+
+        // THIN UI Layer: Send message to background for execution (ONE execution path)
+        const result = await sendMessage({
+          action: 'executeSnoozeOperations',
+          operations,
+          snoozeUntil: timestamp,
+          options: {
+            reason: 'manual',
+            // restorationMode will be pulled from settings by background handler
+          }
+        });
+
+        if (result.success) {
+          const minutes = Math.floor((timestamp - Date.now()) / 60000);
+          const { windowCount, individualTabCount, totalTabs } = summary;
+
+          let message;
+          if (windowCount > 0 && individualTabCount === 0) {
+            message = `Snoozed ${windowCount} window${windowCount !== 1 ? 's' : ''} for ${getReadableDuration(minutes)}`;
+          } else {
+            message = `Snoozed ${totalTabs} tab${totalTabs !== 1 ? 's' : ''} for ${getReadableDuration(minutes)}`;
+          }
+
+          showNotification(message, 'success');
+        } else {
+          showNotification(`Snooze completed with ${result.errors.length} error(s)`, 'warning');
+        }
+
+        // Clear selection and reload data
+        clearSelection();
+        await refreshData();
+      } catch (error) {
+        console.error('Failed to snooze:', error);
+        showNotification('Failed to snooze', 'error');
+      }
+    };
+
+    snoozeModalInstance.onCancel = () => {
+      // Modal handles its own cleanup
+    };
+  } catch (error) {
+    console.error('Failed to detect snooze operations:', error);
+    showNotification('Failed to prepare snooze', 'error');
+  }
 }
 
 function getReadableDuration(minutes) {
