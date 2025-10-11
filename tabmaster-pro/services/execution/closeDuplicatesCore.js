@@ -1,12 +1,17 @@
 /**
- * Close Duplicates Service
+ * Close Duplicates Core Service
  *
- * Handles closing duplicate tabs based on various keep strategies.
- * Part of Phase 7.1.1 Architectural Remediation.
+ * Internal implementation for closing duplicate tabs.
+ * DO NOT call directly - use DeduplicationOrchestrator instead.
+ *
+ * Part of Phase 8.2 Architectural Remediation.
  */
 
 /**
- * Close duplicate tabs based on keep strategy
+ * Close duplicate tabs based on keep strategy (INTERNAL)
+ *
+ * This is the core implementation. All callers should use
+ * DeduplicationOrchestrator which handles scope and dupeKey generation.
  *
  * @param {Array} tabs - Tabs with dupeKey property for grouping duplicates
  * @param {string} strategy - Keep strategy: 'oldest', 'newest', 'mru', 'lru', 'all', 'none'
@@ -14,7 +19,7 @@
  * @param {object} chromeApi - Chrome API object (for dependency injection in tests)
  * @returns {Promise<Array>} Results array with { tabId, action, success, details } or { error }
  */
-export async function closeDuplicates(tabs, strategy = 'oldest', dryRun = false, chromeApi = chrome) {
+export async function closeDuplicatesCore(tabs, strategy = 'oldest', dryRun = false, chromeApi = chrome) {
   const results = [];
 
   // Group tabs by their dupeKey

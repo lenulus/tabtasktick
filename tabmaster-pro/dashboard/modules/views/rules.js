@@ -42,7 +42,7 @@ function getSampleRules() {
     {
       id: 'sample_1',
       name: 'Close duplicate tabs',
-      description: 'Automatically close duplicate tabs, keeping the oldest one',
+      description: 'Automatically close duplicate tabs globally, keeping the oldest one',
       enabled: false,
       when: {
         all: [
@@ -50,13 +50,29 @@ function getSampleRules() {
         ]
       },
       then: [
-        { type: 'close-duplicates', keep: 'oldest' }
+        { type: 'close-duplicates', keep: 'oldest', scope: 'global' }
       ],
       trigger: { type: 'manual' },
       priority: 1,
     },
     {
       id: 'sample_2',
+      name: 'Keep newest duplicate per window',
+      description: 'When opening a duplicate tab, close the older one in the same window (keeps your current tab)',
+      enabled: false,
+      when: {
+        all: [
+          { subject: 'duplicate', operator: 'is', value: true }
+        ]
+      },
+      then: [
+        { type: 'close-duplicates', keep: 'newest', scope: 'per-window' }
+      ],
+      trigger: { type: 'onCreate' },
+      priority: 2,
+    },
+    {
+      id: 'sample_3',
       name: 'Group tabs by domain',
       description: 'Group tabs from the same domain when you have 3 or more',
       enabled: false,
@@ -69,10 +85,10 @@ function getSampleRules() {
         { type: 'group', group_by: 'domain' }
       ],
       trigger: { type: 'immediate' },
-      priority: 2,
+      priority: 3,
     },
     {
-      id: 'sample_3',
+      id: 'sample_4',
       name: 'Snooze inactive articles',
       description: 'Snooze unread articles after 30 minutes',
       enabled: false,
@@ -93,10 +109,10 @@ function getSampleRules() {
         { type: 'snooze', for: '24h' }
       ],
       trigger: { type: 'repeat', repeat_every: '15m' },
-      priority: 3,
+      priority: 4,
     },
     {
-      id: 'sample_4',
+      id: 'sample_5',
       name: 'Clean up inactive Chrome pages',
       description: 'Close Chrome internal pages after 30 minutes',
       enabled: false,
@@ -110,10 +126,10 @@ function getSampleRules() {
         { type: 'close' }
       ],
       trigger: { type: 'repeat', repeat_every: '15m' },
-      priority: 4,
+      priority: 5,
     },
     {
-      id: 'sample_5',
+      id: 'sample_6',
       name: 'Close inactive social media tabs',
       description: 'Close social media tabs after 60 minutes',
       enabled: false,
@@ -127,10 +143,10 @@ function getSampleRules() {
         { type: 'close' }
       ],
       trigger: { type: 'repeat', repeat_every: '15m' },
-      priority: 5,
+      priority: 6,
     },
     {
-      id: 'sample_6',
+      id: 'sample_7',
       name: 'Group shopping tabs together',
       description: 'Automatically group all shopping sites into one tab group',
       enabled: false,
@@ -1077,6 +1093,12 @@ function getActionParamsHTML(action) {
             <option value="none" ${action.keep === 'none' ? 'selected' : ''}>None (close all)</option>
           </select>
         </label>
+        <label>Scope:
+          <select onchange="updateActionParam(${currentActions.indexOf(action)}, 'scope', this.value)">
+            <option value="global" ${!action.scope || action.scope === 'global' ? 'selected' : ''}>Global (all windows)</option>
+            <option value="per-window" ${action.scope === 'per-window' ? 'selected' : ''}>Per-window (each separately)</option>
+          </select>
+        </label>
       `;
 
     case 'group':
@@ -1311,6 +1333,7 @@ function createActionModal() {
         break;
       case 'close-duplicates':
         action.keep = 'oldest';
+        action.scope = 'global'; // Default to global scope
         break;
     }
     

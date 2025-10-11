@@ -1,6 +1,7 @@
-import { closeDuplicates } from '../../../services/execution/closeDuplicates.js';
+import { closeDuplicatesCore } from '../../../services/execution/closeDuplicatesCore.js';
 
-describe('closeDuplicates', () => {
+// Test the core implementation directly
+describe('closeDuplicatesCore', () => {
 
   describe('oldest strategy', () => {
     test('keeps oldest tab and closes newer duplicates', async () => {
@@ -12,7 +13,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com', createdAt: 3000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'oldest', false);
+      const results = await closeDuplicatesCore(tabs, 'oldest', false);
 
       expect(results).toHaveLength(2);
       expect(results[0].tabId).toBe(2);
@@ -33,7 +34,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com' }
       ];
 
-      const results = await closeDuplicates(tabs, 'oldest', false);
+      const results = await closeDuplicatesCore(tabs, 'oldest', false);
 
       expect(results).toHaveLength(2);
       // Should keep tab 3 (lowest ID)
@@ -53,7 +54,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com', createdAt: 3000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'newest', false);
+      const results = await closeDuplicatesCore(tabs, 'newest', false);
 
       expect(results).toHaveLength(2);
       expect(chrome.tabs.remove).toHaveBeenCalledWith(1);
@@ -72,7 +73,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com', lastAccessed: 2000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'mru', false);
+      const results = await closeDuplicatesCore(tabs, 'mru', false);
 
       expect(results).toHaveLength(2);
       expect(chrome.tabs.remove).toHaveBeenCalledWith(1);
@@ -89,7 +90,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com', createdAt: 2000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'mru', false);
+      const results = await closeDuplicatesCore(tabs, 'mru', false);
 
       expect(results).toHaveLength(2);
       expect(chrome.tabs.remove).not.toHaveBeenCalledWith(2); // Keep tab with highest createdAt
@@ -106,7 +107,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com', lastAccessed: 2000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'lru', false);
+      const results = await closeDuplicatesCore(tabs, 'lru', false);
 
       expect(results).toHaveLength(2);
       expect(chrome.tabs.remove).toHaveBeenCalledWith(2);
@@ -125,7 +126,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com', createdAt: 3000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'all', false);
+      const results = await closeDuplicatesCore(tabs, 'all', false);
 
       expect(results).toHaveLength(0);
       expect(chrome.tabs.remove).not.toHaveBeenCalled();
@@ -142,7 +143,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com', createdAt: 3000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'none', false);
+      const results = await closeDuplicatesCore(tabs, 'none', false);
 
       expect(results).toHaveLength(3);
       expect(chrome.tabs.remove).toHaveBeenCalledWith(1);
@@ -161,7 +162,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'github.com', createdAt: 3000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'oldest', false);
+      const results = await closeDuplicatesCore(tabs, 'oldest', false);
 
       expect(results).toHaveLength(0);
       expect(chrome.tabs.remove).not.toHaveBeenCalled();
@@ -179,7 +180,7 @@ describe('closeDuplicates', () => {
         { id: 4, dupeKey: 'google.com', createdAt: 2000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'oldest', false);
+      const results = await closeDuplicatesCore(tabs, 'oldest', false);
 
       expect(results).toHaveLength(2);
       expect(chrome.tabs.remove).toHaveBeenCalledWith(2); // Close newer example.com
@@ -197,7 +198,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com', createdAt: 3000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'oldest', true);
+      const results = await closeDuplicatesCore(tabs, 'oldest', true);
 
       expect(results).toHaveLength(2);
       expect(results[0].tabId).toBe(2);
@@ -216,7 +217,7 @@ describe('closeDuplicates', () => {
         { id: 2, dupeKey: 'example.com', createdAt: 2000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'oldest', false);
+      const results = await closeDuplicatesCore(tabs, 'oldest', false);
 
       expect(results).toHaveLength(1);
       expect(results[0].tabId).toBe(2);
@@ -235,7 +236,7 @@ describe('closeDuplicates', () => {
         { id: 3, dupeKey: 'example.com', createdAt: 3000 }
       ];
 
-      const results = await closeDuplicates(tabs, 'oldest', false);
+      const results = await closeDuplicatesCore(tabs, 'oldest', false);
 
       expect(results).toHaveLength(2);
       expect(results[0].success).toBe(false); // Tab 2 failed
@@ -253,7 +254,7 @@ describe('closeDuplicates', () => {
         { id: 2, dupeKey: 'example.com', createdAt: 2000 }
       ];
 
-      const results = await closeDuplicates(tabs);
+      const results = await closeDuplicatesCore(tabs);
 
       expect(results).toHaveLength(1);
       expect(chrome.tabs.remove).toHaveBeenCalledWith(2);

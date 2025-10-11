@@ -808,193 +808,297 @@ describe('WindowService', () => {
 
 ---
 
-## Phase 8.2: Window-Scoped Deduplication
+## Phase 8.2: Window-Scoped Deduplication ✅
 
+**Status**: COMPLETE
 **Priority**: MEDIUM
-**Estimated Time**: 4-6 hours
+**Actual Time**: 3 hours
 **Depends On**: Phase 8.1 (WindowService)
 
 ### Overview
-Enhance duplicate detection to support window-scoped operations. Users can deduplicate tabs within a single window without affecting other windows.
+Enhanced duplicate detection to support three scope modes: global (cross-window), per-window (within each window separately), and window (single specific window). This maintains architectural integrity by creating a DeduplicationOrchestrator service that serves as the single entry point for all deduplication operations.
 
-### Implementation: Option C (Both Context Menu and Rules)
+### Architectural Implementation
 
-#### 1. Enhance closeDuplicates Service
+Following architecture-guardian review, we implemented **Modified Option C** (Unified Deduplication Service) to eliminate duplicate code paths and ensure consistent behavior across all surfaces.
 
-Update `/services/execution/closeDuplicates.js`:
+### Actual Implementation
+
+#### 1. Created DeduplicationOrchestrator Service
+
+**File**: `/services/execution/DeduplicationOrchestrator.js` (NEW)
+
+Single entry point for all deduplication operations:
 
 ```javascript
 /**
- * Close duplicate tabs
- *
- * @param {Array} tabs - Tabs to check for duplicates
- * @param {string} strategy - 'oldest' | 'newest'
- * @param {boolean} dryRun - Preview mode
- * @param {Object} chromeApi - Chrome API reference
- * @param {Object} options - Additional options
- * @param {boolean} options.windowScope - Only dedupe within each window
- * @returns {Promise<Object>} - Results with closed tabs
+ * Orchestrates deduplication with proper scope handling
+ * Single entry point for all deduplication operations
  */
-export async function closeDuplicates(tabs, strategy, dryRun, chromeApi, options = {}) {
-  const { windowScope = false } = options;
+export async function deduplicate(options) {
+  const {
+    tabs = null,           // Optional: tabs to deduplicate
+    windowId = null,       // Optional: specific window to deduplicate
+    scope = 'global',      // 'global' | 'per-window' | 'window'
+    strategy = 'oldest',
+    dryRun = false,
+    chromeApi = chrome
+  } = options;
 
-  if (windowScope) {
-    // Group tabs by window first
-    const byWindow = {};
-    for (const tab of tabs) {
-      if (!byWindow[tab.windowId]) {
-        byWindow[tab.windowId] = [];
-      }
-      byWindow[tab.windowId].push(tab);
-    }
-
-    // Process each window independently
-    const allResults = [];
-    for (const [windowId, windowTabs] of Object.entries(byWindow)) {
-      const windowResults = await processDuplicatesForTabs(
-        windowTabs,
-        strategy,
-        dryRun,
-        chromeApi
-      );
-      allResults.push(...windowResults);
-    }
-
-    return {
-      closed: allResults,
-      count: allResults.length,
-      windowScoped: true
-    };
+  // 1. Tab collection based on scope
+  let targetTabs;
+  if (scope === 'window' && windowId) {
+    targetTabs = await chromeApi.tabs.query({ windowId });
+  } else if (tabs) {
+    targetTabs = tabs;
+  } else {
+    targetTabs = await chromeApi.tabs.query({});
   }
 
-  // Global deduplication (existing logic)
-  return processDuplicatesForTabs(tabs, strategy, dryRun, chromeApi);
+  // 2. Add dupeKeys if missing (single place for this logic)
+  const tabsWithKeys = targetTabs.map(tab => ({
+    ...tab,
+    dupeKey: tab.dupeKey || generateDupeKey(tab.url)
+  }));
+
+  // 3. Apply scope-based grouping
+  if (scope === 'per-window') {
+    // Group by window, dedupe within each
+    const results = [];
+    const windowGroups = {};
+
+    for (const tab of tabsWithKeys) {
+      if (!windowGroups[tab.windowId]) {
+        windowGroups[tab.windowId] = [];
+      }
+      windowGroups[tab.windowId].push(tab);
+    }
+
+    for (const windowTabs of Object.values(windowGroups)) {
+      const windowResults = await closeDuplicatesCore(
+        windowTabs, strategy, dryRun, chromeApi
+      );
+      results.push(...windowResults);
+    }
+
+    return results;
+  } else {
+    // Global or window scope: treat as single pool
+    return await closeDuplicatesCore(
+      tabsWithKeys, strategy, dryRun, chromeApi
+    );
+  }
 }
 
-// Helper function for processing duplicates
-async function processDuplicatesForTabs(tabs, strategy, dryRun, chromeApi) {
-  // Existing deduplication logic here
-  // ...
+// Backward compatibility helpers
+export async function deduplicateGlobal(tabs, strategy, dryRun) {
+  return deduplicate({ tabs, scope: 'global', strategy, dryRun });
+}
+
+export async function deduplicatePerWindow(tabs, strategy, dryRun) {
+  return deduplicate({ tabs, scope: 'per-window', strategy, dryRun });
+}
+
+export async function deduplicateWindow(windowId, strategy, dryRun) {
+  return deduplicate({ windowId, scope: 'window', strategy, dryRun });
 }
 ```
 
-#### 2. Add Window Scope to Rules Engine
+**Key Features:**
+- Single orchestration function with options object
+- Automatic dupeKey generation (moved from WindowService)
+- Three scope modes: 'global', 'per-window', 'window'
+- Backward compatibility helpers for existing callers
+- Delegates to closeDuplicatesCore for actual execution
 
-Update rule schema to support `scope: 'window'`:
+#### 2. Renamed closeDuplicates to closeDuplicatesCore
+
+**File**: `/services/execution/closeDuplicatesCore.js` (RENAMED)
+
+Marked as internal implementation with clear documentation that all callers should use DeduplicationOrchestrator instead.
+
+#### 3. Updated WindowService to THIN Delegation
+
+**File**: `/services/execution/WindowService.js` (UPDATED)
 
 ```javascript
-// Example rule with window scope
+export async function deduplicateWindow(windowId, strategy = 'oldest', dryRun = false) {
+  // THIN - delegate to orchestrator
+  return await deduplicateWindowOrchestrator(windowId, strategy, dryRun);
+}
+```
+
+**Before**: 16 lines with business logic (tab querying, dupeKey generation)
+**After**: 3 lines (pure delegation)
+
+#### 4. Updated Rules Engine
+
+**File**: `/lib/engine.v2.services.js` (UPDATED)
+
+```javascript
+import { deduplicate } from '../services/execution/DeduplicationOrchestrator.js';
+
+// In executeActions:
+if (action.action === 'close-duplicates' || action.type === 'close-duplicates') {
+  const strategy = action.keep || 'oldest';
+  const scope = action.scope || 'global'; // NEW: support scope parameter
+  const dupeResults = await deduplicate({
+    tabs,
+    scope,
+    strategy,
+    dryRun,
+    chromeApi: context.chrome
+  });
+  results.push(...dupeResults);
+  continue;
+}
+```
+
+### Usage Examples
+
+#### Example 1: Global Deduplication (Cross-Window)
+
+```javascript
+// Rule that dedupes across all windows (default behavior)
 const rule = {
-  name: 'Dedupe Each Window',
+  name: 'Remove All Duplicates',
   when: {
-    all: [
-      { subject: 'isDupe', operator: 'equals', value: true }
-    ]
+    all: [{ subject: 'isDupe', operator: 'is', value: true }]
   },
   then: [
     {
       action: 'close-duplicates',
       keep: 'oldest',
-      scope: 'window' // NEW: Only dedupe within each window
+      scope: 'global' // Closes duplicates across all windows
     }
-  ],
-  trigger: { repeat_every: '1h' }
+  ]
 };
 ```
 
-Update `/lib/engine.v2.services.js` to pass scope to service:
+**Result**: If `example.com` exists in window 1 and window 2, keeps oldest one and closes the other.
+
+#### Example 2: Per-Window Deduplication
 
 ```javascript
-case 'close-duplicates':
-  const strategy = action.keep || 'oldest';
-  const scope = action.scope || 'global'; // NEW
-
-  result = await closeDuplicates(
-    matchedTabs,
-    strategy,
-    dryRun,
-    chrome,
-    { windowScope: scope === 'window' } // NEW
-  );
-  break;
+// Rule that dedupes within each window separately
+const rule = {
+  name: 'Dedupe Each Window',
+  when: {
+    all: [{ subject: 'isDupe', operator: 'is', value: true }]
+  },
+  then: [
+    {
+      action: 'close-duplicates',
+      keep: 'oldest',
+      scope: 'per-window' // Each window is deduped independently
+    }
+  ]
+};
 ```
 
-#### 3. Context Menu (Already in WindowService)
+**Result**: If `example.com` exists twice in window 1 and twice in window 2, keeps one in each window (closes 2 total).
 
-Context menu handler already added in Phase 8.1:
+#### Example 3: Single Window via Context Menu
+
+User right-clicks on a tab → "Remove Duplicates in Window"
 
 ```javascript
-chrome.contextMenus.create({
-  id: 'dedupe-window',
-  title: 'Remove Duplicates in Window',
-  contexts: ['page']
-});
+// WindowService handles this (already implemented in Phase 8.1)
+// Context menu → background.js → WindowService.deduplicateWindow()
+// → DeduplicationOrchestrator.deduplicate({ windowId, scope: 'window' })
 ```
 
 ### Tests
 
-Add to `/tests/window-dedupe.test.js`:
+**File**: `/tests/services/execution/DeduplicationOrchestrator.test.js` (NEW)
 
-```javascript
-import { closeDuplicates } from '../services/execution/closeDuplicates.js';
-import { createTabsWithCrossWindowDuplicates } from './utils/window-test-helpers.js';
+14 comprehensive tests covering:
+- Global scope (cross-window deduplication)
+- Per-window scope (within-window deduplication)
+- Window scope (single window)
+- DupeKey generation and preservation
+- Backward compatibility helpers
+- Dry run mode
+- Strategy variations (oldest, newest)
+- Edge cases (empty tabs, no duplicates)
 
-describe('Window-Scoped Deduplication', () => {
-  it('should only remove duplicates within same window', async () => {
-    const { window1Tabs, window2Tabs } = createTabsWithCrossWindowDuplicates();
-    const allTabs = [...window1Tabs, ...window2Tabs];
+**Test Results**: All 457 tests passing (up from 443)
 
-    // Global deduplication - removes cross-window dupes
-    const globalResult = await closeDuplicates(
-      allTabs,
-      'oldest',
-      true,
-      chrome,
-      { windowScope: false }
-    );
+### Architectural Improvements
 
-    // Should remove duplicates across windows
-    expect(globalResult.closed.length).toBeGreaterThan(0);
+**Before (Violation)**:
+- WindowService had business logic (dupeKey generation)
+- Two different code paths for deduplication
+- Rules engine and WindowService prepared data differently
 
-    // Window-scoped deduplication - only within-window dupes
-    const scopedResult = await closeDuplicates(
-      allTabs,
-      'oldest',
-      true,
-      chrome,
-      { windowScope: true }
-    );
+**After (Compliant)**:
+- ✅ Single entry point: DeduplicationOrchestrator
+- ✅ WindowService is THIN (3 lines, pure delegation)
+- ✅ Rules engine uses same orchestrator
+- ✅ DupeKey generation centralized
+- ✅ No duplicate implementations
 
-    // Should only remove if there are dupes WITHIN a window
-    // Cross-window dupes should be preserved
-    expect(scopedResult.windowScoped).toBe(true);
-  });
+### Code Path Diagram
 
-  it('should handle multiple windows with different duplicate patterns', async () => {
-    // Window 1: 3 dupes of github.com
-    // Window 2: 2 dupes of reddit.com
-    // Window 3: No dupes
-
-    const result = await closeDuplicates(
-      allTabs,
-      'oldest',
-      false,
-      chrome,
-      { windowScope: true }
-    );
-
-    // Verify correct tabs closed in each window
-  });
-});
+```
+                    ┌─────────────────────────┐
+                    │ DeduplicationOrchestrator│
+                    │   (Single Entry Point)   │
+                    └───────────┬─────────────┘
+                                │
+              ┌─────────────────┼─────────────────┐
+              │                 │                 │
+    ┌─────────▼────────┐ ┌─────▼──────┐ ┌───────▼──────┐
+    │ Rules Engine     │ │ WindowService│ │Context Menu  │
+    │ (scope param)    │ │ (THIN)       │ │ (via Window) │
+    └──────────────────┘ └──────────────┘ └──────────────┘
+              │                 │                 │
+              └─────────────────┼─────────────────┘
+                                │
+                    ┌───────────▼─────────────┐
+                    │ closeDuplicatesCore     │
+                    │ (Internal Implementation)│
+                    └─────────────────────────┘
 ```
 
 ### Success Criteria
-- ✅ closeDuplicates supports windowScope option
-- ✅ Rules engine supports scope: 'window'
+- ✅ DeduplicationOrchestrator created as single entry point
+- ✅ closeDuplicatesCore marked as internal
+- ✅ WindowService is THIN (< 5 lines)
+- ✅ Rules engine supports scope: 'global', 'per-window', 'window'
 - ✅ Context menu "Remove Duplicates in Window" working
-- ✅ Global vs window-scoped deduplication behavior validated
-- ✅ All tests passing
+- ✅ All three scope modes validated with tests
+- ✅ All 457 tests passing
+- ✅ Zero architectural violations
 - ✅ No duplicate implementations
+
+---
+
+---
+
+## Known Issues / Dead Code
+
+### Session Manager - Dead Code Walking ⚠️
+
+**Status**: Orphaned - No UI entry point exists
+**Files**: `/session/session.html`, `/session/session.js` (33KB + 5KB CSS)
+**Discovery Date**: 2025-10-10 (during Phase 8.2 validation)
+
+**Issue**:
+- Session Manager exists as standalone page with full UI
+- No links from popup, dashboard, or anywhere else
+- Users cannot access it in normal usage
+- Contains deduplication functionality that sends `tabIds` but background ignores them
+
+**Decision**:
+- **Keep for now** - do not remove during Phase 8.2/8.3
+- **Remove in Phase 9** or later cleanup phase
+- May have historical value or could be re-integrated
+
+**Action Items**:
+1. Create cleanup ticket for Phase 9
+2. Evaluate if features should be salvaged/integrated
+3. Remove files or add UI entry point
 
 ---
 

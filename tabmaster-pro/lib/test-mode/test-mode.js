@@ -850,6 +850,78 @@ export class TestMode {
         ]
       },
       {
+        name: 'per-window-deduplication',
+        description: 'Test per-window scope deduplication (Phase 8.2)',
+        category: 'multi-window',
+        steps: [
+          // Create 3 windows
+          { action: 'createWindow', captureAs: 'window1' },
+          { action: 'createWindow', captureAs: 'window2' },
+          { action: 'createWindow', captureAs: 'window3' },
+
+          // Window 1: 2 github.com duplicates + 1 unique
+          { action: 'createTab', url: 'https://github.com/trending', count: 2, useCaptured: 'window1' },
+          { action: 'createTab', url: 'https://unique1.com', count: 1, useCaptured: 'window1' },
+
+          // Window 2: 2 github.com duplicates + 1 unique (same URL as window1 duplicates!)
+          { action: 'createTab', url: 'https://github.com/trending', count: 2, useCaptured: 'window2' },
+          { action: 'createTab', url: 'https://unique2.com', count: 1, useCaptured: 'window2' },
+
+          // Window 3: No duplicates within window, but has github.com (duplicate globally)
+          { action: 'createTab', url: 'https://github.com/trending', count: 1, useCaptured: 'window3' },
+          { action: 'createTab', url: 'https://unique3.com', count: 1, useCaptured: 'window3' },
+
+          { action: 'wait', ms: 500 },
+
+          // Test 1: Global scope (should close across all windows)
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Global Dedupe Test',
+              when: { all: [{ subject: 'isDupe', operator: 'is', value: true }] },
+              then: [{ action: 'close-duplicates', keep: 'oldest', scope: 'global' }]
+            }
+          },
+
+          { action: 'executeRule', ruleId: 'Global Dedupe Test' },
+          { action: 'wait', ms: 1000 },
+
+          // Should have only 1 github.com across all windows
+          { action: 'assert', type: 'tabCount', expected: 1, url: 'github.com/trending' },
+
+          // Restore tabs for next test
+          { action: 'createTab', url: 'https://github.com/trending', count: 1, useCaptured: 'window1' },
+          { action: 'createTab', url: 'https://github.com/trending', count: 2, useCaptured: 'window2' },
+          { action: 'wait', ms: 500 },
+
+          // Test 2: Per-window scope (should only dedupe within each window)
+          {
+            action: 'createRule',
+            rule: {
+              name: 'Per-Window Dedupe Test',
+              when: { all: [{ subject: 'isDupe', operator: 'is', value: true }] },
+              then: [{ action: 'close-duplicates', keep: 'oldest', scope: 'per-window' }]
+            }
+          },
+
+          { action: 'executeRule', ruleId: 'Per-Window Dedupe Test' },
+          { action: 'wait', ms: 1000 },
+
+          // Should have 1 github.com in window1, 1 in window2, 1 in window3 (3 total)
+          // Because per-window only dedupes within each window, not across windows
+          { action: 'assert', type: 'tabCount', expected: 3, url: 'github.com/trending' },
+
+          // Verify window1 has 1 github.com (closed 1 duplicate within window)
+          { action: 'assert', type: 'windowTabCount', windowId: 'window1', expected: 2, useCaptured: true },
+
+          // Verify window2 has 1 github.com (closed 1 duplicate within window)
+          { action: 'assert', type: 'windowTabCount', windowId: 'window2', expected: 2, useCaptured: true },
+
+          // Verify window3 unchanged (no duplicates within window)
+          { action: 'assert', type: 'windowTabCount', windowId: 'window3', expected: 2, useCaptured: true }
+        ]
+      },
+      {
         name: 'window-property-validation',
         description: 'Test window property assertions and validation',
         category: 'multi-window',

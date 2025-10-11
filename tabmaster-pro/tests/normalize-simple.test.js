@@ -11,20 +11,26 @@ describe('normalizeUrl', () => {
       expect(normalizeUrl('https://example.com/#')).toBe('https://example.com/');
     });
 
-    it('should remove common tracking parameters', () => {
+    it('should remove all query parameters by default (whitelist approach)', () => {
+      // Tracking params removed
       expect(normalizeUrl('https://example.com?utm_source=google&utm_medium=cpc'))
         .toBe('https://example.com/');
       expect(normalizeUrl('https://example.com?ref=twitter&fbclid=123'))
         .toBe('https://example.com/');
-      expect(normalizeUrl('https://example.com?page=1&utm_campaign=sale&sort=asc'))
-        .toBe('https://example.com/?page=1&sort=asc');
+
+      // ALL params removed by default (not on whitelist)
+      expect(normalizeUrl('https://example.com?page=1&sort=asc'))
+        .toBe('https://example.com/');
+
+      // Cache-busting params like refresh removed
+      expect(normalizeUrl('https://cnn.com?refresh=1'))
+        .toBe('https://cnn.com/');
     });
 
-    it('should sort query parameters alphabetically', () => {
-      expect(normalizeUrl('https://example.com?z=3&a=1&m=2'))
-        .toBe('https://example.com/?a=1&m=2&z=3');
-      expect(normalizeUrl('https://example.com?category=books&sort=price&filter=new'))
-        .toBe('https://example.com/?category=books&filter=new&sort=price');
+    it('should sort preserved query parameters alphabetically', () => {
+      // YouTube has whitelisted params
+      expect(normalizeUrl('https://youtube.com/watch?v=abc&t=10&list=xyz&other=ignore'))
+        .toBe('https://youtube.com/watch?list=xyz&t=10&v=abc');
     });
 
     it('should handle empty query strings', () => {
@@ -69,8 +75,9 @@ describe('normalizeUrl', () => {
     });
 
     it('should handle URLs with ports', () => {
+      // Localhost not on whitelist, so all params removed
       expect(normalizeUrl('http://localhost:3000/api?debug=true&utm_source=dev'))
-        .toBe('http://localhost:3000/api?debug=true');
+        .toBe('http://localhost:3000/api');
     });
 
     it('should handle internationalized domains', () => {

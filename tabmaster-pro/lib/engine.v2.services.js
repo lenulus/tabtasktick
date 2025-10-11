@@ -14,7 +14,7 @@ import { groupTabs } from '../services/execution/groupTabs.js';
 import { closeTabs, pinTabs, unpinTabs, muteTabs, unmuteTabs, moveTabsToWindow } from '../services/execution/TabActionsService.js';
 import { bookmarkTabs } from '../services/execution/BookmarkService.js';
 import { parseDuration } from './utils/time.js';
-import { closeDuplicates } from '../services/execution/closeDuplicates.js';
+import { deduplicate } from '../services/execution/DeduplicationOrchestrator.js';
 
 /**
  * Run all enabled rules against the current context
@@ -113,7 +113,14 @@ export async function executeActions(actions, tabs, context, dryRun = false) {
     // Handle close-duplicates action specially
     if (action.action === 'close-duplicates' || action.type === 'close-duplicates') {
       const strategy = action.keep || 'oldest';
-      const dupeResults = await closeDuplicates(tabs, strategy, dryRun, context.chrome);
+      const scope = action.scope || 'global'; // NEW: support scope parameter
+      const dupeResults = await deduplicate({
+        tabs,
+        scope,
+        strategy,
+        dryRun,
+        chromeApi: context.chrome
+      });
       results.push(...dupeResults);
       continue; // Move to next action
     }

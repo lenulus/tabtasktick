@@ -15,8 +15,8 @@
 
 import { importData } from '../ExportImportService.js';
 import { snoozeTabs } from './SnoozeService.js';
-import { selectTabs, generateDupeKey } from '../selection/selectTabs.js';
-import { closeDuplicates } from './closeDuplicates.js';
+import { selectTabs } from '../selection/selectTabs.js';
+import { deduplicateWindow as deduplicateWindowOrchestrator } from './DeduplicationOrchestrator.js';
 
 // Storage keys
 const WINDOW_METADATA_KEY = 'windowMetadata';
@@ -246,9 +246,9 @@ async function getSnoozedTabsForWindow(windowSnoozeId) {
 }
 
 /**
- * Deduplicate tabs within a specific window
+ * Deduplicate tabs within a specific window (THIN delegation)
  *
- * Uses window-scoped selection, then delegates to closeDuplicates.
+ * Delegates to DeduplicationOrchestrator which handles all business logic.
  *
  * @param {number} windowId - Window to deduplicate
  * @param {string} strategy - 'oldest' or 'newest'
@@ -256,23 +256,8 @@ async function getSnoozedTabsForWindow(windowSnoozeId) {
  * @returns {Promise<Object>} - Deduplication results
  */
 export async function deduplicateWindow(windowId, strategy = 'oldest', dryRun = false) {
-  // 1. Select all tabs in window
-  const allTabs = await chrome.tabs.query({ windowId });
-
-  // 2. Add dupeKey to each tab (required by closeDuplicates service)
-  const tabsWithDupeKeys = allTabs.map(tab => ({
-    ...tab,
-    dupeKey: generateDupeKey(tab.url)
-  }));
-
-  // 3. Delegate to closeDuplicates service
-  const results = await closeDuplicates(
-    tabsWithDupeKeys,
-    strategy,
-    dryRun
-  );
-
-  return results;
+  // THIN - delegate to orchestrator
+  return await deduplicateWindowOrchestrator(windowId, strategy, dryRun);
 }
 
 /**

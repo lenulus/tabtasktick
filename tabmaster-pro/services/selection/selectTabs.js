@@ -166,41 +166,49 @@ export async function getCurrentWindowId() {
 
 /**
  * Normalize URL for duplicate detection.
- * Removes query parameters, fragments, trailing slashes, normalizes case.
+ *
+ * Strategy: WHITELIST approach
+ * - By default, remove ALL query parameters (they rarely identify unique content)
+ * - Only preserve params that are known to identify unique content for specific domains
+ *
+ * This scales better than blacklisting tracking params (which is infinite).
  *
  * @param {string} url - URL to normalize
  * @returns {string} Normalized URL for duplicate comparison
  */
-// List of tracking parameters to remove (copied from normalize.js)
-const TRACKING_PARAMS = new Set([
-  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-  'fbclid', 'gclid', 'msclkid', 'ref', 'referrer',
-  '_ga', '_gac', '_gid', '_gl', '_ke',
-  'mc_cid', 'mc_eid', 'mkt_tok',
-  'trk', 'trkCampaign', 'trkEmail',
-  's', 't', // Twitter sharing params
-  'tag' // Affiliate tracking (Amazon, etc.)
-]);
 
-// Special parameters that should be preserved for certain domains
-// CRITICAL: Prevents closing different YouTube videos, Google searches, etc. as duplicates
-const PRESERVED_PARAMS = {
+// WHITELIST: Parameters that identify unique content for specific domains
+// CRITICAL: Only add params here if they identify DIFFERENT content
+// (e.g., YouTube video ID, Google search query, article ID)
+const CONTENT_IDENTIFYING_PARAMS = {
   'youtube.com': ['v', 'list', 't'],
-  'youtu.be': ['t'],
-  'github.com': ['q', 'type', 'language'],
-  'google.com': ['q', 'tbm', 'tbs'],
-  'amazon.com': ['k', 'i'],
-  'stackoverflow.com': ['q', 'tab', 'noredirect', 'lq']
+  'youtu.be': ['v', 't'],
+  'github.com': ['q', 'type', 'language', 'tab'],
+  'google.com': ['q', 'tbm', 'tbs'], // Search only
+  'docs.google.com': [], // Path-based (doc ID in path), ignore all query params
+  'amazon.com': ['k', 'i', 'dp'],
+  'stackoverflow.com': ['q', 'tab', 'noredirect', 'lq'],
+  'reddit.com': ['context'],
+  'twitter.com': [], // Path-based (status IDs in path)
+  'x.com': [], // Path-based
+  'facebook.com': ['fbid', 'set', 'story_fbid', 'id'],
+  'linkedin.com': [], // Path-based
+  'instagram.com': [], // Path-based
+  'wikipedia.org': ['title', 'oldid'],
+  'medium.com': [], // Path-based
+  'substack.com': [], // Path-based
 };
 
 /**
  * Normalize a URL for duplicate detection.
- * Removes tracking parameters but preserves important parameters for content-specific domains.
+ *
+ * WHITELIST approach: Remove ALL query params except those that identify unique content.
  *
  * IMPORTANT: This prevents closing different YouTube videos, Google searches, etc. as duplicates.
  * Example:
  *   - youtube.com?v=abc123 and youtube.com?v=xyz789 are NOT duplicates (different videos)
- *   - example.com?utm_source=twitter and example.com?utm_source=facebook ARE duplicates (same page)
+ *   - cnn.com and cnn.com?refresh=1 ARE duplicates (same page)
+ *   - example.com?utm_source=twitter and example.com ARE duplicates (same page)
  *
  * @param {string} url - The URL to normalize
  * @returns {string} The normalized URL
@@ -229,19 +237,19 @@ export function normalizeUrlForDuplicates(url) {
     // Remove fragment/anchor - treat example.com#a and example.com#b as duplicates
     u.hash = '';
 
-    // Process query parameters intelligently
+    // Process query parameters with WHITELIST approach
     const params = new URLSearchParams(u.search);
     const domain = u.hostname;
 
-    // Get preserved params for this domain
-    const preservedForDomain = Object.entries(PRESERVED_PARAMS)
+    // Get content-identifying params for this domain (WHITELIST)
+    const contentParams = Object.entries(CONTENT_IDENTIFYING_PARAMS)
       .find(([d]) => domain.includes(d))?.[1] || [];
 
-    // Filter out tracking parameters, but keep preserved ones
+    // WHITELIST: Only keep params that identify unique content
     const filteredParams = new URLSearchParams();
     for (const [key, value] of params) {
-      // Keep param if it's NOT a tracking param, OR if it's preserved for this domain
-      if (!TRACKING_PARAMS.has(key) || preservedForDomain.includes(key)) {
+      // ONLY keep if it's on the content-identifying list for this domain
+      if (contentParams.includes(key)) {
         filteredParams.append(key, value);
       }
     }

@@ -500,7 +500,7 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
     // Get current tabs and windows
     const tabs = await chrome.tabs.query({});
     const windows = await chrome.windows.getAll();
-    
+
     // Enhance tabs with time data and categories
     tabs.forEach(tab => {
       const timeData = tabTimeData.get(tab.id);

@@ -177,25 +177,30 @@ describe('normalizeUrlForDuplicates - Preserved Parameters', () => {
       expect(norm1).not.toContain('fbclid');
     });
 
-    it('should treat URLs with different non-tracking params as different', () => {
+    it('should treat generic URLs with params as same page (whitelist approach)', () => {
       const page1 = 'https://example.com/products?category=electronics&sort=price';
       const page2 = 'https://example.com/products?category=books&sort=price';
 
       const norm1 = normalizeUrlForDuplicates(page1);
       const norm2 = normalizeUrlForDuplicates(page2);
 
-      // Different category means different page
-      expect(norm1).not.toBe(norm2);
+      // Whitelist approach: example.com not on whitelist, so ALL params removed
+      // These are treated as same page (duplicates)
+      expect(norm1).toBe(norm2);
+      expect(norm1).toBe('https://example.com/products');
     });
 
-    it('should sort query parameters consistently', () => {
-      const url1 = 'https://example.com?z=3&a=1&m=2';
-      const url2 = 'https://example.com?a=1&m=2&z=3';
+    it('should preserve whitelisted params and sort them consistently', () => {
+      // YouTube has whitelisted params (v, list, t)
+      const url1 = 'https://youtube.com/watch?t=10&v=abc&list=xyz';
+      const url2 = 'https://youtube.com/watch?v=abc&list=xyz&t=10';
 
       const norm1 = normalizeUrlForDuplicates(url1);
       const norm2 = normalizeUrlForDuplicates(url2);
 
+      // Should be identical after sorting
       expect(norm1).toBe(norm2);
+      expect(norm1).toBe('https://youtube.com/watch?list=xyz&t=10&v=abc');
     });
 
     it('should remove hash fragments', () => {
