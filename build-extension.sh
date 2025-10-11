@@ -183,7 +183,6 @@ zip -r "$OUTPUT_FILE" \
     popup/ \
     dashboard/ \
     options/ \
-    session/ \
     icons/ \
     lib/*.js \
     lib/*.css \
