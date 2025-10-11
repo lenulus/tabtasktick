@@ -1015,13 +1015,13 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ---
 
-## Phase 8: Window Operations 🚧 IN PROGRESS
+## Phase 8: Window Operations ✅ COMPLETE
 
-**Status**: Phase 8.0 Complete ✅ - Phase 8.1 Ready to Begin
+**Status**: ✅ COMPLETE - All core window features shipped
 **Priority**: Medium - enhances workflow efficiency for power users
 **Full Design**: See `/docs/phase8-window-operations.md`
-**Estimated Time**: 24-34 hours total (REDUCED - reusing ExportImportService)
-**Time Spent**: ~5 hours (Phase 8.0 complete)
+**Estimated Time**: 24-34 hours total
+**Time Spent**: ~22 hours (all phases complete except deferred 8.4)
 
 ### Architecture Reviews (2025-10-10)
 
@@ -1160,42 +1160,106 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 **Architecture Review**: ✅ APPROVED by architecture-guardian (Modified Option C)
 
-### Phase 8.3: Complete Window Snooze/Restore UI ✅ MOSTLY COMPLETE
+### Phase 8.3: Window Snooze UI Enhancement ✅ COMPLETE
 **Priority**: MEDIUM
-**Time**: ~2 hours actual
-**Completed**: 2025-10-10
+**Time**: ~8 hours actual (including architecture fixes and debugging)
+**Completed**: 2025-10-11
 **Depends On**: Phase 8.1
+**Commits**:
+- `5dd0fb2` - Phase 8.3: Window Snooze UI Enhancement - Complete Implementation
+- `464d101` - Fix: Popup visual differentiation for window snoozes
 
-**Status**: Core UI complete via context menu + dashboard, advanced dashboard features deferred
+**Status**: ✅ COMPLETE - Smart window detection, user settings, and proper architecture
 
 **Completed**:
-- [x] Context menu integration (primary UI)
-  - [x] "Snooze Window" with submenu (1h, 3h, tomorrow)
-  - [x] "Remove Duplicates in Window"
-  - [x] All handlers delegate to WindowService (THIN)
-- [x] Snoozed windows view (Dashboard)
-  - [x] Display snoozed windows separately with visual grouping
-  - [x] Window snooze cards with gradient styling
-  - [x] Show tab count and wake time
-  - [x] Tab preview (first 3 tabs with favicons)
-  - [x] "+X more" indicator for additional tabs
-  - [x] "Restore Window" button
-  - [x] "Delete All" button (bonus)
-  - [x] Dark theme support
-- [x] Background message handlers (THIN)
-  - [x] `restoreWindow` → WindowService
-  - [x] `deleteWindow` → WindowService (bonus)
-  - [x] `wakeAllSnoozed` with window detection → WindowService
-  - [x] Context menu handlers for all window operations
-- [x] Success: Full UI flow working via context menu + snoozed view
+- [x] Service layer (services-first architecture)
+  - [x] Created `detectSnoozeOperations.js` - Smart window detection algorithm
+    - Detects 5 scenarios: single window, partial, multiple, mixed, individual
+    - Groups tabs by window, identifies complete vs partial selections
+    - Returns operations array and summary stats for UI formatting
+  - [x] Created `executeSnoozeOperations.js` - Execution coordinator
+    - Delegates to WindowService for window operations
+    - Delegates to SnoozeService for tab operations
+    - Handles errors gracefully with detailed result tracking
+  - [x] Created `snoozeFormatters.js` - Pure UI formatting functions
+    - `formatSnoozeTitle()` - Dynamic titles based on operation type
+    - `formatSnoozeDescription()` - Detailed descriptions for confirmation
+    - Supports window operations, mixed operations, and legacy tab arrays
+  - [x] Enhanced SnoozeService with `sourceWindowId` and `restorationMode`
+    - Added `sourceWindowId` tracking for restoration to original window
+    - Added `restorationMode` support (original/current/new)
+    - Default `makeActive=true` for better UX
+    - Backward compatibility for legacy tabs without new metadata
+  - [x] Enhanced WindowService with bug fixes
+    - Fixed race condition: capture `Date.now()` once for consistent IDs
+    - Graceful degradation: restore tabs even if metadata missing
+    - Use SnoozeService methods for cache consistency
+    - Added `cleanupOrphanedWindowMetadata()` for periodic maintenance
+    - Fixed dynamic import() violation - use static imports only
+- [x] Background & message handlers (proper architecture)
+  - [x] Added `detectSnoozeOperations` handler (cross-process UI calls)
+  - [x] Added `executeSnoozeOperations` handler (cross-process UI calls)
+  - [x] Context menus use direct service calls (same process)
+  - [x] Fixed variable name collision (`execResult` → `snoozeExecResult`)
+  - [x] Proper settings integration with fallback to 'original' mode
+- [x] UI integration (message passing)
+  - [x] Dashboard: Smart detection + execution via `sendMessage()`
+  - [x] Popup: New "Snooze Window" button with smart detection
+  - [x] Popup: Visual differentiation between window snoozes and individual tabs
+    - Window snoozes: Purple gradient cards with 🪟 icon and tab count
+    - Individual tabs: Gray background with favicon
+  - [x] Context menus: Direct service calls with new options signature
+  - [x] Snoozed view: Added 100ms delay for storage consistency
+  - [x] Snoozed windows view (Dashboard)
+    - Display snoozed windows separately with visual grouping
+    - Window snooze cards with gradient styling
+    - Tab preview (first 3 tabs with favicons)
+    - "Restore Window" and "Delete All" buttons
+- [x] Component enhancements
+  - [x] SnoozeModal: Enhanced to support `{ operations, summary }` format
+  - [x] Backward compatibility with legacy tab array format
+  - [x] Dynamic titles and descriptions via `formatSnoozeTitle/Description`
+  - [x] Fixed CSP violation: external `popup-formatters.js` module
+- [x] User settings
+  - [x] Added "Tab Restoration Mode" setting in options
+  - [x] Three modes: original window (default), current window, new window
+  - [x] Applies to UI operations only (not rules - they stay deterministic)
+  - [x] Proper persistence and loading in options page
+- [x] Architecture compliance
+  - [x] One Behavior: Same execution path across all surfaces
+  - [x] Services-First: All business logic in `/services/*`
+  - [x] Message Passing: UI → Background → Services (cross-process)
+  - [x] Direct Calls: Background/Context → Services (same process)
+  - [x] No Dynamic Imports: Static imports only (Chrome Service Worker constraint)
+  - [x] Cache Consistency: Use service methods, not direct storage manipulation
+- [x] Bug fixes
+  - [x] Race condition in window snooze ID generation (timestamp captured once)
+  - [x] Missing metadata no longer blocks restoration (graceful degradation)
+  - [x] Cache inconsistency after window restore (use SnoozeService methods)
+  - [x] CSP violation from inline scripts (external module)
+  - [x] Dynamic import() crashes (static imports only)
+  - [x] Tab restoration mode handling for legacy tabs
+  - [x] Popup visual distinction between window/tab snoozes
+- [x] Testing
+  - [x] All surfaces tested: Dashboard, Popup, Context Menus, Snoozed View
+  - [x] Window restore works with proper cleanup
+  - [x] Individual tab restore respects settings
+  - [x] Graceful degradation verified
+  - [x] Cache consistency confirmed
+  - [x] Popup visual differentiation working
+- [x] Success: Full implementation with smart detection, settings, and proper architecture
 
-**Deferred** (low demand - context menu sufficient):
-- [ ] Dashboard tabs view integration
-  - [ ] Add window action buttons to tabs view
-  - [ ] Duration picker modal
-  - [ ] Window dedupe button in tabs view
-
-**Rationale**: Context menu provides quick access to all window operations; dedicated dashboard buttons add complexity with minimal user benefit
+**Deliverables**:
+- Smart window detection service (184 lines)
+- Execution coordinator service (172 lines)
+- Formatting utilities (132 lines)
+- Enhanced SnoozeService with restoration modes
+- Enhanced WindowService with race condition fixes
+- Dashboard smart snooze with dynamic modal titles
+- Popup "Snooze Window" button with visual differentiation
+- User settings for tab restoration behavior
+- Zero architectural violations
+- Production release: v1.2.6
 
 ### Phase 8.4: Scheduled Export Snapshots ❌
 **Priority**: LOW (Nice to have - defer if time-constrained)
@@ -1225,23 +1289,30 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 | 8.0 - Test Infrastructure | 4-6h | ~5h | CRITICAL | ✅ COMPLETE | Multi-window test infrastructure with 26 tests |
 | 8.1 - WindowService | 4-6h | ~4h | HIGH | ✅ COMPLETE | Includes bug fixes from manual testing |
 | 8.2 - Window Deduplication | 4-6h | ~5h | MEDIUM | ✅ COMPLETE | Full rules engine integration + critical bug fixes |
-| 8.3 - Snooze/Restore UI | 4-6h | ~2h | MEDIUM | ✅ MOSTLY DONE | Context menu + snoozed view complete |
+| 8.3 - Window Snooze UI | 4-6h | ~8h | MEDIUM | ✅ COMPLETE | Smart detection, settings, architecture fixes, visual UI |
 | 8.4 - Scheduled Exports | 8-10h | - | LOW | ❌ DEFERRED | Low demand, defer indefinitely |
-| **Total** | **24-34h** | **~16h** | | **Core Complete** | **33% time savings via pragmatic scoping** |
+| **Total** | **24-34h** | **~22h** | | **✅ COMPLETE** | **All core window features shipped** |
 
 **Key Success Factors**:
-- Pragmatic scoping: Focused on high-value features (context menu over complex dashboard UI)
-- Service reuse: WindowService delegates to ExportImportService (saved ~2h)
-- Iterative fixing: Manual testing caught 4 critical bugs before release
-- Architecture adherence: All code follows services-first, THIN handlers, DRY principles
+- Smart detection: Automatically detects complete vs partial window selections
+- Services-first: All business logic in services, UI surfaces thin
+- Architecture adherence: Message passing, no duplicate implementations
+- Graceful degradation: System works even with missing metadata
+- Iterative fixing: Manual testing caught critical bugs (race conditions, cache issues)
+- User settings: Restoration mode preference for better UX
+- Visual clarity: Window snoozes clearly distinguished from individual tabs
 
 **Deliverables**:
-- WindowService with 7 core functions
+- WindowService with 7 core functions + bug fixes
+- Smart window detection service (5 scenarios)
+- Execution coordinator service (error handling)
+- Formatting utilities (dynamic titles/descriptions)
 - Context menu integration (snooze with durations, dedupe)
-- Dashboard snoozed windows view with visual grouping
-- 443 tests passing (7 new WindowService tests)
+- Dashboard smart snooze with dynamic modal
+- Popup "Snooze Window" button with visual differentiation
+- User settings for tab restoration behavior
 - Zero architectural violations
-- Production release: v1.2.2
+- Production release: v1.2.6
 
 **New Artifacts**:
 - `/services/ARCHITECTURE.md` - Service dependency rules and guidelines
