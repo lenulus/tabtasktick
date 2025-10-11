@@ -1,8 +1,8 @@
 # Phase 8: Window Operations - Implementation Plan
 
-**Status**: Phase 8.0 Complete ✅ - Phase 8.1 Ready to Begin
+**Status**: Phase 8.0-8.2 Complete ✅ - Phase 8.3 Mostly Complete
 **Date Started**: 2025-10-10
-**Last Updated**: 2025-10-10
+**Last Updated**: 2025-10-11
 **Prerequisites**: Phase 7 Complete (Zero architectural violations)
 
 ## Overview
@@ -808,12 +808,17 @@ describe('WindowService', () => {
 
 ---
 
-## Phase 8.2: Window-Scoped Deduplication ✅
+## Phase 8.2: Window-Scoped Deduplication ✅ COMPLETE
 
-**Status**: COMPLETE
+**Status**: COMPLETE - Full Rules Engine Integration + Critical Bug Fixes
 **Priority**: MEDIUM
-**Actual Time**: 3 hours
+**Actual Time**: ~5 hours (architectural remediation + full integration + 2 critical bug fixes)
+**Completed**: 2025-10-11
 **Depends On**: Phase 8.1 (WindowService)
+**Commits**:
+- `d705b41` - Fix: URL normalization using whitelist approach for duplicate detection (CRITICAL BUG FIX)
+- `f1fbfdb` - Fix: CSP violation preventing action parameter changes in rules UI
+- `aff4b49` - Fix: Show scope in action description for close-duplicates
 
 ### Overview
 Enhanced duplicate detection to support three scope modes: global (cross-window), per-window (within each window separately), and window (single specific window). This maintains architectural integrity by creating a DeduplicationOrchestrator service that serves as the single entry point for all deduplication operations.
@@ -1073,6 +1078,76 @@ User right-clicks on a tab → "Remove Duplicates in Window"
 - ✅ No duplicate implementations
 
 ---
+
+---
+
+### 6. Rules Engine UI Integration ✅
+
+**Added scope selector to rules UI:**
+- File: `/dashboard/modules/views/rules.js`
+- Dropdown options: "Global (all windows)" and "Per-window (each separately)"
+- Default: "global" (backward compatible)
+- Shows scope in action description (e.g., "Close duplicates (keep oldest) [per-window]")
+- Added sample rule #2: "Keep newest duplicate per window"
+
+### 7. Critical Bug Fix: URL Normalization Whitelist Approach ✅
+
+**Problem**: `cnn.com` and `cnn.com?refresh=1` were NOT detected as duplicates
+
+**Root Cause**: Blacklist approach for query params doesn't scale (infinite possibilities like `?refresh=1`, `?timestamp=123`, `?_=456`, etc.)
+
+**Solution**: Switched to **WHITELIST approach**
+- Remove ALL query parameters by default
+- Only preserve parameters that identify unique content for specific domains
+- File: `/services/selection/selectTabs.js`
+
+**Whitelist added for**:
+- YouTube: `v`, `list`, `t` (video ID, playlist, timestamp)
+- Google Search: `q`, `tbm`, `tbs` (query, search type, filters)
+- Google Docs: Empty list (path-based, ignore all params)
+- GitHub: `q`, `type`, `language`, `tab`
+- Amazon: `k`, `i`, `dp` (search, item, product)
+- Stack Overflow: `q`, `tab`, `noredirect`, `lq`
+- Reddit: `context`
+- Facebook: `fbid`, `set`, `story_fbid`, `id`
+- Wikipedia: `title`, `oldid`
+- Twitter/X, LinkedIn, Instagram, Medium, Substack: Empty (path-based)
+
+**Result**: All tabs with any query params now correctly deduplicated
+
+**Test Updated**: All normalization tests updated to reflect whitelist approach
+
+### 8. Critical Bug Fix: CSP Violation ✅
+
+**Problem**: Changing action parameters (scope, keep strategy, etc.) in rules editor failed silently
+
+**Root Cause**: Inline event handlers (`onchange="updateActionParam(...)"`) violated Chrome's Content Security Policy
+
+**Console Error**:
+```
+Executing inline event handler violates the following Content Security Policy directive 'script-src 'self''.
+```
+
+**Solution**: Event delegation with data attributes
+- Replaced ALL inline `onchange` handlers with data attributes
+- Added single event listener on modal using event delegation
+- Classes: `action-param-select`, `action-param-checkbox`, `action-param-input`
+- Data attributes: `data-action-index`, `data-param`
+
+**Files Fixed**:
+- `/dashboard/modules/views/rules.js` - All action parameter controls
+
+**Result**: All parameter changes now work correctly and persist
+
+### 9. Testing & Validation ✅
+
+- ✅ All 457 automated tests passing
+- ✅ Popup "Close Duplicates" validated (global scope)
+- ✅ Context menu "Remove Duplicates in Window" validated (window scope)
+- ✅ Dashboard "Quick Organize" validated (global scope)
+- ✅ Rules engine scope selector working and persisting
+- ✅ Test Runner all scenarios passing
+- ✅ Multi-window test scenario added to test-panel
 
 ---
 

@@ -466,16 +466,63 @@ For reference, here's where to find each UI:
 
 ---
 
-## Phase 8.2 - BLESSED ✅
+## Phase 8.2 - COMPLETE ✅
 
-**Date Blessed**: 2025-10-10
-**Status**: Production Ready
+**Date Completed**: 2025-10-11
+**Status**: Production Ready - All Features Complete + Critical Bugs Fixed
+
+### Completion Summary
+- ✅ **Full Rules Engine Integration** - Scope dropdown, sample rules, parameter persistence
+- ✅ **Critical Bug Fixes** - URL normalization whitelist approach, CSP violations resolved
+- ✅ **All 457 automated tests passing**
+- ✅ **Zero architectural violations**
+- ✅ **All three scope modes validated** (global, per-window, window)
+
+### What Was Completed Beyond Original Plan
+
+**1. Architectural Remediation (Phase 8.2.1)**
+- Created `DeduplicationOrchestrator.js` as single entry point
+- Renamed `closeDuplicates.js` → `closeDuplicatesCore.js` (marked internal)
+- Made `WindowService` THIN (16 lines → 3 lines pure delegation)
+- Architecture Guardian approved Modified Option C
+
+**2. Full Rules Engine UI Integration**
+- Added scope dropdown to close-duplicates action form
+  - Options: "Global (all windows)" and "Per-window (each separately)"
+  - Defaults to "global" for backward compatibility
+- Fixed CSP violations in ALL action parameter controls (not just scope)
+  - Replaced inline `onchange` handlers with event delegation
+  - Used data attributes for CSP-compliant event handling
+- Added scope to action descriptions (shows `[per-window]` in Then section)
+- Added sample rule #2: "Keep newest duplicate per window"
+- Default scope initialization for new rules
+
+**3. Critical Bug Fixes**
+- **URL Normalization Whitelist Approach** (Most Impactful)
+  - Problem: `cnn.com` and `cnn.com?refresh=1` were NOT detected as duplicates
+  - Root cause: Blacklist approach can't scale (infinite possible query params)
+  - Solution: Whitelist approach - remove ALL params except content-identifying ones
+  - Added whitelist for: YouTube, GitHub, Google (search + docs), Amazon, Stack Overflow, Reddit, Twitter/X, Facebook, LinkedIn, Instagram, Wikipedia, Medium, Substack
+  - Result: All tabs with any query params now correctly deduplicated
+- **CSP Violation Fix**
+  - Problem: Inline event handlers blocked by Content Security Policy
+  - Symptom: Changing scope dropdown didn't persist (failed silently)
+  - Solution: Event delegation with data attributes
+  - Result: All parameter changes now work correctly
+
+**4. Enhanced Testing & Validation**
+- Added multi-window deduplication test scenario to test-panel
+- Validated scope selector persists changes correctly
+- Validated action descriptions show scope
+- All 457 tests passing with new features
 
 ### Validation Results
-- ✅ 4/4 active surfaces validated (Popup, Dashboard, Context Menu, Test Runner)
+- ✅ 5/5 active surfaces validated (Popup, Dashboard, Context Menu, Rules Engine, Test Runner)
 - ✅ 457/457 automated tests passing
 - ✅ Zero architectural violations
-- ✅ Both global and window scope modes working correctly
+- ✅ All three scope modes working correctly (global, per-window, window)
+- ✅ Rules UI fully functional with scope selector
+- ✅ Critical bugs fixed (URL normalization, CSP compliance)
 
 ### Follow-Up Work (Post-Phase 8.2/8.3)
 

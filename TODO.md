@@ -1111,30 +1111,54 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
   - [x] Fixed alarm cleanup on manual restore
 - [x] Success: 443 tests passing, zero violations, DRY maintained
 
-### Phase 8.2: Window-Scoped Deduplication ⚠️ PARTIALLY COMPLETE
+### Phase 8.2: Window-Scoped Deduplication ✅ COMPLETE
 **Priority**: MEDIUM
-**Time**: ~1 hour actual (context menu only)
-**Completed**: 2025-10-10 (context menu implementation)
+**Time**: ~5 hours actual (architectural remediation + full rules engine integration + bug fixes)
+**Completed**: 2025-10-11
 **Depends On**: Phase 8.1
+**Commits**:
+- `d705b41` - Fix: URL normalization using whitelist approach for duplicate detection (CRITICAL BUG FIX)
+- `f1fbfdb` - Fix: CSP violation preventing action parameter changes in rules UI
+- `aff4b49` - Fix: Show scope in action description for close-duplicates
 
-**Status**: Context menu implementation complete, rules engine integration deferred
+**Status**: ✅ FEATURE COMPLETE - Full rules engine integration + critical bug fixes
 
 **Completed**:
-- [x] Window-scoped deduplication via context menu
-  - [x] `WindowService.deduplicateWindow()` implementation
-  - [x] Adds `dupeKey` to tabs before calling `closeDuplicates`
-  - [x] "Remove Duplicates in Window" context menu
-  - [x] Tested and working (keeps one of each URL per window)
+- [x] Created DeduplicationOrchestrator (single entry point)
+  - [x] Three scopes: 'global', 'per-window', 'window'
+  - [x] Centralized dupeKey generation
+  - [x] Proper scope-based grouping
+  - [x] 14 comprehensive tests
+- [x] Architectural remediation (Phase 8.2.1)
+  - [x] Renamed closeDuplicates.js → closeDuplicatesCore.js (marked internal)
+  - [x] Made WindowService THIN (16 lines → 3 lines pure delegation)
+  - [x] All callers now use DeduplicationOrchestrator
+- [x] Rules engine integration
+  - [x] Added scope parameter support to engine.v2.services.js
+  - [x] Added scope dropdown to rules UI (Global / Per-window)
+  - [x] Added default scope initialization
+  - [x] Fixed CSP violations in all action parameter controls
+  - [x] Added scope to action descriptions
+  - [x] Added sample rule: "Keep newest duplicate per window"
+- [x] Critical bug fixes
+  - [x] **CRITICAL**: Fixed URL normalization to use whitelist approach
+    - Problem: Infinite possible query params (refresh=1, timestamp=123, etc.)
+    - Solution: Remove ALL params by default, only preserve content-identifying params
+    - Added whitelist for YouTube, GitHub, Google, Facebook, Reddit, Wikipedia, etc.
+  - [x] **CRITICAL**: Fixed CSP violation blocking parameter changes
+    - Problem: Inline onchange handlers violated Chrome's Content Security Policy
+    - Solution: Event delegation with data attributes
+  - [x] Added Google Docs support to URL normalization whitelist
+- [x] Testing & validation
+  - [x] All 457 automated tests passing
+  - [x] Popup "Close Duplicates" validated (global scope)
+  - [x] Context menu "Remove Duplicates in Window" validated (window scope)
+  - [x] Dashboard "Quick Organize" validated (global scope)
+  - [x] Test Runner all scenarios passing
+  - [x] Rules engine scope selector working and persisting
+  - [x] Multi-window test scenario added to test-panel
 
-**Deferred** (low priority - can be added later if needed):
-- [ ] Update rules engine
-  - [ ] Add `scope: 'window'` to action schema
-  - [ ] Pass windowScope to closeDuplicates
-- [ ] Create `/tests/window-dedupe.test.js`
-  - [ ] Global vs window-scoped behavior tests
-  - Note: Basic functionality covered in WindowService.test.js
-
-**Rationale**: Context menu provides immediate user value; rules engine integration has minimal demand
+**Architecture Review**: ✅ APPROVED by architecture-guardian (Modified Option C)
 
 ### Phase 8.3: Complete Window Snooze/Restore UI ✅ MOSTLY COMPLETE
 **Priority**: MEDIUM
@@ -1200,10 +1224,10 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 |-------|-----------|-------------|----------|--------|-------|
 | 8.0 - Test Infrastructure | 4-6h | ~5h | CRITICAL | ✅ COMPLETE | Multi-window test infrastructure with 26 tests |
 | 8.1 - WindowService | 4-6h | ~4h | HIGH | ✅ COMPLETE | Includes bug fixes from manual testing |
-| 8.2 - Window Deduplication | 4-6h | ~1h | MEDIUM | ⚠️ PARTIAL | Context menu done, rules engine deferred |
+| 8.2 - Window Deduplication | 4-6h | ~5h | MEDIUM | ✅ COMPLETE | Full rules engine integration + critical bug fixes |
 | 8.3 - Snooze/Restore UI | 4-6h | ~2h | MEDIUM | ✅ MOSTLY DONE | Context menu + snoozed view complete |
 | 8.4 - Scheduled Exports | 8-10h | - | LOW | ❌ DEFERRED | Low demand, defer indefinitely |
-| **Total** | **24-34h** | **~12h** | | **Core Complete** | **50% time savings via pragmatic scoping** |
+| **Total** | **24-34h** | **~16h** | | **Core Complete** | **33% time savings via pragmatic scoping** |
 
 **Key Success Factors**:
 - Pragmatic scoping: Focused on high-value features (context menu over complex dashboard UI)
