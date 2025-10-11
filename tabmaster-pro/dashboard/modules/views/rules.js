@@ -714,6 +714,48 @@ export function setupRulesEventListeners() {
     enableAllBtn.hasListener = true;
   }
 
+  // Event delegation for action parameter changes (CSP-compliant)
+  const modal = document.getElementById('ruleModal');
+  if (modal && !modal.hasActionParamListener) {
+    modal.addEventListener('change', (e) => {
+      const target = e.target;
+
+      // Handle select dropdowns
+      if (target.classList.contains('action-param-select')) {
+        const index = parseInt(target.dataset.actionIndex);
+        const param = target.dataset.param;
+        window.updateActionParam(index, param, target.value);
+      }
+
+      // Handle checkboxes
+      else if (target.classList.contains('action-param-checkbox')) {
+        const index = parseInt(target.dataset.actionIndex);
+        const param = target.dataset.param;
+        window.updateActionParam(index, param, target.checked);
+      }
+
+      // Handle text inputs
+      else if (target.classList.contains('action-param-input')) {
+        const index = parseInt(target.dataset.actionIndex);
+        const param = target.dataset.param;
+        window.updateActionParam(index, param, target.value);
+      }
+
+      // Handle snooze duration value
+      else if (target.classList.contains('action-param-snooze-value')) {
+        const index = parseInt(target.dataset.actionIndex);
+        window.updateSnoozeDuration(index, target.value);
+      }
+
+      // Handle snooze duration unit
+      else if (target.classList.contains('action-param-snooze-unit')) {
+        const index = parseInt(target.dataset.actionIndex);
+        window.updateSnoozeDurationUnit(index, target.value);
+      }
+    });
+    modal.hasActionParamListener = true;
+  }
+
   // Setup drag and drop for rules
   setupRuleDragAndDrop();
 }
@@ -1079,7 +1121,7 @@ function getActionParamsHTML(action) {
       return `
         <label>
           <input type="checkbox" ${action.bookmark_first ? 'checked' : ''}
-            onchange="updateActionParam(${currentActions.indexOf(action)}, 'bookmark_first', this.checked)">
+            data-action-index="${currentActions.indexOf(action)}" data-param="bookmark_first" class="action-param-checkbox">
           Bookmark before closing
         </label>
       `;
@@ -1087,14 +1129,14 @@ function getActionParamsHTML(action) {
     case 'close-duplicates':
       return `
         <label>Keep:
-          <select onchange="updateActionParam(${currentActions.indexOf(action)}, 'keep', this.value)">
+          <select data-action-index="${currentActions.indexOf(action)}" data-param="keep" class="action-param-select">
             <option value="oldest" ${!action.keep || action.keep === 'oldest' ? 'selected' : ''}>Oldest tab</option>
             <option value="newest" ${action.keep === 'newest' ? 'selected' : ''}>Newest tab</option>
             <option value="none" ${action.keep === 'none' ? 'selected' : ''}>None (close all)</option>
           </select>
         </label>
         <label>Scope:
-          <select onchange="updateActionParam(${currentActions.indexOf(action)}, 'scope', this.value)">
+          <select data-action-index="${currentActions.indexOf(action)}" data-param="scope" class="action-param-select">
             <option value="global" ${!action.scope || action.scope === 'global' ? 'selected' : ''}>Global (all windows)</option>
             <option value="per-window" ${action.scope === 'per-window' ? 'selected' : ''}>Per-window (each separately)</option>
           </select>
@@ -1104,7 +1146,7 @@ function getActionParamsHTML(action) {
     case 'group':
       return `
         <label>Group by:
-          <select onchange="updateActionParam(${currentActions.indexOf(action)}, 'group_by', this.value)">
+          <select data-action-index="${currentActions.indexOf(action)}" data-param="group_by" class="action-param-select">
             <option value="domain" ${action.group_by === 'domain' ? 'selected' : ''}>Domain</option>
             <option value="category" ${action.group_by === 'category' ? 'selected' : ''}>Category</option>
             <option value="window" ${action.group_by === 'window' ? 'selected' : ''}>Window</option>
@@ -1112,7 +1154,7 @@ function getActionParamsHTML(action) {
         </label>
         <label>Name:
           <input type="text" value="${action.name || ''}" placeholder="Auto-generated"
-            onchange="updateActionParam(${currentActions.indexOf(action)}, 'name', this.value)">
+            data-action-index="${currentActions.indexOf(action)}" data-param="name" class="action-param-input">
         </label>
       `;
       
@@ -1121,8 +1163,8 @@ function getActionParamsHTML(action) {
       return `
         <label>Snooze for:
           <input type="number" value="${duration.value}" min="1"
-            onchange="updateSnoozeDuration(${currentActions.indexOf(action)}, this.value)">
-          <select onchange="updateSnoozeDurationUnit(${currentActions.indexOf(action)}, this.value)">
+            data-action-index="${currentActions.indexOf(action)}" data-param="snooze-value" class="action-param-snooze-value">
+          <select data-action-index="${currentActions.indexOf(action)}" data-param="snooze-unit" class="action-param-snooze-unit">
             <option value="m" ${duration.unit === 'm' ? 'selected' : ''}>minutes</option>
             <option value="h" ${duration.unit === 'h' ? 'selected' : ''}>hours</option>
             <option value="d" ${duration.unit === 'd' ? 'selected' : ''}>days</option>
@@ -1133,7 +1175,7 @@ function getActionParamsHTML(action) {
     case 'move_to_window':
       return `
         <label>Target window:
-          <select onchange="updateActionParam(${currentActions.indexOf(action)}, 'window_id', this.value)">
+          <select data-action-index="${currentActions.indexOf(action)}" data-param="window_id" class="action-param-select">
             <option value="new">New window</option>
             <option value="current" ${action.window_id === 'current' ? 'selected' : ''}>Current window</option>
           </select>
