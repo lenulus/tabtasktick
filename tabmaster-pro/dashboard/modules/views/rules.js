@@ -521,6 +521,7 @@ function getActionDescription(actions) {
       // Add parameters
       if (action.bookmark_first) desc += ' (bookmark first)';
       if (action.keep) desc += ` (keep ${action.keep})`;
+      if (action.scope && action.scope !== 'global') desc += ` [${action.scope}]`;
       if (action.group_by) desc += ` by ${action.group_by}`;
       if (action.until) desc += ` for ${action.until}`;
       if (action.folder) desc += ` to "${action.folder}"`;
