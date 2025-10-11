@@ -380,7 +380,7 @@ function renderScheduledBackupsSection() {
 ### 4.2 Backup History List
 
 ```javascript
-// In export-import.js - Display backup history
+// In export-import.js - Display backup history with realistic restore flow
 
 async function renderBackupHistory() {
   const response = await chrome.runtime.sendMessage({
@@ -395,7 +395,17 @@ async function renderBackupHistory() {
     return;
   }
 
-  listElement.innerHTML = backups.map(backup => `
+  // Add first-time help banner if needed
+  const showHelp = !localStorage.getItem('restore-help-dismissed');
+  const helpBanner = showHelp ? `
+    <div class="restore-help-banner">
+      <p>💡 For security, Chrome requires you to select the backup file when restoring.
+      Click "Restore" and we'll guide you to the right file.</p>
+      <button onclick="dismissRestoreHelp()">Got it</button>
+    </div>
+  ` : '';
+
+  listElement.innerHTML = helpBanner + backups.map(backup => `
     <div class="backup-item" data-download-id="${backup.downloadId}">
       <div class="backup-info">
         <div class="backup-name">
@@ -408,15 +418,187 @@ async function renderBackupHistory() {
         </div>
       </div>
       <div class="backup-actions">
-        <button class="btn-icon" data-action="restore" title="Restore">
-          ↩️
+        <button class="btn-icon" data-action="restore"
+                title="Select this backup file to restore"
+                onclick="restoreBackup(${backup.downloadId})">
+          ↩️ Restore
         </button>
-        <button class="btn-icon" data-action="delete" title="Delete">
+        <button class="btn-icon" data-action="show"
+                title="Show file in Downloads folder"
+                onclick="showBackupInFolder(${backup.downloadId})">
+          📁 Show
+        </button>
+        <button class="btn-icon" data-action="delete"
+                title="Remove from history"
+                onclick="deleteBackup(${backup.downloadId})">
           🗑️
         </button>
       </div>
     </div>
   `).join('');
+
+  // Bind restore handler
+  attachRestoreHandlers();
+}
+
+// Restore handler with file picker (technical requirement)
+async function restoreBackup(downloadId) {
+  // Step 1: Get backup metadata
+  const backup = backups.find(b => b.downloadId === downloadId);
+
+  // Step 2: Validate backup still exists
+  const downloads = await chrome.downloads.search({ id: downloadId });
+  const exists = downloads.length > 0 && downloads[0].exists !== false;
+
+  // Step 3: Show restore dialog with instructions
+  const dialog = new RestoreDialog();
+  dialog.show({
+    backup,
+    exists,
+    filename: backup.filename.split('/').pop()
+  });
+
+  // Step 4: Use File System Access API to select file
+  try {
+    const [fileHandle] = await window.showOpenFilePicker({
+      suggestedName: backup.filename.split('/').pop(),
+      startIn: 'downloads',
+      types: [{
+        description: 'TabMaster Backup Files',
+        accept: { 'application/json': ['.json'] }
+      }]
+    });
+
+    // Step 5: Read and import file
+    const file = await fileHandle.getFile();
+    const contents = await file.text();
+    const data = JSON.parse(contents);
+
+    // Step 6: Import the backup data
+    await chrome.runtime.sendMessage({
+      action: 'importBackup',
+      data: data
+    });
+
+    dialog.showSuccess();
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      // User cancelled file picker
+      dialog.close();
+    } else {
+      dialog.showError(error.message);
+    }
+  }
+}
+
+// Helper to show backup file in folder
+async function showBackupInFolder(downloadId) {
+  try {
+    await chrome.downloads.show(downloadId);
+  } catch (error) {
+    // If file doesn't exist, show Downloads folder
+    await chrome.downloads.showDefaultFolder();
+  }
+}
+```
+
+### 4.3 Restore Flow Implementation (Technical Constraints Apply)
+
+**CRITICAL**: Due to Chrome security model, we CANNOT auto-import backups. User must select file.
+
+```javascript
+// components/RestoreDialog.js - Clear user communication about file picker requirement
+
+class RestoreDialog {
+  show({ backup, exists, filename }) {
+    const modal = document.createElement('div');
+    modal.className = 'restore-modal';
+    modal.innerHTML = `
+      <div class="restore-content">
+        <h2>Restore from Backup</h2>
+
+        ${exists ? `
+          <div class="file-found">
+            ✅ Backup file found: <strong>${filename}</strong>
+          </div>
+        ` : `
+          <div class="file-missing">
+            ⚠️ Backup file may have been moved or deleted
+          </div>
+        `}
+
+        <div class="instructions">
+          <h3>To restore this backup:</h3>
+          <ol>
+            <li>Click "Select Backup File" below</li>
+            <li>Navigate to your Downloads folder (should open automatically)</li>
+            <li>Select: <code>${filename}</code></li>
+            <li>Click "Open" to restore</li>
+          </ol>
+        </div>
+
+        <div class="security-note">
+          🔒 <strong>Why file selection is required:</strong>
+          Chrome's security model prevents extensions from directly accessing
+          downloaded files. This protects your privacy and security.
+        </div>
+
+        <div class="actions">
+          <button id="selectFileBtn" class="btn-primary">
+            Select Backup File
+          </button>
+          ${exists ? `
+            <button id="showInFolderBtn" class="btn-secondary">
+              Show in Downloads Folder
+            </button>
+          ` : ''}
+          <button id="cancelBtn" class="btn-text">Cancel</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    this.bindEvents(backup);
+  }
+
+  bindEvents(backup) {
+    document.getElementById('selectFileBtn')?.addEventListener('click', () => {
+      this.close();
+      // Parent will trigger file picker
+    });
+
+    document.getElementById('showInFolderBtn')?.addEventListener('click', async () => {
+      await chrome.downloads.show(backup.downloadId);
+    });
+
+    document.getElementById('cancelBtn')?.addEventListener('click', () => {
+      this.close();
+    });
+  }
+
+  showSuccess() {
+    const modal = document.querySelector('.restore-modal');
+    modal.innerHTML = `
+      <div class="restore-success">
+        <div class="success-icon">✅</div>
+        <h2>Restore Complete!</h2>
+        <p>Your tabs, settings, and rules have been restored.</p>
+        <button onclick="location.reload()" class="btn-primary">
+          Refresh Dashboard
+        </button>
+      </div>
+    `;
+  }
+
+  showError(message) {
+    alert(`Restore failed: ${message}`);
+    this.close();
+  }
+
+  close() {
+    document.querySelector('.restore-modal')?.remove();
+  }
 }
 ```
 
@@ -646,13 +828,21 @@ services/execution/ScheduledExportService.js
 
 ## 8. Risks and Mitigations
 
-### Risk 1: Download Folder Access
-**Impact**: Extension cannot directly read from Downloads folder
+### Risk 1: Download Folder Access (CRITICAL CONSTRAINT)
+**Impact**: Extension cannot directly read from Downloads folder - THIS IS A HARD LIMITATION
+**Technical Reality**:
+- Chrome extensions CANNOT read file contents from absolute paths
+- chrome.downloads API provides paths but NOT file access
+- File System Access API requires user file picker interaction
+- No API exists to convert downloadId to readable File object
+
 **Mitigation**:
-- Use chrome.downloads API to track downloads
-- For restore, user must select file via file picker
-- Clear UI instructions for restore process
-- Track download IDs for management
+- Use chrome.downloads API to track download metadata only
+- For restore, user MUST select file via file picker (unavoidable)
+- Provide clear UI instructions and filename hints
+- Pre-populate file picker with expected filename
+- Add "Show in Folder" button to help locate files
+- Set user expectations that file selection is required for security
 
 ### Risk 2: Storage Quota for Metadata
 **Impact**: Metadata could exceed storage limits
