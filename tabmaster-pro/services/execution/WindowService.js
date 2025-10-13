@@ -1,16 +1,47 @@
 /**
- * WindowService
+ * @file WindowService - Window-level operations and coordination
  *
- * Coordinates window-level operations by delegating to existing services.
+ * @description
+ * The WindowService coordinates window-level operations by orchestrating multiple
+ * services to handle complex workflows like window snoozing, restoration, and
+ * deduplication. It maintains window metadata for preservation across snooze/restore
+ * cycles and delegates execution to specialized services.
  *
- * Dependencies:
- * - ExportImportService: Reuses window creation/restoration logic
- * - SnoozeService: Tab snoozing and metadata
- * - SelectionService: Window-scoped tab selection
+ * This service follows the DRY principle by reusing existing battle-tested logic
+ * from ExportImportService for window creation/restoration instead of duplicating
+ * 137 lines of complex window management code. It stores minimal window metadata
+ * separately (position, size, state) while delegating tab-level operations to
+ * SnoozeService and deduplication to DeduplicationOrchestrator.
  *
- * This service maintains a single source of truth by delegating
- * complex window operations to ExportImportService rather than
- * duplicating window creation logic.
+ * The service handles graceful degradation when metadata is missing and implements
+ * cleanup routines to prevent orphaned data from accumulating in storage.
+ *
+ * @module services/execution/WindowService
+ *
+ * @architecture
+ * - Layer: Execution Service (Orchestrator)
+ * - Dependencies:
+ *   - ExportImportService (window creation/restoration - reuses logic)
+ *   - SnoozeService (tab-level snoozing and wake operations)
+ *   - SelectionService (window-scoped tab filtering)
+ *   - DeduplicationOrchestrator (window-scoped duplicate removal)
+ * - Used By: executeSnoozeOperations, background context menus, message handlers
+ * - Storage: chrome.storage.local (windowMetadata - separate from snoozed tabs)
+ *
+ * @example
+ * // Snooze entire window
+ * import * as WindowService from './services/execution/WindowService.js';
+ *
+ * const windowId = 123;
+ * const duration = 3 * 60 * 60 * 1000; // 3 hours
+ * const result = await WindowService.snoozeWindow(windowId, duration);
+ * console.log(`Snoozed ${result.tabCount} tabs`);
+ *
+ * @example
+ * // Restore snoozed window
+ * const snoozeId = 'window_snooze_1234567890_123';
+ * const result = await WindowService.restoreWindow(snoozeId);
+ * console.log(`Restored ${result.tabCount} tabs to new window`);
  */
 
 import { importData } from '../ExportImportService.js';
@@ -22,7 +53,18 @@ import { deduplicateWindow as deduplicateWindowOrchestrator } from './Deduplicat
 const WINDOW_METADATA_KEY = 'windowMetadata';
 
 /**
- * Get all windows with their tabs
+ * Retrieves all browser windows with their populated tab lists.
+ *
+ * Uses chrome.windows.getAll with populate:true to fetch complete window data
+ * including all tabs, groups, and window properties in a single call.
+ *
+ * @returns {Promise<chrome.windows.Window[]>} Array of window objects with tabs
+ *
+ * @example
+ * // Get all windows and count total tabs
+ * const windows = await getAllWindows();
+ * const totalTabs = windows.reduce((sum, w) => sum + w.tabs.length, 0);
+ * console.log(`${windows.length} windows with ${totalTabs} total tabs`);
  */
 export async function getAllWindows() {
   const windows = await chrome.windows.getAll({ populate: true });
@@ -30,9 +72,31 @@ export async function getAllWindows() {
 }
 
 /**
- * Get window metadata
+ * Retrieves metadata for a specific window.
  *
- * Returns window properties: position, size, state, etc.
+ * Fetches window properties needed for restoration: position (left/top),
+ * size (width/height), state (normal/maximized/minimized), type, focus state,
+ * and incognito mode. Used when snoozing windows to preserve visual layout.
+ *
+ * @param {number} windowId - Chrome window ID
+ *
+ * @returns {Promise<Object>} Window metadata object with properties
+ * @returns {number} return.id - Window ID
+ * @returns {number} return.left - X position on screen
+ * @returns {number} return.top - Y position on screen
+ * @returns {number} return.width - Window width in pixels
+ * @returns {number} return.height - Window height in pixels
+ * @returns {string} return.state - Window state (normal/maximized/minimized/fullscreen)
+ * @returns {string} return.type - Window type (normal/popup/panel/app/devtools)
+ * @returns {boolean} return.focused - Whether window has focus
+ * @returns {boolean} return.incognito - Whether window is incognito
+ *
+ * @throws {Error} If window with specified ID does not exist
+ *
+ * @example
+ * // Get window metadata before snoozing
+ * const metadata = await getWindowMetadata(123);
+ * console.log(`Window at ${metadata.left},${metadata.top} size ${metadata.width}x${metadata.height}`);
  */
 export async function getWindowMetadata(windowId) {
   const window = await chrome.windows.get(windowId);
@@ -79,8 +143,28 @@ async function deleteWindowMetadata(snoozeId) {
 }
 
 /**
- * Clean up orphaned window metadata (metadata without corresponding snoozed tabs)
- * This handles edge cases where window metadata exists but tabs were cleaned up
+ * Cleans up orphaned window metadata that has no corresponding snoozed tabs.
+ *
+ * Periodically called by SnoozeService to prevent metadata accumulation from edge
+ * cases like manual tab deletion, extension crashes, or partial restore failures.
+ * Identifies window snooze IDs that have no associated tabs and removes their
+ * metadata from storage.
+ *
+ * This function is safe to call frequently as it only performs cleanup when needed.
+ *
+ * @returns {Promise<Object>} Cleanup result
+ * @returns {number} return.cleaned - Number of orphaned entries cleaned up
+ * @returns {string[]} return.orphanedIds - Array of cleaned snooze IDs
+ *
+ * @example
+ * // Manual cleanup
+ * const result = await cleanupOrphanedWindowMetadata();
+ * console.log(`Cleaned up ${result.cleaned} orphaned window metadata entries`);
+ *
+ * @example
+ * // Automatic cleanup (called by SnoozeService every 5 minutes)
+ * // In SnoozeService periodic check:
+ * await cleanupOrphanedWindowMetadata();
  */
 export async function cleanupOrphanedWindowMetadata() {
   const stored = await chrome.storage.local.get([WINDOW_METADATA_KEY, 'snoozedTabs']);
@@ -109,15 +193,44 @@ export async function cleanupOrphanedWindowMetadata() {
 }
 
 /**
- * Snooze entire window
+ * Snoozes an entire window with all its tabs until a specified duration.
  *
- * Stores window metadata separately, then delegates tab snoozing
- * to SnoozeService. This maintains separation of concerns.
+ * Orchestrates window-level snoozing by:
+ * 1. Capturing window metadata (position, size, state) before closure
+ * 2. Creating unique window snooze ID to link tabs together
+ * 3. Storing window metadata separately from tab metadata
+ * 4. Delegating tab snoozing to SnoozeService (with shared windowSnoozeId)
+ * 5. Closing the window gracefully (may auto-close when tabs removed)
  *
- * @param {number} windowId - Window to snooze
- * @param {number} duration - Duration in milliseconds
- * @param {Object} options - Additional options
- * @returns {Promise<Object>} - Result with windowSnoozeId and tab results
+ * CRITICAL: Uses same timestamp for both snoozeId and snoozeUntil to prevent
+ * race conditions during concurrent window snooze operations.
+ *
+ * @param {number} windowId - Chrome window ID to snooze
+ * @param {number} duration - Duration in milliseconds until wake-up
+ * @param {Object} [options={}] - Additional snooze options (passed to SnoozeService)
+ * @param {string} [options.reason] - Reason for snoozing (e.g., 'manual', 'rule')
+ * @param {string} [options.restorationMode] - Where to restore ('original', 'current', 'new')
+ *
+ * @returns {Promise<Object>} Snooze operation result
+ * @returns {string} return.snoozeId - Unique window snooze identifier
+ * @returns {number} return.snoozeUntil - Timestamp when window will wake
+ * @returns {Object} return.windowMetadata - Captured window properties
+ * @returns {number} return.tabCount - Number of tabs snoozed
+ * @returns {Object[]} return.snoozedTabs - Array of snoozed tab objects
+ *
+ * @example
+ * // Snooze window for 3 hours
+ * const windowId = 123;
+ * const duration = 3 * 60 * 60 * 1000;
+ * const result = await snoozeWindow(windowId, duration, { reason: 'manual' });
+ * console.log(`Snoozed ${result.tabCount} tabs until ${new Date(result.snoozeUntil)}`);
+ *
+ * @example
+ * // Snooze with custom restoration mode
+ * await snoozeWindow(windowId, duration, {
+ *   reason: 'window_snooze',
+ *   restorationMode: 'original' // restore to original window position
+ * });
  */
 export async function snoozeWindow(windowId, duration, options = {}) {
   // 1. Get window metadata BEFORE closing
@@ -173,18 +286,48 @@ export async function snoozeWindow(windowId, duration, options = {}) {
 }
 
 /**
- * Restore snoozed window
+ * Restores a previously snoozed window with all its tabs.
  *
- * Delegates to ExportImportService's importData() which handles:
- * - Window creation with metadata preservation
- * - Tab restoration with proper window assignment
- * - Group restoration
- * - Batch operations and error handling
+ * Delegates to ExportImportService.importData() to reuse 137 lines of battle-tested
+ * window creation logic. Handles graceful degradation when metadata is missing and
+ * ensures proper cleanup of both window metadata and snoozed tab records.
  *
- * This reuses 137 lines of battle-tested window creation logic.
+ * Process:
+ * 1. Retrieve snoozed tabs for window (required - fail if none found)
+ * 2. Retrieve window metadata (optional - create fallback if missing)
+ * 3. Format data for ExportImportService (matches import payload structure)
+ * 4. Delegate window creation to ExportImportService
+ * 5. Clean up window metadata and snoozed tab records
  *
- * @param {string} snoozeId - Window snooze ID
- * @returns {Promise<Object>} - Result with new window ID and restored tabs
+ * CRITICAL: Tabs are cleaned up via deleteSnoozedTab() to maintain cache consistency.
+ * Direct storage manipulation would cause cache desync.
+ *
+ * @param {string} snoozeId - Window snooze identifier (e.g., 'window_snooze_1234567890_123')
+ *
+ * @returns {Promise<Object>} Restoration result
+ * @returns {boolean} return.success - Whether restoration succeeded
+ * @returns {string|null} return.windowId - New window ID or 'new window created'
+ * @returns {number} return.tabCount - Number of tabs restored
+ * @returns {number} return.groupCount - Number of groups restored
+ * @returns {Object} return.metadata - Original window metadata
+ * @returns {string[]} return.errors - Array of error messages (may be partial success)
+ *
+ * @throws {Error} If no snoozed tabs found for window (orphaned metadata cleaned up)
+ *
+ * @example
+ * // Restore snoozed window
+ * const snoozeId = 'window_snooze_1234567890_123';
+ * const result = await restoreWindow(snoozeId);
+ * if (result.success) {
+ *   console.log(`Restored ${result.tabCount} tabs to new window`);
+ * }
+ *
+ * @example
+ * // Handle partial restoration errors
+ * const result = await restoreWindow(snoozeId);
+ * if (result.errors.length > 0) {
+ *   console.warn(`${result.errors.length} errors during restore:`, result.errors);
+ * }
  */
 export async function restoreWindow(snoozeId) {
   // 1. Get all snoozed tabs for this window FIRST
@@ -300,14 +443,27 @@ async function getSnoozedTabsForWindow(windowSnoozeId) {
 }
 
 /**
- * Deduplicate tabs within a specific window (THIN delegation)
+ * Deduplicates tabs within a specific window.
  *
- * Delegates to DeduplicationOrchestrator which handles all business logic.
+ * THIN wrapper that delegates to DeduplicationOrchestrator for all business logic.
+ * Finds and closes duplicate tabs within window scope, keeping either oldest or
+ * newest occurrence based on strategy.
  *
- * @param {number} windowId - Window to deduplicate
- * @param {string} strategy - 'oldest' or 'newest'
- * @param {boolean} dryRun - Preview mode
- * @returns {Promise<Object>} - Deduplication results
+ * @param {number} windowId - Chrome window ID to deduplicate
+ * @param {string} [strategy='oldest'] - Which duplicate to keep ('oldest' or 'newest')
+ * @param {boolean} [dryRun=false] - Preview mode (don't actually close tabs)
+ *
+ * @returns {Promise<Object>} Deduplication results (from DeduplicationOrchestrator)
+ *
+ * @example
+ * // Remove duplicates, keeping oldest tabs
+ * const result = await deduplicateWindow(123, 'oldest');
+ * console.log(`Closed ${result.closed.length} duplicate tabs`);
+ *
+ * @example
+ * // Preview what would be closed
+ * const preview = await deduplicateWindow(123, 'newest', true);
+ * console.log(`Would close ${preview.toClose.length} tabs`);
  */
 export async function deduplicateWindow(windowId, strategy = 'oldest', dryRun = false) {
   // THIN - delegate to orchestrator
@@ -315,7 +471,21 @@ export async function deduplicateWindow(windowId, strategy = 'oldest', dryRun = 
 }
 
 /**
- * Get duplicate count for a window
+ * Counts duplicate tabs in a specific window.
+ *
+ * Uses SelectionService to identify tabs with duplicate URLs (normalized for comparison).
+ * Useful for showing duplicate counts in UI without performing deduplication.
+ *
+ * @param {number} windowId - Chrome window ID
+ *
+ * @returns {Promise<number>} Count of duplicate tabs in window
+ *
+ * @example
+ * // Show duplicate count in window stats
+ * const dupeCount = await getWindowDuplicateCount(123);
+ * if (dupeCount > 0) {
+ *   console.log(`Window has ${dupeCount} duplicate tabs`);
+ * }
  */
 export async function getWindowDuplicateCount(windowId) {
   const tabs = await chrome.tabs.query({ windowId });
@@ -327,7 +497,36 @@ export async function getWindowDuplicateCount(windowId) {
 }
 
 /**
- * Get window statistics
+ * Retrieves comprehensive statistics for a window.
+ *
+ * Aggregates multiple metrics including tab counts, group counts, pinned tabs,
+ * duplicate counts, and window metadata. Useful for dashboard analytics and
+ * window management UI.
+ *
+ * @param {number} windowId - Chrome window ID
+ *
+ * @returns {Promise<Object>} Window statistics
+ * @returns {number} return.windowId - Window ID
+ * @returns {number} return.tabCount - Total number of tabs
+ * @returns {number} return.groupedTabs - Number of tabs in groups
+ * @returns {number} return.pinnedTabs - Number of pinned tabs
+ * @returns {number} return.duplicateCount - Number of duplicate tabs
+ * @returns {Object} return.metadata - Window metadata (position, size, state)
+ *
+ * @example
+ * // Get window stats for dashboard
+ * const stats = await getWindowStats(123);
+ * console.log(`Window: ${stats.tabCount} tabs, ${stats.duplicateCount} duplicates, ${stats.groupedTabs} grouped`);
+ *
+ * @example
+ * // Find windows with many duplicates
+ * const windows = await getAllWindows();
+ * for (const window of windows) {
+ *   const stats = await getWindowStats(window.id);
+ *   if (stats.duplicateCount > 10) {
+ *     console.log(`Window ${window.id} has ${stats.duplicateCount} duplicates`);
+ *   }
+ * }
  */
 export async function getWindowStats(windowId) {
   const tabs = await chrome.tabs.query({ windowId });

@@ -1,6 +1,50 @@
 /**
- * @file Manages all tab snoozing and waking logic.
- * This service is the single source of truth for all snooze-related operations.
+ * @file SnoozeService - Tab and window snoozing with automatic restoration
+ *
+ * @description
+ * The SnoozeService manages all tab snoozing and waking operations, serving as the single
+ * source of truth for snooze-related functionality. It handles closing tabs temporarily,
+ * storing their metadata, scheduling automatic wake-ups with chrome.alarms, and restoring
+ * tabs to their original state.
+ *
+ * Key features include window snoozing (entire windows can be snoozed together), flexible
+ * restoration modes (original window, current window, or new window), group preservation,
+ * and robust alarm handling with periodic fallback checks. The service implements lazy
+ * initialization to handle service worker restarts in Manifest V3.
+ *
+ * All snooze operations (manual, rule-based, keyboard shortcuts, context menus) route
+ * through this service to ensure consistent behavior across all surfaces.
+ *
+ * @module services/execution/SnoozeService
+ *
+ * @architecture
+ * - Layer: Execution Service
+ * - Dependencies: WindowService.cleanupOrphanedWindowMetadata (periodic cleanup)
+ * - Used By: WindowService, executeSnoozeOperations, background message handlers, rules engine
+ * - Storage: chrome.storage.local (snoozed tabs metadata)
+ * - Scheduling: chrome.alarms (precise wake-up times + periodic fallback)
+ *
+ * @example
+ * // Basic tab snooze
+ * import * as SnoozeService from './services/execution/SnoozeService.js';
+ *
+ * await SnoozeService.initialize();
+ * const snoozeUntil = Date.now() + (60 * 60 * 1000); // 1 hour
+ * await SnoozeService.snoozeTabs([tabId], snoozeUntil, { reason: 'manual' });
+ *
+ * @example
+ * // Window snooze with restoration mode
+ * const windowSnoozeId = `window_${Date.now()}`;
+ * await SnoozeService.snoozeTabs(
+ *   [tab1Id, tab2Id, tab3Id],
+ *   snoozeUntil,
+ *   {
+ *     reason: 'window_snooze',
+ *     windowSnoozeId,
+ *     sourceWindowId: windowId,
+ *     restorationMode: 'original' // or 'current', 'new'
+ *   }
+ * );
  */
 
 import { cleanupOrphanedWindowMetadata } from './WindowService.js';
@@ -26,8 +70,29 @@ async function ensureInitialized() {
 }
 
 /**
- * Initializes the SnoozeService.
- * Must be called once when the extension starts.
+ * Initializes the SnoozeService on extension startup.
+ *
+ * Loads snoozed tabs from storage and sets up chrome.alarms for automatic wake-ups.
+ * This function must be called once in the background service worker on extension
+ * startup (both onInstalled and onStartup events).
+ *
+ * Note: The service also implements lazy initialization via ensureInitialized() to
+ * handle service worker restarts, but explicit initialization is still recommended
+ * for setting up alarms properly.
+ *
+ * @returns {Promise<void>}
+ *
+ * @example
+ * // In background service worker
+ * import * as SnoozeService from './services/execution/SnoozeService.js';
+ *
+ * chrome.runtime.onInstalled.addListener(() => {
+ *   await SnoozeService.initialize();
+ * });
+ *
+ * chrome.runtime.onStartup.addListener(() => {
+ *   await SnoozeService.initialize();
+ * });
  */
 export async function initialize() {
   const data = await chrome.storage.local.get(SNOOZE_STORAGE_KEY);
@@ -38,15 +103,49 @@ export async function initialize() {
 }
 
 /**
- * Snoozes one or more tabs.
- * @param {number[]} tabIds - An array of chrome.tabs.Tab IDs to snooze.
- * @param {number} snoozeUntil - The timestamp (in ms) when the tabs should wake up.
- * @param {Object} [options={}] - Options for snoozing.
- * @param {string} [options.reason='manual'] - The reason for snoozing.
- * @param {string} [options.windowSnoozeId] - If part of a window snooze, the window snooze ID.
- * @param {number} [options.sourceWindowId] - The window ID tabs came from (for restoration).
- * @param {string} [options.restorationMode='original'] - Where to restore tabs ('original', 'current', 'new').
- * @returns {Promise<object[]>} The newly created snoozed tab objects.
+ * Snoozes one or more tabs until a specified time.
+ *
+ * Closes the specified tabs immediately, stores their metadata (URL, title, favicon, group),
+ * and schedules chrome.alarms to automatically restore them at the specified time. Tabs can
+ * be part of a window snooze operation and support flexible restoration modes.
+ *
+ * The tabs are closed immediately after metadata is captured. A chrome.alarm is created for
+ * each snoozed tab to trigger automatic restoration. If alarms fail, a periodic fallback
+ * check will catch missed wake-ups.
+ *
+ * @param {number[]} tabIds - Array of chrome.tabs.Tab IDs to snooze
+ * @param {number} snoozeUntil - Unix timestamp (milliseconds) when tabs should wake up
+ * @param {Object} [options={}] - Snooze configuration options
+ * @param {string} [options.reason='manual'] - Reason for snoozing (e.g., 'manual', 'rule', 'window_snooze')
+ * @param {string} [options.windowSnoozeId] - If part of a window snooze, the shared window snooze ID
+ * @param {number} [options.sourceWindowId] - Original window ID for restoration tracking
+ * @param {string} [options.restorationMode='original'] - Restoration mode: 'original' (source window), 'current' (focused window), or 'new' (new window)
+ *
+ * @returns {Promise<object[]>} Array of snoozed tab objects with metadata
+ *
+ * @throws {Error} If tab with specified ID cannot be found (error logged, operation continues)
+ *
+ * @example
+ * // Snooze single tab for 1 hour
+ * const tabId = 123;
+ * const snoozeUntil = Date.now() + (60 * 60 * 1000);
+ * await snoozeTabs([tabId], snoozeUntil, { reason: 'manual' });
+ *
+ * @example
+ * // Snooze multiple tabs with window context
+ * const tabIds = [123, 456, 789];
+ * const windowId = await chrome.windows.getCurrent().id;
+ * const windowSnoozeId = `window_${Date.now()}_${windowId}`;
+ * await snoozeTabs(tabIds, snoozeUntil, {
+ *   reason: 'window_snooze',
+ *   windowSnoozeId,
+ *   sourceWindowId: windowId,
+ *   restorationMode: 'original'
+ * });
+ *
+ * @example
+ * // Legacy signature (backward compatible)
+ * await snoozeTabs([tabId], snoozeUntil, 'manual'); // reason as string
  */
 export async function snoozeTabs(tabIds, snoozeUntil, options = {}) {
   await ensureInitialized();
@@ -103,12 +202,38 @@ export async function snoozeTabs(tabIds, snoozeUntil, options = {}) {
 }
 
 /**
- * Wakes one or more previously snoozed tabs.
- * @param {string[]} snoozedTabIds - An array of snoozed tab IDs to wake.
- * @param {object} [options={}] - Options for the wake operation.
- * @param {boolean} [options.makeActive=false] - Whether to make the first restored tab active.
- * @param {number} [options.targetWindowId] - Override: specific window to restore to (ignores restorationMode).
- * @returns {Promise<number[]>} The newly created chrome.tabs.Tab IDs.
+ * Wakes (restores) one or more previously snoozed tabs.
+ *
+ * Creates new tabs with the stored URLs and metadata, removes the snoozed tab records
+ * from storage, and clears the associated chrome.alarms. Tabs are restored according
+ * to their restorationMode (original window, current window, or new window).
+ *
+ * Group membership is restored if the original group still exists. The first tab in
+ * the array can optionally be made active (focused) upon restoration.
+ *
+ * @param {string[]} snoozedTabIds - Array of snoozed tab IDs (not chrome tab IDs)
+ * @param {object} [options={}] - Wake operation configuration
+ * @param {boolean} [options.makeActive=true] - Make the first restored tab active (default: true for better UX)
+ * @param {number} [options.targetWindowId] - Override window ID (ignores restorationMode, forces specific window)
+ *
+ * @returns {Promise<number[]>} Array of newly created chrome.tabs.Tab IDs
+ *
+ * @throws {Error} If tab creation fails (error logged, operation continues for remaining tabs)
+ *
+ * @example
+ * // Wake specific snoozed tabs
+ * const snoozedTabIds = ['snoozed_1234567890_123', 'snoozed_1234567890_456'];
+ * const newTabIds = await wakeTabs(snoozedTabIds);
+ * console.log(`Restored ${newTabIds.length} tabs`);
+ *
+ * @example
+ * // Wake to specific window (override restorationMode)
+ * const windowId = 999;
+ * await wakeTabs(snoozedTabIds, { targetWindowId: windowId });
+ *
+ * @example
+ * // Wake without focusing (background restoration)
+ * await wakeTabs(snoozedTabIds, { makeActive: false });
  */
 export async function wakeTabs(snoozedTabIds, options = {}) {
     await ensureInitialized();
@@ -169,8 +294,25 @@ export async function wakeTabs(snoozedTabIds, options = {}) {
 }
 
 /**
- * Retrieves all currently snoozed tabs.
- * @returns {Promise<object[]>} An array of all snoozed tab objects.
+ * Retrieves all currently snoozed tabs from storage.
+ *
+ * Returns a copy of the snoozed tabs array to prevent external mutation of
+ * internal state. Each snoozed tab object contains metadata like URL, title,
+ * favicon, snoozeUntil timestamp, windowSnoozeId, and restorationMode.
+ *
+ * @returns {Promise<object[]>} Array of snoozed tab objects (defensive copy)
+ *
+ * @example
+ * // Get all snoozed tabs for display in UI
+ * const snoozed = await getSnoozedTabs();
+ * snoozed.forEach(tab => {
+ *   console.log(`${tab.title} wakes at ${new Date(tab.snoozeUntil)}`);
+ * });
+ *
+ * @example
+ * // Filter window snoozes
+ * const snoozed = await getSnoozedTabs();
+ * const windowSnoozes = snoozed.filter(tab => tab.windowSnoozeId);
  */
 export async function getSnoozedTabs() {
   await ensureInitialized();
@@ -178,8 +320,27 @@ export async function getSnoozedTabs() {
 }
 
 /**
- * Deletes a snoozed tab entry without waking the tab.
- * @param {string} snoozedTabId - The ID of the snoozed tab to delete.
+ * Deletes a snoozed tab entry without restoring it.
+ *
+ * Removes the snoozed tab record from storage and clears its associated alarm.
+ * This is used when the user wants to cancel a scheduled wake-up without
+ * restoring the tab (e.g., "Delete" button in snoozed tabs UI).
+ *
+ * @param {string} snoozedTabId - The snoozed tab ID to delete (not chrome tab ID)
+ *
+ * @returns {Promise<void>}
+ *
+ * @example
+ * // Delete a snoozed tab permanently
+ * await deleteSnoozedTab('snoozed_1234567890_123');
+ *
+ * @example
+ * // Delete all snoozed tabs for a window
+ * const snoozed = await getSnoozedTabs();
+ * const windowTabs = snoozed.filter(tab => tab.windowSnoozeId === windowSnoozeId);
+ * for (const tab of windowTabs) {
+ *   await deleteSnoozedTab(tab.id);
+ * }
  */
 export async function deleteSnoozedTab(snoozedTabId) {
   await ensureInitialized();
@@ -194,9 +355,27 @@ export async function deleteSnoozedTab(snoozedTabId) {
 
 /**
  * Updates the wake-up time for a snoozed tab.
- * @param {string} snoozedTabId - The ID of the snoozed tab to reschedule.
- * @param {number} newSnoozeUntil - The new timestamp for when the tab should wake up.
- * @returns {Promise<object>} The updated snoozed tab object.
+ *
+ * Changes the snoozeUntil timestamp and updates the chrome.alarm to fire at the
+ * new time. This is used when the user wants to postpone or advance a scheduled
+ * wake-up without canceling and re-snoozing the tab.
+ *
+ * @param {string} snoozedTabId - The snoozed tab ID to reschedule (not chrome tab ID)
+ * @param {number} newSnoozeUntil - New Unix timestamp (milliseconds) for wake-up
+ *
+ * @returns {Promise<object>} Updated snoozed tab object with new snoozeUntil
+ *
+ * @throws {Error} If snoozed tab with specified ID is not found
+ *
+ * @example
+ * // Postpone wake-up by 1 hour
+ * const snoozedTab = (await getSnoozedTabs())[0];
+ * const newTime = snoozedTab.snoozeUntil + (60 * 60 * 1000);
+ * await rescheduleSnoozedTab(snoozedTab.id, newTime);
+ *
+ * @example
+ * // Advance wake-up to now (wake immediately)
+ * await rescheduleSnoozedTab(snoozedTabId, Date.now());
  */
 export async function rescheduleSnoozedTab(snoozedTabId, newSnoozeUntil) {
   const tabIndex = snoozedTabs.findIndex(tab => tab.id === snoozedTabId);
@@ -211,8 +390,33 @@ export async function rescheduleSnoozedTab(snoozedTabId, newSnoozeUntil) {
 }
 
 /**
- * Handles incoming chrome.alarms events.
- * @param {object} alarm - The alarm that fired.
+ * Handles chrome.alarms events for automatic tab wake-ups.
+ *
+ * This function should be called from the chrome.alarms.onAlarm listener in the
+ * background service worker. It processes two types of alarms:
+ *
+ * 1. Precise snooze alarms (snooze_wake_*) - wake specific tabs at scheduled time
+ * 2. Periodic fallback alarm (snooze_periodic_check) - catch missed alarms and cleanup
+ *
+ * The periodic alarm runs every 5 minutes as a fallback in case precise alarms fail
+ * due to service worker restarts or other Chrome API issues.
+ *
+ * @param {object} alarm - Chrome alarm object with name and scheduledTime properties
+ *
+ * @returns {Promise<void>}
+ *
+ * @example
+ * // In background service worker
+ * import * as SnoozeService from './services/execution/SnoozeService.js';
+ *
+ * chrome.alarms.onAlarm.addListener((alarm) => {
+ *   await SnoozeService.handleAlarm(alarm);
+ * });
+ *
+ * @example
+ * // Alarm names
+ * // Precise alarm: "snooze_wake_snoozed_1234567890_123"
+ * // Periodic alarm: "snooze_periodic_check"
  */
 export async function handleAlarm(alarm) {
   await ensureInitialized();

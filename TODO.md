@@ -1352,17 +1352,89 @@ all export/import logic. Main branch had ~817 lines in background + 390 lines in
 
 ---
 
-## Phase 9: Documentation ❌
+## Phase 9: Service Documentation ⏳
 
-### 9.1 Service Documentation ❌
-- [ ] Document each service API
-- [ ] Add JSDoc comments
-- [ ] Create service usage examples
+**Status**: In Progress
+**Priority**: HIGH - Enable efficient onboarding and maintenance
+**Time Estimate**: 12-17 hours
+**Reference**: See `/docs/phase9-service-documentation-prompt.md` for detailed plan
+**Goal**: Create comprehensive documentation for all 15 services
 
-### 9.2 Update Architecture Docs ❌
-- [ ] Update CLAUDE.md with service list
-- [ ] Create service dependency diagram
-- [ ] Document data flow
+### 9.1 Service API Documentation ⏳
+**Time**: 6-8 hours (15 services × 20-30 min each)
+
+#### 9.1.1 HIGH Priority Services ❌
+Complex APIs requiring detailed documentation:
+- [ ] SnoozeService.js (review and enhance existing docs)
+- [ ] WindowService.js
+- [ ] DeduplicationOrchestrator.js
+- [ ] ScheduledExportService.js
+- [ ] ExportImportService.js
+
+#### 9.1.2 MEDIUM Priority Services ❌
+Moderate complexity:
+- [ ] TabActionsService.js
+- [ ] executeSnoozeOperations.js
+- [ ] detectSnoozeOperations.js
+- [ ] selectTabs.js
+
+#### 9.1.3 LOW Priority Services ❌
+Simple services:
+- [ ] BookmarkService.js
+- [ ] SuspensionService.js
+- [ ] groupTabs.js
+- [ ] snoozeFormatters.js
+
+#### Documentation Requirements
+Each service needs:
+- [ ] File-level JSDoc with description, architecture layer, dependencies
+- [ ] Function-level JSDoc with params, returns, throws, examples
+- [ ] Real-world usage examples (common + edge cases)
+
+### 9.2 Service Usage Examples ❌
+**Time**: 3-4 hours
+**File**: `/docs/service-usage-examples.md`
+
+- [ ] Common Patterns section (tab/window/dedupe/export operations)
+- [ ] Cross-Service Workflows (3+ examples)
+  - [ ] Snooze Window with Restoration
+  - [ ] Deduplicate Across All Windows
+  - [ ] Create Scheduled Backup
+- [ ] Error Handling Patterns
+  - [ ] Graceful Degradation examples
+  - [ ] Retry Logic examples
+  - [ ] Cache Consistency examples
+
+### 9.3 Service Dependency Diagram ❌
+**Time**: 2-3 hours
+**File**: `/docs/service-dependencies.md`
+
+- [ ] Document execution services dependencies (no deps vs has deps)
+- [ ] Document selection services dependencies
+- [ ] Create Mermaid dependency graph
+- [ ] Document circular dependencies and how they're managed
+- [ ] List service-to-service dependency rules
+
+### 9.4 Update CLAUDE.md ❌
+**Time**: 1-2 hours
+**File**: `/tabmaster-pro/CLAUDE.md`
+
+- [ ] Add Service Directory section
+- [ ] List all execution services with descriptions
+- [ ] List all selection services with descriptions
+- [ ] List all utility services with descriptions
+- [ ] Document cross-service patterns
+- [ ] Document message passing pattern
+- [ ] Document direct call pattern
+- [ ] Link to service usage examples
+
+### Testing & Validation ❌
+- [ ] All 15 services have comprehensive documentation
+- [ ] All exported functions have complete JSDoc
+- [ ] All code examples tested and working
+- [ ] Service dependency diagram accurate
+- [ ] No services left undocumented
+- [ ] New contributor can understand architecture in < 30 minutes
 
 ---
 
