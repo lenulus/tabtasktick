@@ -1,12 +1,54 @@
 /**
- * @file Manages automatic backup system with scheduled exports to Downloads folder.
- * Creates full snapshots via chrome.downloads API for disaster recovery.
+ * @file ScheduledExportService - Automatic backup system with scheduled snapshots
  *
- * Architecture:
- * - Delegates snapshot creation to ExportImportService
- * - Uses chrome.downloads for unlimited file storage
- * - Tracks only metadata in chrome.storage.local (<5KB)
- * - Follows SnoozeService alarm patterns
+ * @description
+ * The ScheduledExportService provides automatic periodic backups of TabMaster Pro data
+ * to the user's Downloads folder. It implements a "set and forget" backup system that
+ * creates full snapshots (tabs, windows, groups, rules, settings, snoozed tabs) at
+ * configurable intervals (hourly, daily, weekly) with automatic cleanup of old backups.
+ *
+ * The service follows a storage-optimized architecture: backup files are saved to disk
+ * via chrome.downloads API (unlimited storage), while only lightweight metadata (~1KB
+ * per backup) is tracked in chrome.storage.local. This allows tracking dozens of backups
+ * without hitting Chrome's storage quota.
+ *
+ * Key features include manual on-demand backups, retention policy enforcement (keeps last
+ * 5 backups by default), chrome.alarms persistence across browser restarts, and lazy
+ * initialization to handle service worker restarts. The service delegates actual snapshot
+ * creation to ExportImportService (reuses existing export logic) and manages only the
+ * scheduling, download tracking, and cleanup concerns.
+ *
+ * Implemented during Phase 8.4 to provide disaster recovery for power users managing
+ * 200+ tabs across multiple windows.
+ *
+ * @module services/execution/ScheduledExportService
+ *
+ * @architecture
+ * - Layer: Execution Service (Orchestrator)
+ * - Dependencies:
+ *   - ExportImportService (snapshot creation - reuses export logic)
+ *   - chrome.downloads (file storage - unlimited)
+ *   - chrome.alarms (scheduling - persists across restarts)
+ *   - chrome.storage.local (metadata only - <5KB)
+ * - Used By: Background message handlers, Dashboard backup UI
+ * - Pattern: Orchestrator - delegates execution, manages scheduling
+ *
+ * @example
+ * // Enable daily backups at 2:00 AM
+ * import * as ScheduledExportService from './services/execution/ScheduledExportService.js';
+ *
+ * await ScheduledExportService.enableScheduledExports({
+ *   frequency: 'daily',
+ *   time: '02:00',
+ *   retention: 5
+ * });
+ *
+ * @example
+ * // Trigger manual backup immediately
+ * const result = await ScheduledExportService.triggerManualBackup(state, tabTimeData);
+ * if (result.success) {
+ *   console.log(`Backup saved: ${result.filename}`);
+ * }
  */
 
 import * as ExportImportService from '../ExportImportService.js';
@@ -41,8 +83,28 @@ async function ensureInitialized() {
 }
 
 /**
- * Initializes the ScheduledExportService.
- * Sets up alarm listeners and loads configuration.
+ * Initializes the ScheduledExportService on extension startup.
+ *
+ * Loads saved configuration from storage and sets up chrome.alarms if backups
+ * are enabled. Must be called once during background service worker initialization
+ * (both onInstalled and onStartup events).
+ *
+ * The service implements lazy initialization to handle service worker restarts,
+ * but explicit initialization is recommended for proper alarm setup.
+ *
+ * @returns {Promise<void>}
+ *
+ * @example
+ * // In background service worker
+ * import * as ScheduledExportService from './services/execution/ScheduledExportService.js';
+ *
+ * chrome.runtime.onInstalled.addListener(async () => {
+ *   await ScheduledExportService.initialize();
+ * });
+ *
+ * chrome.runtime.onStartup.addListener(async () => {
+ *   await ScheduledExportService.initialize();
+ * });
  */
 export async function initialize() {
   console.log('ScheduledExportService: Initializing...');
@@ -58,12 +120,43 @@ export async function initialize() {
 }
 
 /**
- * Enables scheduled backups with the provided configuration
- * @param {Object} config - Configuration object
- * @param {boolean} config.enabled - Whether backups are enabled
- * @param {string} config.frequency - Backup frequency ('hourly', 'daily', 'weekly')
- * @param {number} config.retention - Number of backups to keep (0 = unlimited)
+ * Enables scheduled backups with specified configuration.
+ *
+ * Sets up chrome.alarms to trigger periodic backups at the configured frequency
+ * and time. Alarms persist across browser restarts. Configuration is saved to
+ * chrome.storage.local for persistence.
+ *
+ * @param {Object} config - Backup configuration
+ * @param {boolean} config.enabled - Whether backups are enabled (forced to true)
+ * @param {string} config.frequency - Backup frequency: 'hourly', 'daily', or 'weekly'
+ * @param {string} [config.time=null] - Time of day in HH:MM format (e.g., '02:00' for 2 AM). If null, uses current time.
+ * @param {number} [config.retention=5] - Number of recent backups to keep (older ones auto-deleted)
+ *
  * @returns {Promise<void>}
+ *
+ * @example
+ * // Daily backups at 2:00 AM, keep last 7
+ * await enableScheduledExports({
+ *   frequency: 'daily',
+ *   time: '02:00',
+ *   retention: 7
+ * });
+ *
+ * @example
+ * // Hourly backups starting now, keep last 24
+ * await enableScheduledExports({
+ *   frequency: 'hourly',
+ *   time: null, // uses current time
+ *   retention: 24
+ * });
+ *
+ * @example
+ * // Weekly backups every Sunday at midnight
+ * await enableScheduledExports({
+ *   frequency: 'weekly',
+ *   time: '00:00',
+ *   retention: 4
+ * });
  */
 export async function enableScheduledExports(config) {
   await ensureInitialized();
@@ -81,8 +174,18 @@ export async function enableScheduledExports(config) {
 }
 
 /**
- * Disables scheduled backups
+ * Disables scheduled backups and clears alarms.
+ *
+ * Stops all scheduled backups by clearing chrome.alarms and updating configuration.
+ * Existing backup files and metadata are preserved - only future automatic backups
+ * are prevented. Manual backups can still be triggered.
+ *
  * @returns {Promise<void>}
+ *
+ * @example
+ * // Stop automatic backups
+ * await disableScheduledExports();
+ * console.log('Automatic backups disabled (existing backups preserved)');
  */
 export async function disableScheduledExports() {
   await ensureInitialized();
@@ -100,8 +203,25 @@ export async function disableScheduledExports() {
 }
 
 /**
- * Gets the current backup configuration
- * @returns {Promise<Object>} Current configuration
+ * Retrieves current backup configuration from storage.
+ *
+ * Returns configuration including enabled status, frequency, time, retention policy,
+ * and timestamp of last successful backup. If no configuration exists, returns default
+ * configuration (disabled, daily, no time set, retain 5 backups).
+ *
+ * @returns {Promise<Object>} Backup configuration
+ * @returns {boolean} return.enabled - Whether scheduled backups are enabled
+ * @returns {string} return.frequency - Backup frequency ('hourly', 'daily', 'weekly')
+ * @returns {string|null} return.time - Scheduled time in HH:MM format (null = use current time)
+ * @returns {number} return.retention - Number of backups to keep
+ * @returns {number|null} return.lastRun - Timestamp of last backup (null if never run)
+ *
+ * @example
+ * // Check current backup settings
+ * const config = await getScheduledExportConfig();
+ * if (config.enabled) {
+ *   console.log(`Backups run ${config.frequency} at ${config.time}, keeping ${config.retention} backups`);
+ * }
  */
 export async function getScheduledExportConfig() {
   const data = await chrome.storage.local.get(CONFIG_KEY);
@@ -109,10 +229,33 @@ export async function getScheduledExportConfig() {
 }
 
 /**
- * Manually triggers a backup immediately
- * @param {Object} state - Export state from background
- * @param {Map} tabTimeData - Tab time tracking data
- * @returns {Promise<Object>} Result with downloadId and metadata
+ * Triggers an immediate manual backup (bypasses schedule).
+ *
+ * Creates a full snapshot and downloads it to the Downloads folder immediately,
+ * regardless of schedule settings. Useful for "Backup Now" buttons in UI or
+ * before major operations. The backup is tracked in history and counts toward
+ * retention policy (may trigger cleanup of old backups).
+ *
+ * @param {Object} state - Export state from background (rules, settings, etc.)
+ * @param {Map} tabTimeData - Tab time tracking data (lastAccessed times)
+ *
+ * @returns {Promise<Object>} Backup result
+ * @returns {boolean} return.success - Whether backup succeeded
+ * @returns {number} [return.downloadId] - Chrome download ID (if successful)
+ * @returns {string} [return.filename] - Generated filename (if successful)
+ * @returns {number} [return.size] - Backup size in bytes (if successful)
+ * @returns {number} [return.tabCount] - Number of tabs backed up (if successful)
+ * @returns {number} [return.windowCount] - Number of windows backed up (if successful)
+ * @returns {string} [return.error] - Error message (if failed)
+ *
+ * @example
+ * // Trigger backup from background message handler
+ * const result = await triggerManualBackup(state, tabTimeData);
+ * if (result.success) {
+ *   console.log(`Manual backup saved: ${result.filename} (${result.tabCount} tabs)`);
+ * } else {
+ *   console.error(`Backup failed: ${result.error}`);
+ * }
  */
 export async function triggerManualBackup(state, tabTimeData) {
   await ensureInitialized();
@@ -129,8 +272,30 @@ export async function triggerManualBackup(state, tabTimeData) {
 }
 
 /**
- * Gets the list of tracked backup downloads
- * @returns {Promise<Array>} Array of backup metadata
+ * Retrieves list of tracked backup downloads from storage.
+ *
+ * Returns metadata for all tracked backups (not the actual files). Each entry
+ * includes download ID, timestamp, filename, size, tab count, window count, and
+ * whether the backup was automatic or manual. Useful for displaying backup history
+ * in Dashboard UI.
+ *
+ * @returns {Promise<Array>} Array of backup metadata objects
+ * @returns {number} return[].downloadId - Chrome download ID
+ * @returns {number} return[].timestamp - Unix timestamp when backup was created
+ * @returns {string} return[].filename - Filename (e.g., 'tabmaster-backup-2025-01-15T14-30-00.json')
+ * @returns {number} return[].size - Backup size in bytes
+ * @returns {number} return[].tabCount - Number of tabs in backup
+ * @returns {number} return[].windowCount - Number of windows in backup
+ * @returns {boolean} return[].automatic - Whether backup was automatic (true) or manual (false)
+ *
+ * @example
+ * // Display backup history in UI
+ * const backups = await getBackupHistory();
+ * backups.forEach(backup => {
+ *   const date = new Date(backup.timestamp);
+ *   const sizeMB = (backup.size / 1024 / 1024).toFixed(2);
+ *   console.log(`${date.toLocaleString()}: ${backup.tabCount} tabs, ${sizeMB} MB`);
+ * });
  */
 export async function getBackupHistory() {
   await ensureInitialized();
@@ -139,10 +304,25 @@ export async function getBackupHistory() {
 }
 
 /**
- * Deletes a backup from tracking and optionally from disk
- * @param {number} downloadId - Chrome download ID
- * @param {boolean} deleteFile - Whether to also delete the file from disk
+ * Deletes a backup from tracking and optionally from disk.
+ *
+ * Removes backup metadata from storage. If deleteFile=true, also removes the
+ * actual backup file from the Downloads folder and Chrome's download history.
+ * This is used for manual deletion ("Delete" button in UI) or automatic cleanup
+ * (retention policy enforcement).
+ *
+ * @param {number} downloadId - Chrome download ID to delete
+ * @param {boolean} [deleteFile=false] - Whether to also delete file from Downloads folder
+ *
  * @returns {Promise<void>}
+ *
+ * @example
+ * // Remove from tracking only (keep file)
+ * await deleteBackup(123, false);
+ *
+ * @example
+ * // Remove from tracking and delete file
+ * await deleteBackup(123, true);
  */
 export async function deleteBackup(downloadId, deleteFile = false) {
   await ensureInitialized();
@@ -168,9 +348,28 @@ export async function deleteBackup(downloadId, deleteFile = false) {
 }
 
 /**
- * Handles alarm events for scheduled backups
- * @param {Object} alarm - Chrome alarm object
+ * Handles chrome.alarms events for scheduled backups and cleanup.
+ *
+ * This function should be called from the chrome.alarms.onAlarm listener in the
+ * background service worker. It processes two types of alarms:
+ *
+ * 1. Scheduled backup alarm (ALARM_NAME) - triggers automatic backup if enabled
+ * 2. Cleanup alarm (ALARM_CLEANUP) - runs daily cleanup of old backups per retention policy
+ *
+ * Alarms persist across browser restarts and service worker restarts via chrome.alarms API.
+ *
+ * @param {Object} alarm - Chrome alarm object with name property
+ * @param {string} alarm.name - Alarm identifier
+ *
  * @returns {Promise<void>}
+ *
+ * @example
+ * // In background service worker
+ * import * as ScheduledExportService from './services/execution/ScheduledExportService.js';
+ *
+ * chrome.alarms.onAlarm.addListener(async (alarm) => {
+ *   await ScheduledExportService.handleAlarm(alarm);
+ * });
  */
 export async function handleAlarm(alarm) {
   await ensureInitialized();
@@ -417,9 +616,43 @@ async function cleanupOldBackups() {
 }
 
 /**
- * Validates that a backup file still exists
- * @param {Object} backup - Backup metadata
+ * Validates that a backup file still exists in the Downloads folder.
+ *
+ * Checks if the backup file referenced by metadata still exists on disk and in
+ * Chrome's download history. Useful for detecting manually deleted files or
+ * detecting when files were moved/renamed outside of TabMaster Pro.
+ *
+ * Returns detailed status including file existence, download history presence,
+ * file path, size, and download state.
+ *
+ * @param {Object} backup - Backup metadata object (from getBackupHistory)
+ * @param {number} backup.downloadId - Chrome download ID to validate
+ *
  * @returns {Promise<Object>} Validation result
+ * @returns {boolean} return.exists - Whether file exists on disk
+ * @returns {boolean} return.inHistory - Whether download ID exists in Chrome history
+ * @returns {string} [return.path] - Full file path (if in history)
+ * @returns {number} [return.fileSize] - Actual file size in bytes (if in history)
+ * @returns {string} [return.state] - Download state: 'complete', 'interrupted', etc. (if in history)
+ *
+ * @example
+ * // Check if backup file still exists
+ * const backups = await getBackupHistory();
+ * const backup = backups[0];
+ * const validation = await validateBackup(backup);
+ * if (!validation.exists) {
+ *   console.log('Backup file was deleted manually');
+ * }
+ *
+ * @example
+ * // Validate all backups and find missing files
+ * const backups = await getBackupHistory();
+ * for (const backup of backups) {
+ *   const validation = await validateBackup(backup);
+ *   if (!validation.exists) {
+ *     console.warn(`Missing: ${backup.filename}`);
+ *   }
+ * }
  */
 export async function validateBackup(backup) {
   const downloads = await chrome.downloads.search({ id: backup.downloadId });
