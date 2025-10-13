@@ -16,6 +16,9 @@ import { getCategoriesForDomain } from './lib/domain-categories.js';
 import { detectSnoozeOperations } from './services/selection/detectSnoozeOperations.js';
 import { executeSnoozeOperations } from './services/execution/executeSnoozeOperations.js';
 
+// Phase 8.4: Import ScheduledExportService for automatic backups
+import * as ScheduledExportService from './services/execution/ScheduledExportService.js';
+
 console.log('Background service worker loaded with Rules Engine V2');
 
 // Get the engine's functions (V2 only)
@@ -359,6 +362,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   await loadDomainCategories();
   await initializeExtension();
   await SnoozeService.initialize();
+  await ScheduledExportService.initialize(); // Phase 8.4: Initialize automatic backups
   await setupContextMenus();
   await loadSettings();
   await loadRules();
@@ -373,6 +377,7 @@ chrome.runtime.onStartup.addListener(async () => {
   await loadSettings();
   await loadRules();
   await SnoozeService.initialize();
+  await ScheduledExportService.initialize(); // Phase 8.4: Initialize automatic backups
   await loadActivityLog();
   await initializeTabTimeTracking();
   await initializeScheduler();
@@ -1540,6 +1545,61 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse(importResult);
           break;
 
+        // Scheduled Backup Operations (Phase 8.4)
+        case 'getScheduledExportConfig':
+          const config = await ScheduledExportService.getScheduledExportConfig();
+          sendResponse({ config });
+          break;
+
+        case 'enableScheduledExports':
+          await ScheduledExportService.enableScheduledExports(request.config);
+          sendResponse({ success: true });
+          break;
+
+        case 'disableScheduledExports':
+          await ScheduledExportService.disableScheduledExports();
+          sendResponse({ success: true });
+          break;
+
+        case 'triggerManualBackup':
+          const exportState = {
+            rules: state.rules,
+            snoozedTabs: await SnoozeService.getSnoozedTabs(),
+            settings: state.settings,
+            statistics: state.statistics
+          };
+          const backupResult = await ScheduledExportService.triggerManualBackup(exportState, tabTimeData);
+          sendResponse(backupResult);
+          break;
+
+        case 'getBackupHistory':
+          const backups = await ScheduledExportService.getBackupHistory();
+          sendResponse({ backups });
+          break;
+
+        case 'deleteBackup':
+          await ScheduledExportService.deleteBackup(request.downloadId, request.deleteFile);
+          sendResponse({ success: true });
+          break;
+
+        case 'getExportState':
+          // Return FULL state for creating complete snapshots
+          sendResponse({
+            state: {
+              rules: state.rules,
+              snoozedTabs: await SnoozeService.getSnoozedTabs(),
+              settings: state.settings,
+              statistics: state.statistics
+            },
+            tabTimeData
+          });
+          break;
+
+        case 'validateBackup':
+          const validation = await ScheduledExportService.validateBackup(request.backup);
+          sendResponse(validation);
+          break;
+
         default:
           sendResponse({ error: 'Unknown action' });
       }
@@ -1826,24 +1886,24 @@ async function setupContextMenus() {
     contexts: ['page']
   });
 
-  // Export menu
+  // Backup menu
   chrome.contextMenus.create({
     id: 'export',
-    title: 'Export Tabs',
+    title: 'Backup Tabs',
     contexts: ['page']
   });
 
   chrome.contextMenus.create({
     id: 'export-current-window',
     parentId: 'export',
-    title: 'Export Current Window',
+    title: 'Backup Current Window',
     contexts: ['page']
   });
 
   chrome.contextMenus.create({
     id: 'export-all-windows',
     parentId: 'export',
-    title: 'Export All Windows',
+    title: 'Backup All Windows',
     contexts: ['page']
   });
 
@@ -2140,6 +2200,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   } else if (alarm.name.startsWith('rule-repeat:')) {
     const ruleId = alarm.name.substring('rule-repeat:'.length);
     await onSchedulerTrigger({ ruleId, type: 'repeat' });
+  } else if (alarm.name === 'scheduled_backup' || alarm.name === 'scheduled_backup_cleanup') {
+    // Phase 8.4: Delegate to ScheduledExportService
+    await ScheduledExportService.handleAlarm(alarm);
   }
 });
 

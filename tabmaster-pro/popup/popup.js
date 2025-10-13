@@ -1092,11 +1092,11 @@ function openCommandPalette() {
 }
 
 // ============================================================================
-// Export/Import Modal Functions
+// Backup/Restore Modal Functions
 // ============================================================================
 
 async function openExportModal() {
-  // Open dashboard with export/import view
+  // Open dashboard with backup/restore view
   const dashboardUrl = chrome.runtime.getURL('dashboard/dashboard.html#export-import');
   chrome.tabs.create({ url: dashboardUrl });
   window.close();
@@ -1192,9 +1192,9 @@ async function handleExport() {
   }
 }
 
-// Import Modal Functions
+// Restore Modal Functions
 async function openImportModal() {
-  // Open dashboard with export/import view
+  // Open dashboard with backup/restore view
   const dashboardUrl = chrome.runtime.getURL('dashboard/dashboard.html#export-import');
   chrome.tabs.create({ url: dashboardUrl });
   window.close();

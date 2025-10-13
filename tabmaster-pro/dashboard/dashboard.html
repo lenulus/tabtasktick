@@ -78,7 +78,7 @@
             <line x1="12" y1="15" x2="12" y2="3"></line>
             <polyline points="17 8 12 3 7 8"></polyline>
           </svg>
-          Export/Import
+          Backup & Restore
         </a>
       </nav>
       
@@ -449,15 +449,15 @@
       <!-- Export/Import View -->
       <div class="view" id="export-import">
         <div class="view-header">
-          <h1>Export & Import Data</h1>
+          <h1>Backup & Restore</h1>
         </div>
 
         <div class="view-content">
           <div class="export-import-container">
-            <!-- Export Section -->
+            <!-- Create Backup Section (Left Column) -->
             <div class="data-section">
-              <h2>Export Your Data</h2>
-              <p class="section-description">Create a backup of your tabs, groups, rules, and settings.</p>
+              <h2>Create Backup</h2>
+              <p class="section-description">Save your tabs, groups, rules, and settings.</p>
 
               <div class="export-options">
                 <div class="option-group">
@@ -501,22 +501,22 @@
                 </div>
 
                 <div class="option-group">
-                  <h3>Export Format</h3>
+                  <h3>Format</h3>
                   <div class="radio-group">
                     <label class="radio-option">
                       <input type="radio" name="exportFormat" value="json" id="formatJSON" checked>
-                      <span>TabMaster JSON (.json)</span>
-                      <small>Full backup/restore capability</small>
+                      <span>Full Backup (.json)</span>
+                      <small>Complete backup - can be restored</small>
                     </label>
                     <label class="radio-option">
                       <input type="radio" name="exportFormat" value="csv" id="formatCSV">
-                      <span>CSV - Tabs only (.csv)</span>
-                      <small>For spreadsheet analysis</small>
+                      <span>Spreadsheet (.csv)</span>
+                      <small>For Excel/Google Sheets analysis</small>
                     </label>
                     <label class="radio-option">
                       <input type="radio" name="exportFormat" value="markdown" id="formatMarkdown">
-                      <span>Markdown - Documentation (.md)</span>
-                      <small>Human-readable documentation</small>
+                      <span>Document (.md)</span>
+                      <small>Human-readable list</small>
                     </label>
                   </div>
                 </div>
@@ -527,15 +527,17 @@
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                   </svg>
-                  Export Data
+                  Backup Now
                 </button>
               </div>
             </div>
 
-            <!-- Import Section -->
-            <div class="data-section">
-              <h2>Import Your Data</h2>
-              <p class="section-description">Restore tabs, groups, rules, and settings from a backup.</p>
+            <!-- Right Column: Restore + Scheduled Backups -->
+            <div class="right-column">
+              <!-- Restore from Backup Section -->
+              <div class="data-section">
+              <h2>Restore from Backup</h2>
+              <p class="section-description">Restore tabs, groups, rules, and settings from a previous backup.</p>
 
               <div class="import-options">
                 <!-- File Drop Zone -->
@@ -634,8 +636,48 @@
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                       </svg>
-                      Import Data
+                      Restore Backup
                     </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+              <!-- Scheduled Backups Section -->
+              <div class="data-section">
+                <h2>Scheduled Backups</h2>
+                <p class="section-description">Automatically create full backups on a schedule for disaster recovery.</p>
+
+                <div class="backup-config">
+                  <!-- Backup Settings -->
+                  <div class="backup-settings">
+                    <div class="setting-item">
+                      <label class="switch">
+                        <input type="checkbox" id="toggleBackups">
+                        <span class="slider"></span>
+                      </label>
+                      <span>Enable automatic backups</span>
+                      <span id="nextBackupTime" style="margin-left: auto; color: #666; font-size: 13px;">--</span>
+                    </div>
+
+                    <div class="setting-row">
+                      <label for="backupFrequency">Frequency:</label>
+                      <select id="backupFrequency">
+                        <option value="hourly">Hourly</option>
+                        <option value="daily" selected>Daily</option>
+                        <option value="weekly">Weekly</option>
+                      </select>
+                      <label for="backupTime" style="margin-left: 16px;">Time:</label>
+                      <input type="time" id="backupTime">
+                    </div>
+
+                    <!-- Backup History -->
+                    <div class="backup-history-section">
+                      <h3>Recent Backups</h3>
+                      <div id="backupHistoryList" class="backup-history">
+                        <div class="loading">Loading backup history...</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -224,6 +224,11 @@ function switchView(view, filter = null) {
     case 'rules':
       loadRulesView();
       break;
+    case 'export-import':
+      if (typeof initializeExportImport === 'function') {
+        initializeExportImport();
+      }
+      break;
   }
 }
 
