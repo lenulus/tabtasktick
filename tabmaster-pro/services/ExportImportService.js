@@ -1,3 +1,66 @@
+/**
+ * @file ExportImportService - Data export/import in multiple formats with session restoration
+ *
+ * @description
+ * The ExportImportService handles all data export and import operations for TabMaster Pro,
+ * supporting three output formats (JSON, CSV, Markdown) and providing complete session
+ * restoration capabilities. It exports full snapshots including tabs, windows, groups, rules,
+ * settings, snoozed tabs, and statistics, and can restore complete browser sessions from
+ * these snapshots.
+ *
+ * Key features include scope control (all windows vs current window), format selection
+ * (structured JSON for backups, CSV for analysis, Markdown for readability), comprehensive
+ * window restoration (creates new windows with preserved metadata), group restoration (recreates
+ * tab groups with titles/colors), and snoozed tab restoration via SnoozeService integration.
+ *
+ * The service implements the 137-line battle-tested window creation logic that is reused by
+ * WindowService for window snooze restoration. It handles complex edge cases like default tab
+ * removal, group recreation across windows, error recovery for partial imports, and ID remapping
+ * (old window/group IDs → new IDs after restoration).
+ *
+ * Export formats:
+ * - JSON: Complete structured data for backups and restoration (default)
+ * - CSV: Flat tab list for spreadsheet analysis
+ * - Markdown: Human-readable session summary with tables and statistics
+ *
+ * Import scopes:
+ * - 'new-windows': Create new windows for each window in import (preserves structure)
+ * - 'current-window': Import all tabs into current window (flattens structure)
+ * - 'replace-all': Close all tabs in current window, then import
+ *
+ * @module services/ExportImportService
+ *
+ * @architecture
+ * - Layer: Execution Service (Data Management)
+ * - Dependencies:
+ *   - SnoozeService (snoozed tab restoration)
+ *   - chrome.tabs (tab creation/query)
+ *   - chrome.windows (window creation/management)
+ *   - chrome.tabGroups (group creation/management)
+ * - Used By: Background handlers, Dashboard export/import UI, ScheduledExportService, WindowService
+ * - Reused By: WindowService (window restoration logic)
+ *
+ * @example
+ * // Export all windows as JSON
+ * import * as ExportImportService from './services/ExportImportService.js';
+ *
+ * const exportData = await ExportImportService.exportData(
+ *   { scope: 'all-windows', format: 'json', includeRules: true },
+ *   state,
+ *   tabTimeData
+ * );
+ *
+ * @example
+ * // Import session to new windows
+ * const result = await ExportImportService.importData(
+ *   importData,
+ *   { scope: 'new-windows', importGroups: true },
+ *   state,
+ *   loadRules,
+ *   scheduler
+ * );
+ * console.log(`Restored ${result.imported.tabs} tabs in ${result.imported.windows} windows`);
+ */
 // Service for handling all export and import functionality.
 import * as SnoozeService from './execution/SnoozeService.js';
 
@@ -316,6 +379,72 @@ async function buildMarkdownExport(tabs, windows, groups, options, state) {
   return { markdown, format: 'markdown' };
 }
 
+/**
+ * Exports browser session data in specified format.
+ *
+ * Creates a complete snapshot of the current browser state including tabs, windows,
+ * groups, rules, settings, snoozed tabs, and statistics. Supports three output formats
+ * optimized for different use cases. The export can be scoped to all windows or just
+ * the current window.
+ *
+ * JSON format includes complete structured data suitable for backups and restoration.
+ * CSV format provides a flat tab list suitable for spreadsheet analysis. Markdown
+ * format creates a human-readable report with tables and statistics.
+ *
+ * @param {Object} [options={}] - Export configuration
+ * @param {string} [options.scope='all-windows'] - Export scope: 'all-windows' or 'current-window'
+ * @param {string} [options.format='json'] - Output format: 'json', 'csv', or 'markdown'
+ * @param {number} [options.currentWindowId=null] - Window ID (required if scope='current-window')
+ * @param {boolean} [options.includeRules=false] - Include automation rules in export
+ * @param {boolean} [options.includeSnoozed=false] - Include snoozed tabs in export
+ * @param {boolean} [options.includeSettings=false] - Include extension settings in export
+ * @param {boolean} [options.includeStatistics=false] - Include usage statistics in export
+ * @param {Object} state - Background state object (rules, settings)
+ * @param {Map} tabTimeData - Tab time tracking data (created/lastAccessed times)
+ *
+ * @returns {Promise<Object>} Export result
+ * @returns {Object} return.session - Session data (tabs, windows, groups)
+ * @returns {Array} return.session.tabs - Tab objects with metadata
+ * @returns {Array} return.session.windows - Window objects with metadata
+ * @returns {Array} return.session.groups - Group objects with colors/titles
+ * @returns {Array} [return.rules] - Automation rules (if includeRules=true)
+ * @returns {Array} [return.snoozedTabs] - Snoozed tabs (if includeSnoozed=true)
+ * @returns {Object} [return.settings] - Extension settings (if includeSettings=true)
+ * @returns {Object} [return.statistics] - Usage stats (if includeStatistics=true)
+ * @returns {Object} return.meta - Export metadata (date, version, counts)
+ * @returns {string} [return.format] - Format identifier (for CSV/Markdown)
+ *
+ * @example
+ * // Full backup export (JSON)
+ * const backup = await exportData(
+ *   {
+ *     scope: 'all-windows',
+ *     format: 'json',
+ *     includeRules: true,
+ *     includeSnoozed: true,
+ *     includeSettings: true,
+ *     includeStatistics: true
+ *   },
+ *   state,
+ *   tabTimeData
+ * );
+ *
+ * @example
+ * // CSV export for analysis
+ * const csv = await exportData(
+ *   { scope: 'all-windows', format: 'csv' },
+ *   state,
+ *   tabTimeData
+ * );
+ *
+ * @example
+ * // Markdown report for current window
+ * const report = await exportData(
+ *   { scope: 'current-window', format: 'markdown', currentWindowId: 123 },
+ *   state,
+ *   tabTimeData
+ * );
+ */
 export async function exportData(options = {}, state, tabTimeData) {
   const {
     scope = 'all-windows',
@@ -538,6 +667,100 @@ async function importSnoozedTabs(snoozedTabs) {
   return result;
 }
 
+/**
+ * Imports browser session data from export file.
+ *
+ * Restores a complete browser session from export data, including tabs, windows, groups,
+ * rules, and snoozed tabs. Supports three import scopes that control how the session is
+ * restored. Implements the 137-line battle-tested window creation logic that handles
+ * complex edge cases like default tab removal, group recreation, and ID remapping.
+ *
+ * Import process:
+ * 1. Validate import data structure
+ * 2. Handle scope-specific preparation (replace-all closes existing windows)
+ * 3. Create windows and restore tabs with metadata
+ * 4. Recreate groups with titles/colors (if importGroups=true)
+ * 5. Restore snoozed tabs via SnoozeService (if shouldImportSnoozed=true)
+ * 6. Import automation rules (if shouldImportRules=true)
+ * 7. Import settings (if importSettings=true)
+ *
+ * The function provides detailed results including success/failure status, counts of
+ * imported items, error messages, and warnings. Partial imports are supported - some
+ * items can succeed while others fail.
+ *
+ * @param {Object} data - Export data (from exportData function)
+ * @param {Object} data.session - Session data (required)
+ * @param {Array} data.session.tabs - Tab objects to restore
+ * @param {Array} data.session.windows - Window objects to create
+ * @param {Array} data.session.groups - Group objects to recreate
+ * @param {Object} [data.extensionData] - Extension data (rules, snoozed tabs, settings)
+ * @param {Array} [data.extensionData.rules] - Automation rules
+ * @param {Array} [data.extensionData.snoozedTabs] - Snoozed tabs
+ * @param {Object} [data.extensionData.settings] - Extension settings
+ * @param {Object} [options={}] - Import configuration
+ * @param {string} [options.scope='new-windows'] - Import scope: 'new-windows', 'current-window', or 'replace-all'
+ * @param {boolean} [options.importGroups=true] - Whether to recreate tab groups
+ * @param {boolean} [options.shouldImportRules=true] - Whether to import automation rules
+ * @param {boolean} [options.shouldImportSnoozed=true] - Whether to restore snoozed tabs
+ * @param {boolean} [options.importSettings=false] - Whether to import extension settings
+ * @param {Object} state - Background state object (for rules/settings)
+ * @param {Function} loadRules - Function to reload rules from storage
+ * @param {Object} scheduler - Scheduler object (for rule setup)
+ *
+ * @returns {Promise<Object>} Import result
+ * @returns {boolean} return.success - Whether import succeeded overall
+ * @returns {Object} return.imported - Counts of imported items
+ * @returns {number} return.imported.windows - Number of windows created
+ * @returns {number} return.imported.tabs - Number of tabs restored
+ * @returns {number} return.imported.groups - Number of groups recreated
+ * @returns {number} return.imported.rules - Number of rules imported
+ * @returns {number} return.imported.snoozed - Number of snoozed tabs restored
+ * @returns {Array<string>} return.errors - Error messages (empty if no errors)
+ * @returns {Array<string>} return.warnings - Warning messages (non-fatal issues)
+ *
+ * @throws {Error} If import data is invalid or missing required fields
+ *
+ * @example
+ * // Import to new windows (preserves structure)
+ * const result = await importData(
+ *   exportData,
+ *   { scope: 'new-windows', importGroups: true },
+ *   state,
+ *   loadRules,
+ *   scheduler
+ * );
+ * console.log(`Imported ${result.imported.tabs} tabs in ${result.imported.windows} windows`);
+ *
+ * @example
+ * // Import to current window (flatten structure)
+ * const result = await importData(
+ *   exportData,
+ *   { scope: 'current-window', importGroups: false },
+ *   state,
+ *   loadRules,
+ *   scheduler
+ * );
+ *
+ * @example
+ * // Replace all windows (destructive)
+ * const result = await importData(
+ *   exportData,
+ *   { scope: 'replace-all', importGroups: true },
+ *   state,
+ *   loadRules,
+ *   scheduler
+ * );
+ *
+ * @example
+ * // Handle partial import with errors
+ * const result = await importData(exportData, options, state, loadRules, scheduler);
+ * if (result.errors.length > 0) {
+ *   console.warn(`${result.errors.length} errors during import:`, result.errors);
+ * }
+ * if (result.warnings.length > 0) {
+ *   console.info(`${result.warnings.length} warnings:`, result.warnings);
+ * }
+ */
 export async function importData(data, options = {}, state, loadRules, scheduler) {
   const {
     scope = 'new-windows',
