@@ -1,24 +1,92 @@
 /**
- * Snooze UI Formatting Utilities
+ * @file snoozeFormatters - UI text formatting for snooze operations
  *
- * Pure formatting functions for snooze-related UI text.
- * No business logic, no Chrome API calls - just string formatting.
+ * @description
+ * The snoozeFormatters service provides pure formatting functions for snooze-related
+ * UI text. These functions convert operation data (from detectSnoozeOperations) into
+ * human-readable strings for display in confirmation dialogs, modal titles, button labels,
+ * and status messages.
+ *
+ * All functions are pure - they have no side effects, make no Chrome API calls, and contain
+ * no business logic. They only perform string interpolation and pluralization based on
+ * operation counts. This makes them easy to test, reusable across UI surfaces, and
+ * decoupled from service logic.
+ *
+ * The formatters handle various snooze scenarios:
+ * - Single window (complete): "Snooze Window: github.com (5 tabs)"
+ * - Single window (partial): "Snooze 3 Tabs"
+ * - Multiple windows: "Snooze 2 Windows"
+ * - Mixed (windows + tabs): "Snooze Window 1 and 2 Other Tabs"
+ *
+ * @module services/utils/snoozeFormatters
+ *
+ * @architecture
+ * - Layer: Utility Service (Presentation Helpers)
+ * - Dependencies: None (pure functions)
+ * - Used By: Dashboard snooze modal, popup snooze dialog, confirmation messages
+ * - Pattern: Pure formatters - no side effects, deterministic output
+ *
+ * @example
+ * // Format modal title from operations
+ * import { formatSnoozeTitle } from './services/utils/snoozeFormatters.js';
+ * import { detectSnoozeOperations } from './services/selection/detectSnoozeOperations.js';
+ *
+ * const { operations, summary } = await detectSnoozeOperations([123, 456]);
+ * const title = formatSnoozeTitle({ operations, summary });
+ * console.log(title); // "Snooze 2 Tabs"
+ *
+ * @example
+ * // Format description for confirmation dialog
+ * import { formatSnoozeDescription } from './services/utils/snoozeFormatters.js';
+ *
+ * const description = formatSnoozeDescription({ operations, summary });
+ * console.log(description); // "This will snooze 2 tabs from the current window"
  */
 
 /**
- * Formats a title for the snooze modal based on the operations to be performed.
+ * Formats modal title text describing what will be snoozed.
  *
- * @param {Object} params
- * @param {SnoozeOperation[]} params.operations - Operations from detectSnoozeOperations
- * @param {OperationSummary} params.summary - Summary from detectSnoozeOperations
- * @returns {string} - Formatted modal title
+ * Generates concise, human-readable titles for snooze confirmation dialogs based on
+ * operation type and count. Handles five distinct scenarios with appropriate phrasing
+ * and pluralization. Window titles include the window's identifying info (e.g., domain).
  *
- * Examples:
- * - "Snooze Window 1"
- * - "Snooze 3 Tabs"
- * - "Snooze Window 1 and 2 Other Tabs"
- * - "Snooze 2 Windows"
- * - "Snooze 2 Windows and 5 Other Tabs"
+ * @param {Object} params - Operation data from detectSnoozeOperations
+ * @param {SnoozeOperation[]} params.operations - Array of detected operations
+ * @param {OperationSummary} params.summary - Aggregate operation summary
+ *
+ * @returns {string} Formatted modal title
+ *
+ * @example
+ * // Single complete window
+ * formatSnoozeTitle({
+ *   operations: [{ type: 'window', windowTitle: 'github.com (5 tabs)' }],
+ *   summary: { windowCount: 1, individualTabCount: 0, isSingleWindow: true }
+ * });
+ * // → "Snooze Window: github.com (5 tabs)"
+ *
+ * @example
+ * // Partial window (some tabs)
+ * formatSnoozeTitle({
+ *   operations: [{ type: 'tabs', tabIds: [1, 2, 3] }],
+ *   summary: { windowCount: 0, individualTabCount: 3, isSingleWindow: true }
+ * });
+ * // → "Snooze 3 Tabs"
+ *
+ * @example
+ * // Multiple windows
+ * formatSnoozeTitle({
+ *   operations: [{ type: 'window' }, { type: 'window' }],
+ *   summary: { windowCount: 2, individualTabCount: 0 }
+ * });
+ * // → "Snooze 2 Windows"
+ *
+ * @example
+ * // Mixed (windows + tabs)
+ * formatSnoozeTitle({
+ *   operations: [{ type: 'window' }, { type: 'tabs', tabIds: [1, 2] }],
+ *   summary: { windowCount: 1, individualTabCount: 2 }
+ * });
+ * // → "Snooze Window 1 and 2 Other Tabs"
  */
 export function formatSnoozeTitle({ operations, summary }) {
   const { windowCount, individualTabCount, isSingleWindow, isMixed } = summary;
@@ -53,17 +121,42 @@ export function formatSnoozeTitle({ operations, summary }) {
 }
 
 /**
- * Formats a description of what will be snoozed for confirmation UI.
+ * Formats detailed confirmation text describing what will be snoozed.
  *
- * @param {Object} params
- * @param {SnoozeOperation[]} params.operations - Operations from detectSnoozeOperations
- * @param {OperationSummary} params.summary - Summary from detectSnoozeOperations
- * @returns {string} - Formatted description
+ * Generates longer, more explicit confirmation text for dialogs that need detailed
+ * descriptions. Includes tab counts for windows and clarifies context (e.g., "from
+ * the current window" for single-window operations).
  *
- * Examples:
- * - "This will snooze 1 window (5 tabs)"
- * - "This will snooze 3 tabs from the current window"
- * - "This will snooze 2 windows (12 tabs) and 3 other tabs"
+ * @param {Object} params - Operation data from detectSnoozeOperations
+ * @param {SnoozeOperation[]} params.operations - Array of detected operations
+ * @param {OperationSummary} params.summary - Aggregate operation summary
+ *
+ * @returns {string} Formatted confirmation description starting with "This will snooze..."
+ *
+ * @example
+ * formatSnoozeDescription({
+ *   operations: [{ type: 'window', tabCount: 5 }],
+ *   summary: { windowCount: 1, totalTabs: 5 }
+ * });
+ * // → "This will snooze 1 window (5 tabs)"
+ *
+ * @example
+ * formatSnoozeDescription({
+ *   operations: [{ type: 'tabs', tabCount: 3 }],
+ *   summary: { windowCount: 0, individualTabCount: 3, isSingleWindow: true }
+ * });
+ * // → "This will snooze 3 tabs from the current window"
+ *
+ * @example
+ * formatSnoozeDescription({
+ *   operations: [
+ *     { type: 'window', tabCount: 8 },
+ *     { type: 'window', tabCount: 4 },
+ *     { type: 'tabs', tabCount: 3 }
+ *   ],
+ *   summary: { windowCount: 2, individualTabCount: 3 }
+ * });
+ * // → "This will snooze 2 windows (12 tabs) and 3 other tabs"
  */
 export function formatSnoozeDescription({ operations, summary }) {
   const { windowCount, individualTabCount, totalTabs, isSingleWindow } = summary;
@@ -92,15 +185,26 @@ export function formatSnoozeDescription({ operations, summary }) {
 }
 
 /**
- * Formats the operation count for button labels.
+ * Formats operation count for compact button labels.
  *
- * @param {OperationSummary} summary - Summary from detectSnoozeOperations
- * @returns {string} - Count label for button
+ * Generates short count labels suitable for buttons with limited space. Uses "+" separator
+ * for mixed operations to keep labels concise.
  *
- * Examples:
- * - "1 Window"
- * - "5 Tabs"
- * - "2 Windows + 3 Tabs"
+ * @param {OperationSummary} summary - Operation summary from detectSnoozeOperations
+ *
+ * @returns {string} Compact count label with proper pluralization
+ *
+ * @example
+ * formatOperationCount({ windowCount: 1, individualTabCount: 0 });
+ * // → "1 Window"
+ *
+ * @example
+ * formatOperationCount({ windowCount: 0, individualTabCount: 5 });
+ * // → "5 Tabs"
+ *
+ * @example
+ * formatOperationCount({ windowCount: 2, individualTabCount: 3 });
+ * // → "2 Windows + 3 Tabs"
  */
 export function formatOperationCount(summary) {
   const { windowCount, individualTabCount } = summary;
@@ -117,10 +221,26 @@ export function formatOperationCount(summary) {
 }
 
 /**
- * Formats restoration mode for display in UI.
+ * Formats restoration mode into human-readable text.
  *
- * @param {string} mode - Restoration mode ('original', 'current', 'new')
- * @returns {string} - Human-readable description
+ * Converts technical restoration mode values into user-friendly descriptions for
+ * dropdowns, tooltips, and confirmation dialogs.
+ *
+ * @param {string} mode - Restoration mode: 'original' | 'current' | 'new'
+ *
+ * @returns {string} Human-readable mode description
+ *
+ * @example
+ * formatRestorationMode('original');
+ * // → "Back to original window"
+ *
+ * @example
+ * formatRestorationMode('current');
+ * // → "To current window"
+ *
+ * @example
+ * formatRestorationMode('new');
+ * // → "In new window"
  */
 export function formatRestorationMode(mode) {
   const descriptions = {

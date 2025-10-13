@@ -1,20 +1,155 @@
-// services/execution/groupTabs.js
-// Execution-only service for grouping tabs
-// Takes tab IDs and groups them - no selection logic
+/**
+ * @file groupTabs - Tab grouping with domain-based and custom naming
+ *
+ * @description
+ * The groupTabs service provides tab grouping functionality using Chrome's native tab
+ * groups API. It supports two primary grouping modes: domain-based grouping (automatic
+ * organization by website) and custom naming (manual group naming).
+ *
+ * The service is execution-layer only - it acts on provided tab IDs without performing
+ * any selection logic. Callers are responsible for selecting which tabs to group, typically
+ * through selectTabs filters or user selection in UI.
+ *
+ * Key features include window boundary respect (perWindow option prevents cross-window
+ * grouping), group reuse (adds tabs to existing groups with matching names), focus
+ * management (prevents unexpected window focus changes), and dry-run preview mode.
+ *
+ * The service handles complex Chrome API quirks around window focus during group operations.
+ * Chrome's tab.group API has unintuitive behavior: creating or adding to groups in non-focused
+ * windows can steal focus or move tabs unexpectedly. The service carefully manages window
+ * focus, switching to target windows during operations and restoring original focus afterward.
+ *
+ * @module services/execution/groupTabs
+ *
+ * @architecture
+ * - Layer: Execution Service (Complex Operations)
+ * - Dependencies: chrome.tabs.group API, chrome.tabGroups API, chrome.windows API
+ * - Used By: Rules engine, dashboard bulk actions, popup quick actions
+ * - Pattern: Plan-then-execute with focus management
+ *
+ * @example
+ * // Group tabs by domain in current window
+ * import { groupTabs } from './services/execution/groupTabs.js';
+ *
+ * const result = await groupTabs([123, 456, 789], {
+ *   byDomain: true,
+ *   perWindow: true
+ * });
+ *
+ * console.log(`Created ${result.summary.groupsCreated} groups`);
+ *
+ * @example
+ * // Group all tabs under custom name
+ * const result = await groupTabs([123, 456], {
+ *   customName: 'Important Work',
+ *   perWindow: false // Allow cross-window grouping
+ * });
+ */
 
 /**
- * Group provided tabs by domain or custom criteria.
- * This is an execution-only service - it acts on provided tab IDs.
+ * Groups tabs by domain or custom name with configurable options.
  *
- * @param {number[]} tabIds - Array of tab IDs to group
- * @param {Object} options - Grouping options
- * @param {boolean} [options.byDomain=true] - Group by domain
- * @param {string} [options.customName] - Use custom group name instead of domain
- * @param {boolean} [options.perWindow=true] - Respect window boundaries
+ * This is the main grouping function that takes tab IDs and creates/updates Chrome tab
+ * groups based on the specified strategy. The function operates in two modes:
+ *
+ * 1. **Domain-based grouping** (byDomain: true): Automatically groups tabs by their domain
+ *    (e.g., all github.com tabs in one group, all reddit.com tabs in another). Group names
+ *    are derived from domain names. Single-tab domains are skipped (no point grouping alone).
+ *
+ * 2. **Custom naming** (customName provided): Groups all tabs under a single custom name,
+ *    regardless of their domains. Useful for manual organization like "Project X" or "Research".
+ *
+ * The perWindow option controls cross-window behavior:
+ * - perWindow: true (default) - Respects window boundaries, creates separate groups per window
+ * - perWindow: false - Allows cross-window grouping, may move tabs to consolidate groups
+ *
+ * The service implements a plan-then-execute pattern: it first analyzes which groups to create
+ * or reuse, then executes the plan. The plan is returned in results for dry-run preview.
+ *
+ * Focus management is critical: Chrome's grouping API has quirks where operations in non-focused
+ * windows can steal focus or move tabs unexpectedly. The service handles this by temporarily
+ * switching focus to target windows during operations, then restoring original focus.
+ *
+ * @param {number[]} tabIds - Array of Chrome tab IDs to group
+ * @param {Object} [options={}] - Grouping configuration options
+ * @param {boolean} [options.byDomain=true] - Group tabs by their domain names
+ * @param {string} [options.customName] - Custom group name (overrides byDomain if provided)
+ * @param {boolean} [options.perWindow=true] - Respect window boundaries (no cross-window grouping)
  * @param {boolean} [options.collapsed=false] - Collapse groups after creation
- * @param {boolean} [options.dryRun=false] - Preview without executing
- * @param {number} [options.callerWindowId] - Window ID to restore focus to after grouping
- * @returns {Promise<{success: boolean, results: Array, plan: Array, error?: string}>}
+ * @param {boolean} [options.dryRun=false] - Preview mode - returns plan without executing
+ * @param {number} [options.callerWindowId] - Window ID to restore focus to (overrides auto-detection)
+ *
+ * @returns {Promise<GroupResult>} Result object with execution details and summary
+ *
+ * @typedef {Object} GroupResult
+ * @property {boolean} success - True if grouping completed successfully
+ * @property {GroupStepResult[]} results - Results from each grouping step executed
+ * @property {GroupStep[]} plan - Execution plan (what groups will be created/reused)
+ * @property {GroupSummary} summary - Aggregate statistics about the operation
+ * @property {string} [error] - Error message if operation failed
+ *
+ * @typedef {Object} GroupStepResult
+ * @property {boolean} success - Whether this step succeeded
+ * @property {string} action - Action taken: 'create' | 'reuse'
+ * @property {number} groupId - Chrome group ID created or reused
+ * @property {string} groupName - Group name/title
+ * @property {number} tabCount - Number of tabs added to group
+ * @property {string} [error] - Error message if step failed
+ *
+ * @typedef {Object} GroupStep
+ * @property {string} action - Planned action: 'create' | 'reuse'
+ * @property {number} [groupId] - Existing group ID (for reuse action)
+ * @property {string} groupName - Group name/title
+ * @property {number[]} tabIds - Tab IDs to group
+ * @property {number} windowId - Target window ID
+ * @property {string} [color] - Group color (for create action)
+ * @property {boolean} [collapsed] - Whether to collapse group
+ * @property {boolean} allowWindowMove - Whether tabs can be moved between windows
+ *
+ * @typedef {Object} GroupSummary
+ * @property {number} totalTabs - Total tabs processed
+ * @property {number} groupsCreated - Number of new groups created
+ * @property {number} groupsReused - Number of existing groups reused
+ *
+ * @example
+ * // Group tabs by domain, one group per window
+ * import { groupTabs } from './services/execution/groupTabs.js';
+ *
+ * const result = await groupTabs([123, 456, 789], {
+ *   byDomain: true,
+ *   perWindow: true
+ * });
+ *
+ * console.log(`Created ${result.summary.groupsCreated} groups`);
+ * console.log(`Reused ${result.summary.groupsReused} existing groups`);
+ *
+ * @example
+ * // Group all tabs under custom name (cross-window)
+ * const result = await groupTabs([123, 456, 789], {
+ *   customName: 'Important Work',
+ *   perWindow: false, // Allow moving tabs between windows
+ *   collapsed: false
+ * });
+ *
+ * @example
+ * // Dry-run preview (no execution)
+ * const preview = await groupTabs([123, 456], {
+ *   byDomain: true,
+ *   dryRun: true
+ * });
+ *
+ * console.log(`Would create ${preview.plan.length} groups`);
+ * preview.plan.forEach(step => {
+ *   console.log(`${step.action} "${step.groupName}" with ${step.tabIds.length} tabs`);
+ * });
+ *
+ * @example
+ * // Group with focus restoration
+ * const currentWindow = await chrome.windows.getCurrent();
+ * const result = await groupTabs([123, 456], {
+ *   byDomain: true,
+ *   callerWindowId: currentWindow.id // Ensures focus returns here
+ * });
  */
 export async function groupTabs(tabIds, options = {}) {
   const {
