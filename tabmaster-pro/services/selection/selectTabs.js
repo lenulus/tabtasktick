@@ -1,30 +1,138 @@
-// services/selection/selectTabs.js
-// Generalized tab selection service with filter criteria
-// Returns arrays of tab info for execution services to act upon
+/**
+ * @file selectTabs - Generalized tab selection and filtering service
+ *
+ * @description
+ * The selectTabs service provides comprehensive tab selection capabilities through flexible
+ * filter criteria. It serves as the central selection layer that converts user intent and
+ * rule conditions into concrete tab arrays for execution services to act upon.
+ *
+ * The service supports 15+ filter types including window scope, grouping state, pinned status,
+ * domain matching, URL patterns, age filtering, audio state, suspension state, and duplicate
+ * detection. Filters can be combined arbitrarily to create complex selection queries like
+ * "ungrouped tabs from github.com older than 7 days in the current window".
+ *
+ * Key features include intelligent URL normalization for duplicate detection (whitelist-based
+ * approach that preserves content-identifying parameters like YouTube video IDs), domain
+ * extraction with special protocol handling, and rule engine integration with support for
+ * both legacy and modern rule formats.
+ *
+ * The service also provides tab statistics calculation (single-pass performance optimization),
+ * pre-built filter combinations for common use cases, and multiple utility functions for
+ * duplicate detection and URL comparison.
+ *
+ * @module services/selection/selectTabs
+ *
+ * @architecture
+ * - Layer: Selection Service (Filtering/Analysis)
+ * - Dependencies:
+ *   - chrome.tabs API (read-only queries)
+ *   - domain-categories.js (domain categorization for rules)
+ * - Used By: Rules engine, executeSnoozeOperations, dashboard bulk actions, popup filters
+ * - Pattern: Filter Service - provides flexible querying with composition
+ *
+ * @example
+ * // Select ungrouped tabs in current window
+ * import { selectTabs } from './services/selection/selectTabs.js';
+ *
+ * const tabs = await selectTabs({
+ *   currentWindow: true,
+ *   grouped: false
+ * });
+ *
+ * console.log(`Found ${tabs.length} ungrouped tabs`);
+ *
+ * @example
+ * // Select old tabs from specific domains
+ * const staleTabs = await selectTabs({
+ *   domain: ['reddit.com', 'twitter.com'],
+ *   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+ * });
+ *
+ * @example
+ * // Find duplicate tabs
+ * const duplicates = await selectTabs({
+ *   duplicates: true,
+ *   grouped: false
+ * });
+ */
 
 import { getCategoriesForDomain } from '../../lib/domain-categories.js';
 
 /**
- * Select tabs based on filter criteria.
+ * Selects tabs based on flexible filter criteria.
  *
- * @param {Object} filters - Filter criteria for tab selection
+ * This is the main tab selection function that combines Chrome's native tab.query with
+ * additional post-filtering for criteria that Chrome doesn't support directly (domain matching,
+ * age filtering, duplicate detection). The function applies filters in two phases:
+ * 1. Native Chrome filtering via tabs.query (fast, leverages browser indexing)
+ * 2. Post-processing filters (domain, age, duplicates) on the result set
+ *
+ * All filter parameters are optional and can be combined freely. For example, you can select
+ * "ungrouped, audible tabs from reddit.com that are duplicates in the current window". Null
+ * values mean "no filter" (include all), while false/true mean "exclude/include only".
+ *
+ * Returns standardized tab objects with consistent property structure regardless of which
+ * filters were applied. Empty filters object selects all tabs.
+ *
+ * @param {Object} [filters={}] - Filter criteria (all optional, combinable)
  * @param {number} [filters.windowId] - Specific window ID to filter by
- * @param {boolean} [filters.currentWindow] - Use current window
- * @param {boolean} [filters.grouped] - true = only grouped, false = only ungrouped, null = all
- * @param {boolean} [filters.pinned] - true = only pinned, false = only unpinned, null = all
- * @param {string|string[]} [filters.domain] - Domain(s) to match
- * @param {string|string[]} [filters.url] - URL pattern(s) to match
- * @param {number} [filters.maxAge] - Maximum age in milliseconds
- * @param {number} [filters.minAge] - Minimum age in milliseconds
- * @param {boolean} [filters.audible] - true = only audible, false = only silent, null = all
- * @param {boolean} [filters.muted] - true = only muted, false = only unmuted, null = all
- * @param {boolean} [filters.discarded] - true = only discarded, false = only active, null = all
- * @param {boolean} [filters.autoDiscardable] - true = only auto-discardable, false = only not, null = all
- * @param {boolean} [filters.duplicates] - true = only duplicate tabs
- * @param {string} [filters.status] - Tab status: 'loading', 'complete'
- * @param {string} [filters.title] - Title pattern to match
- * @param {number[]} [filters.excludeIds] - Tab IDs to exclude from results
- * @returns {Promise<Array<{id: number, windowId: number, url: string, title: string}>>}
+ * @param {boolean} [filters.currentWindow=false] - Use current window only
+ * @param {boolean} [filters.grouped] - Grouped state: true = only grouped, false = only ungrouped, null = all
+ * @param {boolean} [filters.pinned] - Pinned state: true = only pinned, false = only unpinned, null = all
+ * @param {string|string[]} [filters.domain] - Domain(s) to match (supports subdomain matching)
+ * @param {string|string[]} [filters.url] - URL pattern(s) to match (Chrome match patterns)
+ * @param {number} [filters.maxAge] - Maximum age in milliseconds (based on lastAccessed)
+ * @param {number} [filters.minAge] - Minimum age in milliseconds (based on lastAccessed)
+ * @param {boolean} [filters.audible] - Audio state: true = playing sound, false = silent, null = all
+ * @param {boolean} [filters.muted] - Muted state: true = muted, false = unmuted, null = all
+ * @param {boolean} [filters.discarded] - Suspension state: true = suspended, false = active, null = all
+ * @param {boolean} [filters.autoDiscardable] - Auto-discard eligibility: true = eligible, false = protected, null = all
+ * @param {boolean} [filters.duplicates=false] - Duplicate filter: true = only tabs with duplicates
+ * @param {string} [filters.status] - Loading status: 'loading' | 'complete'
+ * @param {string} [filters.title] - Title substring to match (case-sensitive partial match)
+ * @param {number[]} [filters.excludeIds=[]] - Tab IDs to exclude from results
+ *
+ * @returns {Promise<TabInfo[]>} Array of standardized tab objects
+ *
+ * @typedef {Object} TabInfo
+ * @property {number} id - Chrome tab ID
+ * @property {number} windowId - Chrome window ID
+ * @property {string} url - Tab URL (empty string if unavailable)
+ * @property {string} title - Tab title (empty string if unavailable)
+ * @property {number} index - Tab index in window
+ * @property {boolean} pinned - Whether tab is pinned
+ * @property {number} groupId - Chrome group ID (-1 if ungrouped)
+ * @property {number} lastAccessed - Last access timestamp in milliseconds
+ *
+ * @example
+ * // Select all ungrouped tabs in current window
+ * import { selectTabs } from './services/selection/selectTabs.js';
+ *
+ * const tabs = await selectTabs({
+ *   currentWindow: true,
+ *   grouped: false
+ * });
+ *
+ * @example
+ * // Select old Reddit and Twitter tabs
+ * const staleTabs = await selectTabs({
+ *   domain: ['reddit.com', 'twitter.com'],
+ *   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+ * });
+ *
+ * @example
+ * // Find audible duplicate tabs
+ * const noisyDuplicates = await selectTabs({
+ *   audible: true,
+ *   duplicates: true
+ * });
+ *
+ * @example
+ * // Select suspended tabs excluding specific IDs
+ * const suspended = await selectTabs({
+ *   discarded: true,
+ *   excludeIds: [123, 456] // Exclude these tab IDs
+ * });
  */
 export async function selectTabs(filters = {}) {
   const {
@@ -200,18 +308,55 @@ const CONTENT_IDENTIFYING_PARAMS = {
 };
 
 /**
- * Normalize a URL for duplicate detection.
+ * Normalizes URLs for accurate duplicate detection.
  *
- * WHITELIST approach: Remove ALL query params except those that identify unique content.
+ * Uses a **WHITELIST approach**: removes ALL query parameters except those that identify
+ * unique content (e.g., YouTube video IDs, Google search queries, GitHub search filters).
+ * This prevents false positives where tracking parameters make identical pages appear different.
  *
- * IMPORTANT: This prevents closing different YouTube videos, Google searches, etc. as duplicates.
- * Example:
- *   - youtube.com?v=abc123 and youtube.com?v=xyz789 are NOT duplicates (different videos)
- *   - cnn.com and cnn.com?refresh=1 ARE duplicates (same page)
- *   - example.com?utm_source=twitter and example.com ARE duplicates (same page)
+ * The whitelist strategy scales better than blacklisting tracking parameters (which is
+ * infinite and constantly evolving). Only domain-specific content-identifying parameters
+ * are preserved based on the CONTENT_IDENTIFYING_PARAMS whitelist (lines 183-200).
+ *
+ * Additional normalization steps:
+ * - Removes URL fragments/anchors (#section)
+ * - Sorts remaining query parameters alphabetically
+ * - Removes default ports (443 for https, 80 for http)
+ * - Removes trailing slashes from paths
+ * - Lowercases hostname only (preserves case-sensitive paths)
+ * - Handles special protocols (chrome://, data:, chrome-extension://)
  *
  * @param {string} url - The URL to normalize
- * @returns {string} The normalized URL
+ *
+ * @returns {string} Normalized URL suitable for duplicate comparison
+ *
+ * @example
+ * // Tracking parameters removed (same content)
+ * import { normalizeUrlForDuplicates } from './services/selection/selectTabs.js';
+ *
+ * normalizeUrlForDuplicates('https://example.com?utm_source=twitter');
+ * // → 'https://example.com'
+ *
+ * normalizeUrlForDuplicates('https://example.com?ref=123&utm_campaign=promo');
+ * // → 'https://example.com'
+ *
+ * @example
+ * // YouTube video IDs preserved (different content)
+ * normalizeUrlForDuplicates('https://youtube.com/watch?v=abc123&feature=share');
+ * // → 'https://youtube.com/watch?v=abc123'
+ *
+ * normalizeUrlForDuplicates('https://youtube.com/watch?v=xyz789&t=30');
+ * // → 'https://youtube.com/watch?t=30&v=xyz789' (different video, params sorted)
+ *
+ * @example
+ * // Google search queries preserved (different content)
+ * normalizeUrlForDuplicates('https://google.com/search?q=javascript&source=hp');
+ * // → 'https://google.com/search?q=javascript'
+ *
+ * @example
+ * // Special protocols handled
+ * normalizeUrlForDuplicates('chrome://extensions#details?id=abc');
+ * // → 'chrome://extensions'
  */
 export function normalizeUrlForDuplicates(url) {
   if (!url) return '';
@@ -904,30 +1049,59 @@ export const CommonFilters = {
 };
 
 /**
- * Get tab statistics for display in UI (popup, dashboard, etc.)
+ * Calculates comprehensive tab statistics for UI display.
  *
- * Calculates in a single pass for performance:
- * - Total tabs, windows, groups
+ * Performs single-pass accumulation for optimal performance with large tab counts (200+).
+ * The function queries all tabs/windows/groups once, then processes the entire dataset in
+ * a single loop to compute all statistics simultaneously. This is significantly faster than
+ * making multiple separate queries or passes.
+ *
+ * Statistics calculated:
+ * - Total tabs, windows, and groups across all windows
  * - Pinned tabs count
- * - Duplicate tabs count (using URL normalization)
- * - Top 5 domains by tab count
+ * - Duplicate tabs count (using URL normalization, excludes original)
+ * - Top 5 domains by tab count (sorted descending)
  *
- * Includes performance instrumentation to measure cost.
+ * Includes performance instrumentation that measures query time vs processing time to help
+ * identify bottlenecks. Performance metrics are logged to console for analysis.
  *
- * @returns {Promise<{
- *   totalTabs: number,
- *   totalWindows: number,
- *   groupedTabs: number,
- *   pinnedTabs: number,
- *   duplicates: number,
- *   topDomains: Array<{domain: string, count: number}>,
- *   performanceMetrics: {
- *     queryTime: number,
- *     processingTime: number,
- *     totalTime: number,
- *     tabCount: number
- *   }
- * }>}
+ * Used by popup and dashboard header to display tab overview.
+ *
+ * @returns {Promise<TabStatistics>} Statistics object with performance metrics
+ *
+ * @typedef {Object} TabStatistics
+ * @property {number} totalTabs - Total number of tabs across all windows
+ * @property {number} totalWindows - Total number of open windows
+ * @property {number} groupedTabs - Number of tab groups (not tabs in groups)
+ * @property {number} pinnedTabs - Number of pinned tabs
+ * @property {number} duplicates - Number of duplicate tabs (excludes originals - only counts extras)
+ * @property {DomainCount[]} topDomains - Top 5 domains by tab count, sorted descending
+ * @property {PerformanceMetrics} performanceMetrics - Performance measurement data
+ *
+ * @typedef {Object} DomainCount
+ * @property {string} domain - Domain name (e.g., 'github.com')
+ * @property {number} count - Number of tabs from this domain
+ *
+ * @typedef {Object} PerformanceMetrics
+ * @property {number} queryTime - Chrome API query time in milliseconds
+ * @property {number} processingTime - Processing/calculation time in milliseconds
+ * @property {number} totalTime - Total execution time in milliseconds
+ * @property {number} tabCount - Number of tabs processed
+ *
+ * @example
+ * // Display statistics in popup header
+ * import { getTabStatistics } from './services/selection/selectTabs.js';
+ *
+ * const stats = await getTabStatistics();
+ * console.log(`${stats.totalTabs} tabs in ${stats.totalWindows} windows`);
+ * console.log(`${stats.duplicates} duplicates, ${stats.pinnedTabs} pinned`);
+ * console.log(`Top domain: ${stats.topDomains[0].domain} (${stats.topDomains[0].count} tabs)`);
+ *
+ * @example
+ * // Monitor performance with large tab counts
+ * const stats = await getTabStatistics();
+ * console.log(`Processed ${stats.performanceMetrics.tabCount} tabs in ${stats.performanceMetrics.totalTime}ms`);
+ * console.log(`Avg: ${(stats.performanceMetrics.processingTime / stats.totalTabs).toFixed(2)}ms/tab`);
  */
 export async function getTabStatistics() {
   const startTotal = performance.now();
