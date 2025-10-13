@@ -11,7 +11,18 @@
 - 457 automated tests passing + 9 browser integration scenarios
 - Production release: v1.2.6
 
-**Next: LinkStash Integration** - Building Collections & Workspaces on V2 foundation
+**Current Development**: LinkStash Integration (Collections & Workspaces)
+- Branch: `1.3` (feature development)
+- Version: 1.3.0 (in development)
+- Main branch: `main` (1.2.x - bug fixes only)
+
+**Branching Strategy**:
+- `main`: 1.2.x line - bug fixes and maintenance for current release
+- `1.3`: Feature development branch for LinkStash (Collections & Workspaces)
+- When ready: Rebase 1.3 changes onto main for release
+- Development happens on `1.3`, releases ship from `main`
+
+**Next: LinkStash Implementation** - Building Collections & Workspaces on V2 foundation
 
 ---
 
