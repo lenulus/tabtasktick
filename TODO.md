@@ -12,15 +12,15 @@
 - Production release: v1.2.6
 
 **Current Development**: LinkStash Integration (Collections & Workspaces)
-- Branch: `1.3` (feature development)
+- Branch: `main` (active development)
 - Version: 1.3.0 (in development)
-- Main branch: `main` (1.2.x - bug fixes only)
+- Maintenance branch: `1.2` (bug fixes for 1.2.x releases)
 
 **Branching Strategy**:
-- `main`: 1.2.x line - bug fixes and maintenance for current release
-- `1.3`: Feature development branch for LinkStash (Collections & Workspaces)
-- When ready: Rebase 1.3 changes onto main for release
-- Development happens on `1.3`, releases ship from `main`
+- `main`: Active development line (1.3.0 - LinkStash Collections & Workspaces)
+- `1.2`: Maintenance branch for bug fixes to 1.2.x stable releases
+- Development happens on `main`, critical bug fixes on `1.2`
+- Cherry-pick bug fixes from `1.2` to `main` as needed
 
 **Next: LinkStash Implementation** - Building Collections & Workspaces on V2 foundation
 
