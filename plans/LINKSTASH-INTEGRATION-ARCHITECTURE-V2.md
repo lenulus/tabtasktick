@@ -1,6 +1,28 @@
 # LinkStash Integration Architecture v2.0
 ## Updated for TabMaster Pro V2 Services Architecture
 
+---
+
+## 📋 Status: Implementation Plan Finalized (2025-10-12)
+
+**Current Status**: Architecture reviewed and finalized
+- ✅ Architecture review complete by architecture-guardian
+- ✅ Storage strategy finalized: **chrome.storage.local** (NOT IndexedDB)
+- ✅ Implementation plan created: See `/TODO.md` for canonical task breakdown
+- ✅ Phase sequencing simplified: 5-phase MVP (40-60h), advanced features deferred
+
+**Key Decisions**:
+1. **Storage**: Use chrome.storage.local following existing SnoozeService/ScheduledExportService patterns
+   - Rationale: Better MV3 compatibility, simpler, collections are small (<10KB each)
+   - Impact: Reduces Phase 1 complexity, no IndexedDB learning curve
+2. **MVP Scope**: Phases 1-5 deliver Collections + Workspaces (dormant/active/working states)
+3. **Deferred to v2.0**: Task System (Phase 6), Rule Engine Integration (Phase 7)
+4. **Timeline**: 40-60 hours for MVP, ready for user validation
+
+**Implementation Reference**: This document contains the architectural vision and patterns. For actionable tasks with time estimates and file paths, see **`/TODO.md`** (canonical implementation plan).
+
+---
+
 ## Executive Summary
 
 LinkStash must be built as integrated features within TabMaster Pro following the **V2 Services-First Architecture** we've established. This document updates the integration strategy to align with our proven patterns:
@@ -79,68 +101,137 @@ TabMaster Pro 2.0 (V2 Services Architecture)
 
 ## Storage Architecture
 
-### Hybrid Storage Following V2 Pattern
+### ✅ FINALIZED: chrome.storage.local Pattern
+
+**Decision**: Use chrome.storage.local for collection metadata (NOT IndexedDB)
+
+**Rationale**:
+- Current architecture uses chrome.storage.local for all metadata (SnoozeService, ScheduledExportService)
+- Better MV3 service worker compatibility - survives restarts automatically
+- No IndexedDB complexity (schema migrations, async queries, quota management, error handling)
+- Collections metadata is small (<10KB per collection with 20-30 links)
+- Chrome storage quota is 10MB (sufficient for 1000+ collections)
+- Screenshots stored via chrome.downloads API (unlimited storage, like ExportImportService)
+
+**Implementation** (see `/TODO.md` Phase 1 for details):
 
 ```javascript
-// storage/UnifiedStorage.js
-// Single source of truth for all storage operations
+// services/storage/CollectionStorage.js
+// Following proven SnoozeService pattern
 
-export class UnifiedStorage {
+export class CollectionStorage {
   constructor() {
-    this.chromeStorage = chrome.storage.local;
-    this.db = null; // IndexedDB for collections
+    this.storageApi = chrome.storage.local;
+    this.cache = new Map(); // In-memory cache for performance
   }
 
   async init() {
-    this.db = await this.openDatabase();
+    // Load all collections into cache on startup
+    const { collections } = await this.storageApi.get('collections');
+    this.collections = collections || [];
 
-    // Setup change listeners
+    // Setup change listeners for cache invalidation
     chrome.storage.onChanged.addListener(this.handleStorageChange.bind(this));
   }
 
-  async openDatabase() {
-    return await openDB('tabmaster-pro', 2, {
-      upgrade(db, oldVersion, newVersion) {
-        if (oldVersion < 2) {
-          // Collection stores
-          const collections = db.createObjectStore('collections', { keyPath: 'id' });
-          collections.createIndex('state', 'state');
-          collections.createIndex('name', 'name');
-          collections.createIndex('created', 'metadata.createdAt');
-          collections.createIndex('accessed', 'metadata.lastAccessed');
-
-          const links = db.createObjectStore('links', { keyPath: 'id' });
-          links.createIndex('url', 'url');
-          links.createIndex('collectionId', 'collectionId');
-          links.createIndex('role', 'role');
-
-          const tasks = db.createObjectStore('tasks', { keyPath: 'id' });
-          tasks.createIndex('collectionId', 'collectionId');
-          tasks.createIndex('completed', 'completed');
-          tasks.createIndex('due', 'dueDate');
-        }
-      }
-    });
-  }
-
-  // Unified API - single source of truth
   async getCollection(id) {
-    return await this.db.get('collections', id);
+    // Check cache first
+    const cached = this.collections.find(c => c.id === id);
+    if (cached) return cached;
+
+    // Fallback to storage (service worker restart scenario)
+    const { collections } = await this.storageApi.get('collections');
+    return (collections || []).find(c => c.id === id);
   }
 
   async saveCollection(collection) {
-    return await this.db.put('collections', collection);
+    // Update cache
+    const index = this.collections.findIndex(c => c.id === collection.id);
+    if (index >= 0) {
+      this.collections[index] = collection;
+    } else {
+      this.collections.push(collection);
+    }
+
+    // Persist to storage
+    await this.storageApi.set({ collections: this.collections });
+  }
+
+  async deleteCollection(id) {
+    // Remove from cache
+    this.collections = this.collections.filter(c => c.id !== id);
+
+    // Persist to storage
+    await this.storageApi.set({ collections: this.collections });
   }
 
   async queryCollections(filters) {
-    // Delegate to selection service
+    // Delegate to selection service (follows architecture pattern)
     const { selectCollections } = await import('../services/selection/selectCollections.js');
-    return await selectCollections(filters);
+    return await selectCollections(filters, this.collections);
+  }
+
+  async getStorageQuota() {
+    // Monitor quota usage (warn at 80%)
+    const bytesInUse = await chrome.storage.local.getBytesInUse();
+    const quota = 10 * 1024 * 1024; // 10MB
+    return { used: bytesInUse, quota, percent: (bytesInUse / quota) * 100 };
+  }
+
+  handleStorageChange(changes, area) {
+    if (area === 'local' && changes.collections) {
+      // Invalidate cache on external changes
+      this.collections = changes.collections.newValue || [];
+    }
   }
 }
 
-// Singleton instance
-export const storage = new UnifiedStorage();
+// Singleton instance (lazy initialized in services)
+let storageInstance = null;
+export async function getCollectionStorage() {
+  if (!storageInstance) {
+    storageInstance = new CollectionStorage();
+    await storageInstance.init();
+  }
+  return storageInstance;
+}
+```
+
+**Screenshots Storage** (following ExportImportService pattern):
+
+```javascript
+// In CollectionStorage.js
+
+async saveScreenshot(collectionId, dataUrl) {
+  // Convert data URL to blob
+  const blob = await fetch(dataUrl).then(r => r.blob());
+
+  // Save to Downloads folder via chrome.downloads
+  const downloadId = await chrome.downloads.download({
+    url: URL.createObjectURL(blob),
+    filename: `tabmaster-screenshots/collection_${collectionId}.png`,
+    saveAs: false
+  });
+
+  // Store download ID in collection metadata
+  const collection = await this.getCollection(collectionId);
+  collection.screenshotDownloadId = downloadId;
+  await this.saveCollection(collection);
+
+  return downloadId;
+}
+
+async loadScreenshot(collectionId) {
+  const collection = await this.getCollection(collectionId);
+  if (!collection.screenshotDownloadId) return null;
+
+  // Retrieve from chrome.downloads
+  const [download] = await chrome.downloads.search({ id: collection.screenshotDownloadId });
+  if (!download || !download.exists) return null; // Graceful degradation
+
+  // Return file path (can be loaded via file:// URL)
+  return download.filename;
+}
 ```
 
 ## Service Modules
@@ -911,29 +1002,52 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 - [ ] Quick save functionality
 - [ ] Follow dashboard UI patterns
 
-### Phase 4: Dashboard Integration
+### Phase 4: Dashboard Integration (8-10h)
 - [ ] Add Collections view to dashboard
 - [ ] Reuse existing dashboard patterns
 - [ ] Integrate with tabs/groups views
 - [ ] Unified search across tabs + collections
+- [ ] Context menu integration
 
-### Phase 5: Workspace Features
+### Phase 5: Workspace Activation (6-8h)
 - [ ] Implement `activateWorkspace.js` service
+- [ ] Implement `deactivateWorkspace.js` service
 - [ ] Implement `saveWorkspaceState.js` service
-- [ ] State capture (scroll, forms, etc.)
 - [ ] Multi-window workspace support
+- [ ] Window focus management (following WindowService pattern)
 
-### Phase 6: Rule Engine Integration
+**MVP Complete**: Phases 1-5 deliver Collections + Workspaces (40-60h total)
+
+---
+
+### Phase 6: Task System Integration (OPTIONAL - Deferred to v2.0)
+**Status**: 🔜 Deferred after MVP validation
+**Time Estimate**: 20-30 hours
+- [ ] Task-link relationships
+- [ ] Task states and lifecycle
+- [ ] Work session tracking
+- [ ] Auto-open/close links on task start/complete
+- [ ] Task notifications and reminders
+- [ ] Time tracking (estimated vs actual)
+
+**Rationale for Deferral**: Collections with states provide significant value without tasks. Need to validate collection usage patterns with real users before designing task system.
+
+### Phase 7: Rule Engine Integration (OPTIONAL - Deferred to v2.0)
+**Status**: 🔜 Deferred after MVP validation
+**Time Estimate**: 8-12 hours
 - [ ] Add collection actions to ActionManager
 - [ ] Create CollectionActions.js handlers
+- [ ] New action: `saveToCollection`
+- [ ] New action: `addToCollection`
+- [ ] New condition: `inCollection`
+- [ ] Collection-scoped rules
 - [ ] Test with existing rule scenarios
-- [ ] Add collection-specific conditions
 
-### Phase 7: Advanced Features
-- [ ] Task system integration
-- [ ] Scheduled workspace activation
-- [ ] AI-powered organization (optional)
-- [ ] Cloud sync (optional)
+**Rationale for Deferral**: Need to understand collection usage patterns first. Rule patterns will emerge from real usage (e.g., "auto-save research tabs to collection").
+
+---
+
+**Implementation Details**: See `/TODO.md` for complete task breakdown with time estimates, file paths, and success criteria.
 
 ## Testing Strategy
 

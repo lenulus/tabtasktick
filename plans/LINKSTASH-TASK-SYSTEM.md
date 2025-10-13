@@ -1,5 +1,35 @@
 # LinkStash Task System: Context-Aware Productivity
 
+---
+
+## 📋 Status: DEFERRED to Phase 6 (v2.0) - After MVP Validation
+
+**Current Status**: Planning complete, implementation deferred
+- ✅ Vision and architecture documented
+- ✅ Task-link relationship model defined
+- 🔜 Implementation deferred to Phase 6 (v2.0)
+- 🔜 Will implement after MVP validation with users
+
+**Rationale for Deferral**:
+1. Collections with states (dormant/active/working) provide significant value without tasks
+2. Task system adds complexity (task-link mapping, notifications, time tracking, work sessions)
+3. Need to validate collection usage patterns with real users first
+4. Can design better task system after understanding how users organize collections
+
+**MVP Priority (Phases 1-5)**: Focus on Collections + Workspaces
+- Core collection states working
+- Workspace activation/deactivation functional
+- User can organize links without task complexity
+
+**Phase 6 Priority (v2.0)**: Add Task System after MVP ships
+- **Time Estimate**: 20-30 hours
+- **Dependencies**: Phase 5 complete, user feedback collected
+- **Scope**: Task-link relationships, auto-open/close, time tracking, notifications
+
+**Implementation Reference**: See `/TODO.md` Phase 6 section for task breakdown when ready to implement
+
+---
+
 ## Vision: Tasks With Context
 
 Traditional task managers fail because tasks exist in isolation. LinkStash tasks are **contextual** - they know which tabs you need, where you were in those tabs, and what you were doing. This creates a fundamentally different productivity experience.

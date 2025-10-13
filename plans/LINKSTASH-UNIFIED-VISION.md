@@ -1,5 +1,31 @@
 # LinkStash: Unified Vision - Living Collections
 
+---
+
+## 📋 Status: Vision Approved, Implementation Sequenced (2025-10-12)
+
+**Status**: Architectural vision approved, implementation plan finalized
+
+**MVP Scope (Phases 1-5)**:
+- ✅ Collections with states (dormant/active/working)
+- ✅ Collection metadata (name, description, icon, color, tags)
+- ✅ Link storage with basic state tracking
+- ✅ Workspace activation/deactivation
+- ✅ Multi-window support
+- ✅ Side panel + Dashboard integration
+
+**Deferred to v2.0 (Phases 6-7)**:
+- 🔜 Task System (detailed below - deferred after MVP validation)
+- 🔜 Rule Engine Integration (after usage patterns emerge)
+- 🔜 Advanced state capture (scroll position, form data)
+- 🔜 Scheduled workspace activation
+
+**Implementation Reference**: See `/TODO.md` for actionable task breakdown (40-60h MVP timeline)
+
+**Note**: This document describes the complete vision including advanced features. The MVP (Phases 1-5) focuses on core Collections functionality. Task system and advanced features will be added in v2.0 based on user feedback.
+
+---
+
 ## Core Concept: Collections with States
 
 A **Collection** is a group of related links that can exist in different states of activity. It's not binary (bookmark vs workspace) but a spectrum of engagement.

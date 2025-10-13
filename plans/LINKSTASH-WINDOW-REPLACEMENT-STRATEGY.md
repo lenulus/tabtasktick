@@ -1,5 +1,33 @@
 # LinkStash: Window Replacement Strategy
 
+---
+
+## 📋 Status: Strategy Validated, MVP Implementation in Progress
+
+**Status**: User research complete, implementation strategy finalized
+
+**Core Insight Validated**: ✅
+- Users hoard windows because bookmarks fail them (context loss, friction, fear)
+- Collections with states solve this (dormant ↔ active ↔ working transitions)
+- Workspace activation feels instant vs. window restore
+
+**MVP Implementation (Phases 1-5)**:
+- ✅ One-click "Save Window as Collection"
+- ✅ Instant workspace activation (< 800ms for 20 tabs)
+- ✅ Window focus management (return to caller after activation)
+- ✅ Smart window detection (full vs. partial window capture)
+- ✅ State preservation (tabs, metadata, screenshots)
+
+**Success Metrics (MVP)**:
+- Collections created per user: >3
+- Average open windows reduced: 5+ → <3
+- Collection switches per day: >2
+- User anxiety reduction: "Can finally close tabs without fear"
+
+**Implementation Reference**: See `/TODO.md` for complete task breakdown (40-60h MVP)
+
+---
+
 ## The Core Problem We're Solving
 
 **People use browser windows as persistent workspaces because bookmarks fail them.**
