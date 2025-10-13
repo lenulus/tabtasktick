@@ -594,9 +594,9 @@ async function clearHistory() {
   if (!confirm('Are you sure you want to clear all history?')) {
     return;
   }
-  
+
   try {
-    await sendMessage({ action: 'clearHistory' });
+    await sendMessage({ action: 'clearActivityLog' });
     await loadStatistics();
     showNotification('History cleared successfully');
   } catch (error) {

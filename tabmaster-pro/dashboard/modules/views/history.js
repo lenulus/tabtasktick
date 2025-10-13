@@ -4,9 +4,12 @@
 import { getActivityIcon } from '../core/utils.js';
 
 export async function loadHistoryView() {
+  // Set up event listeners (only once)
+  setupHistoryEventListeners();
+
   // Get real activity log from background
   const activities = await sendMessage({ action: 'getActivityLog' }) || [];
-  
+
   // Group activities by date
   const groupedHistory = {};
   const now = Date.now();
@@ -110,6 +113,45 @@ function renderHistory(history) {
     dayCard.appendChild(itemsContainer);
     container.appendChild(dayCard);
   });
+}
+
+// Track if event listeners are already set up
+let listenersInitialized = false;
+
+function setupHistoryEventListeners() {
+  if (listenersInitialized) return;
+
+  const clearBtn = document.getElementById('clearHistory');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', handleClearHistory);
+  }
+
+  listenersInitialized = true;
+}
+
+async function handleClearHistory() {
+  if (!confirm('Are you sure you want to clear all history? This cannot be undone.')) {
+    return;
+  }
+
+  try {
+    const response = await sendMessage({ action: 'clearActivityLog' });
+
+    if (response?.success) {
+      // Reload the history view to show empty state
+      await loadHistoryView();
+
+      // Show success notification if available
+      if (typeof showNotification === 'function') {
+        showNotification('History cleared successfully', 'success');
+      }
+    } else {
+      throw new Error('Failed to clear history');
+    }
+  } catch (error) {
+    console.error('Failed to clear history:', error);
+    alert('Failed to clear history. Please try again.');
+  }
 }
 
 // Helper function
