@@ -1,10 +1,66 @@
+/**
+ * @file TabActionsService - Basic tab operations (close, pin, mute, move)
+ *
+ * @description
+ * The TabActionsService provides fundamental tab manipulation operations that form the
+ * building blocks for higher-level features. It handles six core tab operations: closing,
+ * pinning/unpinning, muting/unmuting, and moving tabs between windows. Each operation
+ * supports batch processing and returns detailed results with error tracking.
+ *
+ * All functions implement graceful error handling - if some tabs fail while others succeed,
+ * the operation continues and returns partial results with specific error details. This
+ * allows bulk operations on 200+ tabs to complete even if individual tabs fail (e.g., due
+ * to Chrome restrictions on system tabs).
+ *
+ * The moveTabsToWindow function is more complex than the others - it preserves tab group
+ * membership across window moves, handles window focus management, and can create new
+ * windows on demand. This complexity is necessary because Chrome's tab groups cannot span
+ * windows, requiring capture and recreation of group metadata.
+ *
+ * Created during Phase 6.1.3 by extracting inline Chrome API calls from engine.v2.services.js
+ * to establish a single source of truth for basic tab operations.
+ *
+ * @module services/execution/TabActionsService
+ *
+ * @architecture
+ * - Layer: Execution Service (Basic Operations)
+ * - Dependencies: chrome.tabs, chrome.tabGroups, chrome.windows (Chrome APIs only)
+ * - Used By: Rules engine, command handlers, dashboard bulk actions, keyboard shortcuts
+ * - Pattern: Thin wrappers around Chrome APIs with consistent error handling
+ *
+ * @example
+ * // Close multiple tabs
+ * import * as TabActionsService from './services/execution/TabActionsService.js';
+ *
+ * const result = await TabActionsService.closeTabs([123, 456, 789]);
+ * console.log(`Closed ${result.closed.length} tabs, ${result.errors.length} errors`);
+ *
+ * @example
+ * // Move tabs to new window with group preservation
+ * const result = await TabActionsService.moveTabsToWindow([123, 456], {
+ *   windowId: null, // creates new window
+ *   preserveGroup: true
+ * });
+ */
 // TabActionsService - Handle simple tab operations (close, pin, mute, move)
 // Extracted from engine.v2.services.js (Phase 6.1.3)
 
 /**
- * Close tabs
- * @param {Array<number>} tabIds - Array of tab IDs to close
- * @returns {Promise<object>} Result object with success status
+ * Closes one or more tabs.
+ *
+ * Batch closes tabs with graceful error handling. If some tabs fail (e.g., Chrome system tabs),
+ * the operation continues and returns partial results. Success is determined by whether any tabs
+ * were closed, not all tabs.
+ *
+ * @param {Array<number>} tabIds - Tab IDs to close
+ * @returns {Promise<object>} Result with closed tabs and errors
+ * @returns {boolean} return.success - True if any tabs closed
+ * @returns {Array<number>} return.closed - Successfully closed tab IDs
+ * @returns {Array<object>} return.errors - Errors with tabId and message
+ *
+ * @example
+ * const result = await closeTabs([123, 456, 789]);
+ * console.log(`Closed ${result.closed.length}/${tabIds.length} tabs`);
  */
 export async function closeTabs(tabIds) {
   const results = {
@@ -33,9 +89,12 @@ export async function closeTabs(tabIds) {
 }
 
 /**
- * Pin tabs
- * @param {Array<number>} tabIds - Array of tab IDs to pin
- * @returns {Promise<object>} Result object with success status
+ * Pins one or more tabs to the left side of the tab strip.
+ *
+ * @param {Array<number>} tabIds - Tab IDs to pin
+ * @returns {Promise<object>} Result with pinned tabs and errors
+ * @example
+ * await pinTabs([123, 456]);
  */
 export async function pinTabs(tabIds) {
   const results = {
@@ -63,9 +122,12 @@ export async function pinTabs(tabIds) {
 }
 
 /**
- * Unpin tabs
- * @param {Array<number>} tabIds - Array of tab IDs to unpin
- * @returns {Promise<object>} Result object with success status
+ * Unpins one or more pinned tabs.
+ *
+ * @param {Array<number>} tabIds - Tab IDs to unpin
+ * @returns {Promise<object>} Result with unpinned tabs and errors
+ * @example
+ * await unpinTabs([123, 456]);
  */
 export async function unpinTabs(tabIds) {
   const results = {
@@ -93,9 +155,12 @@ export async function unpinTabs(tabIds) {
 }
 
 /**
- * Mute tabs
- * @param {Array<number>} tabIds - Array of tab IDs to mute
- * @returns {Promise<object>} Result object with success status
+ * Mutes audio on one or more tabs.
+ *
+ * @param {Array<number>} tabIds - Tab IDs to mute
+ * @returns {Promise<object>} Result with muted tabs and errors
+ * @example
+ * await muteTabs([123, 456]);
  */
 export async function muteTabs(tabIds) {
   const results = {
@@ -123,9 +188,12 @@ export async function muteTabs(tabIds) {
 }
 
 /**
- * Unmute tabs
- * @param {Array<number>} tabIds - Array of tab IDs to unmute
- * @returns {Promise<object>} Result object with success status
+ * Unmutes audio on one or more tabs.
+ *
+ * @param {Array<number>} tabIds - Tab IDs to unmute
+ * @returns {Promise<object>} Result with unmuted tabs and errors
+ * @example
+ * await unmuteTabs([123, 456]);
  */
 export async function unmuteTabs(tabIds) {
   const results = {
@@ -153,14 +221,42 @@ export async function unmuteTabs(tabIds) {
 }
 
 /**
- * Move tabs to a window
- * CRITICAL: This function preserves EXACT window focus behavior from engine.v2.services.js (lines 321-411)
+ * Moves tabs to a different window with optional group preservation.
  *
- * @param {Array<number>} tabIds - Array of tab IDs to move
- * @param {object} options - Move options
- * @param {string|number} options.windowId - Target window ID (or 'new' for new window)
- * @param {boolean} options.preserveGroup - Whether to preserve tab groups (default: true)
- * @returns {Promise<object>} Result object with success status and move details
+ * The most complex operation in this service. Handles window creation, group metadata
+ * preservation (Chrome groups can't span windows), and window focus management. The
+ * function captures group information before moving, moves tabs to target window, then
+ * recreates groups with original titles/colors.
+ *
+ * CRITICAL: Preserves exact window focus behavior - stores original focused window,
+ * switches focus to target window for operations, then restores original focus. This
+ * prevents unexpected focus changes that confuse users.
+ *
+ * @param {Array<number>} tabIds - Tab IDs to move
+ * @param {object} [options={}] - Move configuration
+ * @param {string|number} options.windowId - Target window ID or 'new' for new window
+ * @param {boolean} [options.preserveGroup=true] - Preserve tab group membership
+ *
+ * @returns {Promise<object>} Result with moved tabs and details
+ * @returns {boolean} return.success - True if any tabs moved
+ * @returns {Array<number>} return.moved - Successfully moved tab IDs
+ * @returns {Array<object>} return.errors - Errors with details
+ * @returns {object} return.details - Operation details
+ * @returns {number} return.details.windowId - Target window ID
+ * @returns {boolean} return.details.newWindow - Whether new window was created
+ * @returns {boolean} return.details.regrouped - Whether groups were recreated
+ *
+ * @example
+ * // Move to existing window
+ * await moveTabsToWindow([123, 456], { windowId: 789 });
+ *
+ * @example
+ * // Move to new window with group preservation
+ * const result = await moveTabsToWindow([123, 456], {
+ *   windowId: 'new',
+ *   preserveGroup: true
+ * });
+ * console.log(`Created new window ${result.details.windowId}`);
  */
 export async function moveTabsToWindow(tabIds, options = {}) {
   const { windowId, preserveGroup = true } = options;
