@@ -1365,6 +1365,122 @@ TabTaskTick v2 simplifies the mental model while preserving the core innovation:
 
 ---
 
+## Appendix: Future Considerations
+
+### A. Progressive Save Behavior
+
+**Context**: UX review raised concern about window close behavior creating accidental saved collections.
+
+**Clarification for Implementation**:
+- Only windows **explicitly saved as collections** persist
+- Collections progressively sync as user works (not just on window close)
+- Regular (unmarked) browser windows close normally and disappear
+- Window close on a collection is just another sync point, not a "save" moment
+
+**Implementation Detail**:
+- Collections have `isActive: true` when window exists, `false` when closed
+- Progressive sync updates collection state in IndexedDB as tabs/folders change
+- Window close simply sets `isActive: false` and preserves existing state
+- Users must explicitly choose "Save Window as Collection" - no accidental creation
+
+**Status**: Core to MVP, clarified in documentation
+
+---
+
+### B. "Open Tabs" Interaction Pattern
+
+**Context**: UX review noted ambiguity when "Open Tabs" on a task restores entire collection vs just task tabs.
+
+**Architectural Trade-off**:
+- **Option 1** (current): "Open Tabs" restores entire collection if saved
+  - ✅ Tabs remain synchronized with collection
+  - ✅ User gets full context (all folders)
+  - ❌ May restore 50+ tabs when task only references 3
+
+- **Option 2**: "Open Only These Tabs" creates tabs in current window
+  - ✅ Only opens the 3 task tabs
+  - ❌ Tabs not synchronized - changes don't save back to collection
+  - ❌ Tabs live outside collection window context
+
+**Decision**: Defer to Phase 3 (UI implementation)
+- Build Option 1 initially (architecturally simpler)
+- Test with real usage patterns
+- Consider adding Option 2 as secondary action if confusion observed
+- Label clearly: "Restore Collection (47 tabs)" vs "Open 3 tabs"
+
+**Status**: Post-MVP refinement based on user feedback
+
+---
+
+### C. Scale Management via Rules Engine
+
+**Context**: UX review noted 100+ collections will overwhelm filtering/search.
+
+**Solution**: Leverage existing TabMaster rules engine for collection lifecycle management.
+
+**Proposed Default Rules** (user-configurable):
+1. **Auto-Archive Rule**
+   - Trigger: Collection not accessed for 60 days
+   - Action: Move to "Archived" section (hidden from main list)
+   - User can disable or adjust timeframe
+
+2. **Cleanup Suggestion Rule**
+   - Trigger: Collection has no tasks + not accessed for 90 days
+   - Action: Notification suggesting deletion
+   - User can dismiss or delete
+
+3. **Frecency Sorting Rule**
+   - Trigger: Always active
+   - Action: Sort collections by frequency + recency score
+   - Surfaces most-used collections automatically
+
+4. **Stale Task Alert Rule**
+   - Trigger: Task open for 30+ days with no comments
+   - Action: Badge on task ("review needed")
+   - Helps users clean up forgotten tasks
+
+**Implementation Timeline**:
+- Phase 1-7: Core functionality without rules
+- Post-MVP: Add collection-specific rules to existing engine
+- Settings UI: "Collection Management Rules" section
+
+**Status**: Post-MVP enhancement (v1.3.1 or v1.4.0)
+
+---
+
+### D. Additional UX Considerations
+
+**From UX Architect Review** (for future refinement):
+
+1. **Collection Folders** (hierarchical organization)
+   - Allow grouping collections into folders (Work, Personal, Archive)
+   - Addresses scale at 200+ collections
+   - Post-MVP consideration
+
+2. **Bulk Operations**
+   - Multi-select collections for archive/delete
+   - "Select all unused in 90 days" quick filters
+   - Post-MVP consideration
+
+3. **Task-Folder Visual Distinction**
+   - Different icons/colors to clarify relationship
+   - Implement during Phase 3 (UI) if time permits
+   - Low priority (conceptually clear in proposal)
+
+4. **Recently Closed Collections**
+   - Browser history-style section for just-closed collections
+   - Easy "undo" if user closes collection accidentally
+   - Post-MVP consideration
+
+5. **Collection Templates**
+   - Pre-configured collections for common workflows
+   - E.g., "Bug Investigation" (GitHub, Stack Overflow, docs)
+   - Post-MVP consideration
+
+**Status**: Documented for future product iterations
+
+---
+
 **Prepared by**: TabMaster Pro Development Team
 **Date**: December 2024
 **Version**: 2.0
