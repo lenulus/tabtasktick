@@ -20,6 +20,56 @@
 
 **Timeline**: 68-84 hours for MVP, 10 sprints
 
+**Architecture Note**: This plan uses a normalized data model (4 separate object stores with foreign keys) instead of nested documents. This avoids race conditions on concurrent updates and improves query performance. See Architecture Refinements section below.
+
+---
+
+## Architecture Refinements
+
+Following architecture-guardian review, key improvements from initial plan:
+
+### 1. Normalized Data Model
+**Change**: Store collections, folders, tabs, and tasks as separate object stores with foreign key relationships, instead of nesting folders/tabs inside collections.
+
+**Why**:
+- Avoids race conditions (updating one tab doesn't require loading entire collection)
+- Better transaction control (update only what changes)
+- Simpler queries (direct lookups by FK index)
+- Follows relational data best practices
+
+**Trade-off**: More complex queries when reassembling full collection hierarchy, but gains significant benefits in write performance and data integrity.
+
+### 2. Storage Utilities, Not Services
+**Change**: Create storage query utilities in `/services/utils/` instead of formal storage services layer.
+
+**Why**:
+- Utilities are called ONLY by execution services (enforced by architecture)
+- Consistent with how chrome.storage.local is used in TabMaster
+- Clear separation: utilities = data access, services = business logic
+- Avoids creating parallel service architecture
+
+**Pattern**: Execution services use utilities like `saveCollection()`, similar to how SnoozeService uses chrome.storage.local internally.
+
+### 3. Extend WindowService Instead of New Service
+**Change**: Add collection binding methods to existing WindowService instead of creating WindowTrackingService.
+
+**Why**:
+- WindowService already tracks window lifecycle via `chrome.windows.onRemoved`
+- Reuses existing infrastructure (no duplication)
+- Single source of truth for window management
+- Follows DRY principle
+
+**Implementation**: Add `bindCollectionToWindow()`, `unbindCollectionFromWindow()`, and `getCollectionForWindow()` methods to existing service.
+
+### 4. Keep Collections + Tasks Together
+**Decision**: Implement both Collections and Tasks in v1.3.0 (don't split into separate releases).
+
+**Why**:
+- Tasks are core to the value proposition (task-driven work)
+- Splitting led to deprioritization in LinkStash proposal
+- Users need both for meaningful workflow improvements
+- Together they deliver the full vision: persistent windows + work context
+
 ---
 
 ## Architecture Overview
@@ -48,21 +98,34 @@
 
 ### Storage Architecture
 
-**IndexedDB** (TabTaskTick data):
+**IndexedDB** (TabTaskTick data - Normalized Model):
 - Database: `TabTaskTickDB` v1
 - Object Store: `collections` (keyPath: 'id')
-  - Indexes: isActive, tags, lastAccessed
+  - Fields: id, name, description, icon, color, tags, windowId, isActive, metadata
+  - Indexes: isActive, tags (multiEntry), lastAccessed
+- Object Store: `folders` (keyPath: 'id')
+  - Fields: id, collectionId (FK), name, color, collapsed, position
+  - Indexes: collectionId
+- Object Store: `tabs` (keyPath: 'id')
+  - Fields: id, folderId (FK), url, title, favicon, note, position, isPinned, tabId (runtime)
+  - Indexes: folderId
 - Object Store: `tasks` (keyPath: 'id')
-  - Indexes: collectionId, status, priority, dueDate, tags, createdAt
+  - Fields: id, collectionId (FK), summary, notes, status, priority, dueDate, tags, comments, tabIds (array), createdAt, completedAt
+  - Indexes: collectionId, status, priority, dueDate, tags (multiEntry), createdAt
 
 **chrome.storage.local** (TabMaster legacy):
 - Rules, settings, snooze metadata (unchanged)
 
-### Service Layers
+**Why Normalized**: Enables efficient partial updates (update one tab without loading entire collection), better transaction control, simpler queries, avoids race conditions on nested updates.
 
-**Storage Services**: IndexedDB wrappers with transaction handling
-**Selection Services**: Query collections/tasks via indexes
-**Execution Services**: CRUD + business logic, delegates to storage
+### Architecture Layers
+
+**Utility Layer**: IndexedDB access helpers (db.js, transaction wrappers)
+- NOT a service layer - just utilities for consistent DB access
+- Only called by execution services
+
+**Selection Services**: Query data via IndexedDB indexes
+**Execution Services**: CRUD + business logic, uses utilities for storage
 **Orchestration Services**: Coordinate multiple services (capture, restore, task execution)
 
 ---
@@ -74,90 +137,98 @@
 **Priority**: CRITICAL - Must complete first
 **Status**: 🔴 Not Started
 
-#### 1.1 Data Models Documentation (1h)
+#### 1.1 Data Models Documentation (1-2h)
 - [ ] Create `/docs/tabtasktick-data-models-v2.md`
-- [ ] Document Collection interface (with windowId, isActive, folders array)
-- [ ] Document Folder interface (name, color, collapsed, position, tabs array)
-- [ ] Document Tab interface (url, title, favicon, note, position, isPinned, tabId)
-- [ ] Document Task interface (collectionId, tabIds array, status, priority, dueDate, tags, comments)
-- [ ] Document Comment interface (text, createdAt)
-- [ ] Include example JSON for active collection and saved collection
+- [ ] Document normalized data model with foreign key relationships:
+  - Collection (id, name, windowId, isActive, metadata)
+  - Folder (id, collectionId FK, name, color, collapsed, position)
+  - Tab (id, folderId FK, url, title, favicon, note, position, isPinned, tabId)
+  - Task (id, collectionId FK, summary, status, priority, tabIds array, comments)
+  - Comment (id, text, createdAt) - embedded in tasks
+- [ ] Document foreign key relationships and cascade delete rules
+- [ ] Include example data showing relationships (collection → folders → tabs)
 - [ ] Document state transitions (save window → collection, close window → saved)
+- [ ] Document tab ID mapping (storage id vs runtime Chrome tabId)
 
-#### 1.2 IndexedDB Setup (2-3h)
-- [ ] Create `/services/storage/db.js` (~150 lines)
+#### 1.2 IndexedDB Utilities (3-4h)
+- [ ] Create `/services/utils/db.js` (~200 lines)
 - [ ] Define database name: `TabTaskTickDB`, version: 1
 - [ ] Implement `initDB()`:
-  - Create `collections` object store with keyPath='id'
-  - Create indexes: isActive, tags (multiEntry), lastAccessed
-  - Create `tasks` object store with keyPath='id'
-  - Create indexes: collectionId, status, priority, dueDate, tags (multiEntry), createdAt
+  - Create `collections` object store (keyPath='id')
+    - Indexes: isActive, tags (multiEntry), lastAccessed
+  - Create `folders` object store (keyPath='id')
+    - Indexes: collectionId (for FK queries)
+  - Create `tabs` object store (keyPath='id')
+    - Indexes: folderId (for FK queries)
+  - Create `tasks` object store (keyPath='id')
+    - Indexes: collectionId, status, priority, dueDate, tags (multiEntry), createdAt
 - [ ] Implement `getDB()` - lazy connection with singleton pattern
 - [ ] Implement `closeDB()` - cleanup on service worker shutdown
+- [ ] Implement transaction helpers:
+  - `withTransaction(stores, mode, fn)` - wraps operations in transaction
+  - Automatic rollback on errors
+  - Retry logic for quota exceeded
 - [ ] Handle version upgrades (future-proof for schema changes)
 - [ ] Error handling (quota exceeded, corruption, etc.)
 
-#### 1.3 CollectionStorage Service (2-3h)
-- [ ] Create `/services/storage/CollectionStorage.js` (~200 lines)
-- [ ] Implement `getCollection(id)` - get by primary key
-- [ ] Implement `getAllCollections()` - get all collections
-- [ ] Implement `getActiveCollections()` - use isActive index
-- [ ] Implement `getSavedCollections()` - use isActive index (false)
-- [ ] Implement `getCollectionsByTag(tag)` - use tags index
-- [ ] Implement `saveCollection(collection)` - put operation with transaction
-- [ ] Implement `deleteCollection(id)` - delete operation with transaction
-- [ ] Handle transaction errors (rollback on failure)
-- [ ] Return standardized results with success/error info
+#### 1.3 Storage Query Utilities (3-4h)
+- [ ] Create `/services/utils/storage-queries.js` (~300 lines)
+- [ ] Simple CRUD helpers (called ONLY by execution services):
+  - `getCollection(id)` - get by primary key
+  - `getAllCollections()` - get all collections
+  - `getCollectionsByIndex(indexName, value)` - generic index query
+  - `saveCollection(collection)` - put with transaction
+  - `deleteCollection(id)` - cascade delete folders and tabs
+  - `getFolder(id)` - get by primary key
+  - `getFoldersByCollection(collectionId)` - use collectionId index
+  - `saveFolder(folder)` - put with transaction
+  - `deleteFolder(id)` - cascade delete tabs
+  - `getTab(id)` - get by primary key
+  - `getTabsByFolder(folderId)` - use folderId index
+  - `saveTab(tab)` - put with transaction
+  - `deleteTab(id)` - delete with transaction
+  - `getTask(id)` - get by primary key
+  - `getTasksByCollection(collectionId)` - use collectionId index
+  - `getTasksByIndex(indexName, value)` - generic index query
+  - `saveTask(task)` - put with transaction
+  - `deleteTask(id)` - delete with transaction
+- [ ] All methods use `withTransaction()` from db.js
+- [ ] Cascade delete logic (deleting collection → deletes folders → deletes tabs)
+- [ ] Return standardized {success, data, error} objects
 
-#### 1.4 TaskStorage Service (2-3h)
-- [ ] Create `/services/storage/TaskStorage.js` (~200 lines)
-- [ ] Implement `getTask(id)` - get by primary key
-- [ ] Implement `getAllTasks()` - get all tasks
-- [ ] Implement `getTasksByCollection(collectionId)` - use collectionId index
-- [ ] Implement `getTasksByStatus(status)` - use status index
-- [ ] Implement `getTasksByPriority(priority)` - use priority index
-- [ ] Implement `getOpenTasks()` - compound query (status='open' OR status='active')
-- [ ] Implement `saveTask(task)` - put operation with transaction
-- [ ] Implement `deleteTask(id)` - delete operation with transaction
-- [ ] Handle transaction errors (rollback on failure)
-- [ ] Return standardized results with success/error info
-
-#### 1.5 Unit Tests (2-3h)
-- [ ] Create `/tests/db.test.js` (~15 tests)
-  - Test database initialization
+#### 1.4 Unit Tests (2-3h)
+- [ ] Create `/tests/db.test.js` (~20 tests)
+  - Test database initialization with 4 object stores
   - Test connection singleton
-  - Test schema creation (object stores, indexes)
+  - Test schema creation (all indexes)
   - Test version upgrades
-  - Test error handling
-- [ ] Create `/tests/CollectionStorage.test.js` (~25 tests)
-  - Test CRUD operations
-  - Test index queries (isActive, tags, lastAccessed)
-  - Test window binding (windowId, isActive)
+  - Test transaction helpers (withTransaction)
+  - Test error handling and rollback
+- [ ] Create `/tests/storage-queries.test.js` (~40 tests)
+  - Test CRUD for collections (get, save, delete)
+  - Test CRUD for folders with FK (collectionId)
+  - Test CRUD for tabs with FK (folderId)
+  - Test CRUD for tasks with FK (collectionId)
+  - Test index queries (isActive, tags, collectionId, status, etc.)
+  - Test cascade deletes (collection → folders → tabs)
   - Test transaction rollback on errors
   - Test quota exceeded handling
-- [ ] Create `/tests/TaskStorage.test.js` (~25 tests)
-  - Test CRUD operations
-  - Test index queries (collectionId, status, priority, dueDate)
-  - Test multi-tab references (tabIds array)
-  - Test transaction rollback on errors
-  - Test compound queries
 
 **Success Criteria**:
-- [ ] IndexedDB database created with correct schema
-- [ ] Collections can be saved/loaded with indexes working
-- [ ] Tasks can be saved/loaded with indexes working
-- [ ] All 65+ unit tests pass
+- [ ] IndexedDB database created with 4 normalized object stores
+- [ ] All entities can be saved/loaded with foreign key relationships working
+- [ ] Cascade deletes work correctly (collection → folders → tabs)
+- [ ] All 60+ unit tests pass
 - [ ] Transaction rollback works on errors
 - [ ] No quota violations
+- [ ] Storage utilities are simple (no business logic, just CRUD)
 
 **Deliverables**:
-- `/docs/tabtasktick-data-models-v2.md` (~5KB)
-- `/services/storage/db.js` (~150 lines)
-- `/services/storage/CollectionStorage.js` (~200 lines)
-- `/services/storage/TaskStorage.js` (~200 lines)
-- `/tests/db.test.js` (~15 tests, ~100 lines)
-- `/tests/CollectionStorage.test.js` (~25 tests, ~200 lines)
-- `/tests/TaskStorage.test.js` (~25 tests, ~200 lines)
+- `/docs/tabtasktick-data-models-v2.md` (~8KB, includes FK relationships)
+- `/services/utils/db.js` (~200 lines, DB connection + transaction helpers)
+- `/services/utils/storage-queries.js` (~300 lines, CRUD utilities)
+- `/tests/db.test.js` (~20 tests, ~150 lines)
+- `/tests/storage-queries.test.js` (~40 tests, ~350 lines)
 
 ---
 
@@ -191,93 +262,124 @@
 
 #### 2.2 CollectionService (3-4h)
 - [ ] Create `/services/execution/CollectionService.js` (~300 lines)
+- [ ] Uses storage utilities from `/services/utils/storage-queries.js`
 - [ ] Implement `createCollection(params)`:
   - Generate ID: `crypto.randomUUID()`
-  - Required: name, folders (array), windowId (optional)
+  - Required: name, windowId (optional)
   - Optional: description, icon, color, tags
   - Set isActive based on windowId presence
   - Set createdAt, lastAccessed timestamps
-  - Delegate to CollectionStorage.saveCollection()
+  - Call `saveCollection()` utility
   - Return created collection
 - [ ] Implement `updateCollection(id, updates)`:
-  - Load existing via CollectionStorage
+  - Call `getCollection(id)` utility
   - Merge updates
   - Update lastAccessed timestamp
-  - Validate data (folders structure, tabs structure)
-  - Delegate to CollectionStorage.saveCollection()
+  - Validate data
+  - Call `saveCollection()` utility
 - [ ] Implement `deleteCollection(id)`:
-  - Load collection
-  - Delete all associated tasks (via TaskService)
-  - Delegate to CollectionStorage.deleteCollection()
+  - Call `deleteCollection(id)` utility (cascade deletes folders/tabs handled by utility)
+  - Delete all associated tasks via TaskService
 - [ ] Implement `bindToWindow(collectionId, windowId)`:
   - Update collection.windowId = windowId
   - Update collection.isActive = true
-  - Save collection
+  - Call `saveCollection()` utility
 - [ ] Implement `unbindFromWindow(collectionId)`:
   - Update collection.windowId = null
   - Update collection.isActive = false
   - Update collection.metadata.lastAccessed
-  - Save collection
+  - Call `saveCollection()` utility
 - [ ] Add error handling (collection not found, validation errors)
 - [ ] Add unit tests (30 tests)
 
 #### 2.3 FolderService + TabService (2-3h)
 - [ ] Create `/services/execution/FolderService.js` (~150 lines)
-  - Implement `addFolder(collectionId, folder)` - nested update
-  - Implement `updateFolder(collectionId, folderId, updates)` - nested update
-  - Implement `deleteFolder(collectionId, folderId)` - nested update
-  - Load collection → modify folders array → save via CollectionStorage
+  - Uses storage utilities from `/services/utils/storage-queries.js`
+  - Implement `createFolder(collectionId, params)`:
+    - Generate ID: `crypto.randomUUID()`
+    - Required: name, collectionId (FK)
+    - Optional: color, collapsed, position
+    - Call `saveFolder()` utility
+    - Return created folder
+  - Implement `updateFolder(folderId, updates)`:
+    - Call `getFolder(folderId)` utility
+    - Merge updates
+    - Call `saveFolder()` utility
+  - Implement `deleteFolder(folderId)`:
+    - Call `deleteFolder(folderId)` utility (cascade deletes tabs)
+  - Implement `getFoldersByCollection(collectionId)`:
+    - Call `getFoldersByCollection()` utility
+    - Sort by position
 - [ ] Create `/services/execution/TabService.js` (~150 lines)
-  - Implement `addTab(collectionId, folderId, tab)` - nested update
-  - Implement `updateTab(collectionId, folderId, tabId, updates)` - nested update
-  - Implement `deleteTab(collectionId, folderId, tabId)` - nested update
-  - Load collection → modify tabs in folder → save via CollectionStorage
+  - Uses storage utilities from `/services/utils/storage-queries.js`
+  - Implement `createTab(folderId, params)`:
+    - Generate ID: `crypto.randomUUID()`
+    - Required: url, folderId (FK)
+    - Optional: title, favicon, note, position, isPinned
+    - Call `saveTab()` utility
+    - Return created tab
+  - Implement `updateTab(tabId, updates)`:
+    - Call `getTab(tabId)` utility
+    - Merge updates (note, position, etc.)
+    - Call `saveTab()` utility
+  - Implement `deleteTab(tabId)`:
+    - Call `deleteTab(tabId)` utility
+  - Implement `getTabsByFolder(folderId)`:
+    - Call `getTabsByFolder()` utility
+    - Sort by position
 - [ ] Add unit tests (25 tests total)
 
 #### 2.4 TaskService (2-3h)
 - [ ] Create `/services/execution/TaskService.js` (~250 lines)
+- [ ] Uses storage utilities from `/services/utils/storage-queries.js`
 - [ ] Implement `createTask(params)`:
   - Generate ID: `crypto.randomUUID()`
   - Required: summary, collectionId (optional), tabIds (array)
   - Optional: notes, status (default 'open'), priority (default 'medium'), dueDate, tags
   - Set createdAt timestamp
-  - Delegate to TaskStorage.saveTask()
+  - Call `saveTask()` utility
   - Return created task
 - [ ] Implement `updateTask(id, updates)`:
-  - Load existing via TaskStorage
+  - Call `getTask(id)` utility
   - Merge updates
   - Validate tabIds reference tabs in collection (if collectionId present)
-  - Delegate to TaskStorage.saveTask()
+  - Call `saveTask()` utility
 - [ ] Implement `updateTaskStatus(id, status)`:
-  - Load task
+  - Call `getTask(id)` utility
   - Update status
   - If status='fixed' or 'abandoned': set completedAt = Date.now()
-  - Delegate to TaskStorage.saveTask()
+  - Call `saveTask()` utility
 - [ ] Implement `addComment(taskId, commentText)`:
-  - Load task
+  - Call `getTask(taskId)` utility
   - Create comment: { id: crypto.randomUUID(), text, createdAt }
   - Append to task.comments array
-  - Delegate to TaskStorage.saveTask()
+  - Call `saveTask()` utility
 - [ ] Implement `deleteTask(id)`:
-  - Delegate to TaskStorage.deleteTask()
+  - Call `deleteTask(id)` utility
 - [ ] Add error handling (task not found, validation errors)
 - [ ] Add unit tests (30 tests)
 
-#### 2.5 WindowTrackingService (2-3h)
-- [ ] Create `/services/execution/WindowTrackingService.js` (~150 lines)
-- [ ] Listen to `chrome.windows.onRemoved`:
-  - Query all collections via CollectionStorage.getActiveCollections()
-  - Find collection with matching windowId
-  - If found: call CollectionService.unbindFromWindow(collectionId)
-  - Update collection state (windowId=null, isActive=false)
-- [ ] Implement `initialize()`:
-  - Setup chrome.windows.onRemoved listener
-  - Sync existing windows on startup (detect orphaned collections)
-- [ ] Implement `syncCollectionsWithWindows()`:
-  - Get all active collections
-  - Check if windows still exist via chrome.windows.get()
-  - Unbind collections for closed windows
-- [ ] Add unit tests (15 tests)
+#### 2.5 Extend WindowService (2-3h)
+- [ ] Update `/services/execution/WindowService.js` (EXISTING service)
+- [ ] Add collection binding methods:
+  - `bindCollectionToWindow(collectionId, windowId)`:
+    - Calls CollectionService.bindToWindow()
+    - Updates internal tracking
+  - `unbindCollectionFromWindow(collectionId)`:
+    - Calls CollectionService.unbindFromWindow()
+    - Cleans up tracking
+  - `getCollectionForWindow(windowId)`:
+    - Query collections by windowId
+    - Return collection or null
+- [ ] Extend existing `chrome.windows.onRemoved` listener:
+  - After existing window cleanup logic
+  - Check if window has bound collection
+  - If yes: unbind collection (isActive=false)
+- [ ] Extend existing `initialize()`:
+  - Add collection window sync to startup
+  - Check for orphaned collections (isActive=true but window doesn't exist)
+- [ ] Add unit tests (15 tests for new methods)
+- [ ] **Note**: Reuses existing window tracking infrastructure, doesn't duplicate
 
 #### 2.6 Background Message Handlers (1h)
 - [ ] Update `/tabmaster-pro/background.js`:
@@ -286,24 +388,31 @@
   - `case 'updateCollection'` → CollectionService.updateCollection()
   - `case 'deleteCollection'` → CollectionService.deleteCollection()
   - `case 'getCollections'` → selectCollections()
-  - `case 'getCollection'` → CollectionStorage.getCollection()
+  - `case 'getCollection'` → CollectionService (calls storage utility internally)
+  - `case 'createFolder'` → FolderService.createFolder()
+  - `case 'updateFolder'` → FolderService.updateFolder()
+  - `case 'deleteFolder'` → FolderService.deleteFolder()
+  - `case 'createTab'` → TabService.createTab()
+  - `case 'updateTab'` → TabService.updateTab()
+  - `case 'deleteTab'` → TabService.deleteTab()
   - `case 'createTask'` → TaskService.createTask()
   - `case 'updateTask'` → TaskService.updateTask()
   - `case 'updateTaskStatus'` → TaskService.updateTaskStatus()
   - `case 'deleteTask'` → TaskService.deleteTask()
   - `case 'getTasks'` → selectTasks()
-  - `case 'getTask'` → TaskStorage.getTask()
-- [ ] Initialize WindowTrackingService on startup
+  - `case 'getTask'` → TaskService (calls storage utility internally)
+- [ ] Initialize WindowService.initialize() on startup (existing, now includes collection sync)
 - [ ] Add error handling and sendResponse() for all handlers
 
 **Success Criteria**:
 - [ ] Collections can be created/updated/deleted via services
-- [ ] Folders and tabs can be managed (nested updates work)
+- [ ] Folders and tabs can be managed via normalized storage (no race conditions)
 - [ ] Tasks can be created/updated/deleted via services
-- [ ] Window close automatically unbinds collection (isActive=false)
+- [ ] Window close automatically unbinds collection (via extended WindowService)
 - [ ] Background message handlers respond correctly
 - [ ] All 130+ unit tests pass
 - [ ] Service worker restarts don't break functionality
+- [ ] Cascade deletes work (collection → folders → tabs)
 
 **Deliverables**:
 - `/services/selection/selectCollections.js` (~200 lines)
@@ -312,7 +421,7 @@
 - `/services/execution/FolderService.js` (~150 lines)
 - `/services/execution/TabService.js` (~150 lines)
 - `/services/execution/TaskService.js` (~250 lines)
-- `/services/execution/WindowTrackingService.js` (~150 lines)
+- Updated `/services/execution/WindowService.js` (+80 lines for collection binding)
 - Unit tests (~130 tests, ~800 lines)
 
 ---
