@@ -704,53 +704,130 @@ Completed this week (5):
 
 ### Storage Layer
 
+**IndexedDB** (new TabTaskTick data):
+```javascript
+// Database: 'TabTaskTickDB', version: 1
+
+// Object Store: 'collections'
+{
+  keyPath: 'id',
+  indexes: {
+    'isActive': { unique: false },
+    'tags': { unique: false, multiEntry: true },
+    'lastAccessed': { unique: false }
+  }
+}
+// Stores: Collection objects with windowId, isActive, folders, tabs
+
+// Object Store: 'tasks'
+{
+  keyPath: 'id',
+  indexes: {
+    'collectionId': { unique: false },
+    'status': { unique: false },
+    'priority': { unique: false },
+    'dueDate': { unique: false },
+    'tags': { unique: false, multiEntry: true },
+    'createdAt': { unique: false }
+  }
+}
+// Stores: Task objects with collectionId, tabIds array, comments
+```
+
+**chrome.storage.local** (existing TabMaster data):
 ```javascript
 chrome.storage.local = {
-  collections: Collection[],  // Includes windowId and isActive
-  tasks: Task[],              // Simplified (no subtasks)
-
-  // Existing TabMaster data
+  // Existing TabMaster data (unchanged)
   rules: Rule[],
-  settings: Settings
+  settings: Settings,
+  snoozedTabs: SnoozedTab[],
+  windowMetadata: WindowMetadata[]
 }
 ```
+
+**Why IndexedDB?**
+- ✅ Scalable storage (50MB+, vs 10MB limit)
+- ✅ Efficient querying (indexed lookups, no full scans)
+- ✅ Relational data (designed for collections → tasks → tabs)
+- ✅ Better performance with hundreds of collections/tasks
+- ✅ Transactional updates (atomic operations)
+
+**Example Query Efficiency**:
+```javascript
+// chrome.storage.local (TabMaster legacy approach)
+// Must load ALL tasks into memory, then filter in JavaScript
+const { tasks } = await chrome.storage.local.get(['tasks']);
+const activeTasks = tasks.filter(t => t.status === 'open' && t.collectionId === 'col_123');
+// ❌ Loads 1000s of tasks into memory for every query
+
+// IndexedDB (TabTaskTick approach)
+// Direct indexed query - only loads matching tasks
+const activeTasks = await TaskStorage.getTasksByCollectionAndStatus('col_123', 'open');
+// ✅ Uses compound index (collectionId + status) - instant lookup
+```
+
+**Hybrid Approach**:
+- IndexedDB for TabTaskTick (new collections/tasks data) - benefits from indexing
+- chrome.storage.local for TabMaster (existing rules, settings, snooze) - simple key-value works fine
+- No migration needed for existing users - both systems coexist
 
 ### Service Architecture
 
 **Selection Services**:
-- `selectCollections(filters)` - Query collections
-  - Filter by: active/saved, tags, name
-  - Sort by: lastAccessed, created
-- `selectTasks(filters)` - Query tasks
-  - Filter by: status, priority, tags, dueDate, collectionId
+- `selectCollections(filters)` - Query collections via IndexedDB indexes
+  - Filter by: active/saved (isActive index), tags (tags index), name
+  - Sort by: lastAccessed (lastAccessed index), created
+  - Uses IndexedDB cursors for efficient filtering
+- `selectTasks(filters)` - Query tasks via IndexedDB indexes
+  - Filter by: status (status index), priority (priority index), tags (tags index), dueDate (dueDate index), collectionId (collectionId index)
   - Sort by: dueDate, priority, created
+  - Compound queries use multiple indexes
+
+**Storage Services**:
+- `CollectionStorage` - IndexedDB operations for collections
+  - `getCollection(id)` - Get by primary key
+  - `getAllCollections()` - Get all collections
+  - `getActiveCollections()` - Use isActive index
+  - `getCollectionsByTag(tag)` - Use tags index
+  - `saveCollection(collection)` - Put operation
+  - `deleteCollection(id)` - Delete operation
+  - Handles transactions for atomic updates
+
+- `TaskStorage` - IndexedDB operations for tasks
+  - `getTask(id)` - Get by primary key
+  - `getAllTasks()` - Get all tasks
+  - `getTasksByCollection(collectionId)` - Use collectionId index
+  - `getTasksByStatus(status)` - Use status index
+  - `saveTask(task)` - Put operation
+  - `deleteTask(id)` - Delete operation
+  - Handles transactions for atomic updates
 
 **Execution Services**:
 - `CollectionService` - CRUD + window binding
-  - `createCollection(collection)` - Create with optional windowId
-  - `updateCollection(id, updates)`
-  - `deleteCollection(id)`
+  - `createCollection(collection)` - Create with optional windowId → CollectionStorage.saveCollection()
+  - `updateCollection(id, updates)` → CollectionStorage.saveCollection()
+  - `deleteCollection(id)` → CollectionStorage.deleteCollection()
   - `activateCollection(id)` - Create window from saved collection
   - `deactivateCollection(id)` - Close window, preserve state
   - `bindToWindow(collectionId, windowId)` - Link collection to window
   - `unbindFromWindow(collectionId)` - Unlink on window close
 
-- `FolderService` - Manage folders
-  - `addFolder(collectionId, folder)`
-  - `updateFolder(id, updates)`
-  - `deleteFolder(id)`
+- `FolderService` - Manage folders (nested in collections)
+  - `addFolder(collectionId, folder)` - Updates collection in IndexedDB
+  - `updateFolder(collectionId, folderId, updates)` - Updates collection
+  - `deleteFolder(collectionId, folderId)` - Updates collection
 
-- `TabService` - Manage tabs
-  - `addTab(folderId, tab)`
-  - `updateTab(id, updates)` - Update note, position
-  - `deleteTab(id)`
+- `TabService` - Manage tabs (nested in folders)
+  - `addTab(collectionId, folderId, tab)` - Updates collection in IndexedDB
+  - `updateTab(collectionId, folderId, tabId, updates)` - Updates collection
+  - `deleteTab(collectionId, folderId, tabId)` - Updates collection
 
 - `TaskService` - Task lifecycle
-  - `createTask(task)` - With collectionId and tabIds
-  - `updateTask(id, updates)`
-  - `updateTaskStatus(id, status)` - Sets completedAt
-  - `addComment(taskId, comment)`
-  - `linkTabsToTask(taskId, tabIds)` - Link multiple tabs
+  - `createTask(task)` - With collectionId and tabIds → TaskStorage.saveTask()
+  - `updateTask(id, updates)` → TaskStorage.saveTask()
+  - `updateTaskStatus(id, status)` - Sets completedAt → TaskStorage.saveTask()
+  - `addComment(taskId, comment)` - Updates task in IndexedDB
+  - `linkTabsToTask(taskId, tabIds)` - Updates task in IndexedDB
 
 **Orchestration Services**:
 - `CaptureWindowService` - Save window as collection
@@ -822,7 +899,14 @@ sendResponse({
 
 ## Implementation Plan (Revised)
 
-### Phase 1: Foundation (8-10h)
+### Phase 1: Foundation (10-12h)
+
+**IndexedDB Setup**:
+- Database schema definition (TabTaskTickDB v1)
+- Object stores: collections, tasks
+- Indexes: isActive, tags, lastAccessed, collectionId, status, priority, dueDate
+- Migration utilities (future-proof for schema changes)
+- Database initialization service
 
 **Data Models**:
 - Collection with `windowId` and `isActive`
@@ -831,47 +915,82 @@ sendResponse({
 - Task (removed `parentTaskId`, changed `tabId` to `tabIds`)
 - Comment (no changes)
 
-**Storage Services**:
-- CollectionStorage (handle windowId, isActive)
-- TaskStorage (handle tabIds array)
+**Storage Services** (IndexedDB wrappers):
+- `db.js` - IndexedDB connection and initialization
+- `CollectionStorage.js` - CRUD operations for collections
+  - Uses isActive, tags, lastAccessed indexes
+  - Transaction handling for atomic updates
+- `TaskStorage.js` - CRUD operations for tasks
+  - Uses collectionId, status, priority, dueDate, tags indexes
+  - Transaction handling for atomic updates
 
-**Unit Tests** (40+ tests):
-- Collection window binding
-- Task multi-tab references
-- Storage operations
+**Unit Tests** (50+ tests):
+- IndexedDB initialization and schema
+- Collection storage (CRUD, indexes, window binding)
+- Task storage (CRUD, indexes, multi-tab references)
+- Transaction rollback on errors
+- Index query performance
 
 **Deliverables**:
 - `/docs/tabtasktick-data-models-v2.md`
+- `/services/storage/db.js`
 - `/services/storage/CollectionStorage.js`
 - `/services/storage/TaskStorage.js`
+- `/tests/db.test.js`
 - `/tests/CollectionStorage.test.js`
 - `/tests/TaskStorage.test.js`
 
 ### Phase 2: Core Services (12-16h)
 
 **Services**:
-- CollectionService with window operations
+- `CollectionService` with window operations
+  - Wraps CollectionStorage with business logic
   - `activateCollection()`, `deactivateCollection()`
   - `bindToWindow()`, `unbindFromWindow()`
-- FolderService
-- TabService
-- TaskService (with tabIds array support)
-- selectCollections (filter by active/saved)
-- selectTasks (filter by collectionId)
+  - Delegates to IndexedDB via CollectionStorage
+
+- `FolderService` (nested operations)
+  - Loads collection from IndexedDB
+  - Modifies folders array
+  - Saves back to IndexedDB via CollectionStorage
+
+- `TabService` (nested operations)
+  - Loads collection from IndexedDB
+  - Modifies tabs within folders
+  - Saves back to IndexedDB via CollectionStorage
+
+- `TaskService` (with tabIds array support)
+  - Wraps TaskStorage with business logic
+  - Comment management (nested in task)
+  - Status transitions with completedAt timestamps
+  - Delegates to IndexedDB via TaskStorage
+
+- `selectCollections` (IndexedDB queries)
+  - Uses isActive index for active/saved filtering
+  - Uses tags index for tag-based queries
+  - Uses lastAccessed index for sorting
+  - Efficient cursor-based filtering
+
+- `selectTasks` (IndexedDB queries)
+  - Uses collectionId index for collection-specific queries
+  - Uses status, priority, dueDate indexes for filtering
+  - Compound queries combining multiple indexes
 
 **Window Tracking**:
 - WindowTrackingService
 - Listen to `chrome.windows.onRemoved`
-- Update collection on window close
+- Update collection in IndexedDB on window close
 
 **Background Handlers**:
 - Message routing to services
 - Error handling
 
 **Unit Tests** (60+ tests):
-- Service operations
+- Service operations (with IndexedDB mocks)
 - Window binding/unbinding
 - Window close detection
+- Nested folder/tab updates
+- Task status transitions
 
 **Deliverables**:
 - `/services/execution/CollectionService.js`
@@ -1011,10 +1130,12 @@ sendResponse({
 
 ---
 
-**Total Timeline: 66-82 hours for MVP**
+**Total Timeline: 68-84 hours for MVP**
 
 **Phasing**:
-- Sprint 1-2: Phase 1-2 (Foundation + Services) - 20-26h
+- Sprint 1-2: Phase 1-2 (Foundation + Services) - 22-28h
+  - Phase 1: IndexedDB setup and storage layer (10-12h)
+  - Phase 2: Core services and window tracking (12-16h)
 - Sprint 3-4: Phase 3 (Side Panel) - 14-16h
 - Sprint 5: Phase 4 (Popup) - 6-8h
 - Sprint 6: Phase 5 (Context Menus) - 4-6h
@@ -1117,6 +1238,11 @@ sendResponse({
 
 **v1 Problem**: Side panel is primary but users won't find it
 **v2 Solution**: Popup promotes Collections with banner, guides to side panel
+
+### Storage
+
+**v1 Problem**: chrome.storage.local (10MB limit, no indexes, awkward for relational data)
+**v2 Solution**: IndexedDB for TabTaskTick data (scalable, indexed, efficient queries), keep chrome.storage for TabMaster legacy data
 
 ---
 
@@ -1231,8 +1357,9 @@ TabTaskTick v2 simplifies the mental model while preserving the core innovation:
 - ✅ Removed subtasks (flat task list)
 - ✅ Removed tab types (reduced cognitive load)
 - ✅ Improved discovery (popup → side panel flow)
+- ✅ IndexedDB storage (scalable, efficient, indexed queries)
 
-**Timeline**: 66-82 hours for MVP, 10 sprints, targeting v1.3.0 release.
+**Timeline**: 68-84 hours for MVP, 10 sprints, targeting v1.3.0 release.
 
 **Status**: Ready for implementation.
 
