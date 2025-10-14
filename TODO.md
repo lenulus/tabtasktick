@@ -1,736 +1,874 @@
-# TabMaster Pro + LinkStash - Implementation TODO
+# TabTaskTick - Implementation TODO
 
 ## Project Status
 
-**TabMaster Pro V2 Architecture**: ✅ COMPLETE (Phases 1-9)
-- 13 services fully documented with comprehensive JSDoc
+**TabMaster Pro V2 Architecture**: ✅ COMPLETE (13 services, 457 tests)
 - Services-first architecture proven and battle-tested
 - Selection/execution separation established
 - Message passing patterns working across all surfaces
-- Multi-window support with robust test infrastructure
-- 457 automated tests passing + 9 browser integration scenarios
 - Production release: v1.2.6
 
-**Current Development**: LinkStash Integration (Collections & Workspaces)
+**Current Development**: TabTaskTick (Collections + Tasks + Work Management)
 - Branch: `main` (active development)
 - Version: 1.3.0 (in development)
-- Maintenance branch: `1.2` (bug fixes for 1.2.x releases)
+- Proposal: `/plans/TABTASKTICK-PRODUCT-PROPOSAL-V2.md`
 
-**Branching Strategy**:
-- `main`: Active development line (1.3.0 - LinkStash Collections & Workspaces)
-- `1.2`: Maintenance branch for bug fixes to 1.2.x stable releases
-- Development happens on `main`, critical bug fixes on `1.2`
-- Cherry-pick bug fixes from `1.2` to `main` as needed
+**Evolution Path**: Tab Hygiene → Knowledge Organization → Work Management
+- Stage 1 (Complete): Rules, deduplication, grouping, snoozing
+- Stage 2 (This Release): Collections as persistent windows with folders
+- Stage 3 (This Release): Tasks within collections referencing tabs
 
-**Next: LinkStash Implementation** - Building Collections & Workspaces on V2 foundation
-
----
-
-## Overview: LinkStash Implementation Strategy
-
-**Goal**: Add Collections & Workspaces feature to TabMaster Pro without breaking existing architecture
-
-**Approach**: Follow proven V2 patterns from Phases 1-9
-- Use chrome.storage.local (not IndexedDB) for collection metadata
-- Reuse existing service patterns (WindowService, SnoozeService, ScheduledExportService)
-- Build services first, UI surfaces thin
-- Message passing for cross-process communication
-- Test infrastructure already in place (multi-window support from Phase 8.0)
-
-**Timeline**: 40-60 hours for MVP (Phases 1-5), 80-120 hours including advanced features (Phases 6-7)
-
-**Architecture Fitness**: 9/10 - Excellent foundation, minimal architecture changes needed
+**Timeline**: 68-84 hours for MVP, 10 sprints
 
 ---
 
-## LinkStash Implementation Phases
+## Architecture Overview
 
-### Phase 1: Foundation - Storage & Data Models ⏳
-**Time Estimate**: 6-8 hours
+### Core Concepts
+
+**Collections** = Persistent Windows
+- Active: Has browser window with windowId, isActive=true
+- Saved: No browser window, windowId=null, isActive=false
+- Contains folders (Chrome tab groups) and tabs
+- Contains tasks that reference specific tabs
+
+**Folders** = Chrome Tab Groups
+- Nested in collections (topical organization)
+- Color, name, collapsed state, position
+
+**Tabs** = Resources
+- Nested in folders
+- URL, title, favicon, note (255 chars max), position, pinned
+
+**Tasks** = Work Items
+- Belong to ONE collection (0..1)
+- Reference MULTIPLE tabs (0..n) within that collection
+- Status, priority, due date, comments
+- Opening task → opens collection if saved, focuses referenced tabs
+
+### Storage Architecture
+
+**IndexedDB** (TabTaskTick data):
+- Database: `TabTaskTickDB` v1
+- Object Store: `collections` (keyPath: 'id')
+  - Indexes: isActive, tags, lastAccessed
+- Object Store: `tasks` (keyPath: 'id')
+  - Indexes: collectionId, status, priority, dueDate, tags, createdAt
+
+**chrome.storage.local** (TabMaster legacy):
+- Rules, settings, snooze metadata (unchanged)
+
+### Service Layers
+
+**Storage Services**: IndexedDB wrappers with transaction handling
+**Selection Services**: Query collections/tasks via indexes
+**Execution Services**: CRUD + business logic, delegates to storage
+**Orchestration Services**: Coordinate multiple services (capture, restore, task execution)
+
+---
+
+## Implementation Phases
+
+### Phase 1: Foundation (IndexedDB + Storage) ⏳
+**Time Estimate**: 10-12 hours
 **Priority**: CRITICAL - Must complete first
-**Dependencies**: None (builds on existing chrome.storage patterns)
+**Status**: 🔴 Not Started
 
-**Architecture Decision**: Use chrome.storage.local, NOT IndexedDB
-- **Rationale**:
-  - Current architecture uses chrome.storage.local for all metadata (SnoozeService, ScheduledExportService)
-  - Better MV3 service worker compatibility (survives restarts)
-  - No IndexedDB complexity (schema migrations, async queries, quota)
-  - Collections metadata is small (<10KB per collection)
-  - Chrome storage quota is 10MB (room for 1000+ collections)
-  - Screenshots can use chrome.downloads (like ExportImportService)
+#### 1.1 Data Models Documentation (1h)
+- [ ] Create `/docs/tabtasktick-data-models-v2.md`
+- [ ] Document Collection interface (with windowId, isActive, folders array)
+- [ ] Document Folder interface (name, color, collapsed, position, tabs array)
+- [ ] Document Tab interface (url, title, favicon, note, position, isPinned, tabId)
+- [ ] Document Task interface (collectionId, tabIds array, status, priority, dueDate, tags, comments)
+- [ ] Document Comment interface (text, createdAt)
+- [ ] Include example JSON for active collection and saved collection
+- [ ] Document state transitions (save window → collection, close window → saved)
 
-#### Tasks
+#### 1.2 IndexedDB Setup (2-3h)
+- [ ] Create `/services/storage/db.js` (~150 lines)
+- [ ] Define database name: `TabTaskTickDB`, version: 1
+- [ ] Implement `initDB()`:
+  - Create `collections` object store with keyPath='id'
+  - Create indexes: isActive, tags (multiEntry), lastAccessed
+  - Create `tasks` object store with keyPath='id'
+  - Create indexes: collectionId, status, priority, dueDate, tags (multiEntry), createdAt
+- [ ] Implement `getDB()` - lazy connection with singleton pattern
+- [ ] Implement `closeDB()` - cleanup on service worker shutdown
+- [ ] Handle version upgrades (future-proof for schema changes)
+- [ ] Error handling (quota exceeded, corruption, etc.)
 
-1. **Define Collection Data Model** (1h)
-   - [x] Read existing data models (SnoozeService tab metadata, WindowService metadata)
-   - [ ] Create `/docs/linkstash-data-models.md`
-   - [ ] Define Collection interface with states (dormant/active/working)
-   - [ ] Define CollectionLink interface with tab state
-   - [ ] Document storage keys and structure
-   - [ ] Review with architecture-guardian agent
+#### 1.3 CollectionStorage Service (2-3h)
+- [ ] Create `/services/storage/CollectionStorage.js` (~200 lines)
+- [ ] Implement `getCollection(id)` - get by primary key
+- [ ] Implement `getAllCollections()` - get all collections
+- [ ] Implement `getActiveCollections()` - use isActive index
+- [ ] Implement `getSavedCollections()` - use isActive index (false)
+- [ ] Implement `getCollectionsByTag(tag)` - use tags index
+- [ ] Implement `saveCollection(collection)` - put operation with transaction
+- [ ] Implement `deleteCollection(id)` - delete operation with transaction
+- [ ] Handle transaction errors (rollback on failure)
+- [ ] Return standardized results with success/error info
 
-2. **Create CollectionStorage Service** (2-3h)
-   - [ ] Create `/services/storage/CollectionStorage.js` (~150 lines)
-   - [ ] Implement `saveCollection(collection)` - save to chrome.storage.local
-   - [ ] Implement `getCollection(id)` - retrieve from storage
-   - [ ] Implement `queryCollections(filters)` - filter collections array
-   - [ ] Implement `deleteCollection(id)` - remove from storage
-   - [ ] Add storage change listeners for cache invalidation
-   - [ ] Follow SnoozeService lazy initialization pattern for service worker restarts
+#### 1.4 TaskStorage Service (2-3h)
+- [ ] Create `/services/storage/TaskStorage.js` (~200 lines)
+- [ ] Implement `getTask(id)` - get by primary key
+- [ ] Implement `getAllTasks()` - get all tasks
+- [ ] Implement `getTasksByCollection(collectionId)` - use collectionId index
+- [ ] Implement `getTasksByStatus(status)` - use status index
+- [ ] Implement `getTasksByPriority(priority)` - use priority index
+- [ ] Implement `getOpenTasks()` - compound query (status='open' OR status='active')
+- [ ] Implement `saveTask(task)` - put operation with transaction
+- [ ] Implement `deleteTask(id)` - delete operation with transaction
+- [ ] Handle transaction errors (rollback on failure)
+- [ ] Return standardized results with success/error info
 
-3. **Create Collection ID Generation** (0.5h)
-   - [ ] Use `crypto.randomUUID()` (like WindowService uses for snoozeId)
-   - [ ] Add timestamp prefix for sorting: `col_${Date.now()}_${uuid}`
-   - [ ] Document ID format in data models doc
-
-4. **Add Storage Quota Monitoring** (1h)
-   - [ ] Create `getStorageQuota()` helper in CollectionStorage
-   - [ ] Warn at 80% quota usage (8MB of 10MB)
-   - [ ] Add quota display to Settings page (reuse existing storage stats)
-   - [ ] Plan for cleanup: oldest dormant collections first
-
-5. **Create Screenshot Storage Pattern** (1-2h)
-   - [ ] Reuse ExportImportService pattern (chrome.downloads API)
-   - [ ] `saveScreenshot(collectionId, dataUrl)` → downloads folder
-   - [ ] Store download ID in collection metadata
-   - [ ] `loadScreenshot(collectionId)` → retrieve from downloads
-   - [ ] Handle download not found (graceful degradation)
-
-6. **Unit Tests** (1-2h)
-   - [ ] Create `/tests/CollectionStorage.test.js`
-   - [ ] Test CRUD operations (25 tests like BookmarkService.test.js)
-   - [ ] Test filtering and querying
-   - [ ] Test quota monitoring
-   - [ ] Test service worker restart scenario
-   - [ ] Mock chrome.storage.local API
+#### 1.5 Unit Tests (2-3h)
+- [ ] Create `/tests/db.test.js` (~15 tests)
+  - Test database initialization
+  - Test connection singleton
+  - Test schema creation (object stores, indexes)
+  - Test version upgrades
+  - Test error handling
+- [ ] Create `/tests/CollectionStorage.test.js` (~25 tests)
+  - Test CRUD operations
+  - Test index queries (isActive, tags, lastAccessed)
+  - Test window binding (windowId, isActive)
+  - Test transaction rollback on errors
+  - Test quota exceeded handling
+- [ ] Create `/tests/TaskStorage.test.js` (~25 tests)
+  - Test CRUD operations
+  - Test index queries (collectionId, status, priority, dueDate)
+  - Test multi-tab references (tabIds array)
+  - Test transaction rollback on errors
+  - Test compound queries
 
 **Success Criteria**:
-- [ ] Collections can be saved/loaded from chrome.storage.local
-- [ ] Storage quota monitoring works
-- [ ] Screenshot storage integrated with chrome.downloads
-- [ ] All unit tests pass
-- [ ] Service worker restarts don't lose state
-- [ ] No chrome.storage quota violations
+- [ ] IndexedDB database created with correct schema
+- [ ] Collections can be saved/loaded with indexes working
+- [ ] Tasks can be saved/loaded with indexes working
+- [ ] All 65+ unit tests pass
+- [ ] Transaction rollback works on errors
+- [ ] No quota violations
 
-**Files Created**:
-- `/docs/linkstash-data-models.md` (~5KB)
-- `/services/storage/CollectionStorage.js` (~150 lines)
-- `/tests/CollectionStorage.test.js` (~40 tests, ~200 lines)
+**Deliverables**:
+- `/docs/tabtasktick-data-models-v2.md` (~5KB)
+- `/services/storage/db.js` (~150 lines)
+- `/services/storage/CollectionStorage.js` (~200 lines)
+- `/services/storage/TaskStorage.js` (~200 lines)
+- `/tests/db.test.js` (~15 tests, ~100 lines)
+- `/tests/CollectionStorage.test.js` (~25 tests, ~200 lines)
+- `/tests/TaskStorage.test.js` (~25 tests, ~200 lines)
 
 ---
 
-### Phase 2: Core Collection Services ⏳
-**Time Estimate**: 10-14 hours
+### Phase 2: Core Services (Business Logic) ⏳
+**Time Estimate**: 12-16 hours
 **Priority**: HIGH
 **Dependencies**: Phase 1 complete
-**Pattern**: Follow WindowService + SnoozeService orchestration pattern
+**Status**: 🔴 Not Started
 
-#### Tasks
+#### 2.1 Selection Services (3-4h)
+- [ ] Create `/services/selection/selectCollections.js` (~200 lines)
+  - Implement `selectCollections(filters)` - query via IndexedDB indexes
+  - Filters: isActive (true/false/null for all)
+  - Filters: tags (array contains any)
+  - Filters: search (name/description text match)
+  - Filters: lastAccessedAfter/Before (date range)
+  - Use IndexedDB cursors for efficient filtering
+  - Sort by: lastAccessed, createdAt, name
+  - Return Collection[] array
+- [ ] Create `/services/selection/selectTasks.js` (~200 lines)
+  - Implement `selectTasks(filters)` - query via IndexedDB indexes
+  - Filters: collectionId (specific collection)
+  - Filters: status (open/active/fixed/abandoned)
+  - Filters: priority (low/medium/high/critical)
+  - Filters: tags (array contains any)
+  - Filters: dueBefore/After (date range)
+  - Use compound queries (collectionId + status)
+  - Sort by: dueDate, priority, createdAt
+  - Return Task[] array
+- [ ] Add unit tests (30 tests total)
 
-1. **Create Selection Service** (2-3h)
-   - [ ] Create `/services/selection/selectCollections.js` (~200 lines)
-   - [ ] Implement `selectCollections(filters)` - query with filters
-     - Filter by: state (dormant/active/working)
-     - Filter by: tags (array contains)
-     - Filter by: search query (name/description match)
-     - Filter by: hasActiveTabs (working state check)
-   - [ ] Follow selectTabs.js pattern exactly (proven in Phase 1.4)
-   - [ ] Add `selectLinksInCollection(collectionId, filters)` - filter links
-   - [ ] Return standardized Collection[] array
-   - [ ] Add 15 unit tests (like selectTabs.test.js)
+#### 2.2 CollectionService (3-4h)
+- [ ] Create `/services/execution/CollectionService.js` (~300 lines)
+- [ ] Implement `createCollection(params)`:
+  - Generate ID: `crypto.randomUUID()`
+  - Required: name, folders (array), windowId (optional)
+  - Optional: description, icon, color, tags
+  - Set isActive based on windowId presence
+  - Set createdAt, lastAccessed timestamps
+  - Delegate to CollectionStorage.saveCollection()
+  - Return created collection
+- [ ] Implement `updateCollection(id, updates)`:
+  - Load existing via CollectionStorage
+  - Merge updates
+  - Update lastAccessed timestamp
+  - Validate data (folders structure, tabs structure)
+  - Delegate to CollectionStorage.saveCollection()
+- [ ] Implement `deleteCollection(id)`:
+  - Load collection
+  - Delete all associated tasks (via TaskService)
+  - Delegate to CollectionStorage.deleteCollection()
+- [ ] Implement `bindToWindow(collectionId, windowId)`:
+  - Update collection.windowId = windowId
+  - Update collection.isActive = true
+  - Save collection
+- [ ] Implement `unbindFromWindow(collectionId)`:
+  - Update collection.windowId = null
+  - Update collection.isActive = false
+  - Update collection.metadata.lastAccessed
+  - Save collection
+- [ ] Add error handling (collection not found, validation errors)
+- [ ] Add unit tests (30 tests)
 
-2. **Create CollectionService (Orchestrator)** (3-4h)
-   - [ ] Create `/services/execution/CollectionService.js` (~300 lines)
-   - [ ] Follow WindowService orchestrator pattern (Phase 8.1)
-   - [ ] Implement `createCollection(params)` - create new collection
-     - Required: name, links[]
-     - Optional: description, tags, icon, color, state
-     - Generate ID via crypto.randomUUID()
-     - Default state: 'dormant'
-     - Save via CollectionStorage
-     - Return created collection
-   - [ ] Implement `updateCollection(id, updates)` - update existing
-     - Merge updates with existing data
-     - Validate state transitions
-     - Save via CollectionStorage
-   - [ ] Implement `deleteCollection(id)` - remove collection
-     - Clean up storage
-     - Clean up screenshots via chrome.downloads
-     - Notify UI surfaces via chrome.runtime.sendMessage
-   - [ ] Implement `addLinksToCollection(id, links)` - add new links
-     - Append to links array
-     - Update position indexes
-     - Save collection
-   - [ ] Add error handling (collection not found, storage quota, etc.)
+#### 2.3 FolderService + TabService (2-3h)
+- [ ] Create `/services/execution/FolderService.js` (~150 lines)
+  - Implement `addFolder(collectionId, folder)` - nested update
+  - Implement `updateFolder(collectionId, folderId, updates)` - nested update
+  - Implement `deleteFolder(collectionId, folderId)` - nested update
+  - Load collection → modify folders array → save via CollectionStorage
+- [ ] Create `/services/execution/TabService.js` (~150 lines)
+  - Implement `addTab(collectionId, folderId, tab)` - nested update
+  - Implement `updateTab(collectionId, folderId, tabId, updates)` - nested update
+  - Implement `deleteTab(collectionId, folderId, tabId)` - nested update
+  - Load collection → modify tabs in folder → save via CollectionStorage
+- [ ] Add unit tests (25 tests total)
 
-3. **Create CollectionStateMachine** (2-3h)
-   - [ ] Create `/services/execution/CollectionStateMachine.js` (~150 lines)
-   - [ ] Define valid state transitions:
-     - dormant → active (activate collection)
-     - active → working (start task)
-     - working → active (pause work)
-     - active → dormant (deactivate)
-     - working → dormant (deactivate)
-   - [ ] Implement `transition(collectionId, fromState, toState, options)`
-     - Validate transition is allowed
-     - Execute state-specific logic
-     - Update collection state
-     - Return transition result
-   - [ ] Handle invalid transitions gracefully (error, not crash)
+#### 2.4 TaskService (2-3h)
+- [ ] Create `/services/execution/TaskService.js` (~250 lines)
+- [ ] Implement `createTask(params)`:
+  - Generate ID: `crypto.randomUUID()`
+  - Required: summary, collectionId (optional), tabIds (array)
+  - Optional: notes, status (default 'open'), priority (default 'medium'), dueDate, tags
+  - Set createdAt timestamp
+  - Delegate to TaskStorage.saveTask()
+  - Return created task
+- [ ] Implement `updateTask(id, updates)`:
+  - Load existing via TaskStorage
+  - Merge updates
+  - Validate tabIds reference tabs in collection (if collectionId present)
+  - Delegate to TaskStorage.saveTask()
+- [ ] Implement `updateTaskStatus(id, status)`:
+  - Load task
+  - Update status
+  - If status='fixed' or 'abandoned': set completedAt = Date.now()
+  - Delegate to TaskStorage.saveTask()
+- [ ] Implement `addComment(taskId, commentText)`:
+  - Load task
+  - Create comment: { id: crypto.randomUUID(), text, createdAt }
+  - Append to task.comments array
+  - Delegate to TaskStorage.saveTask()
+- [ ] Implement `deleteTask(id)`:
+  - Delegate to TaskStorage.deleteTask()
+- [ ] Add error handling (task not found, validation errors)
+- [ ] Add unit tests (30 tests)
 
-4. **Create CollectionTabTracker** (2-3h)
-   - [ ] Create `/services/execution/CollectionTabTracker.js` (~200 lines)
-   - [ ] Track which tabs belong to which collections (active/working)
-   - [ ] Implement `trackTab(collectionId, linkId, tabId)` - map link → tab
-   - [ ] Implement `untrackTab(tabId)` - remove mapping
-   - [ ] Implement `getTabsForCollection(collectionId)` - query mappings
-   - [ ] Implement `getCollectionForTab(tabId)` - reverse lookup
-   - [ ] Listen to chrome.tabs.onRemoved - update collection state when tabs close
-   - [ ] Listen to chrome.tabs.onUpdated - update link state (URL changes)
-   - [ ] Store mappings in chrome.storage.local (persist across restarts)
-   - [ ] Handle service worker restarts (reload mappings)
+#### 2.5 WindowTrackingService (2-3h)
+- [ ] Create `/services/execution/WindowTrackingService.js` (~150 lines)
+- [ ] Listen to `chrome.windows.onRemoved`:
+  - Query all collections via CollectionStorage.getActiveCollections()
+  - Find collection with matching windowId
+  - If found: call CollectionService.unbindFromWindow(collectionId)
+  - Update collection state (windowId=null, isActive=false)
+- [ ] Implement `initialize()`:
+  - Setup chrome.windows.onRemoved listener
+  - Sync existing windows on startup (detect orphaned collections)
+- [ ] Implement `syncCollectionsWithWindows()`:
+  - Get all active collections
+  - Check if windows still exist via chrome.windows.get()
+  - Unbind collections for closed windows
+- [ ] Add unit tests (15 tests)
 
-5. **Add Background Message Handlers** (1-2h)
-   - [ ] Update `/tabmaster-pro/background-integrated.js`
-   - [ ] Add message handlers (follow Phase 8.1 WindowService pattern):
-     - `case 'createCollection'` → CollectionService.createCollection()
-     - `case 'updateCollection'` → CollectionService.updateCollection()
-     - `case 'deleteCollection'` → CollectionService.deleteCollection()
-     - `case 'getCollections'` → selectCollections()
-     - `case 'getCollection'` → CollectionStorage.getCollection()
-     - `case 'addLinksToCollection'` → CollectionService.addLinksToCollection()
-   - [ ] Add error handling and sendResponse() for all handlers
-   - [ ] Initialize CollectionTabTracker on startup
-
-6. **Unit Tests** (2h)
-   - [ ] Create `/tests/CollectionService.test.js` (~30 tests)
-   - [ ] Test createCollection with various params
-   - [ ] Test updateCollection edge cases
-   - [ ] Test deleteCollection cleanup
-   - [ ] Create `/tests/CollectionStateMachine.test.js` (~15 tests)
-   - [ ] Test valid/invalid transitions
-   - [ ] Create `/tests/CollectionTabTracker.test.js` (~20 tests)
-   - [ ] Test tab tracking and cleanup
-   - [ ] Test service worker restart scenario
+#### 2.6 Background Message Handlers (1h)
+- [ ] Update `/tabmaster-pro/background.js`:
+- [ ] Add message handlers:
+  - `case 'createCollection'` → CollectionService.createCollection()
+  - `case 'updateCollection'` → CollectionService.updateCollection()
+  - `case 'deleteCollection'` → CollectionService.deleteCollection()
+  - `case 'getCollections'` → selectCollections()
+  - `case 'getCollection'` → CollectionStorage.getCollection()
+  - `case 'createTask'` → TaskService.createTask()
+  - `case 'updateTask'` → TaskService.updateTask()
+  - `case 'updateTaskStatus'` → TaskService.updateTaskStatus()
+  - `case 'deleteTask'` → TaskService.deleteTask()
+  - `case 'getTasks'` → selectTasks()
+  - `case 'getTask'` → TaskStorage.getTask()
+- [ ] Initialize WindowTrackingService on startup
+- [ ] Add error handling and sendResponse() for all handlers
 
 **Success Criteria**:
 - [ ] Collections can be created/updated/deleted via services
-- [ ] State transitions validated and enforced
-- [ ] Tab tracking works when tabs open/close externally
-- [ ] All message handlers respond correctly
-- [ ] Service worker restarts don't break tab tracking
-- [ ] All 65+ unit tests pass
+- [ ] Folders and tabs can be managed (nested updates work)
+- [ ] Tasks can be created/updated/deleted via services
+- [ ] Window close automatically unbinds collection (isActive=false)
+- [ ] Background message handlers respond correctly
+- [ ] All 130+ unit tests pass
+- [ ] Service worker restarts don't break functionality
 
-**Files Created**:
+**Deliverables**:
 - `/services/selection/selectCollections.js` (~200 lines)
+- `/services/selection/selectTasks.js` (~200 lines)
 - `/services/execution/CollectionService.js` (~300 lines)
-- `/services/execution/CollectionStateMachine.js` (~150 lines)
-- `/services/execution/CollectionTabTracker.js` (~200 lines)
-- `/tests/CollectionService.test.js` (~30 tests, ~200 lines)
-- `/tests/CollectionStateMachine.test.js` (~15 tests, ~100 lines)
-- `/tests/CollectionTabTracker.test.js` (~20 tests, ~150 lines)
+- `/services/execution/FolderService.js` (~150 lines)
+- `/services/execution/TabService.js` (~150 lines)
+- `/services/execution/TaskService.js` (~250 lines)
+- `/services/execution/WindowTrackingService.js` (~150 lines)
+- Unit tests (~130 tests, ~800 lines)
 
 ---
 
-### Phase 3: Side Panel UI ⏳
-**Time Estimate**: 8-10 hours
+### Phase 3: Side Panel UI (Collections + Tasks) ⏳
+**Time Estimate**: 14-16 hours
 **Priority**: HIGH
 **Dependencies**: Phase 2 complete
-**Pattern**: THIN surface with message passing (follow dashboard pattern)
+**Status**: 🔴 Not Started
 
-#### Tasks
+#### 3.1 Side Panel Setup (2-3h)
+- [ ] Create `/sidepanel/panel.html` (~250 lines)
+  - Header with search, "Save Window" button, view switcher (Collections/Tasks)
+  - Collections view container
+  - Tasks view container
+  - Empty state messaging
+  - Loading indicators
+- [ ] Create `/sidepanel/panel.css` (~200 lines)
+  - Reuse dashboard CSS patterns (consistent styling)
+  - Responsive design (300px min width)
+  - Tab switcher styles
+  - Collection/task card styles
+  - Active/saved indicators (🟢 for active)
+- [ ] Update `/manifest.json`:
+  - Add side_panel configuration
+  - Add keyboard shortcut (Cmd+B) to open side panel
 
-1. **Create Side Panel HTML/CSS** (2-3h)
-   - [ ] Create `/sidepanel/panel.html` (~200 lines)
-   - [ ] Reuse dashboard CSS patterns (consistent styling)
-   - [ ] Create side panel layout:
-     - Header with search and "New Collection" button
-     - Sections: WORKING / ACTIVE / DORMANT
-     - Collection cards with icon, name, tab count, state indicator
-     - "Open" button per collection
-   - [ ] Create `/sidepanel/panel.css` (~150 lines)
-   - [ ] Responsive design (250px min width, works at any height)
-   - [ ] Follow TabMaster Pro color scheme (--primary, --secondary, etc.)
+#### 3.2 Collections View (3-4h)
+- [ ] Create `/sidepanel/collections-view.js` (~300 lines)
+- [ ] Class: `CollectionsView` (THIN, message passing only)
+- [ ] Implement `render(collections)`:
+  - Group by state: ACTIVE (isActive=true) / SAVED (isActive=false)
+  - Render collection cards:
+    - Icon, name, description
+    - Tab count, folder count
+    - 🟢 indicator for active collections
+    - Last accessed timestamp
+    - Action buttons: "Focus Window" (active) / "Open" (saved), "View Tasks", "Edit", "Close"
+  - Handle empty states ("No collections yet")
+- [ ] Implement `handleSaveWindow()`:
+  - Get current window tabs via chrome.tabs.query()
+  - Get current window tab groups via chrome.tabGroups.query()
+  - Suggest name from top domain
+  - Send `createCollection` message to background
+  - Show success notification
+- [ ] Implement `handleFocusWindow(collectionId)`:
+  - Send `focusWindow` message with windowId (Phase 6 feature)
+- [ ] Implement `handleOpenCollection(collectionId)`:
+  - Send `restoreCollection` message to background (Phase 6 feature)
+- [ ] Implement search/filter (local filtering, no backend)
+- [ ] Listen for background messages (collection.created, collection.updated, collection.deleted)
+- [ ] NO business logic - all operations via chrome.runtime.sendMessage()
 
-2. **Create Side Panel JS (THIN)** (3-4h)
-   - [ ] Create `/sidepanel/panel.js` (~300 lines)
-   - [ ] Class: `LinkStashPanel` (follow dashboard module pattern)
-   - [ ] Initialize:
-     - Load collections via `chrome.runtime.sendMessage({ action: 'getCollections' })`
-     - Setup event listeners (buttons, search)
-     - Listen for background messages (collection.created, collection.updated, etc.)
-   - [ ] Implement `saveCurrentWindow()`:
-     - Get current window tabs via chrome.tabs.query()
-     - Suggest name from top domain (like existing tab grouping)
-     - Send `createCollection` message to background
-     - Show success notification
-   - [ ] Implement `handleCollectionClick()`:
-     - Send `activateWorkspace` message to background (Phase 5 feature)
-     - Show loading indicator during activation
-   - [ ] Implement `renderCollections(collections)`:
-     - Group by state (working/active/dormant)
-     - Render collection cards with metadata
-     - Add action buttons (Open, Edit, Delete)
-   - [ ] Implement search/filter UI (filter locally, no backend)
-   - [ ] NO business logic - all operations via message passing
+#### 3.3 Tasks View (3-4h)
+- [ ] Create `/sidepanel/task-view.js` (~350 lines)
+- [ ] Class: `TaskView` (THIN, message passing only)
+- [ ] Implement `render(tasks, collections)`:
+  - Group by section:
+    - UNCATEGORIZED (no collectionId)
+    - By Collection (grouped by collectionId)
+    - COMPLETED (status='fixed' or 'abandoned')
+  - Render task cards:
+    - Priority indicator (color-coded)
+    - Summary, due date
+    - Collection name (if present) with 🟢 for active
+    - Tab references count ("→ 3 tabs")
+    - Action buttons: "Open Tabs", "Mark Fixed", "View Collection"
+  - Sort by: dueDate (ascending), priority (descending)
+  - Handle empty states ("No tasks yet")
+- [ ] Implement `handleOpenTabs(taskId)`:
+  - Send `openTaskTabs` message to background (Phase 6 feature)
+  - Show loading indicator
+- [ ] Implement `handleMarkFixed(taskId)`:
+  - Send `updateTaskStatus` message with status='fixed'
+  - Update UI optimistically
+- [ ] Implement filters (status, priority, collection)
+- [ ] Implement search (summary, notes text match)
+- [ ] Listen for background messages (task.created, task.updated, task.deleted)
+- [ ] NO business logic - all operations via chrome.runtime.sendMessage()
 
-3. **Update manifest.json** (0.5h)
-   - [ ] Add side_panel configuration:
-     ```json
-     "side_panel": {
-       "default_path": "sidepanel/panel.html"
-     }
-     ```
-   - [ ] Add side panel open action to toolbar icon (optional click → open panel)
+#### 3.4 Tab Switcher (1-2h)
+- [ ] Create `/sidepanel/panel.js` (~200 lines)
+- [ ] Main controller class: `SidePanelController`
+- [ ] Initialize both views (collections, tasks)
+- [ ] Implement tab switching:
+  - "Collections" tab → show collections view
+  - "Tasks" tab → show tasks view
+  - Persist selected tab in chrome.storage.local
+- [ ] Load data on init:
+  - Send `getCollections` message
+  - Send `getTasks` message
+  - Pass to respective views
+- [ ] Handle refresh on focus (reload data when panel opens)
 
-4. **Add Quick Save Feature** (1-2h)
-   - [ ] Create `/sidepanel/quick-save.js` (~100 lines)
-   - [ ] Add "Quick Save" button in side panel header
-   - [ ] Show modal with:
-     - Auto-suggested name (from tabs)
-     - Icon picker (emoji selector)
-     - Tag input (comma-separated)
-     - "Save" and "Cancel" buttons
-   - [ ] On save: send `createCollection` message
-   - [ ] Show confirmation toast
+#### 3.5 Search & Filters (2-3h)
+- [ ] Implement global search in collections view:
+  - Search in name, description, tags
+  - Filter by active/saved state
+  - Sort options (last accessed, created, name)
+- [ ] Implement global search in tasks view:
+  - Search in summary, notes, tags
+  - Filter by status (open/active/fixed/abandoned)
+  - Filter by priority (low/medium/high/critical)
+  - Filter by collection
+  - Sort options (due date, priority, created)
+- [ ] Persist filter state in chrome.storage.local
 
-5. **Integration Testing** (1-2h)
-   - [ ] Test side panel opens via toolbar icon
-   - [ ] Test loading collections from background
-   - [ ] Test saving current window as collection
-   - [ ] Test quick save flow
-   - [ ] Test search/filter functionality
-   - [ ] Test real-time updates (create collection in dashboard → appears in panel)
-   - [ ] Test with 50+ collections (scrolling, performance)
+#### 3.6 Integration Testing (2h)
+- [ ] Test side panel opens via Cmd+B
+- [ ] Test Collections view loads and displays
+- [ ] Test Tasks view loads and displays
+- [ ] Test tab switching between views
+- [ ] Test "Save Window" creates collection
+- [ ] Test search/filter functionality
+- [ ] Test real-time updates (create in dashboard → appears in panel)
+- [ ] Test with 50+ collections and 100+ tasks (performance)
 
 **Success Criteria**:
-- [ ] Side panel opens from toolbar icon
-- [ ] Collections load and display correctly
-- [ ] "Save Window" creates collection with correct tabs
-- [ ] Quick save modal works with name suggestions
-- [ ] Search filters collections locally
-- [ ] Real-time updates work across surfaces
-- [ ] No business logic in sidepanel/*.js (all via messages)
-- [ ] UI responsive and consistent with TabMaster style
+- [ ] Side panel opens via keyboard shortcut
+- [ ] Collections view groups by active/saved correctly
+- [ ] Tasks view groups by collection correctly
+- [ ] "Save Window" creates collection with folders and tabs
+- [ ] Search/filter works locally (no backend calls)
+- [ ] Real-time updates work (listen to background messages)
+- [ ] NO business logic in sidepanel/*.js (all via messages)
+- [ ] Performance acceptable (< 200ms render for 50 collections)
 
-**Files Created**:
-- `/sidepanel/panel.html` (~200 lines)
-- `/sidepanel/panel.css` (~150 lines)
-- `/sidepanel/panel.js` (~300 lines)
-- `/sidepanel/quick-save.js` (~100 lines)
+**Deliverables**:
+- `/sidepanel/panel.html` (~250 lines)
+- `/sidepanel/panel.css` (~200 lines)
+- `/sidepanel/panel.js` (~200 lines)
+- `/sidepanel/collections-view.js` (~300 lines)
+- `/sidepanel/task-view.js` (~350 lines)
 
 ---
 
-### Phase 4: Dashboard Integration ⏳
-**Time Estimate**: 8-10 hours
-**Priority**: HIGH
-**Dependencies**: Phase 3 complete
-**Pattern**: Add new dashboard view (follow tabs/groups/rules pattern)
-
-#### Tasks
-
-1. **Create Collections View Module** (3-4h)
-   - [ ] Create `/dashboard/modules/views/collections.js` (~400 lines)
-   - [ ] Follow existing view pattern (tabs.js, groups.js)
-   - [ ] Implement `loadCollectionsView()`:
-     - Send `getCollections` message to background
-     - Group by state (working/active/reference/dormant)
-     - Render collection grid with cards
-   - [ ] Implement collection card rendering:
-     - Icon, name, description
-     - Tab count, state badge
-     - Last accessed time
-     - Action buttons (Activate, Edit, Delete)
-   - [ ] Implement `showCollectionDetails(collectionId)`:
-     - Modal with links list
-     - Link metadata (URL, title, role, pinned)
-     - Edit capabilities (rename links, reorder, delete)
-     - Task list (if Phase 6 implemented)
-   - [ ] Implement bulk actions:
-     - Select multiple collections (checkboxes)
-     - "Delete Selected" button
-     - "Export Selected" button
-   - [ ] NO business logic - all operations via messages
-
-2. **Add Collections Navigation** (1h)
-   - [ ] Update `/dashboard/dashboard.html`:
-     - Add "Collections" to sidebar navigation
-     - Add icon (📚 or 📁)
-   - [ ] Update `/dashboard/dashboard.js`:
-     - Add route: `#collections` → `loadCollectionsView()`
-     - Default view on first load: `#tabs` (no breaking changes)
-   - [ ] Test navigation between views
-
-3. **Create Collection Editor** (2-3h)
-   - [ ] Create `/dashboard/modules/collection-editor.js` (~300 lines)
-   - [ ] Show modal for editing collection:
-     - Name, description, icon, color, tags
-     - Links list with drag-and-drop reorder
-     - Link details: URL, title, role (primary/reference/related)
-     - Pin link checkbox
-     - Delete link button
-     - Add new link input
-   - [ ] On save: send `updateCollection` message
-   - [ ] Validate inputs (name required, valid URLs)
-   - [ ] Show save/cancel buttons
-
-4. **Add Context Menu Actions** (1-2h)
-   - [ ] Update `/tabmaster-pro/background-integrated.js`:
-   - [ ] Add context menu items:
-     - "Save Tab to Collection" → submenu with recent collections
-     - "Create Collection from Group" → convert tab group
-     - "Add to Workspace" → add to active workspace
-   - [ ] Follow Phase 8.1 WindowService context menu pattern
-   - [ ] Context menu handlers (THIN):
-     - Get selected tab/group
-     - Call CollectionService via direct import (same process)
-     - Show notification on success
-
-5. **Unified Search Enhancement** (1-2h)
-   - [ ] Update dashboard search to include collections:
-     - Search in collection name
-     - Search in collection description
-     - Search in link URLs/titles within collections
-   - [ ] Show collection results in search dropdown
-   - [ ] Click result → navigate to collection details
-
-6. **Integration Testing** (1h)
-   - [ ] Test Collections view loads and displays
-   - [ ] Test navigation between tabs/groups/collections views
-   - [ ] Test creating collection from dashboard
-   - [ ] Test editing collection (name, links, metadata)
-   - [ ] Test deleting collection
-   - [ ] Test bulk operations (select + delete multiple)
-   - [ ] Test context menu actions
-   - [ ] Test unified search includes collections
-   - [ ] Test with 100+ collections (performance)
-
-**Success Criteria**:
-- [ ] Collections view added to dashboard sidebar
-- [ ] Collection cards display with proper styling
-- [ ] Collection editor modal works (edit name, links, metadata)
-- [ ] Context menu "Save to Collection" works
-- [ ] Unified search finds collections by name/description
-- [ ] Bulk actions work (delete, export)
-- [ ] No business logic in dashboard/*.js (all via messages)
-- [ ] Performance acceptable with 100+ collections
-
-**Files Created**:
-- `/dashboard/modules/views/collections.js` (~400 lines)
-- `/dashboard/modules/collection-editor.js` (~300 lines)
-
-**Files Modified**:
-- `/dashboard/dashboard.html` (add nav item)
-- `/dashboard/dashboard.js` (add route)
-- `/tabmaster-pro/background-integrated.js` (add context menus)
-
----
-
-### Phase 5: Workspace Activation ⏳
+### Phase 4: Popup Enhancement (Discovery) ⏳
 **Time Estimate**: 6-8 hours
 **Priority**: MEDIUM
-**Dependencies**: Phase 4 complete
-**Pattern**: Follow SnoozeService alarm + WindowService orchestration pattern
+**Dependencies**: Phase 3 complete
+**Status**: 🔴 Not Started
 
-#### Tasks
+#### 4.1 Popup Layout Update (2-3h)
+- [ ] Update `/popup/popup.html`:
+  - Add "💡 Try Collections" banner at top (dismissible)
+  - Add "💾 Save This Window" button (prominent)
+  - Add "Active Tasks" section (3-5 max)
+  - Add "Active Collections" section (with 🟢 and window info)
+  - Add "Recent Saved Collections" section (3-5 max)
+  - Add "Open Side Panel (Cmd+B)" link
+  - Keep existing TabMaster features below
+- [ ] Update `/popup/popup.css`:
+  - Style new sections (consistent with existing popup)
+  - Banner styling (light blue background, dismissible X)
+  - Collection card styling (compact version)
+  - Task card styling (compact version)
 
-1. **Create ActivateWorkspace Service** (3-4h)
-   - [ ] Create `/services/execution/ActivateWorkspace.js` (~250 lines)
-   - [ ] Follow WindowService pattern (Phase 8.1)
-   - [ ] Implement `activateWorkspace(collectionId, options)`:
-     - Options: openPinned (default true), createNewWindow (default false), restorationMode
-     - Get collection from CollectionStorage
-     - Validate collection exists
-     - Determine target window (new or current)
-     - Store original focused window for restoration (follow WindowService pattern)
-     - Open links as tabs:
-       - If openPinned=true: only pinned links
-       - If openPinned=false: all links
-       - Use chrome.tabs.create() with windowId, pinned, active=false
-     - Update collection state to 'working'
-     - Track tabs via CollectionTabTracker (linkId → tabId)
-     - Update workingState: { windowId, openTabs, activated: Date.now() }
-     - Restore original window focus (follow WindowService pattern)
-     - Return { collection, tabs }
+#### 4.2 Popup JS Updates (2-3h)
+- [ ] Update `/popup/popup.js`:
+  - Load active tasks via `getTasks` message (status='open' or 'active', limit 5)
+  - Load active collections via `getCollections` message (isActive=true)
+  - Load recent saved collections via `getCollections` message (isActive=false, sort by lastAccessed, limit 5)
+  - Render collections with 🟢 indicator and window info
+  - Render tasks with "Open" button → send `openTaskTabs` message
+  - Handle "Save This Window" button → send `createCollection` message
+  - Handle banner dismiss → save state in chrome.storage.local
+  - Handle "Open Side Panel" link → chrome.runtime.openOptionsPage() or side panel API
+- [ ] NO business logic - all operations via chrome.runtime.sendMessage()
 
-2. **Create DeactivateWorkspace Service** (1-2h)
-   - [ ] Create `/services/execution/DeactivateWorkspace.js` (~150 lines)
-   - [ ] Implement `deactivateWorkspace(collectionId, options)`:
-     - Options: preserveState (default true), closeWindow (default false)
-     - Get collection from CollectionStorage
-     - If preserveState: capture tab state (scroll, form data) - Phase 6 feature
-     - Get tabs from CollectionTabTracker
-     - Close tabs via chrome.tabs.remove()
-     - If closeWindow: close window via chrome.windows.remove()
-     - Update collection state to 'dormant'
-     - Clear workingState
-     - Untrack tabs via CollectionTabTracker
-     - Return { closed: tabCount }
-
-3. **Create SaveWorkspaceState Service** (1-2h)
-   - [ ] Create `/services/execution/SaveWorkspaceState.js` (~150 lines)
-   - [ ] Implement `saveWorkspaceState(collectionId)`:
-     - Get collection from CollectionStorage
-     - Get tabs from CollectionTabTracker
-     - For each tab:
-       - Update link.tabState.lastAccessed = Date.now()
-       - Capture basic state (no scroll/form data in MVP)
-     - Update collection metadata.lastAccessed
-     - Save collection via CollectionStorage
-     - Return { saved: linkCount }
-
-4. **Add Background Message Handlers** (0.5h)
-   - [ ] Update `/tabmaster-pro/background-integrated.js`:
-   - [ ] Add message handlers:
-     - `case 'activateWorkspace'` → ActivateWorkspace.activateWorkspace()
-     - `case 'deactivateWorkspace'` → DeactivateWorkspace.deactivateWorkspace()
-     - `case 'saveWorkspaceState'` → SaveWorkspaceState.saveWorkspaceState()
-   - [ ] Handle callerWindowId for focus restoration
-
-5. **Update UI Surfaces** (1-2h)
-   - [ ] Update sidepanel/panel.js:
-     - "Open" button → send `activateWorkspace` message
-     - Show loading indicator during activation
-     - Handle success/error responses
-   - [ ] Update dashboard/modules/views/collections.js:
-     - "Activate" button → send `activateWorkspace` message
-     - "Close Workspace" button → send `deactivateWorkspace` message
-     - Show state transitions visually (dormant → working)
-   - [ ] Add keyboard shortcut (optional):
-     - Cmd+Shift+W: Save current window as workspace
-     - Cmd+Shift+A: Activate last workspace
-
-6. **Unit Tests** (1-2h)
-   - [ ] Create `/tests/ActivateWorkspace.test.js` (~20 tests)
-   - [ ] Test activation with various options
-   - [ ] Test window focus restoration
-   - [ ] Test tab tracking integration
-   - [ ] Create `/tests/DeactivateWorkspace.test.js` (~15 tests)
-   - [ ] Test deactivation and cleanup
-   - [ ] Test state preservation
-   - [ ] Create `/tests/SaveWorkspaceState.test.js` (~10 tests)
-   - [ ] Test state capture and save
-
-7. **Integration Testing** (1h)
-   - [ ] Test activating workspace from sidepanel
-   - [ ] Test activating workspace from dashboard
-   - [ ] Test workspace opens in correct window
-   - [ ] Test window focus restored to original
-   - [ ] Test deactivating workspace closes tabs
-   - [ ] Test saving workspace state updates lastAccessed
-   - [ ] Test with 30+ tabs in workspace (performance)
+#### 4.3 Integration Testing (1-2h)
+- [ ] Test popup opens and shows new sections
+- [ ] Test "Save This Window" creates collection
+- [ ] Test banner dismissal persists
+- [ ] Test active tasks display with "Open" button
+- [ ] Test active collections display with 🟢 indicator
+- [ ] Test recent saved collections display
+- [ ] Test "Open Side Panel" link works
+- [ ] Test existing TabMaster features still work
 
 **Success Criteria**:
-- [ ] Activating workspace opens tabs correctly
-- [ ] Window focus restored to caller after activation
-- [ ] Deactivating workspace closes tabs and updates state
-- [ ] Tab tracking works (collection → tabs mapping)
-- [ ] Workspace state saved on deactivation
-- [ ] Performance acceptable (< 800ms for 20 tabs)
-- [ ] All 45+ unit tests pass
-- [ ] No breaking changes to existing features
+- [ ] Banner promotes Collections effectively
+- [ ] "Save This Window" button prominent and working
+- [ ] Active tasks display (max 5)
+- [ ] Active collections display with window info
+- [ ] Banner dismissal persists
+- [ ] Existing TabMaster features unaffected
+- [ ] NO business logic in popup/*.js (all via messages)
 
-**Files Created**:
-- `/services/execution/ActivateWorkspace.js` (~250 lines)
-- `/services/execution/DeactivateWorkspace.js` (~150 lines)
-- `/services/execution/SaveWorkspaceState.js` (~150 lines)
-- `/tests/ActivateWorkspace.test.js` (~20 tests, ~150 lines)
-- `/tests/DeactivateWorkspace.test.js` (~15 tests, ~100 lines)
-- `/tests/SaveWorkspaceState.test.js` (~10 tests, ~80 lines)
+**Deliverables**:
+- Updated `/popup/popup.html`
+- Updated `/popup/popup.css`
+- Updated `/popup/popup.js`
 
 ---
 
-## Phase 6: Task System (OPTIONAL - Defer to v2.0) 🔜
-**Time Estimate**: 20-30 hours
-**Priority**: LOW (after MVP validation)
+### Phase 5: Context Menus ⏳
+**Time Estimate**: 4-6 hours
+**Priority**: MEDIUM
+**Dependencies**: Phase 4 complete
+**Status**: 🔴 Not Started
+
+#### 5.1 Tab Context Menu (1-2h)
+- [ ] Update `/tabmaster-pro/background.js`:
+  - Add context menu items for tabs:
+    - "Add to Collection" → submenu with recent collections + "New Collection"
+    - "Create Task for Tab" → modal to create task referencing this tab
+    - "Add Note to Tab" → modal to add note (if tab in collection)
+- [ ] Implement handlers:
+  - Get tab info via chrome.tabs.get()
+  - Send message to create task or add to collection
+  - Show notification on success
+
+#### 5.2 Page Context Menu (1-2h)
+- [ ] Add context menu items for pages:
+  - "Save Page to Collection" → submenu with recent collections + "New Collection"
+  - "Create Task for Page" → modal to create task referencing current page
+- [ ] Implement handlers:
+  - Get active tab info
+  - Send message to create task or add to collection
+  - Show notification on success
+
+#### 5.3 Toolbar Context Menu (0.5-1h)
+- [ ] Add context menu items for extension icon:
+  - "Save Window as Collection"
+  - "Open Side Panel (Cmd+B)"
+- [ ] Implement handlers:
+  - Get current window tabs
+  - Send `createCollection` message
+  - Open side panel
+
+#### 5.4 Integration Testing (1-2h)
+- [ ] Test tab right-click → "Add to Collection" works
+- [ ] Test tab right-click → "Create Task for Tab" works
+- [ ] Test page right-click → "Save Page to Collection" works
+- [ ] Test page right-click → "Create Task for Page" works
+- [ ] Test toolbar right-click → "Save Window as Collection" works
+- [ ] Test toolbar right-click → "Open Side Panel" works
+- [ ] Test with no collections (graceful handling)
+
+**Success Criteria**:
+- [ ] All context menu items appear correctly
+- [ ] "Add to Collection" shows recent collections
+- [ ] "Create Task" opens modal (or creates directly)
+- [ ] All handlers work and show notifications
+- [ ] NO business logic in context menu handlers (delegate to services)
+
+**Deliverables**:
+- Updated `/tabmaster-pro/background.js` (context menu setup)
+
+---
+
+### Phase 6: Operations (Orchestration Services) ⏳
+**Time Estimate**: 10-12 hours
+**Priority**: HIGH
 **Dependencies**: Phase 5 complete
+**Status**: 🔴 Not Started
 
-**Scope**: Context-aware task management integrated with collections
-- Task-link relationships (which links needed for task)
-- Task states (pending/active/blocked/completed)
-- Work session tracking
-- Time estimates vs actual
-- Auto-open/close links when starting/completing tasks
-- Task notifications and reminders
+#### 6.1 CaptureWindowService (3-4h)
+- [ ] Create `/services/execution/CaptureWindowService.js` (~250 lines)
+- [ ] Implement `captureWindow(windowId, metadata)`:
+  - Get all tabs in window via chrome.tabs.query()
+  - Get all tab groups via chrome.tabGroups.query()
+  - Build folders structure:
+    - For each tab group: create Folder with tabs
+    - For ungrouped tabs: create default folder or root-level tabs
+  - Capture tab metadata (url, title, favicon, pinned, position)
+  - Create collection via CollectionService.createCollection():
+    - name (from metadata or auto-suggest)
+    - description, icon, color, tags (from metadata)
+    - folders array (built above)
+    - windowId (bind to current window)
+    - isActive = true
+  - Return created collection
+- [ ] Add error handling (window not found, tabs API errors)
+- [ ] Add unit tests (20 tests)
 
-**Recommendation**: Ship MVP (Phases 1-5) first, validate with users, then add Tasks in v2.0 based on feedback
+#### 6.2 RestoreCollectionService (3-4h)
+- [ ] Create `/services/execution/RestoreCollectionService.js` (~300 lines)
+- [ ] Follow ExportImportService pattern (reuse window creation logic)
+- [ ] Implement `restoreCollection(collectionId, options)`:
+  - Options: createNewWindow (default true), restorationMode ('original' or 'current')
+  - Get collection via CollectionStorage.getCollection()
+  - Validate collection exists
+  - If createNewWindow:
+    - Create new window via chrome.windows.create()
+    - Restore tab groups via chrome.tabGroups.update()
+    - Create tabs via chrome.tabs.create() with proper groupId, pinned, position
+  - If not createNewWindow:
+    - Create tabs in current window
+    - Skip tab groups (not supported across windows)
+  - Track tabs via TabService (update tab.tabId for runtime state)
+  - Bind collection to window via CollectionService.bindToWindow()
+  - Update collection.isActive = true
+  - Return { collection, windowId, tabs }
+- [ ] Add error handling (collection not found, Chrome API errors)
+- [ ] Add unit tests (20 tests)
 
-**Rationale**:
-- Collections with states (dormant/active/working) already provide significant value
-- Task system adds complexity (task-link mapping, notifications, time tracking)
-- Need to validate collection usage patterns before adding tasks
-- Can design better task system after understanding real usage
+#### 6.3 TaskExecutionService (2-3h)
+- [ ] Create `/services/execution/TaskExecutionService.js` (~200 lines)
+- [ ] Implement `openTaskTabs(taskId)`:
+  - Get task via TaskStorage.getTask()
+  - Get collection via CollectionStorage.getCollection() (if task.collectionId)
+  - If collection.isActive = false (saved):
+    - Restore collection via RestoreCollectionService.restoreCollection()
+  - If collection.isActive = true (active):
+    - Get tabs from task.tabIds
+    - Map to Chrome tab IDs via collection folders/tabs
+    - Focus tabs via chrome.tabs.update({ active: true })
+  - If no collection (uncategorized task):
+    - Open tabs in current window via chrome.tabs.create()
+  - Return { opened: tabCount }
+- [ ] Add error handling (task not found, tabs not found)
+- [ ] Add unit tests (15 tests)
+
+#### 6.4 Background Message Handlers (1h)
+- [ ] Update `/tabmaster-pro/background.js`:
+  - `case 'captureWindow'` → CaptureWindowService.captureWindow()
+  - `case 'restoreCollection'` → RestoreCollectionService.restoreCollection()
+  - `case 'openTaskTabs'` → TaskExecutionService.openTaskTabs()
+  - `case 'focusWindow'` → chrome.windows.update({ focused: true })
+- [ ] Add error handling and sendResponse()
+
+#### 6.5 Integration Testing (2h)
+- [ ] Test "Save Window" captures all tabs and groups
+- [ ] Test "Open" (saved collection) restores window with all tabs/groups
+- [ ] Test "Open Tabs" (task in saved collection) restores collection and focuses tabs
+- [ ] Test "Open Tabs" (task in active collection) focuses tabs only
+- [ ] Test window close → collection becomes saved (WindowTrackingService)
+- [ ] Test restore → collection becomes active again
+- [ ] Test with 50+ tabs (performance)
+
+**Success Criteria**:
+- [ ] "Save Window" captures complete window state (folders, tabs, groups)
+- [ ] "Open" restores collection as window with all metadata
+- [ ] "Open Tabs" restores collection if needed, focuses task tabs
+- [ ] Window close → collection saved (isActive=false)
+- [ ] Tab groups recreated correctly on restore
+- [ ] All 55+ unit tests pass
+- [ ] Performance acceptable (< 3s for 50-tab collection)
+
+**Deliverables**:
+- `/services/execution/CaptureWindowService.js` (~250 lines)
+- `/services/execution/RestoreCollectionService.js` (~300 lines)
+- `/services/execution/TaskExecutionService.js` (~200 lines)
+- Unit tests (~55 tests, ~400 lines)
 
 ---
 
-## Phase 7: Rule Engine Integration (OPTIONAL - Defer to v2.0) 🔜
-**Time Estimate**: 8-12 hours
-**Priority**: LOW (after MVP validation)
-**Dependencies**: Phase 5 complete
+### Phase 7: Dashboard Integration ⏳
+**Time Estimate**: 12-14 hours
+**Priority**: MEDIUM
+**Dependencies**: Phase 6 complete
+**Status**: 🔴 Not Started
 
-**Scope**: Rules can act on collections
-- New action: `saveToCollection` (auto-save matching tabs to collection)
-- New action: `addToCollection` (add matching tabs to existing collection)
-- New condition: `inCollection` (tab is in a collection)
-- Collection-scoped rules (rules that only run for specific collections)
+#### 7.1 Collections View (4-5h)
+- [ ] Create `/dashboard/modules/views/collections.js` (~400 lines)
+- [ ] Implement `loadCollectionsView()`:
+  - Load collections via `getCollections` message
+  - Render grid/list view with collection cards
+  - Group by state (Active / Saved / Archived)
+  - Show stats (tab count, folder count, task count)
+  - Action buttons: "Open", "Edit", "Delete", "Archive"
+- [ ] Implement collection detail modal:
+  - Show folders and tabs (nested tree view)
+  - Show tasks in collection
+  - Edit metadata (name, description, tags)
+  - Drag-and-drop to reorder folders/tabs
+  - Add/remove folders/tabs
+- [ ] Implement bulk operations:
+  - Select multiple collections (checkboxes)
+  - "Archive Selected", "Delete Selected", "Export Selected"
+- [ ] Implement filters/search (name, tags, date range)
+- [ ] NO business logic - all via chrome.runtime.sendMessage()
 
-**Recommendation**: Ship MVP first, add rules integration in v2.0 after usage patterns known
+#### 7.2 Tasks View (4-5h)
+- [ ] Create `/dashboard/modules/views/tasks.js` (~400 lines)
+- [ ] Implement `loadTasksView()`:
+  - Load tasks via `getTasks` message
+  - Load collections via `getCollections` message (for display)
+  - Render Kanban board (columns: Open / Active / Fixed)
+  - Show task cards with metadata (priority, due date, collection, tabs)
+  - Drag-and-drop between columns (updates status)
+- [ ] Implement calendar view:
+  - Group tasks by due date
+  - Month/week/day views
+  - Drag to change due date
+- [ ] Implement task detail modal:
+  - Edit summary, notes, priority, due date, tags
+  - Show collection and referenced tabs
+  - Add/remove tab references
+  - Add comments
+  - Change status
+- [ ] Implement filters/search (status, priority, collection, tags)
+- [ ] Implement reporting:
+  - Completed this week
+  - Overdue tasks
+  - Tasks by collection
+- [ ] NO business logic - all via chrome.runtime.sendMessage()
 
-**Rationale**:
-- Need to understand how users organize collections first
-- Rule patterns will emerge from real usage (e.g., "auto-save research tabs")
-- Can design better rule conditions after seeing collection patterns
-- Engine integration is straightforward (follow Phase 6 pattern from refactor)
+#### 7.3 Navigation Integration (1-2h)
+- [ ] Update `/dashboard/dashboard.html`:
+  - Add "Collections" to sidebar navigation
+  - Add "Tasks" to sidebar navigation
+  - Add icons (📁 Collections, ✓ Tasks)
+- [ ] Update `/dashboard/dashboard.js`:
+  - Add routes: `#collections`, `#tasks`
+  - Default view: `#tabs` (no breaking changes)
+  - Navigation between views
 
----
+#### 7.4 Unified Search Enhancement (1-2h)
+- [ ] Update dashboard search to include collections and tasks:
+  - Search in collection name, description, tags
+  - Search in task summary, notes, tags
+  - Show results grouped by type (Tabs / Collections / Tasks)
+  - Click result → navigate to detail view
 
-## Success Criteria
+#### 7.5 Integration Testing (2h)
+- [ ] Test Collections view loads and displays
+- [ ] Test Tasks view (Kanban board) loads
+- [ ] Test calendar view for tasks
+- [ ] Test creating/editing collections
+- [ ] Test creating/editing tasks
+- [ ] Test bulk operations (delete, archive)
+- [ ] Test drag-and-drop (tasks between columns, reorder)
+- [ ] Test unified search includes collections/tasks
+- [ ] Test navigation between views
+- [ ] Test with 100+ collections and 500+ tasks (performance)
 
-### MVP (Phases 1-5)
-- [ ] Collections can be created from current window (one-click)
-- [ ] Collections can be organized by state (dormant/active/working)
-- [ ] Workspaces can be activated (open all tabs in collection)
-- [ ] Workspaces can be deactivated (close all tabs, save state)
-- [ ] Collections persist across browser restarts
-- [ ] Side panel provides quick access to collections
-- [ ] Dashboard provides full collection management
-- [ ] Storage quota monitoring prevents data loss
-- [ ] Performance targets met:
-  - [ ] Collection activation < 500ms for 20 tabs
-  - [ ] State save < 200ms for 30 links
-  - [ ] Collection query < 50ms for 100 collections
-  - [ ] Workspace switch < 800ms (close + open)
-- [ ] All automated tests pass (150+ new tests)
-- [ ] No regressions in existing TabMaster features
-- [ ] Zero architectural violations
+**Success Criteria**:
+- [ ] Collections view displays with grid/list toggle
+- [ ] Tasks view displays as Kanban board and calendar
+- [ ] Collection detail modal allows full editing
+- [ ] Task detail modal allows full editing
+- [ ] Drag-and-drop works (status changes, reordering)
+- [ ] Bulk operations work (archive, delete, export)
+- [ ] Unified search finds collections and tasks
+- [ ] NO business logic in dashboard/*.js (all via messages)
+- [ ] Performance acceptable (< 500ms load for 100 collections)
 
-### Advanced Features (Phases 6-7)
-- [ ] Tasks can be created with link context
-- [ ] Tasks auto-open required links on start
-- [ ] Rules can save tabs to collections automatically
-- [ ] Collections can have auto-organization rules
-
----
-
-## Out of Scope (Deferred to Future Releases)
-
-### Not in MVP (Phases 1-5)
-- ❌ Task system (defer to Phase 6)
-- ❌ Rule engine integration (defer to Phase 7)
-- ❌ Scroll position capture (defer to Phase 6)
-- ❌ Form data preservation (defer to Phase 6)
-- ❌ Split view workspaces (defer to v2.1)
-- ❌ Scheduled workspace activation (defer to v2.1)
-- ❌ Cloud sync (defer to v2.2)
-- ❌ AI-powered organization (defer to v2.3)
-- ❌ Collaboration/sharing (defer to v3.0)
-
-### Explicitly Deferred Features
-- **Scroll Position Capture**: Requires content scripts, adds complexity
-- **Form Data Preservation**: Security concerns, needs careful design
-- **Split View**: Chrome API limitations, may not be possible
-- **Cloud Sync**: Infrastructure costs, auth complexity
-- **AI Organization**: Requires API integration, token costs
-- **Collaboration**: Multi-user support, sharing infrastructure
-
----
-
-## Migration Strategy
-
-### For Existing Users
-1. **Tab Groups → Collections** (Phase 5 optional task)
-   - One-time migration: convert all tab groups to collections
-   - Preserve group names, colors, collapsed state
-   - Auto-tag as `from-tab-group`
-
-2. **Bookmarks → Collections** (Phase 5 optional task)
-   - Import bookmark folders as collections
-   - Preserve folder hierarchy as tags
-   - State: 'dormant' (not active)
-
-3. **Backward Compatibility**
-   - Existing features continue to work unchanged
-   - Collections are additive, not replacement
-   - Users can use tab groups OR collections OR both
+**Deliverables**:
+- `/dashboard/modules/views/collections.js` (~400 lines)
+- `/dashboard/modules/views/tasks.js` (~400 lines)
+- Updated `/dashboard/dashboard.html`
+- Updated `/dashboard/dashboard.js`
 
 ---
 
 ## Testing Strategy
 
-### Unit Tests (150+ new tests)
-- [ ] CollectionStorage (40 tests)
-- [ ] CollectionService (30 tests)
-- [ ] CollectionStateMachine (15 tests)
-- [ ] CollectionTabTracker (20 tests)
-- [ ] ActivateWorkspace (20 tests)
-- [ ] DeactivateWorkspace (15 tests)
-- [ ] SaveWorkspaceState (10 tests)
+### Unit Tests (300+ new tests)
+- [ ] Phase 1: 65 tests (db, CollectionStorage, TaskStorage)
+- [ ] Phase 2: 130 tests (selection, execution services)
+- [ ] Phase 6: 55 tests (orchestration services)
+- [ ] Total: 250+ unit tests for services
+- [ ] Target: 100% coverage for business logic
 
 ### Integration Tests
-- [ ] Multi-window scenarios (reuse Phase 8.0 infrastructure)
-- [ ] Service worker restart scenarios
-- [ ] Message passing across surfaces
+- [ ] Multi-window scenarios (activate/restore in different windows)
+- [ ] Service worker restart scenarios (IndexedDB persistence)
+- [ ] Message passing across surfaces (popup, sidepanel, dashboard)
 - [ ] Real-time updates (create in dashboard → appears in sidepanel)
-- [ ] Performance with 100+ collections, 30+ tabs per workspace
+- [ ] Performance with 100+ collections, 500+ tasks, 50+ tabs per collection
 
 ### Browser Integration Tests
-- [ ] Test Runner scenarios (add 3 new scenarios to test-panel):
-  - "collection-basic-workflow" (create → activate → deactivate)
-  - "collection-multi-window" (activate in new window)
-  - "collection-persistence" (restart browser → collections restored)
+- [ ] Add scenarios to test-panel:
+  - "tabtasktick-basic-workflow" (save → close → restore)
+  - "tabtasktick-task-workflow" (create task → open tabs → mark fixed)
+  - "tabtasktick-persistence" (restart browser → collections restored)
 - [ ] Manual testing checklist (all surfaces)
+
+---
+
+## Success Metrics
+
+### MVP Launch (v1.3.0)
+- [ ] Collections created with one-click "Save Window"
+- [ ] Collections persist across browser restarts
+- [ ] Tasks created with tab references
+- [ ] Tasks open tabs automatically (restore collection if needed)
+- [ ] Side panel provides quick access
+- [ ] Dashboard provides full management
+- [ ] All 300+ tests pass
+- [ ] No regressions in existing TabMaster features
+- [ ] Performance targets met:
+  - [ ] Collection save < 200ms for 50 tabs
+  - [ ] Collection restore < 3s for 50 tabs
+  - [ ] Task tab open < 500ms
+  - [ ] Side panel load < 300ms for 50 collections
+  - [ ] Dashboard load < 500ms for 100 collections
+
+### User Adoption (30 days post-launch)
+- [ ] 70% of users save at least 1 collection in first week
+- [ ] Average 3 active + 5 saved collections per user
+- [ ] Collections opened/closed 5+ times per day
+- [ ] Average open windows reduced from 5 → 2
+- [ ] 50% of users create at least 1 task
+- [ ] Average 8 active tasks per user
 
 ---
 
 ## Timeline & Milestones
 
-### Sprint 1: Foundation (Phase 1)
-**Week 1**: 6-8 hours
-- [ ] Data models defined
-- [ ] CollectionStorage service complete
-- [ ] 40 unit tests passing
+### Sprint 1-2: Foundation + Services (22-28h)
+**Weeks 1-3**:
+- [ ] Phase 1: IndexedDB + Storage (10-12h)
+- [ ] Phase 2: Core Services (12-16h)
+- [ ] Milestone: 195+ tests passing, services fully functional
 
-### Sprint 2: Core Services (Phase 2)
-**Week 2**: 10-14 hours
-- [ ] All 4 services implemented
-- [ ] Background message handlers added
-- [ ] 65 unit tests passing
+### Sprint 3-4: Side Panel (14-16h)
+**Weeks 4-5**:
+- [ ] Phase 3: Side Panel UI (14-16h)
+- [ ] Milestone: Side panel working with Collections + Tasks views
 
-### Sprint 3: UI Surfaces (Phases 3-4)
-**Week 3**: 16-20 hours
-- [ ] Side panel complete
-- [ ] Dashboard integration complete
-- [ ] Context menus working
+### Sprint 5: Popup + Context Menus (10-14h)
+**Week 6**:
+- [ ] Phase 4: Popup Enhancement (6-8h)
+- [ ] Phase 5: Context Menus (4-6h)
+- [ ] Milestone: Discovery flow complete
 
-### Sprint 4: Workspace Features (Phase 5)
-**Week 4**: 6-8 hours
-- [ ] Activation/deactivation working
-- [ ] State persistence complete
-- [ ] 45 unit tests passing
+### Sprint 6-8: Operations (10-12h)
+**Week 7**:
+- [ ] Phase 6: Orchestration Services (10-12h)
+- [ ] Milestone: Full workflow (capture → restore → task execution) working
 
-### Sprint 5: Testing & Polish
-**Week 5**: 10-14 hours
-- [ ] All integration tests passing
+### Sprint 9-10: Dashboard + Polish (12-14h)
+**Weeks 8-9**:
+- [ ] Phase 7: Dashboard Integration (12-14h)
+- [ ] Milestone: All surfaces complete, full feature parity
+
+### Sprint 11: Testing & Polish (10-14h)
+**Week 10**:
+- [ ] Integration testing
 - [ ] Performance optimization
 - [ ] Bug fixes and refinement
+- [ ] Documentation updates
+- [ ] Release preparation
 
-**Total MVP Timeline**: 48-64 hours (5-7 weeks at 8-10h/week)
+**Total Timeline**: 68-84 hours (10-11 weeks at 8h/week)
 
 ---
 
 ## Risk Management
 
 ### High Risk Items
-1. **State Synchronization** (Mitigation: chrome.tabs listeners in background)
-2. **Workspace Switching Performance** (Mitigation: Promise.all(), progress indicator)
+1. **IndexedDB Quota** (Mitigation: quota monitoring, cleanup UI, limit 50MB)
+2. **Window Restoration Performance** (Mitigation: batch operations, progress indicators)
+3. **State Synchronization** (Mitigation: WindowTrackingService, chrome.tabs listeners)
 
 ### Medium Risk Items
-1. **Storage Quota Management** (Mitigation: quota monitoring, cleanup UI)
-2. **Chrome API Limitations** (Mitigation: lazy initialization, error handling)
+1. **Service Worker Restarts** (Mitigation: lazy initialization, IndexedDB persistence)
+2. **Tab Group Recreation** (Mitigation: store full state, test thoroughly)
+3. **Nested Updates** (Mitigation: transaction handling, rollback on errors)
 
 ### Low Risk Items
-1. **Service Worker Restarts** (Mitigation: proven pattern from SnoozeService)
-2. **Window Focus Management** (Mitigation: proven pattern from WindowService)
+1. **Message Passing** (Mitigation: proven pattern from TabMaster)
+2. **UI Performance** (Mitigation: virtual scrolling, pagination)
 
 ---
 
@@ -744,33 +882,30 @@
 - [ ] **Separation of Concerns**: Selection separate from Execution ✅
 - [ ] **Message Passing**: UI → Message → Background → Service ✅
 - [ ] **No Dynamic Imports**: Static imports only ✅
-- [ ] **Storage Patterns**: Follow chrome.storage.local pattern ✅
+- [ ] **IndexedDB**: Indexed queries, transaction handling ✅
 - [ ] **Error Handling**: Graceful degradation ✅
 
 ---
 
 ## Next Steps
 
-1. **Review with architecture-guardian agent** (Phase 1 data models)
-2. **Create Phase 1 feature branch**: `git checkout -b feature/linkstash-phase1`
-3. **Start with data models doc**: `/docs/linkstash-data-models.md`
-4. **Implement CollectionStorage service**: Follow SnoozeService pattern
-5. **Write tests first**: TDD approach for data integrity
-6. **Commit frequently**: Small, focused commits with clear messages
+1. **Start Phase 1**: Create `/docs/tabtasktick-data-models-v2.md`
+2. **Setup IndexedDB**: Implement `/services/storage/db.js`
+3. **Storage Services**: Build CollectionStorage and TaskStorage
+4. **Write Tests First**: TDD approach for data integrity
+5. **Commit Frequently**: Small, focused commits
 
 ---
 
 ## Resources
 
-- **Architecture Reference**: `/docs/service-dependencies.md`
-- **Service Patterns**: `/docs/service-usage-examples.md`
-- **Phase 8 Lessons**: Window operations, multi-window support
-- **Storage Patterns**: SnoozeService, ScheduledExportService
-- **Orchestration Patterns**: WindowService, executeSnoozeOperations
-- **LinkStash Plans**: `/plans/LINKSTASH-*.md` (reference only, this TODO is canonical)
+- **Proposal**: `/plans/TABTASKTICK-PRODUCT-PROPOSAL-V2.md`
+- **Architecture**: `/docs/service-dependencies.md`
+- **Patterns**: `/docs/service-usage-examples.md`
+- **TabMaster Services**: Reference for patterns
 
 ---
 
-**Last Updated**: 2025-10-12
+**Last Updated**: 2025-10-13
 **Status**: Ready to begin Phase 1
 **Next Review**: After Phase 1 complete
