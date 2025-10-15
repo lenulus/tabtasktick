@@ -152,6 +152,8 @@ interface Tab {
   title: string;
   favicon?: string;
 
+  dupeKeyHash: string;  // Hash of normalized URL for dedup/context queries
+
   note?: string;      // Max 255 chars
   lastAccess?: number;
 
@@ -166,8 +168,16 @@ interface Tab {
 **Key Changes**:
 - Removed `type` field (Primary/Reference) - too much cognitive load for unclear benefit
 - **V3**: Added `folderId` foreign key
+- **V3**: Added `dupeKeyHash` for efficient duplicate detection and context queries
 
-**Storage**: IndexedDB object store `tabs`, indexed by folderId
+**Storage**: IndexedDB object store `tabs`, indexed by folderId and dupeKeyHash
+
+**Duplicate Detection Strategy**: Instead of a separate Resource entity (5th object store), we store a hash of the normalized URL directly on each Tab. This enables:
+- O(1) duplicate detection via `dupeKeyHash` index
+- "Also appears in" context queries (find all tabs with same hash)
+- Minimal storage overhead (~16 bytes per tab for SHA-256 truncated hash)
+- Reuses existing `normalizeUrlForDuplicates()` from TabMaster
+- Hash collisions negligible (64-bit hash = ~1 in 10^19)
 
 ---
 
@@ -770,10 +780,11 @@ Completed this week (5):
 {
   keyPath: 'id',
   indexes: {
-    'folderId': { unique: false }  // FK to folders
+    'folderId': { unique: false },     // FK to folders
+    'dupeKeyHash': { unique: false }   // For dedup and context queries
   }
 }
-// Stores: Tab metadata with folderId foreign key
+// Stores: Tab metadata with folderId FK and dupeKeyHash for efficient duplicate detection
 
 // Object Store: 'tasks'
 {
@@ -993,9 +1004,10 @@ sendResponse({
 - `/services/utils/storage-queries.js` - CRUD helpers
   - Collection CRUD (with cascade delete to folders/tabs)
   - Folder CRUD (with cascade delete to tabs)
-  - Tab CRUD
+  - Tab CRUD (calculates `dupeKeyHash` on create/update)
   - Task CRUD
   - All use `withTransaction()` for atomic operations
+  - `getTabsByDupeKey(hash)` - Find all tab instances of same page
 
 **Unit Tests** (60+ tests):
 - IndexedDB initialization with 4 stores
@@ -1572,6 +1584,107 @@ TabTaskTick v3 simplifies the mental model while preserving the core innovation:
    - Post-MVP consideration
 
 **Status**: Documented for future product iterations
+
+---
+
+### E. Context View (UI Icebox - v1.3.1+)
+
+**Concept**: Third side panel view showing context for the currently active tab.
+
+**Problem Solved**: "Which tasks reference this page?" and "Where else does this page appear?"
+
+**Mental Model**:
+- **Collections View** → Project-level ("where things live")
+- **Tasks View** → Work-level ("what I'm doing")
+- **Context View** → Tab-level ("what's this page's role?")
+
+**Trigger**: Appears when focused tab belongs to a collection.
+
+**Example Layout**:
+```
+CONTEXT  (for: https://github.com/org/repo/pull/234)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📁 Collection: Project X 🟢
+📂 Folder: Development (Red)
+
+Also appears in (2):
+  📁 Learning React › Examples
+  📁 Project Y › References
+  [View All]
+
+⭐ Referenced by 2 Tasks:
+  🔴 Fix auth bug (Active)
+  ⚪ Review API changes (Open)
+  [Add to New Task]
+
+───────────────────────────
+📝 Instance Note (this tab)
+"Waiting on backend review"
+[Edit Note]
+
+💬 Related Comments (from tasks)
+- AGL: Found issue in line 47 (Fix auth bug)
+- JG: Fixed in PR #237 (Review API changes)
+[View Task]
+
+🎯 Quick Actions
+[Open in Collection View]
+[Focus Other Instances]
+[Add to Existing Task]
+```
+
+**Key Interactions**:
+- Inline note editing (instance-specific)
+- "Also appears in" shows all collections/folders with this page
+- "Referenced by" lists tasks that reference any instance of this page
+- Quick task linking without navigation
+
+**Technical Foundation**:
+Uses `dupeKeyHash` index on tabs store:
+
+```javascript
+// When user focuses a tab
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+  const tab = await getTabByRuntimeId(tabId);
+  if (!tab) return; // Not in a collection
+
+  // Find all instances of this page (O(1) via index)
+  const instances = await getTabsByDupeKey(tab.dupeKeyHash);
+
+  // Find tasks referencing any instance
+  const tasks = await getTasksReferencingTabs(instances.map(t => t.id));
+
+  renderContext({ tab, instances, tasks });
+});
+```
+
+**Query Helper**:
+```javascript
+// In storage-queries.js
+async function getTabsByDupeKey(dupeKeyHash) {
+  const db = await getDB();
+  const tx = db.transaction('tabs', 'readonly');
+  const index = tx.objectStore('tabs').index('dupeKeyHash');
+  return await index.getAll(dupeKeyHash);
+}
+```
+
+**Implementation Estimate**: 8-10 hours
+- Add Context view tab to side panel
+- `chrome.tabs.onActivated` listener
+- Query helpers for instances + tasks
+- UI rendering + quick actions
+
+**Prerequisites**:
+- Tab.dupeKeyHash field (included in v1.3.0)
+- Core Collections + Tasks proven (validate MVP first)
+
+**Decision Criteria for v1.3.1**:
+- Do users actually manage duplicate pages across collections?
+- Is task discovery via Collections→Tasks view insufficient?
+- User feedback requests "what references this tab?"
+
+**Status**: UI Icebox - deferred to post-MVP based on user feedback
 
 ---
 
