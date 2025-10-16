@@ -239,7 +239,7 @@ Following architecture-guardian review, key improvements from initial plan:
 **Time Estimate**: 12-16 hours
 **Priority**: HIGH
 **Dependencies**: Phase 1 complete
-**Status**: 🟡 In Progress (Phase 2.1 + 2.2 + 2.3 Complete, Phase 2.4 Next)
+**Status**: 🟡 In Progress (Phase 2.1 + 2.2 + 2.3 + 2.4 Complete, Phase 2.5 Next)
 
 #### 2.1 Selection Services (3-4h) ✅
 - [x] Create `/services/selection/selectCollections.js` (220 lines)
@@ -415,35 +415,47 @@ Following architecture-guardian review, key improvements from initial plan:
     - Sort by position
 - [x] Add unit tests (48 tests total: FolderService 22, TabService 26)
 
-#### 2.4 TaskService (2-3h)
-- [ ] Create `/services/execution/TaskService.js` (~250 lines)
-- [ ] Uses storage utilities from `/services/utils/storage-queries.js`
-- [ ] Implement `createTask(params)`:
+#### 2.4 TaskService (2-3h) ✅ **COMPLETED**
+- [x] Create `/services/execution/TaskService.js` (330 lines)
+- [x] Uses storage utilities from `/services/utils/storage-queries.js`
+- [x] Implement `createTask(params)`:
   - Generate ID: `crypto.randomUUID()`
-  - Required: summary, collectionId (optional), tabIds (array)
+  - Required: summary
+  - Optional: collectionId (nullable FK), tabIds (array, default [])
   - Optional: notes, status (default 'open'), priority (default 'medium'), dueDate, tags
-  - Set createdAt timestamp
+  - Set createdAt timestamp, initialize comments array
   - Call `saveTask()` utility
   - Return created task
-- [ ] Implement `updateTask(id, updates)`:
+- [x] Implement `updateTask(id, updates)`:
   - Call `getTask(id)` utility
-  - Merge updates
+  - Merge updates with immutable field preservation (id, createdAt)
   - Validate tabIds reference tabs in collection (if collectionId present)
+  - Set completedAt automatically when status changes to 'fixed' or 'abandoned'
   - Call `saveTask()` utility
-- [ ] Implement `updateTaskStatus(id, status)`:
-  - Call `getTask(id)` utility
-  - Update status
-  - If status='fixed' or 'abandoned': set completedAt = Date.now()
-  - Call `saveTask()` utility
-- [ ] Implement `addComment(taskId, commentText)`:
-  - Call `getTask(taskId)` utility
-  - Create comment: { id: crypto.randomUUID(), text, createdAt }
-  - Append to task.comments array
-  - Call `saveTask()` utility
-- [ ] Implement `deleteTask(id)`:
-  - Call `deleteTask(id)` utility
-- [ ] Add error handling (task not found, validation errors)
-- [ ] Add unit tests (30 tests)
+- [x] Implement `addComment(taskId, text)`:
+  - Generate comment ID: `crypto.randomUUID()`
+  - Create comment: { id, text, createdAt }
+  - Append to task.comments array via updateTask()
+  - Return updated task
+- [x] Implement `deleteTask(id)`:
+  - Call `deleteTask(id)` utility (thin wrapper)
+- [x] Implement `getTasksByCollection(collectionId)`:
+  - Call `getTasksByCollection()` utility
+  - Sort by createdAt (newest first)
+- [x] Add error handling (task not found, validation errors, FK validation)
+- [x] Add unit tests (32 tests, all passing)
+
+**Phase 2.4 Summary**:
+- ✅ TaskService implemented (330 lines)
+- ✅ 32 integration tests written (all passing)
+- ✅ TDD approach (tests written first)
+- ✅ Nullable collectionId support (uncategorized tasks)
+- ✅ Many-to-many tab references (tabIds array with FK validation)
+- ✅ Embedded comments array management
+- ✅ Status transition logic (completedAt timestamp)
+- ✅ Tab validation (must belong to same collection)
+- ✅ Total test count: 655 passing (across entire codebase)
+- ✅ Follows CollectionService/FolderService/TabService patterns
 
 #### 2.5 Extend WindowService (2-3h)
 - [ ] Update `/services/execution/WindowService.js` (EXISTING service)
