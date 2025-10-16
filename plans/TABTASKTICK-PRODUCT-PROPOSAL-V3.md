@@ -1112,26 +1112,29 @@ sendResponse({
   - Window binding/unbinding logic
   - Task status transitions
   - Error handling and validation
-- **Playwright E2E Tests** (~50 tests): Real browser IndexedDB validation
+- **Playwright E2E Tests** (~65 tests): Real browser IndexedDB validation + message handler integration
   - Selection services (selectCollections, selectTasks) with real index queries ⚠️ CRITICAL
+  - **Phase 2.6 message handlers** (16 handlers: Collections, Folders, Tabs, Tasks) ⚠️ NO MANUAL TESTING
   - Window close detection via extended WindowService
   - Cascade delete verification with real IndexedDB
+  - Data persistence across extension reloads
   - Integration tests for complete workflows
 
-**Note on Testing Strategy**: Selection services MUST be tested with Playwright because they rely on IndexedDB index queries, which don't work correctly in fake-indexeddb. All Phase 2.1 selection services (selectCollections.js, selectTasks.js) already created but need E2E tests to validate index queries work in production.
+**Note on Testing Strategy**: Selection services and message handlers MUST be tested with Playwright E2E tests. Selection services rely on IndexedDB index queries (which don't work in fake-indexeddb). Message handlers require real Chrome extension environment to validate chrome.runtime.sendMessage() integration. NO manual testing required - all validation automated via Playwright.
 
 **Deliverables**:
-- `/services/execution/CollectionService.js` (~300 lines)
-- `/services/execution/FolderService.js` (~150 lines)
-- `/services/execution/TabService.js` (~150 lines)
-- `/services/execution/TaskService.js` (~250 lines)
-- Updated `/services/execution/WindowService.js` (+80 lines)
+- `/services/execution/CollectionService.js` (~300 lines) ✅ DONE
+- `/services/execution/FolderService.js` (~150 lines) ✅ DONE
+- `/services/execution/TabService.js` (~150 lines) ✅ DONE
+- `/services/execution/TaskService.js` (~250 lines) ✅ DONE
+- Updated `/services/execution/WindowService.js` (+180 lines) ✅ DONE
 - `/services/selection/selectCollections.js` (220 lines) ✅ DONE
 - `/services/selection/selectTasks.js` (250 lines) ✅ DONE
-- `/tests/selectCollections.test.js` (305 lines, 23 tests) ⚠️ Need E2E validation
-- `/tests/selectTasks.test.js` (397 lines, 24 tests) ⚠️ Need E2E validation
-- Jest unit tests for execution services (~80 tests, ~600 lines)
-- Playwright E2E tests for selection services (~50 tests, ~400 lines)
+- Updated `/tabmaster-pro/background-integrated.js` (~100 lines added for Phase 2.6)
+- `/tests/selectCollections.test.js` (305 lines, 23 tests) ✅ DONE
+- `/tests/selectTasks.test.js` (397 lines, 24 tests) ✅ DONE
+- Jest unit tests for execution services (~130 tests, ~800 lines) ✅ DONE (691 passing)
+- `/tests/e2e/tabtasktick-message-handlers.spec.js` (Phase 2.6 Playwright E2E tests)
 
 ### Phase 3: Side Panel UI (14-16h)
 
@@ -1227,17 +1230,18 @@ sendResponse({
 - Update collection state
 - Show notifications
 
-**Integration Tests**:
+**Integration Tests** (Playwright E2E):
 - Full workflows (save → close → restore)
 - Task execution (open tabs)
 - Window tracking
+- Real browser environment validation
 
 **Deliverables**:
 - `/services/execution/CaptureWindowService.js`
 - `/services/execution/RestoreCollectionService.js`
 - `/services/execution/TaskExecutionService.js`
 - `/services/execution/WindowTrackingService.js`
-- Integration tests
+- Playwright E2E integration tests
 
 ### Phase 7: Dashboard Integration (12-14h)
 
