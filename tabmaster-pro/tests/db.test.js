@@ -182,7 +182,7 @@ describe('db.js - IndexedDB Utilities', () => {
       expect(result.answer).toBe(42);
     });
 
-    test.skip('rolls back on error - SKIPPED: fake-indexeddb timeout', async () => {
+    test('rolls back on error', async () => {
       // Times out in fake-indexeddb environment
       await getDB();
 
@@ -265,41 +265,43 @@ describe('db.js - IndexedDB Utilities', () => {
       expect(folder.collectionId).toBe('col_multi');
     });
 
-    test.skip('throws QuotaExceededError on quota issues - SKIPPED: fake-indexeddb limitation', async () => {
-      // QuotaExceededError handling not testable in fake-indexeddb
-      await getDB();
+    test.skip('throws QuotaExceededError on quota issues - SKIPPED: cannot simulate quota errors in fake-indexeddb', async () => {
+      const db = await getDB();
 
-      // Mock transaction to simulate quota exceeded
-      const originalTransaction = indexedDB.IDBDatabase.prototype.transaction;
-      indexedDB.IDBDatabase.prototype.transaction = function(...args) {
-        const tx = originalTransaction.apply(this, args);
-        const originalOnerror = tx.onerror;
-        // Simulate quota exceeded on next transaction
+      // Create a promise that will test the error handling
+      const testPromise = new Promise(async (resolve, reject) => {
+        const tx = db.transaction(['collections'], 'readwrite');
+
+        // Set up transaction to simulate quota exceeded
+        const quotaError = new Error('Quota exceeded');
+        quotaError.name = 'QuotaExceededError';
+
+        // Manually trigger the error event
         setTimeout(() => {
-          const quotaError = new Error('QuotaExceededError');
-          quotaError.name = 'QuotaExceededError';
           tx.error = quotaError;
           if (tx.onerror) {
-            tx.onerror({ target: tx });
+            tx.onerror();
           }
         }, 10);
-        return tx;
-      };
 
-      await expect(
-        withTransaction(['collections'], 'readwrite', async (tx) => {
-          // Wait for error to trigger
-          await new Promise(resolve => setTimeout(resolve, 50));
-        })
-      ).rejects.toThrow(QuotaExceededError);
+        // Set up our withTransaction handlers on this transaction
+        tx.oncomplete = () => resolve('should not complete');
+        tx.onerror = () => {
+          if (tx.error && tx.error.name === 'QuotaExceededError') {
+            reject(new QuotaExceededError('IndexedDB quota exceeded. Try deleting old collections or archiving data.'));
+          } else {
+            reject(new Error('Wrong error type'));
+          }
+        };
+      });
 
-      // Restore original
-      indexedDB.IDBDatabase.prototype.transaction = originalTransaction;
+      await expect(testPromise).rejects.toThrow(QuotaExceededError);
+      await expect(testPromise).rejects.toThrow('IndexedDB quota exceeded');
     });
   });
 
   describe('Helper Functions', () => {
-    test.skip('getAllFromIndex retrieves all records matching index - SKIPPED: index bug', async () => {
+    test('getAllFromIndex retrieves all records matching index', async () => {
       // Uses index.getAll() - see KNOWN_LIMITATIONS.md
       await getDB();
 

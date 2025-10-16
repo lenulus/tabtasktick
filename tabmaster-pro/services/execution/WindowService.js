@@ -48,9 +48,16 @@ import { importData } from '../ExportImportService.js';
 import { snoozeTabs, deleteSnoozedTab } from './SnoozeService.js';
 import { selectTabs } from '../selection/selectTabs.js';
 import { deduplicateWindow as deduplicateWindowOrchestrator } from './DeduplicationOrchestrator.js';
+import * as CollectionService from './CollectionService.js';
+import { selectCollections } from '../selection/selectCollections.js';
+import { getCollection } from '../utils/storage-queries.js';
 
 // Storage keys
 const WINDOW_METADATA_KEY = 'windowMetadata';
+
+// Collection cache (windowId → collectionId mapping)
+// Used for fast lookups of collection-window bindings
+const collectionCache = new Map();
 
 /**
  * Retrieves all browser windows with their populated tab lists.
@@ -540,4 +547,184 @@ export async function getWindowStats(windowId) {
     duplicateCount: await getWindowDuplicateCount(windowId),
     metadata
   };
+}
+
+/**
+ * Binds a collection to a Chrome window (activates collection).
+ *
+ * Delegates to CollectionService.bindToWindow() for persistence and updates the
+ * in-memory cache for fast lookups. Handles rebinding by clearing old cache entries.
+ *
+ * @param {string} collectionId - Collection ID to bind
+ * @param {number} windowId - Chrome window ID to bind to
+ *
+ * @returns {Promise<Object>} Updated collection object
+ * @returns {number} return.windowId - Now set to provided windowId
+ * @returns {boolean} return.isActive - Now true
+ *
+ * @throws {Error} If collection not found (from CollectionService)
+ *
+ * @example
+ * // Bind saved collection to window
+ * const collection = await bindCollectionToWindow('col_123', 456);
+ * console.log(collection.isActive); // true
+ * console.log(collection.windowId); // 456
+ */
+export async function bindCollectionToWindow(collectionId, windowId) {
+  // Get current collection state to check if it's already bound
+  const currentCollection = await getCollection(collectionId);
+  if (!currentCollection) {
+    throw new Error(`Collection not found: ${collectionId}`);
+  }
+
+  // If collection was bound to a different window, clear that cache entry
+  if (currentCollection.windowId !== null && currentCollection.windowId !== windowId) {
+    collectionCache.delete(currentCollection.windowId);
+  }
+
+  // Delegate to CollectionService for persistence
+  const updated = await CollectionService.bindToWindow(collectionId, windowId);
+
+  // Update cache
+  collectionCache.set(windowId, collectionId);
+
+  return updated;
+}
+
+/**
+ * Unbinds a collection from its Chrome window (saves collection).
+ *
+ * Delegates to CollectionService.unbindFromWindow() for persistence and clears the
+ * in-memory cache entry. Idempotent - safe to call on already unbound collections.
+ *
+ * @param {string} collectionId - Collection ID to unbind
+ *
+ * @returns {Promise<Object>} Updated collection object
+ * @returns {null} return.windowId - Now null
+ * @returns {boolean} return.isActive - Now false
+ *
+ * @throws {Error} If collection not found (from CollectionService)
+ *
+ * @example
+ * // Unbind active collection (window closing)
+ * const collection = await unbindCollectionFromWindow('col_123');
+ * console.log(collection.isActive); // false
+ * console.log(collection.windowId); // null
+ */
+export async function unbindCollectionFromWindow(collectionId) {
+  // Get current collection state to find windowId for cache clearing
+  const currentCollection = await getCollection(collectionId);
+  if (!currentCollection) {
+    throw new Error(`Collection not found: ${collectionId}`);
+  }
+
+  // Clear cache if collection was bound
+  if (currentCollection.windowId !== null) {
+    collectionCache.delete(currentCollection.windowId);
+  }
+
+  // Delegate to CollectionService for persistence
+  const updated = await CollectionService.unbindFromWindow(collectionId);
+
+  return updated;
+}
+
+/**
+ * Gets the collection bound to a specific window.
+ *
+ * Uses cache-first lookup for performance. If not in cache, queries all active
+ * collections and updates cache. Returns null if no collection is bound.
+ *
+ * Cache behavior:
+ * - Cache hit: Return immediately (O(1))
+ * - Cache miss: Query database, update cache, return result (O(n) where n = active collections)
+ *
+ * @param {number} windowId - Chrome window ID
+ *
+ * @returns {Promise<Object|null>} Collection object or null if not bound
+ *
+ * @example
+ * // Check if window has bound collection
+ * const collection = await getCollectionForWindow(123);
+ * if (collection) {
+ *   console.log(`Window 123 has collection: ${collection.name}`);
+ * } else {
+ *   console.log('Window 123 has no bound collection');
+ * }
+ */
+export async function getCollectionForWindow(windowId) {
+  // Check cache first (fast path)
+  if (collectionCache.has(windowId)) {
+    const collectionId = collectionCache.get(windowId);
+    const collection = await getCollection(collectionId);
+
+    // If collection exists, return it
+    if (collection) {
+      return collection;
+    } else {
+      // Collection was deleted, clear cache entry
+      collectionCache.delete(windowId);
+      return null;
+    }
+  }
+
+  // Cache miss - query all active collections
+  const activeCollections = await selectCollections({ isActive: true });
+
+  // Find collection with matching windowId
+  const collection = activeCollections.find(col => col.windowId === windowId);
+
+  if (collection) {
+    // Update cache for future lookups
+    collectionCache.set(windowId, collection.id);
+    return collection;
+  }
+
+  return null;
+}
+
+/**
+ * Rebuilds the collection cache from all active collections.
+ *
+ * Queries all active collections and rebuilds the in-memory cache. Called on
+ * extension startup to warm the cache or after cache invalidation.
+ *
+ * Performance: O(n) where n = number of active collections
+ *
+ * @returns {Promise<void>}
+ *
+ * @example
+ * // Rebuild cache on extension startup
+ * await rebuildCollectionCache();
+ * console.log('Collection cache rebuilt');
+ */
+export async function rebuildCollectionCache() {
+  // Clear existing cache
+  collectionCache.clear();
+
+  // Query all active collections
+  const activeCollections = await selectCollections({ isActive: true });
+
+  // Rebuild cache
+  for (const collection of activeCollections) {
+    if (collection.windowId !== null) {
+      collectionCache.set(collection.windowId, collection.id);
+    }
+  }
+}
+
+/**
+ * Clears the collection cache.
+ *
+ * Removes all entries from the in-memory cache. Used for testing or when
+ * cache invalidation is needed.
+ *
+ * @returns {void}
+ *
+ * @example
+ * // Clear cache (testing)
+ * clearCollectionCache();
+ */
+export function clearCollectionCache() {
+  collectionCache.clear();
 }

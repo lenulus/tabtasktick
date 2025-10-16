@@ -128,7 +128,7 @@ describe('storage-queries.js - Storage Query Utilities', () => {
       expect(all.find(c => c.id === 'col_all_2')).toBeDefined();
     });
 
-    test.skip('getCollectionsByIndex filters by isActive - SKIPPED: index bug', async () => {
+    test('getCollectionsByIndex filters by isActive', async () => {
       // Uses index.getAll() - see KNOWN_LIMITATIONS.md
       await saveCollection({
         id: 'col_active',
@@ -936,11 +936,20 @@ describe('storage-queries.js - Storage Query Utilities', () => {
       expect(result).toBeNull();
     });
 
-    test.skip('getCompleteCollection sorts folders and tabs by position - SKIPPED: index bug', async () => {
+    test('getCompleteCollection sorts folders and tabs by position', async () => {
       // Uses index queries to get folders/tabs - see KNOWN_LIMITATIONS.md
+      // Create a separate collection to avoid conflicts with beforeEach
+      await saveCollection({
+        id: 'col_sort_test',
+        name: 'Sort Test Collection',
+        tags: [],
+        isActive: false,
+        metadata: { createdAt: Date.now(), lastAccessed: Date.now() }
+      });
+
       await saveFolder({
         id: 'folder_pos_1',
-        collectionId: 'col_batch',
+        collectionId: 'col_sort_test',
         name: 'Second',
         color: 'red',
         collapsed: false,
@@ -948,7 +957,7 @@ describe('storage-queries.js - Storage Query Utilities', () => {
       });
       await saveFolder({
         id: 'folder_pos_0',
-        collectionId: 'col_batch',
+        collectionId: 'col_sort_test',
         name: 'First',
         color: 'blue',
         collapsed: false,
@@ -970,7 +979,7 @@ describe('storage-queries.js - Storage Query Utilities', () => {
         position: 0
       });
 
-      const complete = await getCompleteCollection('col_batch');
+      const complete = await getCompleteCollection('col_sort_test');
 
       // Folders sorted by position
       expect(complete.folders[0].name).toBe('First');

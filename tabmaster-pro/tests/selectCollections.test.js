@@ -18,7 +18,7 @@ import 'fake-indexeddb/auto';
 import { saveCollection, getAllCollections, getCollectionsByIndex } from '../services/utils/storage-queries.js';
 import { closeDB } from '../services/utils/db.js';
 
-describe.skip('selectCollections - Skipped (fake-indexeddb limitation)', () => {
+describe('selectCollections', () => {
   beforeEach(async () => {
     closeDB();
     const databases = await indexedDB.databases();

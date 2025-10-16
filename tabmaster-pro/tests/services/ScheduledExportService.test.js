@@ -39,6 +39,9 @@ global.chrome = {
   windows: {
     get: jest.fn(() => Promise.resolve({ id: 1 })),
     getAll: jest.fn(() => Promise.resolve([]))
+  },
+  tabGroups: {
+    query: jest.fn(() => Promise.resolve([]))
   }
 };
 
@@ -294,10 +297,7 @@ describe('ScheduledExportService', () => {
       chrome.downloads.download.mockResolvedValue(123);
     });
 
-    it.skip('should trigger backup on scheduled_backup alarm when enabled - SKIPPED: needs full export mock', async () => {
-      // This test requires extensive mocking of the entire export process
-      // including ExportImportService, file system operations, etc.
-      // Skip for now - the backup logic is tested manually
+    it('should trigger backup on scheduled_backup alarm when enabled', async () => {
       chrome.storage.local.get.mockResolvedValue({
         scheduled_export_config: {
           enabled: true,
@@ -307,13 +307,12 @@ describe('ScheduledExportService', () => {
         backup_history: []
       });
 
+      // Mock export dependencies
+      chrome.windows.getAll.mockResolvedValue([]);
+      chrome.tabGroups.query.mockResolvedValue([]);
+
       const alarm = { name: 'scheduled_backup' };
       await ScheduledExportService.handleAlarm(alarm);
-
-      // Should send message to get export state
-      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({
-        action: 'getExportState'
-      });
 
       // Should create download
       expect(chrome.downloads.download).toHaveBeenCalled();

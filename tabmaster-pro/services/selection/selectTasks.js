@@ -180,22 +180,30 @@ function sortTasks(tasks, sortBy, sortOrder) {
 
     switch (sortBy) {
       case 'dueDate':
-        aVal = a.dueDate || Infinity; // Tasks without due date sort last
-        bVal = b.dueDate || Infinity;
+        // Special handling for null due dates - always sort last regardless of order
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;  // a is null, sort last
+        if (!b.dueDate) return -1; // b is null, sort last
+
+        aVal = a.dueDate;
+        bVal = b.dueDate;
         break;
       case 'priority':
         aVal = priorityWeight[a.priority] || 0;
         bVal = priorityWeight[b.priority] || 0;
-        // For priority, desc means critical first (default behavior we want)
-        return multiplier * (bVal - aVal);
+        break;
       case 'createdAt':
         aVal = a.createdAt;
         bVal = b.createdAt;
         break;
       default:
         // Default to dueDate
-        aVal = a.dueDate || Infinity;
-        bVal = b.dueDate || Infinity;
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+
+        aVal = a.dueDate;
+        bVal = b.dueDate;
     }
 
     return multiplier * (aVal - bVal);

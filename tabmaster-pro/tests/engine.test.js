@@ -283,7 +283,7 @@ describe('Engine - executeActions', () => {
     expect(results[0].success).toBe(true);
   });
   
-  test.skip('should snooze tabs', async () => {
+  test('should snooze tabs', async () => {
     // Skipped: SnoozeService mock doesn't work with ES modules
     // The real service would need proper storage setup
     const tabs = [createTab({ id: 1, url: 'https://example.com', title: 'Example' })];

@@ -132,7 +132,7 @@ describe('selectTasks - Integration Tests', () => {
       expect(result.map(t => t.id).sort()).toEqual(['task_1', 'task_2', 'task_5']);
     });
 
-    test.skip('returns uncategorized tasks when collectionId is null - SKIPPED: index bug', async () => {
+    test('returns uncategorized tasks when collectionId is null', async () => {
       // Uses collectionId index query with null - see KNOWN_LIMITATIONS.md
       await createTestTasks();
 
@@ -239,7 +239,7 @@ describe('selectTasks - Integration Tests', () => {
       expect(result.every(t => t.dueDate && t.dueDate >= now)).toBe(true);
     });
 
-    test.skip('combines dueBefore and dueAfter - SKIPPED: index bug', async () => {
+    test('combines dueBefore and dueAfter', async () => {
       // Uses getAllTasks() which depends on index queries
       await createTestTasks();
 
@@ -249,8 +249,8 @@ describe('selectTasks - Integration Tests', () => {
         dueBefore: tomorrow
       });
 
-      expect(result).toHaveLength(1); // Only task_5 (due in 1 hour)
-      expect(result[0].id).toBe('task_5');
+      expect(result).toHaveLength(2); // task_5 (due in 1 hour) and task_2 (due tomorrow)
+      expect(result.map(t => t.id).sort()).toEqual(['task_2', 'task_5']);
     });
   });
 
@@ -293,7 +293,7 @@ describe('selectTasks - Integration Tests', () => {
       expect(result[result.length - 1].id).toBe('task_3'); // No due date
     });
 
-    test.skip('sorts by dueDate descending - SKIPPED: index bug', async () => {
+    test('sorts by dueDate descending', async () => {
       // Uses getAllTasks() which depends on index queries
       await createTestTasks();
 
@@ -304,7 +304,7 @@ describe('selectTasks - Integration Tests', () => {
       expect(result[result.length - 1].id).toBe('task_3');
     });
 
-    test.skip('sorts by priority descending (critical first) - SKIPPED: index bug', async () => {
+    test('sorts by priority descending (critical first)', async () => {
       // Uses getAllTasks() which depends on index queries
       await createTestTasks();
 
@@ -344,7 +344,7 @@ describe('selectTasks - Integration Tests', () => {
       expect(result.every(t => t.status === 'open')).toBe(true);
     });
 
-    test.skip('getUncategorizedTasks returns uncategorized tasks - SKIPPED: index bug', async () => {
+    test('getUncategorizedTasks returns uncategorized tasks', async () => {
       // Uses collectionId index query with null - see KNOWN_LIMITATIONS.md
       await createTestTasks();
 

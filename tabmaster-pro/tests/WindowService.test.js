@@ -219,4 +219,5 @@ describe('WindowService', () => {
       expect(chromeMock.tabs.query).toHaveBeenCalledWith({ windowId });
     });
   });
+
 });
