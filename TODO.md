@@ -239,7 +239,7 @@ Following architecture-guardian review, key improvements from initial plan:
 **Time Estimate**: 12-16 hours
 **Priority**: HIGH
 **Dependencies**: Phase 1 complete
-**Status**: 🟡 In Progress (Phase 2.1 + 2.2 Complete, Phase 2.3 Next)
+**Status**: 🟡 In Progress (Phase 2.1 + 2.2 + 2.3 Complete, Phase 2.4 Next)
 
 #### 2.1 Selection Services (3-4h) ✅
 - [x] Create `/services/selection/selectCollections.js` (220 lines)
@@ -378,8 +378,8 @@ Following architecture-guardian review, key improvements from initial plan:
 - ✅ Added crypto.randomUUID() polyfill to test setup
 - ✅ Commit: 3a7dbe3 - "TabTaskTick Phase 2.2: CollectionService Implementation"
 
-#### 2.3 FolderService + TabService (2-3h) ⏭️ NEXT
-- [ ] Create `/services/execution/FolderService.js` (~150 lines)
+#### 2.3 FolderService + TabService (2-3h) ✅
+- [x] Create `/services/execution/FolderService.js` (~150 lines)
   - Uses storage utilities from `/services/utils/storage-queries.js`
   - Implement `createFolder(collectionId, params)`:
     - Generate ID: `crypto.randomUUID()`
@@ -396,7 +396,7 @@ Following architecture-guardian review, key improvements from initial plan:
   - Implement `getFoldersByCollection(collectionId)`:
     - Call `getFoldersByCollection()` utility
     - Sort by position
-- [ ] Create `/services/execution/TabService.js` (~150 lines)
+- [x] Create `/services/execution/TabService.js` (~150 lines)
   - Uses storage utilities from `/services/utils/storage-queries.js`
   - Implement `createTab(folderId, params)`:
     - Generate ID: `crypto.randomUUID()`
@@ -413,7 +413,7 @@ Following architecture-guardian review, key improvements from initial plan:
   - Implement `getTabsByFolder(folderId)`:
     - Call `getTabsByFolder()` utility
     - Sort by position
-- [ ] Add unit tests (25 tests total)
+- [x] Add unit tests (48 tests total: FolderService 22, TabService 26)
 
 #### 2.4 TaskService (2-3h)
 - [ ] Create `/services/execution/TaskService.js` (~250 lines)
