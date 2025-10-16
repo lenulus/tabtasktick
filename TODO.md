@@ -239,7 +239,7 @@ Following architecture-guardian review, key improvements from initial plan:
 **Time Estimate**: 12-16 hours
 **Priority**: HIGH
 **Dependencies**: Phase 1 complete
-**Status**: 🟡 In Progress (Phase 2.1 Complete + Testing Strategy Resolved)
+**Status**: 🟡 In Progress (Phase 2.1 + 2.2 Complete, Phase 2.3 Next)
 
 #### 2.1 Selection Services (3-4h) ✅
 - [x] Create `/services/selection/selectCollections.js` (220 lines)
@@ -336,10 +336,10 @@ Following architecture-guardian review, key improvements from initial plan:
 
 ---
 
-#### 2.2 CollectionService (3-4h) ⏭️ NEXT
-- [ ] Create `/services/execution/CollectionService.js` (~300 lines)
-- [ ] Uses storage utilities from `/services/utils/storage-queries.js`
-- [ ] Implement `createCollection(params)`:
+#### 2.2 CollectionService (3-4h) ✅ **COMPLETED**
+- [x] Create `/services/execution/CollectionService.js` (310 lines)
+- [x] Uses storage utilities from `/services/utils/storage-queries.js`
+- [x] Implement `createCollection(params)`:
   - Generate ID: `crypto.randomUUID()`
   - Required: name, windowId (optional)
   - Optional: description, icon, color, tags
@@ -347,28 +347,38 @@ Following architecture-guardian review, key improvements from initial plan:
   - Set createdAt, lastAccessed timestamps
   - Call `saveCollection()` utility
   - Return created collection
-- [ ] Implement `updateCollection(id, updates)`:
+- [x] Implement `updateCollection(id, updates)`:
   - Call `getCollection(id)` utility
   - Merge updates
   - Update lastAccessed timestamp
   - Validate data
   - Call `saveCollection()` utility
-- [ ] Implement `deleteCollection(id)`:
+- [x] Implement `deleteCollection(id)`:
   - Call `deleteCollection(id)` utility (cascade deletes folders/tabs handled by utility)
   - Delete all associated tasks via TaskService
-- [ ] Implement `bindToWindow(collectionId, windowId)`:
+- [x] Implement `bindToWindow(collectionId, windowId)`:
   - Update collection.windowId = windowId
   - Update collection.isActive = true
   - Call `saveCollection()` utility
-- [ ] Implement `unbindFromWindow(collectionId)`:
+- [x] Implement `unbindFromWindow(collectionId)`:
   - Update collection.windowId = null
   - Update collection.isActive = false
   - Update collection.metadata.lastAccessed
   - Call `saveCollection()` utility
-- [ ] Add error handling (collection not found, validation errors)
-- [ ] Add unit tests (30 tests)
+- [x] Add error handling (collection not found, validation errors)
+- [x] Add unit tests (23 tests, all passing)
 
-#### 2.3 FolderService + TabService (2-3h)
+**Phase 2.2 Summary**:
+- ✅ CollectionService implemented (310 lines)
+- ✅ 23 integration tests written (all passing)
+- ✅ TDD approach (tests written first)
+- ✅ State management (active ↔ saved), metadata preservation, validation
+- ✅ Immutable field protection (id, isActive, windowId, createdAt)
+- ✅ Follows WindowService/SnoozeService patterns
+- ✅ Added crypto.randomUUID() polyfill to test setup
+- ✅ Commit: 3a7dbe3 - "TabTaskTick Phase 2.2: CollectionService Implementation"
+
+#### 2.3 FolderService + TabService (2-3h) ⏭️ NEXT
 - [ ] Create `/services/execution/FolderService.js` (~150 lines)
   - Uses storage utilities from `/services/utils/storage-queries.js`
   - Implement `createFolder(collectionId, params)`:
