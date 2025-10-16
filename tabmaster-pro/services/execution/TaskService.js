@@ -69,7 +69,8 @@ import {
   getTask,
   getTasksByCollection as getTasksByCollectionStorage,
   saveTask,
-  deleteTask as deleteTaskStorage
+  deleteTask as deleteTaskStorage,
+  getTabsByFolder
 } from '../utils/storage-queries.js';
 import { getCollection } from '../utils/storage-queries.js';
 import { getFoldersByCollection } from '../utils/storage-queries.js';
@@ -284,7 +285,6 @@ export async function updateTask(id, updates) {
 
       for (const folder of folders) {
         // Get all tabs in folder
-        const { getTabsByFolder } = await import('../utils/storage-queries.js');
         const tabs = await getTabsByFolder(folder.id);
         for (const tab of tabs) {
           validTabIds.add(tab.id);
