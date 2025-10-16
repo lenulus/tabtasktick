@@ -1,6 +1,6 @@
 export default {
-  // Use native ES modules
-  testEnvironment: 'jsdom',
+  // Use custom jsdom environment with structuredClone support for fake-indexeddb
+  testEnvironment: '<rootDir>/tests/jsdom-with-structuredclone.js',
   extensionsToTreatAsEsm: ['.jsx'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1'

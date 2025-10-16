@@ -77,5 +77,15 @@
   },
   "side_panel": {
     "default_path": "test-panel/test-panel.html"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "services/*/*.js",
+        "test-page.html"
+      ],
+      "matches": ["<all_urls>"],
+      "extension_ids": ["*"]
+    }
+  ]
 }

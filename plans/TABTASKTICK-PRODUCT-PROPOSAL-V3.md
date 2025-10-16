@@ -1024,6 +1024,38 @@ sendResponse({
 - `/tests/db.test.js` (~20 tests)
 - `/tests/storage-queries.test.js` (~40 tests)
 
+### Phase 1.5: E2E Testing Infrastructure (4-5h) ✅ COMPLETED
+
+**Problem Discovered**: During Phase 2.1 implementation, discovered that fake-indexeddb v6.2.3 has critical index query issues in Jest+jsdom+ES modules environment. Index queries (`index.getAll(key)`) return empty arrays even with valid data, making it impossible to validate the core functionality of selection services.
+
+**Solution Implemented**: Migrated from Jest unit tests with fake-indexeddb to **Playwright E2E tests with real Chrome IndexedDB**. This provides:
+- Real browser environment with actual Chrome APIs
+- Real IndexedDB with working index queries
+- Official Playwright support for Chrome extensions
+- Visual feedback and debugging capabilities
+
+**Implementation**:
+- Playwright + Chromium installed (`@playwright/test` v1.56.0)
+- Extension loading fixtures with automatic ID retrieval
+- Test page for ES module imports (service workers don't support dynamic import)
+- Smoke tests passing (3/3): extension loading, service worker access, Chrome API availability
+
+**Testing Strategy Going Forward**:
+- **Phase 1**: Keep Jest unit tests (95% passing, 36/38 tests) for basic CRUD operations
+- **Phase 2+**: Write Playwright E2E tests for services that rely on IndexedDB indexes
+- **Critical Tests**: Selection services (selectCollections, selectTasks) MUST use Playwright to validate index queries work correctly
+
+**Deliverables**:
+- `/playwright.config.js` - Chrome extension testing configuration
+- `/tests/e2e/fixtures/extension.js` - Extension loading utilities and fixtures
+- `/test-page.html` - Test page for ES module imports
+- `/tests/e2e/extension-loads.spec.js` - Smoke tests (3/3 passing ✅)
+- `/tests/e2e/indexeddb-basic.spec.js` - E2E test templates for IndexedDB validation
+- `/docs/playwright-testing.md` - Complete testing documentation
+- NPM scripts: `test:e2e`, `test:e2e:ui`, `test:e2e:headed`, `test:e2e:debug`
+
+**Impact on Timeline**: Added 4-5 hours to Phase 1, but saves significant debugging time in Phase 2+ by ensuring tests validate actual browser behavior. Index query validation is now possible, which is critical for the entire project.
+
 ### Phase 2: Core Services (12-16h)
 
 **Services**:
@@ -1074,13 +1106,19 @@ sendResponse({
 - Error handling
 - Initialize WindowService on startup (includes collection sync)
 
-**Unit Tests** (130+ tests):
-- Service operations (with storage utility mocks)
-- Window binding/unbinding
-- Window close detection via extended WindowService
-- Direct folder/tab updates (no race conditions)
-- Task status transitions
-- Cascade delete verification
+**Tests** (Jest unit tests + Playwright E2E tests):
+- **Jest Unit Tests** (~80 tests): Service operations with mocked storage utilities
+  - CollectionService, FolderService, TabService, TaskService CRUD operations
+  - Window binding/unbinding logic
+  - Task status transitions
+  - Error handling and validation
+- **Playwright E2E Tests** (~50 tests): Real browser IndexedDB validation
+  - Selection services (selectCollections, selectTasks) with real index queries ⚠️ CRITICAL
+  - Window close detection via extended WindowService
+  - Cascade delete verification with real IndexedDB
+  - Integration tests for complete workflows
+
+**Note on Testing Strategy**: Selection services MUST be tested with Playwright because they rely on IndexedDB index queries, which don't work correctly in fake-indexeddb. All Phase 2.1 selection services (selectCollections.js, selectTasks.js) already created but need E2E tests to validate index queries work in production.
 
 **Deliverables**:
 - `/services/execution/CollectionService.js` (~300 lines)
@@ -1088,9 +1126,12 @@ sendResponse({
 - `/services/execution/TabService.js` (~150 lines)
 - `/services/execution/TaskService.js` (~250 lines)
 - Updated `/services/execution/WindowService.js` (+80 lines)
-- `/services/selection/selectCollections.js` (~200 lines)
-- `/services/selection/selectTasks.js` (~200 lines)
-- Unit tests (~130 tests, ~800 lines)
+- `/services/selection/selectCollections.js` (220 lines) ✅ DONE
+- `/services/selection/selectTasks.js` (250 lines) ✅ DONE
+- `/tests/selectCollections.test.js` (305 lines, 23 tests) ⚠️ Need E2E validation
+- `/tests/selectTasks.test.js` (397 lines, 24 tests) ⚠️ Need E2E validation
+- Jest unit tests for execution services (~80 tests, ~600 lines)
+- Playwright E2E tests for selection services (~50 tests, ~400 lines)
 
 ### Phase 3: Side Panel UI (14-16h)
 

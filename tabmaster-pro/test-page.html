@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playwright Test Page</title>
+</head>
+<body>
+  <h1>TabMaster Pro - Test Page</h1>
+  <p>This page is used for Playwright E2E tests.</p>
+
+  <!-- Test status indicator -->
+  <div id="test-status" style="padding: 20px; margin: 20px; border: 2px solid #ccc;">
+    <h2>Test Status</h2>
+    <div id="status-message">Ready for testing</div>
+  </div>
+
+  <script>
+    // Expose a way for tests to report status
+    window.testStatus = function(message) {
+      document.getElementById('status-message').textContent = message;
+    };
+
+    // Signal that page is ready
+    window.testPageReady = true;
+    console.log('Test page loaded and ready');
+  </script>
+</body>
+</html>

@@ -15,3 +15,8 @@ dashboard/verify-*.html
 # Backup files
 *.backup*
 *.old
+
+# Playwright
+.playwright-user-data/
+playwright-report/
+test-results/
