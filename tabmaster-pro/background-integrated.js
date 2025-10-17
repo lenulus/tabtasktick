@@ -19,6 +19,16 @@ import { executeSnoozeOperations } from './services/execution/executeSnoozeOpera
 // Phase 8.4: Import ScheduledExportService for automatic backups
 import * as ScheduledExportService from './services/execution/ScheduledExportService.js';
 
+// TabTaskTick Phase 2.6: Import services for message handlers
+import * as CollectionService from './services/execution/CollectionService.js';
+import * as FolderService from './services/execution/FolderService.js';
+import * as TabService from './services/execution/TabService.js';
+import * as TaskService from './services/execution/TaskService.js';
+import { selectCollections } from './services/selection/selectCollections.js';
+import { selectTasks } from './services/selection/selectTasks.js';
+import { initialize as initializeDB } from './services/utils/db.js';
+import { getCollection } from './services/utils/storage-queries.js';
+
 console.log('Background service worker loaded with Rules Engine V2');
 
 // Get the engine's functions (V2 only)
@@ -363,6 +373,8 @@ chrome.runtime.onInstalled.addListener(async () => {
   await initializeExtension();
   await SnoozeService.initialize();
   await ScheduledExportService.initialize(); // Phase 8.4: Initialize automatic backups
+  await initializeDB(); // TabTaskTick Phase 2.6: Initialize IndexedDB
+  await WindowService.rebuildCollectionCache(); // TabTaskTick Phase 2.6: Rebuild collection cache
   await setupContextMenus();
   await loadSettings();
   await loadRules();
@@ -378,6 +390,8 @@ chrome.runtime.onStartup.addListener(async () => {
   await loadRules();
   await SnoozeService.initialize();
   await ScheduledExportService.initialize(); // Phase 8.4: Initialize automatic backups
+  await initializeDB(); // TabTaskTick Phase 2.6: Initialize IndexedDB
+  await WindowService.rebuildCollectionCache(); // TabTaskTick Phase 2.6: Rebuild collection cache
   await loadActivityLog();
   await initializeTabTimeTracking();
   await initializeScheduler();
@@ -1598,6 +1612,94 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'validateBackup':
           const validation = await ScheduledExportService.validateBackup(request.backup);
           sendResponse(validation);
+          break;
+
+        // ================================================================
+        // TabTaskTick Phase 2.6: Collection, Folder, Tab, Task Operations
+        // ================================================================
+
+        // Collection Operations
+        case 'createCollection':
+          const createdCollection = await CollectionService.createCollection(request.params);
+          sendResponse({ success: true, collection: createdCollection });
+          break;
+
+        case 'updateCollection':
+          const updatedCollection = await CollectionService.updateCollection(request.id, request.updates);
+          sendResponse({ success: true, collection: updatedCollection });
+          break;
+
+        case 'deleteCollection':
+          await CollectionService.deleteCollection(request.id);
+          sendResponse({ success: true });
+          break;
+
+        case 'getCollection':
+          const collection = await getCollection(request.id);
+          sendResponse({ success: true, collection });
+          break;
+
+        case 'getCollections':
+          const collections = await selectCollections(request.filters || {});
+          sendResponse({ success: true, collections });
+          break;
+
+        // Folder Operations
+        case 'createFolder':
+          const createdFolder = await FolderService.createFolder(request.params);
+          sendResponse({ success: true, folder: createdFolder });
+          break;
+
+        case 'updateFolder':
+          const updatedFolder = await FolderService.updateFolder(request.id, request.updates);
+          sendResponse({ success: true, folder: updatedFolder });
+          break;
+
+        case 'deleteFolder':
+          await FolderService.deleteFolder(request.id);
+          sendResponse({ success: true });
+          break;
+
+        // Tab Operations
+        case 'createTab':
+          const createdTab = await TabService.createTab(request.params);
+          sendResponse({ success: true, tab: createdTab });
+          break;
+
+        case 'updateTab':
+          const updatedTab = await TabService.updateTab(request.id, request.updates);
+          sendResponse({ success: true, tab: updatedTab });
+          break;
+
+        case 'deleteTab':
+          await TabService.deleteTab(request.id);
+          sendResponse({ success: true });
+          break;
+
+        // Task Operations
+        case 'createTask':
+          const createdTask = await TaskService.createTask(request.params);
+          sendResponse({ success: true, task: createdTask });
+          break;
+
+        case 'updateTask':
+          const updatedTask = await TaskService.updateTask(request.id, request.updates);
+          sendResponse({ success: true, task: updatedTask });
+          break;
+
+        case 'deleteTask':
+          await TaskService.deleteTask(request.id);
+          sendResponse({ success: true });
+          break;
+
+        case 'addTaskComment':
+          const taskWithComment = await TaskService.addComment(request.taskId, request.text);
+          sendResponse({ success: true, task: taskWithComment });
+          break;
+
+        case 'getTasks':
+          const tasks = await selectTasks(request.filters || {});
+          sendResponse({ success: true, tasks });
           break;
 
         default:
