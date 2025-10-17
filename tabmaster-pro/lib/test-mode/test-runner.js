@@ -40,7 +40,13 @@ export class TestRunner {
       deleteRule: this.executeDeleteRule.bind(this),
       deleteGroup: this.executeDeleteGroup.bind(this),
       removeAllGroups: this.executeRemoveAllGroups.bind(this),
-      removeTestGroups: this.executeRemoveTestGroups.bind(this)
+      removeTestGroups: this.executeRemoveTestGroups.bind(this),
+      // TabTaskTick Phase 2.7: Collection and window operations
+      createCollection: this.executeCreateCollection.bind(this),
+      bindCollection: this.executeBindCollection.bind(this),
+      closeWindow: this.executeCloseWindow.bind(this),
+      checkStorageFlag: this.executeCheckStorageFlag.bind(this),
+      checkCollectionState: this.executeCheckCollectionState.bind(this)
     };
   }
 
@@ -878,6 +884,128 @@ export class TestRunner {
       removedGroups,
       skippedGroups,
       forceCleanedAll: shouldRemoveAll
+    };
+  }
+
+  /**
+   * TabTaskTick Phase 2.7: Create collection
+   */
+  async executeCreateCollection(step) {
+    const { name, captureAs } = step;
+
+    const { saveCollection } = await import('../../services/utils/storage-queries.js');
+
+    const collection = {
+      id: `test-collection-${Date.now()}`,
+      name: name || 'Test Collection',
+      isActive: false,
+      windowId: null,
+      tags: [],
+      metadata: {
+        createdAt: Date.now(),
+        lastAccessed: Date.now()
+      }
+    };
+
+    await saveCollection(collection);
+
+    if (captureAs) {
+      this.capturedData[captureAs] = collection.id;
+    }
+
+    return {
+      collectionId: collection.id,
+      name: collection.name
+    };
+  }
+
+  /**
+   * TabTaskTick Phase 2.7: Bind collection to window
+   */
+  async executeBindCollection(step) {
+    const { collectionId: collectionIdRef, windowId: windowIdRef } = step;
+
+    // Resolve references
+    const collectionId = this.capturedData[collectionIdRef] || collectionIdRef;
+    const windowId = this.capturedData[windowIdRef] || windowIdRef;
+
+    const WindowService = await import('../../services/execution/WindowService.js');
+    await WindowService.bindCollectionToWindow(collectionId, windowId);
+
+    // Verify binding
+    const collection = await WindowService.getCollectionForWindow(windowId);
+
+    return {
+      collectionId,
+      windowId,
+      boundSuccessfully: collection && collection.id === collectionId,
+      isActive: collection?.isActive
+    };
+  }
+
+  /**
+   * TabTaskTick Phase 2.7: Close window
+   */
+  async executeCloseWindow(step) {
+    const { windowId: windowIdRef } = step;
+
+    // Resolve reference
+    const windowId = this.capturedData[windowIdRef] || windowIdRef;
+
+    await chrome.windows.remove(windowId);
+
+    return {
+      windowId,
+      closed: true
+    };
+  }
+
+  /**
+   * TabTaskTick Phase 2.7: Check storage flag
+   */
+  async executeCheckStorageFlag(step) {
+    const { key, expectedWindowId: expectedWindowIdRef, timeout = 2000 } = step;
+
+    const expectedWindowId = this.capturedData[expectedWindowIdRef] || expectedWindowIdRef;
+
+    // Wait for the flag to be set
+    await new Promise(resolve => setTimeout(resolve, timeout));
+
+    const data = await chrome.storage.local.get(key);
+    const flagValue = data[key];
+
+    return {
+      key,
+      found: !!flagValue,
+      value: flagValue,
+      matchesExpectedWindowId: flagValue?.windowId === expectedWindowId,
+      timestamp: flagValue?.timestamp
+    };
+  }
+
+  /**
+   * TabTaskTick Phase 2.7: Check collection state
+   */
+  async executeCheckCollectionState(step) {
+    const { collectionId: collectionIdRef, expectedIsActive, expectedWindowId } = step;
+
+    const collectionId = this.capturedData[collectionIdRef] || collectionIdRef;
+
+    const { selectCollections } = await import('../../services/selection/selectCollections.js');
+    const collections = await selectCollections({ id: collectionId });
+
+    if (collections.length === 0) {
+      throw new Error(`Collection ${collectionId} not found`);
+    }
+
+    const collection = collections[0];
+
+    return {
+      collectionId,
+      isActive: collection.isActive,
+      windowId: collection.windowId,
+      matchesExpectedIsActive: collection.isActive === expectedIsActive,
+      matchesExpectedWindowId: expectedWindowId === undefined || collection.windowId === expectedWindowId
     };
   }
 }

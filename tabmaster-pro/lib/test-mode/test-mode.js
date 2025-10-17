@@ -988,6 +988,35 @@ export class TestMode {
           // Verify performance is acceptable (< 2 seconds for 50 tabs)
           { action: 'assert', type: 'performance', label: 'large-window-grouping', maxDuration: 2000 }
         ]
+      },
+      {
+        name: 'window-event-listeners',
+        description: 'TabTaskTick Phase 2.7: Test chrome.windows.onRemoved event integration',
+        steps: [
+          // Create a test collection
+          { action: 'createCollection', name: 'Window Event Test Collection', captureAs: 'testCollectionId' },
+
+          // Create a window and capture its ID
+          { action: 'createWindow', captureAs: 'testWindowId', focused: false },
+
+          // Bind collection to window
+          { action: 'bindCollection', collectionId: 'testCollectionId', windowId: 'testWindowId' },
+
+          // Wait for binding to settle
+          { action: 'wait', duration: 500 },
+
+          // Verify collection is bound
+          { action: 'checkCollectionState', collectionId: 'testCollectionId', expectedIsActive: true },
+
+          // Close the window (should trigger chrome.windows.onRemoved)
+          { action: 'closeWindow', windowId: 'testWindowId' },
+
+          // Check that background script received the window close event
+          { action: 'checkStorageFlag', key: 'lastWindowRemovedEvent', expectedWindowId: 'testWindowId', timeout: 2000 },
+
+          // Verify collection was unbound
+          { action: 'checkCollectionState', collectionId: 'testCollectionId', expectedIsActive: false, expectedWindowId: null }
+        ]
       }
     ];
   }

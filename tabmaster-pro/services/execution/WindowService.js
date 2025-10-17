@@ -668,8 +668,11 @@ export async function getCollectionForWindow(windowId) {
     }
   }
 
-  // Cache miss - query all active collections
-  const activeCollections = await selectCollections({ isActive: true });
+  // Cache miss - query all collections and filter for active ones
+  // Note: We avoid using selectCollections({ isActive: true }) because it can fail
+  // with IDBIndex errors if isActive values are inconsistent (null vs boolean)
+  const allCollections = await selectCollections({});
+  const activeCollections = allCollections.filter(c => c.isActive === true);
 
   // Find collection with matching windowId
   const collection = activeCollections.find(col => col.windowId === windowId);
@@ -689,6 +692,11 @@ export async function getCollectionForWindow(windowId) {
  * Queries all active collections and rebuilds the in-memory cache. Called on
  * extension startup to warm the cache or after cache invalidation.
  *
+ * Additionally, performs orphaned collection cleanup:
+ * - Detects collections bound to non-existent windows
+ * - Automatically unbinds orphaned collections (isActive=false, windowId=null)
+ * - Ensures cache consistency with actual Chrome windows
+ *
  * Performance: O(n) where n = number of active collections
  *
  * @returns {Promise<void>}
@@ -702,14 +710,40 @@ export async function rebuildCollectionCache() {
   // Clear existing cache
   collectionCache.clear();
 
-  // Query all active collections
-  const activeCollections = await selectCollections({ isActive: true });
+  // Get all collections and filter for active ones
+  // Note: We avoid using selectCollections({ isActive: true }) because it can fail
+  // with IDBIndex errors if isActive values are inconsistent (null vs boolean)
+  const allCollections = await selectCollections({});
+  const activeCollections = allCollections.filter(c => c.isActive === true);
 
-  // Rebuild cache
+  // Get all existing window IDs
+  const allWindows = await chrome.windows.getAll();
+  const existingWindowIds = new Set((allWindows || []).map(w => w.id));
+
+  // Rebuild cache and detect orphaned collections
+  const orphanedCollections = [];
+
   for (const collection of activeCollections) {
     if (collection.windowId !== null) {
-      collectionCache.set(collection.windowId, collection.id);
+      // Check if window still exists
+      if (existingWindowIds.has(collection.windowId)) {
+        // Window exists - add to cache
+        collectionCache.set(collection.windowId, collection.id);
+      } else {
+        // Window doesn't exist - mark as orphaned
+        console.warn(`Detected orphaned collection ${collection.id} bound to non-existent window ${collection.windowId}`);
+        orphanedCollections.push(collection.id);
+      }
     }
+  }
+
+  // Unbind orphaned collections
+  if (orphanedCollections.length > 0) {
+    console.log(`Unbinding ${orphanedCollections.length} orphaned collections:`, orphanedCollections);
+    for (const collectionId of orphanedCollections) {
+      await unbindCollectionFromWindow(collectionId);
+    }
+    console.log('Orphaned collections cleaned up');
   }
 }
 

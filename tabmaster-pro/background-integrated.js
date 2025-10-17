@@ -828,6 +828,76 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
   await trackTabHistory('closed');
 });
 
+// ============================================================================
+// Window Event Handling for Collection Binding (TabTaskTick Phase 2.7)
+// ============================================================================
+
+// Handle window removal - unbind any bound collection
+chrome.windows.onRemoved.addListener(async (windowId) => {
+  console.log(`[Phase 2.7] chrome.windows.onRemoved fired for window ${windowId}`);
+
+  // Diagnostic: Set a flag in storage to track that event fired
+  try {
+    await chrome.storage.local.set({
+      lastWindowRemovedEvent: {
+        windowId,
+        timestamp: Date.now()
+      }
+    });
+  } catch (error) {
+    console.error('[Phase 2.7] Failed to set diagnostic flag:', error);
+  }
+
+  try {
+    // Query database directly to find any collection bound to this window
+    // Note: We can't rely on cache because it might not be populated if binding
+    // happened in a different context (e.g., from a page vs background script)
+    const allCollections = await selectCollections({});
+    console.log(`[Phase 2.7] Found ${allCollections.length} total collections`);
+    const activeCollections = allCollections.filter(c => c.isActive === true);
+    console.log(`[Phase 2.7] Found ${activeCollections.length} active collections`);
+    const boundCollection = activeCollections.find(c => c.windowId === windowId);
+    console.log(`[Phase 2.7] Bound collection for window ${windowId}:`, boundCollection ? boundCollection.id : 'none');
+
+    if (boundCollection) {
+      console.log(`[Phase 2.7] Window ${windowId} closing, unbinding collection ${boundCollection.id}`);
+      await WindowService.unbindCollectionFromWindow(boundCollection.id);
+      console.log(`[Phase 2.7] Collection ${boundCollection.id} unbound from closed window ${windowId}`);
+    } else {
+      console.log(`[Phase 2.7] No bound collection found for window ${windowId}, skipping unbind`);
+    }
+  } catch (error) {
+    console.error(`[Phase 2.7] Failed to unbind collection on window close:`, error);
+  }
+});
+
+// Optional: Track window focus for collection activity
+chrome.windows.onFocusChanged.addListener(async (windowId) => {
+  // Skip WINDOW_ID_NONE (-1) which indicates no window has focus
+  if (windowId === chrome.windows.WINDOW_ID_NONE) return;
+
+  try {
+    // Query database directly to find any collection bound to this window
+    const allCollections = await selectCollections({});
+    const boundCollection = allCollections.find(c => c.windowId === windowId && c.isActive === true);
+
+    if (boundCollection) {
+      // Update lastAccessed timestamp via CollectionService
+      await CollectionService.updateCollection(boundCollection.id, {
+        metadata: {
+          ...boundCollection.metadata,
+          lastAccessed: Date.now()
+        }
+      });
+    }
+  } catch (error) {
+    // Focus changes are frequent, only log errors in debug mode
+    if (state.settings.debugMode) {
+      console.error(`Failed to update collection on focus change:`, error);
+    }
+  }
+});
+
 // Check for rules with immediate triggers
 async function checkImmediateTriggers(event) {
   // Check if we're in test mode

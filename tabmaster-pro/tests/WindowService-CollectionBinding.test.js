@@ -321,6 +321,17 @@ describe('WindowService Collection Binding', () => {
 
   describe('rebuildCollectionCache', () => {
     it('should rebuild cache from all active collections', async () => {
+      // Mock chrome.windows.getAll for Phase 2.7 orphaned collection detection
+      global.chrome = {
+        windows: {
+          getAll: async () => [
+            { id: 100 },
+            { id: 200 },
+            { id: 300 }
+          ]
+        }
+      };
+
       // Create multiple active collections
       const col1 = await CollectionService.createCollection({
         name: 'Collection 1',
