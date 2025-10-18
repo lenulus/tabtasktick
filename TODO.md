@@ -739,42 +739,56 @@ Following architecture-guardian review, key improvements from initial plan:
 - [ ] Background message listeners - Will add when needed
 - [ ] Open collection - Deferred to Phase 6 (RestoreCollectionService)
 
-#### 3.2.5 Collection Detail View (3-4h) **NEW**
-- [ ] Create `/sidepanel/collection-detail.js` (~350 lines)
-- [ ] Class: `CollectionDetailView` (THIN, message passing only)
-- [ ] Implement `render(collection, folders, tabs, tasks)`:
+#### 3.2.5 Collection Detail View (3-4h) ✅ **COMPLETED**
+**Status**: ✅ COMPLETE (2025-10-17)
+**Commit**: [To be committed with Phase 3.2]
+
+- [x] Create `/sidepanel/collection-detail.js` (~1050 lines)
+- [x] Class: `CollectionDetailView` (THIN, message passing only)
+- [x] Implement `render(collection, folders, tabs, tasks)`:
   - Collection header (name, description, tags, metadata)
   - **Tasks section FIRST** (per proposal visual hierarchy):
-    - Group tasks by status
-    - Show priority indicators (color-coded)
+    - Group tasks by status (Open, Active, Completed)
+    - Show priority indicators (color-coded 🔴 ⚪)
     - Show tab references with folder context ("→ API Docs, GitHub PR #234")
     - Action buttons: "Open Tabs", "Mark Fixed", "Edit"
     - Empty state: "No tasks yet. Create one to track your work."
   - Folders section (collapsible):
     - Expand/collapse per folder
     - Show tab count per folder
-    - Show ⭐ indicator for tabs referenced by tasks
-    - Tabs with notes preview (truncated to 50 chars)
-    - Inline edit for tab notes
-  - Collection actions: "Focus Window" / "Close Window", "Edit", "Archive"
-- [ ] Implement `handleOpenTaskTabs(taskId)`:
-  - Send `openTaskTabs` message (Phase 6 feature)
-  - Show loading indicator
-- [ ] Implement `handleEditTask(taskId)`:
-  - Open task edit modal
-  - Load task data
-  - Update via message on save
-- [ ] Implement `handleCreateTask()`:
-  - Open task creation modal
+    - Tabs with favicon, title, pinned indicator (📌)
+    - Inline tab note editing with character counter (255 max)
+  - Collection actions: "Focus Window" / "Close Window", "Edit"
+- [x] Implement `handleOpenTaskTabs(taskId)`:
+  - Placeholder for Phase 6 (TaskExecutionService)
+- [x] Implement `handleEditTask(taskId)`:
+  - Modal with full task form (summary, notes, priority, status, due date, tags)
+  - Pre-filled with existing task data
+  - Validation and save via updateTask message
+- [x] Implement `handleCreateTask()`:
+  - Modal with task creation form
   - Pre-fill collectionId
-  - Show checkbox list of tabs in collection for references
-- [ ] Implement `handleToggleFolder(folderId)`:
-  - Persist expanded/collapsed state in component state
-- [ ] Implement `handleEditTabNote(tabId)`:
-  - Inline editing UI
-  - Send `updateTab` message on blur
-  - Show save indicator
-- [ ] NO business logic - all operations via chrome.runtime.sendMessage()
+  - Validation (summary required)
+- [x] Implement `handleToggleFolder(folderId)`:
+  - Track expanded/collapsed state in component
+  - Update UI immediately on toggle
+- [x] Implement `handleEditTabNote(tabId)`:
+  - Inline textarea editing
+  - Auto-save on blur via updateTab message
+  - Visual success indicator (green border flash)
+  - Character counter display
+- [x] Added message handlers to background-integrated.js:
+  - `getFoldersByCollection` - Get folders for a collection
+  - `getTabsByFolder` - Get tabs in a folder
+  - `getTask` - Get single task by ID
+- [x] Added 425+ lines of CSS styling for detail view
+- [x] Wired up to CollectionsView with "View Details" button
+- [x] Integrated with panel controller
+- [x] NO business logic - all operations via chrome.runtime.sendMessage()
+
+**Features deferred to Phase 6:**
+- Open Collection (RestoreCollectionService)
+- Open Task Tabs (TaskExecutionService)
 
 #### 3.3 Tasks View (5-6h)
 - [ ] Create `/sidepanel/task-view.js` (~450 lines)

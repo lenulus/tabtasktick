@@ -11,6 +11,7 @@
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
 import { CollectionsView } from './collections-view.js';
+import { CollectionDetailView } from './collection-detail.js';
 
 class SidePanelController {
   constructor() {
@@ -19,6 +20,7 @@ class SidePanelController {
     this.tasksData = null;
     this.searchQuery = '';
     this.collectionsView = null;
+    this.collectionDetailView = null;
   }
 
   /**
@@ -34,6 +36,9 @@ class SidePanelController {
     // Initialize views
     this.collectionsView = new CollectionsView(this);
     this.collectionsView.init();
+
+    this.collectionDetailView = new CollectionDetailView(this);
+    this.collectionDetailView.init();
 
     // Setup event listeners
     this.setupEventListeners();

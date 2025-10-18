@@ -157,18 +157,18 @@ export class CollectionsView {
         ` : ''}
 
         <div class="collection-actions">
+          <button class="btn btn-primary btn-sm action-view-details" data-action="view-details">
+            👁️ View Details
+          </button>
           ${isActive ? `
             <button class="btn btn-secondary btn-sm action-focus" data-action="focus">
-              👁️ Focus Window
+              Focus Window
             </button>
           ` : `
-            <button class="btn btn-primary btn-sm action-open" data-action="open">
+            <button class="btn btn-secondary btn-sm action-open" data-action="open">
               📂 Open
             </button>
           `}
-          <button class="btn btn-secondary btn-sm action-tasks" data-action="tasks">
-            ✓ Tasks
-          </button>
           <button class="btn btn-secondary btn-sm action-edit" data-action="edit">
             ✏️ Edit
           </button>
@@ -197,6 +197,9 @@ export class CollectionsView {
       const action = button.dataset.action;
 
       switch (action) {
+        case 'view-details':
+          await this.handleViewDetails(collectionId);
+          break;
         case 'focus':
           await this.handleFocusWindow(collectionId);
           break;
@@ -214,6 +217,23 @@ export class CollectionsView {
           break;
       }
     });
+  }
+
+  /**
+   * Handle view details action
+   */
+  async handleViewDetails(collectionId) {
+    try {
+      // Notify controller to show detail view
+      if (this.controller.collectionDetailView) {
+        await this.controller.collectionDetailView.show(collectionId);
+      } else {
+        notifications.error('Detail view not available');
+      }
+    } catch (error) {
+      console.error('Failed to show details:', error);
+      notifications.error('Failed to show collection details');
+    }
   }
 
   /**

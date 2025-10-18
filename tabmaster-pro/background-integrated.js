@@ -27,7 +27,12 @@ import * as TaskService from './services/execution/TaskService.js';
 import { selectCollections } from './services/selection/selectCollections.js';
 import { selectTasks } from './services/selection/selectTasks.js';
 import { initialize as initializeDB } from './services/utils/db.js';
-import { getCollection } from './services/utils/storage-queries.js';
+import {
+  getCollection,
+  getFoldersByCollection,
+  getTabsByFolder,
+  getTask
+} from './services/utils/storage-queries.js';
 
 console.log('Background service worker loaded with Rules Engine V2');
 
@@ -1759,6 +1764,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: true });
           break;
 
+        case 'getFoldersByCollection':
+          const collectionFolders = await getFoldersByCollection(request.collectionId);
+          sendResponse({ success: true, folders: collectionFolders });
+          break;
+
         // Tab Operations
         case 'createTab':
           const createdTab = await TabService.createTab(request.params);
@@ -1773,6 +1783,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'deleteTab':
           await TabService.deleteTab(request.id);
           sendResponse({ success: true });
+          break;
+
+        case 'getTabsByFolder':
+          const folderTabs = await getTabsByFolder(request.folderId);
+          sendResponse({ success: true, tabs: folderTabs });
           break;
 
         // Task Operations
@@ -1799,6 +1814,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'getTasks':
           const tasks = await selectTasks(request.filters || {});
           sendResponse({ success: true, tasks });
+          break;
+
+        case 'getTask':
+          const task = await getTask(request.id);
+          sendResponse({ success: true, task });
           break;
 
         default:
