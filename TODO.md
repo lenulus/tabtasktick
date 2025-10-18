@@ -1046,7 +1046,7 @@ Following architecture-guardian review, key improvements from initial plan:
   - Send createTask/updateCollection/updateTab message
   - Show notification on success ("✓ Added to Project X")
 
-#### 5.2 Page Context Menu (1-2h)
+#### 5.3 Page Context Menu (1-2h)
 - [ ] Add context menu items for pages:
   - "Save Page to Collection" → submenu with recent collections + "New Collection"
   - "Create Task for Page" → modal to create task referencing current page
@@ -1055,7 +1055,7 @@ Following architecture-guardian review, key improvements from initial plan:
   - Send message to create task or add to collection
   - Show notification on success
 
-#### 5.3 Toolbar Context Menu (0.5-1h)
+#### 5.4 Toolbar Context Menu (0.5-1h)
 - [ ] Add context menu items for extension icon:
   - "Save Window as Collection"
   - "Open Side Panel (Cmd+B)"
@@ -1064,7 +1064,7 @@ Following architecture-guardian review, key improvements from initial plan:
   - Send `createCollection` message
   - Open side panel
 
-#### 5.4 Integration Testing (1-2h)
+#### 5.5 Integration Testing (1-2h)
 - [ ] Test tab right-click → "Add to Collection" works
 - [ ] Test tab right-click → "Create Task for Tab" works
 - [ ] Test page right-click → "Save Page to Collection" works
