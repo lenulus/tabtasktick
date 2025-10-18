@@ -10,6 +10,7 @@
 
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
+import { CollectionsView } from './collections-view.js';
 
 class SidePanelController {
   constructor() {
@@ -17,6 +18,7 @@ class SidePanelController {
     this.collectionsData = null;
     this.tasksData = null;
     this.searchQuery = '';
+    this.collectionsView = null;
   }
 
   /**
@@ -28,6 +30,10 @@ class SidePanelController {
     // Initialize components
     notifications.init();
     modal.init();
+
+    // Initialize views
+    this.collectionsView = new CollectionsView(this);
+    this.collectionsView.init();
 
     // Setup event listeners
     this.setupEventListeners();
@@ -177,31 +183,9 @@ class SidePanelController {
       return;
     }
 
-    // Separate active and saved
-    const active = collections.filter(c => c.isActive);
-    const saved = collections.filter(c => !c.isActive);
-
-    // Update counts
-    const activeCount = document.getElementById('active-count');
-    const savedCount = document.getElementById('saved-count');
-    if (activeCount) activeCount.textContent = active.length;
-    if (savedCount) savedCount.textContent = saved.length;
-
-    // TODO: Render collection cards (Phase 3.2)
-    // For now, just show placeholder
-    const activeContainer = document.getElementById('active-collections');
-    const savedContainer = document.getElementById('saved-collections');
-
-    if (activeContainer) {
-      activeContainer.innerHTML = active.length > 0
-        ? `<p style="padding: 12px; color: var(--text-secondary);">${active.length} active collection(s)</p>`
-        : '';
-    }
-
-    if (savedContainer) {
-      savedContainer.innerHTML = saved.length > 0
-        ? `<p style="padding: 12px; color: var(--text-secondary);">${saved.length} saved collection(s)</p>`
-        : '';
+    // Delegate to CollectionsView
+    if (this.collectionsView) {
+      this.collectionsView.render(collections);
     }
   }
 

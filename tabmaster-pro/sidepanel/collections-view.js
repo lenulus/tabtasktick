@@ -1,0 +1,450 @@
+/**
+ * Collections View Component
+ *
+ * THIN component - all business logic via message passing to background
+ * Renders collection cards with:
+ * - Active/Saved grouping
+ * - Collection metadata (icon, name, description, counts)
+ * - Action buttons (Focus/Open, View Tasks, Edit, Close)
+ * - Real-time updates from background messages
+ */
+
+import { notifications } from './components/notification.js';
+import { modal } from './components/modal.js';
+
+export class CollectionsView {
+  constructor(controller) {
+    this.controller = controller;
+    this.activeContainer = null;
+    this.savedContainer = null;
+  }
+
+  /**
+   * Initialize the view
+   */
+  init() {
+    this.activeContainer = document.getElementById('active-collections');
+    this.savedContainer = document.getElementById('saved-collections');
+
+    if (!this.activeContainer || !this.savedContainer) {
+      console.error('Collections view containers not found');
+    }
+  }
+
+  /**
+   * Render collections
+   */
+  render(collections) {
+    if (!collections || collections.length === 0) {
+      this.renderEmpty();
+      return;
+    }
+
+    // Separate active and saved
+    const active = collections.filter(c => c.isActive);
+    const saved = collections.filter(c => !c.isActive);
+
+    // Update counts
+    this.updateCounts(active.length, saved.length);
+
+    // Render cards
+    this.renderCollectionGroup(this.activeContainer, active, true);
+    this.renderCollectionGroup(this.savedContainer, saved, false);
+  }
+
+  /**
+   * Update collection counts
+   */
+  updateCounts(activeCount, savedCount) {
+    const activeCountEl = document.getElementById('active-count');
+    const savedCountEl = document.getElementById('saved-count');
+
+    if (activeCountEl) activeCountEl.textContent = activeCount;
+    if (savedCountEl) savedCountEl.textContent = savedCount;
+  }
+
+  /**
+   * Render empty state
+   */
+  renderEmpty() {
+    this.updateCounts(0, 0);
+    if (this.activeContainer) this.activeContainer.innerHTML = '';
+    if (this.savedContainer) this.savedContainer.innerHTML = '';
+  }
+
+  /**
+   * Render a group of collections
+   */
+  renderCollectionGroup(container, collections, isActive) {
+    if (!container) return;
+
+    if (collections.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    // Sort by last accessed (most recent first)
+    const sorted = [...collections].sort((a, b) => {
+      const aTime = a.metadata?.lastAccessed || a.createdAt || 0;
+      const bTime = b.metadata?.lastAccessed || b.createdAt || 0;
+      return bTime - aTime;
+    });
+
+    container.innerHTML = sorted.map(c => this.renderCollectionCard(c, isActive)).join('');
+
+    // Attach event listeners
+    this.attachEventListeners(container);
+  }
+
+  /**
+   * Render a single collection card
+   */
+  renderCollectionCard(collection, isActive) {
+    const icon = collection.icon || '📁';
+    const name = this.escapeHtml(collection.name || 'Untitled Collection');
+    const description = collection.description
+      ? this.escapeHtml(collection.description)
+      : '';
+
+    // Get metadata counts (will be implemented in Phase 6 with proper counting)
+    const tabCount = collection.metadata?.tabCount || 0;
+    const folderCount = collection.metadata?.folderCount || 0;
+
+    // Format last accessed time
+    const lastAccessed = this.formatRelativeTime(collection.metadata?.lastAccessed || collection.createdAt);
+
+    // Window info for active collections
+    const windowInfo = isActive && collection.windowId
+      ? `<span class="window-badge">Window #${collection.windowId}</span>`
+      : '';
+
+    return `
+      <div class="collection-card" data-collection-id="${collection.id}">
+        <div class="collection-header">
+          <div class="collection-icon">${icon}</div>
+          <div class="collection-info">
+            <div class="collection-title">
+              ${isActive ? '<span class="active-indicator">🟢</span>' : ''}
+              <h3 class="collection-name">${name}</h3>
+              ${windowInfo}
+            </div>
+            ${description ? `<p class="collection-description">${description}</p>` : ''}
+          </div>
+        </div>
+
+        <div class="collection-meta">
+          <span class="meta-item" title="Tabs">
+            <span class="meta-icon">📄</span>
+            <span class="meta-value">${tabCount}</span>
+          </span>
+          <span class="meta-item" title="Folders">
+            <span class="meta-icon">📂</span>
+            <span class="meta-value">${folderCount}</span>
+          </span>
+          <span class="meta-item meta-time" title="Last accessed">
+            <span class="meta-icon">🕒</span>
+            <span class="meta-value">${lastAccessed}</span>
+          </span>
+        </div>
+
+        ${collection.tags && collection.tags.length > 0 ? `
+          <div class="collection-tags">
+            ${collection.tags.slice(0, 3).map(tag =>
+              `<span class="tag">${this.escapeHtml(tag)}</span>`
+            ).join('')}
+            ${collection.tags.length > 3 ? `<span class="tag-more">+${collection.tags.length - 3}</span>` : ''}
+          </div>
+        ` : ''}
+
+        <div class="collection-actions">
+          ${isActive ? `
+            <button class="btn btn-secondary btn-sm action-focus" data-action="focus">
+              👁️ Focus Window
+            </button>
+          ` : `
+            <button class="btn btn-primary btn-sm action-open" data-action="open">
+              📂 Open
+            </button>
+          `}
+          <button class="btn btn-secondary btn-sm action-tasks" data-action="tasks">
+            ✓ Tasks
+          </button>
+          <button class="btn btn-secondary btn-sm action-edit" data-action="edit">
+            ✏️ Edit
+          </button>
+          ${isActive ? `
+            <button class="btn btn-secondary btn-sm action-close" data-action="close">
+              ❌ Close
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Attach event listeners to collection cards
+   */
+  attachEventListeners(container) {
+    container.addEventListener('click', async (e) => {
+      const button = e.target.closest('button[data-action]');
+      if (!button) return;
+
+      const card = button.closest('.collection-card');
+      if (!card) return;
+
+      const collectionId = card.dataset.collectionId;
+      const action = button.dataset.action;
+
+      switch (action) {
+        case 'focus':
+          await this.handleFocusWindow(collectionId);
+          break;
+        case 'open':
+          await this.handleOpenCollection(collectionId);
+          break;
+        case 'tasks':
+          await this.handleViewTasks(collectionId);
+          break;
+        case 'edit':
+          await this.handleEditCollection(collectionId);
+          break;
+        case 'close':
+          await this.handleCloseCollection(collectionId);
+          break;
+      }
+    });
+  }
+
+  /**
+   * Handle focus window action
+   */
+  async handleFocusWindow(collectionId) {
+    try {
+      // Get collection to find windowId
+      const collection = this.controller.collectionsData.find(c => c.id === collectionId);
+      if (!collection || !collection.windowId) {
+        notifications.error('Window not found');
+        return;
+      }
+
+      // Focus the window
+      await chrome.windows.update(collection.windowId, { focused: true });
+      notifications.success('Window focused');
+    } catch (error) {
+      console.error('Failed to focus window:', error);
+      notifications.error('Failed to focus window');
+    }
+  }
+
+  /**
+   * Handle open collection action
+   */
+  async handleOpenCollection(collectionId) {
+    try {
+      // TODO: Phase 6 - Implement with RestoreCollectionService
+      notifications.info('Open collection feature coming in Phase 6');
+    } catch (error) {
+      console.error('Failed to open collection:', error);
+      notifications.error('Failed to open collection');
+    }
+  }
+
+  /**
+   * Handle view tasks action
+   */
+  async handleViewTasks(collectionId) {
+    try {
+      // Switch to tasks view and filter by collection
+      await this.controller.switchView('tasks');
+      // TODO: Phase 3.3 - Implement task filtering by collection
+      notifications.info('Viewing tasks for collection');
+    } catch (error) {
+      console.error('Failed to view tasks:', error);
+      notifications.error('Failed to view tasks');
+    }
+  }
+
+  /**
+   * Handle edit collection action
+   */
+  async handleEditCollection(collectionId) {
+    try {
+      const collection = this.controller.collectionsData.find(c => c.id === collectionId);
+      if (!collection) {
+        notifications.error('Collection not found');
+        return;
+      }
+
+      // Create edit form
+      const form = this.createEditForm(collection);
+
+      // Show modal
+      modal.open({
+        title: 'Edit Collection',
+        content: form,
+        size: 'medium',
+        actions: [
+          {
+            label: 'Cancel',
+            variant: 'secondary',
+            autoClose: true
+          },
+          {
+            label: 'Save',
+            variant: 'primary',
+            onClick: async () => {
+              await this.saveCollectionEdits(collectionId, form);
+            }
+          }
+        ]
+      });
+    } catch (error) {
+      console.error('Failed to edit collection:', error);
+      notifications.error('Failed to edit collection');
+    }
+  }
+
+  /**
+   * Handle close collection action
+   */
+  async handleCloseCollection(collectionId) {
+    try {
+      const collection = this.controller.collectionsData.find(c => c.id === collectionId);
+      if (!collection || !collection.windowId) {
+        notifications.error('Window not found');
+        return;
+      }
+
+      // Close the window
+      await chrome.windows.remove(collection.windowId);
+      notifications.success('Window closed - collection saved');
+
+      // Reload data (window close event will update collection)
+      await this.controller.loadData();
+    } catch (error) {
+      console.error('Failed to close window:', error);
+      notifications.error('Failed to close window');
+    }
+  }
+
+  /**
+   * Create edit form
+   */
+  createEditForm(collection) {
+    const form = document.createElement('form');
+    form.className = 'collection-edit-form';
+    form.innerHTML = `
+      <div class="form-group">
+        <label for="edit-name">Name</label>
+        <input
+          type="text"
+          id="edit-name"
+          name="name"
+          value="${this.escapeHtml(collection.name || '')}"
+          required
+          class="form-input"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="edit-description">Description</label>
+        <textarea
+          id="edit-description"
+          name="description"
+          class="form-textarea"
+          rows="3"
+        >${this.escapeHtml(collection.description || '')}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-icon">Icon</label>
+        <input
+          type="text"
+          id="edit-icon"
+          name="icon"
+          value="${this.escapeHtml(collection.icon || '📁')}"
+          class="form-input"
+          maxlength="2"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="edit-tags">Tags (comma-separated)</label>
+        <input
+          type="text"
+          id="edit-tags"
+          name="tags"
+          value="${collection.tags ? collection.tags.join(', ') : ''}"
+          class="form-input"
+          placeholder="work, research, personal"
+        >
+      </div>
+    `;
+    return form;
+  }
+
+  /**
+   * Save collection edits
+   */
+  async saveCollectionEdits(collectionId, form) {
+    try {
+      const formData = new FormData(form);
+      const updates = {
+        name: formData.get('name'),
+        description: formData.get('description') || null,
+        icon: formData.get('icon') || '📁',
+        tags: formData.get('tags')
+          ? formData.get('tags').split(',').map(t => t.trim()).filter(t => t)
+          : []
+      };
+
+      // Send update message
+      const response = await this.controller.sendMessage('updateCollection', {
+        id: collectionId,
+        updates
+      });
+
+      if (response?.success) {
+        notifications.success('Collection updated');
+        await this.controller.loadData();
+      } else {
+        throw new Error(response?.error || 'Update failed');
+      }
+    } catch (error) {
+      console.error('Failed to save collection:', error);
+      notifications.error('Failed to save changes');
+      throw error; // Re-throw to prevent modal close
+    }
+  }
+
+  /**
+   * Format relative time
+   */
+  formatRelativeTime(timestamp) {
+    if (!timestamp) return 'Never';
+
+    const now = Date.now();
+    const diff = now - timestamp;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return 'Just now';
+    if (minutes < 60) return `${minutes} min ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    if (days < 30) return `${Math.floor(days / 7)}w ago`;
+    return `${Math.floor(days / 30)}mo ago`;
+  }
+
+  /**
+   * Escape HTML to prevent XSS
+   */
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+}
