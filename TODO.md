@@ -629,7 +629,7 @@ Following architecture-guardian review, key improvements from initial plan:
 ---
 
 ### Phase 3: Side Panel UI (Collections + Tasks) ⏳
-**Time Estimate**: 22-26 hours (increased from 14-16h per UX review)
+**Time Estimate**: 24-29 hours (increased from 14-16h per UX review)
 **Priority**: HIGH
 **Dependencies**: Phase 2 complete
 **Status**: 🔴 Not Started
@@ -822,13 +822,40 @@ Following architecture-guardian review, key improvements from initial plan:
   - Pass to respective views
 - [ ] Handle refresh on focus (reload data when panel opens)
 
-#### 3.5 UI State Management (2-3h) **NEW**
+#### 3.5 Search & Filters Infrastructure (2-3h)
+- [ ] Create `/sidepanel/search-filter.js` (~200 lines)
+- [ ] Implement global search component:
+  - Debounced search input (300ms delay)
+  - Search across collections (name, description, tags)
+  - Search across tasks (summary, notes, tags)
+  - Highlight matches in results
+  - Show result count ("3 collections, 5 tasks match 'auth'")
+  - Clear search button
+- [ ] Implement filter components:
+  - Collections filters:
+    - State toggle (active/saved/all)
+    - Tag multi-select dropdown
+    - Sort dropdown (last accessed, created, name)
+  - Tasks filters:
+    - Status multi-select (open/active/fixed/abandoned)
+    - Priority multi-select (low/medium/high/critical)
+    - Collection multi-select
+    - Due date range picker
+    - Sort dropdown (due date, priority, created)
+  - Active filter count badge
+  - Clear all filters button
+- [ ] Implement filter/sort state persistence:
+  - Save to chrome.storage.local per view
+  - Restore on panel reopen
+  - Sync across sessions
+- [ ] NO business logic - pure UI components
+
+#### 3.6 UI State Management (2-3h) **NEW**
 - [ ] Create `/sidepanel/state-manager.js` (~200 lines)
 - [ ] Implement centralized state management:
   - Loading states (per-view)
   - Error states with retry logic
   - Empty states with context-appropriate messaging
-  - Filter/sort state persistence
   - Active view tracking
   - Scroll position restoration
 - [ ] Implement state transitions:
@@ -843,7 +870,7 @@ Following architecture-guardian review, key improvements from initial plan:
   - Permission errors → Clear messaging
 - [ ] NO business logic - coordinates UI components only
 
-#### 3.6 Integration Testing (2h)
+#### 3.7 Integration Testing (2h)
 - [ ] Test side panel opens via Cmd+B
 - [ ] Test Collections view loads and displays
 - [ ] Test Tasks view loads and displays
@@ -872,6 +899,7 @@ Following architecture-guardian review, key improvements from initial plan:
 - `/sidepanel/collections-view.js` (~400 lines, increased)
 - `/sidepanel/collection-detail.js` (~350 lines) **NEW**
 - `/sidepanel/task-view.js` (~450 lines, increased)
+- `/sidepanel/search-filter.js` (~200 lines) **NEW**
 - `/sidepanel/state-manager.js` (~200 lines) **NEW**
 
 ---
@@ -1412,10 +1440,11 @@ Following architecture-guardian review, key improvements from initial plan:
 - [x] Phase 2: Core Services (12-16h)
 - [x] Milestone: 691 passing tests, services fully functional ✅
 
-### Sprint 3-5: Side Panel (22-26h)
+### Sprint 3-5: Side Panel (24-29h)
 **Weeks 4-7** (increased from 2 weeks):
-- [ ] Phase 3: Side Panel UI (22-26h)
+- [ ] Phase 3: Side Panel UI (24-29h)
   - Includes Collection Detail View (new)
+  - Includes Search & Filters Infrastructure (restored)
   - Includes UI State Management (new)
   - Includes notification/modal components (new)
 - [ ] Milestone: Side panel working with Collections + Tasks views + detail views
@@ -1452,9 +1481,9 @@ Following architecture-guardian review, key improvements from initial plan:
 - [ ] Documentation updates
 - [ ] Release preparation
 
-**Total Timeline**: 100-124 hours (12-16 weeks at 8h/week)
+**Total Timeline**: 102-127 hours (13-16 weeks at 8h/week)
 **Previous Estimate**: 68-84 hours (under-estimated by ~40%)
-**Increase Rationale**: UX complexity (drag-drop, modals, state management, progressive discovery, calendar views) not captured in original estimate
+**Increase Rationale**: UX complexity (drag-drop, modals, state management, search/filters, progressive discovery, calendar views) not captured in original estimate
 
 ---
 
