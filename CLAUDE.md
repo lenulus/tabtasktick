@@ -19,6 +19,7 @@
 - **Services handle ALL business logic** - surfaces just call services
 - **Every option is explicit** - no hidden defaults or magic behavior
 - **Dead code is deleted immediately** - not commented out or left around
+- **NEVER skip or defer TODO items without explicit user approval** - If you think something should be skipped, ASK FIRST. Do not silently mark features as "deferred to Phase X" or "not yet implemented". The user decides what gets deferred, not you.
 
 ### Separation of Concerns Pattern
 

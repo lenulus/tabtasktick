@@ -12,6 +12,7 @@ import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
 import { CollectionsView } from './collections-view.js';
 import { CollectionDetailView } from './collection-detail.js';
+import { TasksView } from './tasks-view.js';
 
 class SidePanelController {
   constructor() {
@@ -21,6 +22,7 @@ class SidePanelController {
     this.searchQuery = '';
     this.collectionsView = null;
     this.collectionDetailView = null;
+    this.tasksView = null;
   }
 
   /**
@@ -39,6 +41,9 @@ class SidePanelController {
 
     this.collectionDetailView = new CollectionDetailView(this);
     this.collectionDetailView.init();
+
+    this.tasksView = new TasksView(this);
+    this.tasksView.init();
 
     // Setup event listeners
     this.setupEventListeners();
@@ -147,6 +152,7 @@ class SidePanelController {
    */
   async loadData() {
     try {
+      console.log('[Panel] Loading data...');
       // Show loading states
       this.showLoading('collections');
       this.showLoading('tasks');
@@ -161,16 +167,13 @@ class SidePanelController {
       this.collectionsData = collectionsResult?.collections || [];
       this.tasksData = tasksResult?.tasks || [];
 
-      // Render views
+      // Render views (they will handle showing empty/content states)
       this.renderCollections();
       this.renderTasks();
 
-      // Hide loading, show content
-      this.showContent('collections');
-      this.showContent('tasks');
-
+      console.log('[Panel] Data loaded and rendered');
     } catch (error) {
-      console.error('Failed to load data:', error);
+      console.error('[Panel] Failed to load data:', error);
       this.showError('collections', error.message);
       this.showError('tasks', error.message);
     }
@@ -188,7 +191,8 @@ class SidePanelController {
       return;
     }
 
-    // Delegate to CollectionsView
+    // Show content and delegate to CollectionsView
+    this.showContent('collections');
     if (this.collectionsView) {
       this.collectionsView.render(collections);
     }
@@ -206,11 +210,10 @@ class SidePanelController {
       return;
     }
 
-    // TODO: Render task cards (Phase 3.3)
-    // For now, just show placeholder
-    const tasksContent = document.getElementById('tasks-content');
-    if (tasksContent) {
-      tasksContent.innerHTML = `<p style="padding: 12px; color: var(--text-secondary);">${tasks.length} task(s)</p>`;
+    // Show content and delegate to TasksView
+    this.showContent('tasks');
+    if (this.tasksView) {
+      this.tasksView.render(tasks, this.collectionsData || []);
     }
   }
 
@@ -232,12 +235,174 @@ class SidePanelController {
    */
   async handleCreateTask() {
     try {
-      // TODO: Implement task creation (Phase 3.3)
-      notifications.info('Create task feature coming in Phase 3.3');
+      // Show task creation modal
+      this.showCreateTaskModal();
     } catch (error) {
       console.error('Failed to create task:', error);
       notifications.error('Failed to create task');
     }
+  }
+
+  /**
+   * Show create task modal
+   */
+  showCreateTaskModal() {
+    const formHtml = `
+      <form id="create-task-form" class="modal-form">
+        <div class="form-group">
+          <label for="new-task-summary">Summary *</label>
+          <input
+            type="text"
+            id="new-task-summary"
+            name="summary"
+            class="form-control"
+            required
+            maxlength="255"
+            placeholder="What do you need to do?"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="new-task-notes">Notes</label>
+          <textarea
+            id="new-task-notes"
+            name="notes"
+            class="form-control"
+            rows="4"
+            placeholder="Additional details..."
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="new-task-priority">Priority</label>
+            <select id="new-task-priority" name="priority" class="form-control">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="new-task-collection">Collection</label>
+            <select id="new-task-collection" name="collectionId" class="form-control">
+              <option value="">Uncategorized</option>
+              ${(this.collectionsData || []).map(c =>
+                `<option value="${c.id}">${this.escapeHtml(c.name || 'Unnamed')}</option>`
+              ).join('')}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="new-task-due-date">Due Date</label>
+          <input
+            type="date"
+            id="new-task-due-date"
+            name="dueDate"
+            class="form-control"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="new-task-tags">Tags (comma-separated)</label>
+          <input
+            type="text"
+            id="new-task-tags"
+            name="tags"
+            class="form-control"
+            placeholder="urgent, work, review"
+          >
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-modal-cancel>Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Task</button>
+        </div>
+      </form>
+    `;
+
+    modal.open({
+      title: 'Create New Task',
+      content: formHtml
+    });
+
+    // Attach form handler after modal is created
+    requestAnimationFrame(() => {
+      const form = document.getElementById('create-task-form');
+      const cancelBtn = form?.querySelector('[data-modal-cancel]');
+
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await this.saveNewTask(new FormData(form));
+      });
+
+      cancelBtn?.addEventListener('click', () => {
+        modal.close();
+      });
+    });
+  }
+
+  /**
+   * Save new task
+   */
+  async saveNewTask(formData) {
+    try {
+      const summary = formData.get('summary')?.trim();
+      if (!summary) {
+        notifications.show('Summary is required', 'error');
+        return;
+      }
+
+      const params = {
+        summary,
+        notes: formData.get('notes')?.trim() || '',
+        priority: formData.get('priority') || 'medium',
+        tags: formData.get('tags')
+          ?.split(',')
+          .map(t => t.trim())
+          .filter(t => t.length > 0) || []
+      };
+
+      const collectionId = formData.get('collectionId');
+      if (collectionId) {
+        params.collectionId = collectionId;
+      }
+
+      const dueDateStr = formData.get('dueDate');
+      if (dueDateStr) {
+        params.dueDate = new Date(dueDateStr).getTime();
+      }
+
+      const response = await this.sendMessage('createTask', { params });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      modal.close();
+      notifications.show('Task created successfully', 'success');
+
+      // Refresh data
+      await this.loadData();
+    } catch (error) {
+      console.error('Error saving new task:', error);
+      notifications.show(
+        error.message || 'Failed to create task',
+        'error'
+      );
+    }
+  }
+
+  /**
+   * Escape HTML to prevent XSS
+   */
+  escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   /**
@@ -383,6 +548,19 @@ class SidePanelController {
 
 // Initialize on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async () => {
-  const controller = new SidePanelController();
-  await controller.init();
+  try {
+    console.log('[Panel] DOMContentLoaded - initializing...');
+    const controller = new SidePanelController();
+    await controller.init();
+    console.log('[Panel] Initialization complete');
+  } catch (error) {
+    console.error('[Panel] Initialization failed:', error);
+    // Show error in UI
+    document.body.innerHTML = `
+      <div style="padding: 20px; color: red;">
+        <h2>Initialization Error</h2>
+        <pre>${error.message}\n${error.stack}</pre>
+      </div>
+    `;
+  }
 });
