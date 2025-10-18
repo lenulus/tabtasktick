@@ -185,16 +185,24 @@ class SidePanelController {
   renderCollections() {
     const collections = this.collectionsData || [];
 
-    // Show empty state if no collections
-    if (collections.length === 0) {
-      this.showEmpty('collections');
+    // Apply search filter
+    const filteredCollections = this.filterCollections(collections);
+
+    // Show empty state if no collections after filtering
+    if (filteredCollections.length === 0) {
+      if (this.searchQuery) {
+        // Show "no results" message when searching
+        this.showNoSearchResults('collections');
+      } else {
+        this.showEmpty('collections');
+      }
       return;
     }
 
     // Show content and delegate to CollectionsView
     this.showContent('collections');
     if (this.collectionsView) {
-      this.collectionsView.render(collections);
+      this.collectionsView.render(filteredCollections);
     }
   }
 
@@ -204,16 +212,24 @@ class SidePanelController {
   renderTasks() {
     const tasks = this.tasksData || [];
 
-    // Show empty state if no tasks
-    if (tasks.length === 0) {
-      this.showEmpty('tasks');
+    // Apply search filter
+    const filteredTasks = this.filterTasks(tasks);
+
+    // Show empty state if no tasks after filtering
+    if (filteredTasks.length === 0) {
+      if (this.searchQuery) {
+        // Show "no results" message when searching
+        this.showNoSearchResults('tasks');
+      } else {
+        this.showEmpty('tasks');
+      }
       return;
     }
 
     // Show content and delegate to TasksView
     this.showContent('tasks');
     if (this.tasksView) {
-      this.tasksView.render(tasks, this.collectionsData || []);
+      this.tasksView.render(filteredTasks, this.collectionsData || []);
     }
   }
 
@@ -222,11 +238,200 @@ class SidePanelController {
    */
   async handleSaveWindow() {
     try {
-      // TODO: Implement full save window flow with modal (Phase 3.2)
-      notifications.info('Save window feature coming in Phase 3.2');
+      // Get current window info
+      const currentWindow = await chrome.windows.getCurrent({ populate: true });
+      const tabs = await chrome.tabs.query({ windowId: currentWindow.id });
+      const tabGroups = await chrome.tabGroups.query({ windowId: currentWindow.id });
+
+      // Suggest name from top domain
+      const suggestedName = this.suggestCollectionName(tabs);
+
+      // Show save window modal
+      this.showSaveWindowModal(suggestedName, tabs.length, tabGroups.length);
     } catch (error) {
       console.error('Failed to save window:', error);
       notifications.error('Failed to save window');
+    }
+  }
+
+  /**
+   * Suggest collection name from top domain
+   */
+  suggestCollectionName(tabs) {
+    if (!tabs || tabs.length === 0) {
+      return 'New Collection';
+    }
+
+    // Count domains
+    const domainCounts = {};
+    for (const tab of tabs) {
+      try {
+        const url = new URL(tab.url);
+        const domain = url.hostname.replace(/^www\./, '');
+        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+      } catch (e) {
+        // Skip invalid URLs
+      }
+    }
+
+    // Find top domain
+    const topDomain = Object.entries(domainCounts)
+      .sort((a, b) => b[1] - a[1])[0]?.[0];
+
+    if (topDomain) {
+      // Capitalize first letter of domain name
+      const name = topDomain.split('.')[0];
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    }
+
+    return 'New Collection';
+  }
+
+  /**
+   * Show save window modal
+   */
+  showSaveWindowModal(suggestedName, tabCount, folderCount) {
+    const formHtml = `
+      <form id="save-window-form" class="modal-form">
+        <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg);">
+          Save current window with ${tabCount} tab${tabCount !== 1 ? 's' : ''} and ${folderCount} folder${folderCount !== 1 ? 's' : ''}.
+        </p>
+
+        <div class="form-group">
+          <label for="collection-name">Name *</label>
+          <input
+            type="text"
+            id="collection-name"
+            name="name"
+            class="form-control"
+            required
+            maxlength="255"
+            placeholder="Enter collection name"
+            value="${this.escapeHtml(suggestedName)}"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="collection-description">Description</label>
+          <textarea
+            id="collection-description"
+            name="description"
+            class="form-control"
+            rows="3"
+            placeholder="What is this collection for?"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="collection-icon">Icon</label>
+          <input
+            type="text"
+            id="collection-icon"
+            name="icon"
+            class="form-control"
+            maxlength="10"
+            placeholder="📁 (optional emoji)"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="collection-tags">Tags (comma-separated)</label>
+          <input
+            type="text"
+            id="collection-tags"
+            name="tags"
+            class="form-control"
+            placeholder="work, project, research"
+          >
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-modal-cancel>Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Window</button>
+        </div>
+      </form>
+    `;
+
+    modal.open({
+      title: 'Save Current Window',
+      content: formHtml
+    });
+
+    // Attach form handler after modal is created
+    requestAnimationFrame(() => {
+      const form = document.getElementById('save-window-form');
+      const cancelBtn = form?.querySelector('[data-modal-cancel]');
+      const nameInput = form?.querySelector('#collection-name');
+
+      // Auto-select the name for easy editing
+      nameInput?.select();
+
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await this.saveWindow(new FormData(form));
+      });
+
+      cancelBtn?.addEventListener('click', () => {
+        modal.close();
+      });
+    });
+  }
+
+  /**
+   * Save window as collection
+   */
+  async saveWindow(formData) {
+    try {
+      const name = formData.get('name')?.trim();
+      if (!name) {
+        notifications.show('Collection name is required', 'error');
+        return;
+      }
+
+      const params = {
+        name,
+        description: formData.get('description')?.trim() || '',
+        icon: formData.get('icon')?.trim() || '📁',
+        tags: formData.get('tags')
+          ?.split(',')
+          .map(t => t.trim())
+          .filter(t => t.length > 0) || []
+      };
+
+      // Get current window ID
+      const currentWindow = await chrome.windows.getCurrent();
+      params.windowId = currentWindow.id;
+
+      const response = await this.sendMessage('createCollection', { params });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      modal.close();
+
+      // Show success notification
+      const collection = response.collection;
+      const tabCount = collection.metadata?.tabCount || 0;
+      const folderCount = collection.metadata?.folderCount || 0;
+      notifications.show(
+        `✓ Saved ${collection.name} (${tabCount} tabs, ${folderCount} folders)`,
+        'success'
+      );
+
+      // Refresh data
+      await this.loadData();
+
+      // Navigate to collection detail view
+      if (this.collectionDetailView && collection.id) {
+        this.collectionDetailView.show(collection.id);
+      }
+    } catch (error) {
+      console.error('Error saving window:', error);
+      notifications.show(
+        error.message || 'Failed to save window',
+        'error'
+      );
     }
   }
 
@@ -406,12 +611,79 @@ class SidePanelController {
   }
 
   /**
-   * Handle search input
+   * Handle search input (debounced)
    */
   handleSearch(query) {
     this.searchQuery = query.toLowerCase();
-    // TODO: Implement search filtering (Phase 3.5)
-    console.log('Search query:', this.searchQuery);
+
+    // Debounce search (300ms)
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.applySearch();
+    }, 300);
+  }
+
+  /**
+   * Apply search filter to current view
+   */
+  applySearch() {
+    if (this.currentView === 'collections') {
+      this.renderCollections();
+    } else if (this.currentView === 'tasks') {
+      this.renderTasks();
+    }
+  }
+
+  /**
+   * Filter collections by search query
+   */
+  filterCollections(collections) {
+    if (!this.searchQuery || this.searchQuery.trim() === '') {
+      return collections;
+    }
+
+    const query = this.searchQuery.trim();
+    return collections.filter(collection => {
+      // Search in name
+      if (collection.name?.toLowerCase().includes(query)) {
+        return true;
+      }
+      // Search in description
+      if (collection.description?.toLowerCase().includes(query)) {
+        return true;
+      }
+      // Search in tags
+      if (collection.tags?.some(tag => tag.toLowerCase().includes(query))) {
+        return true;
+      }
+      return false;
+    });
+  }
+
+  /**
+   * Filter tasks by search query
+   */
+  filterTasks(tasks) {
+    if (!this.searchQuery || this.searchQuery.trim() === '') {
+      return tasks;
+    }
+
+    const query = this.searchQuery.trim();
+    return tasks.filter(task => {
+      // Search in summary
+      if (task.summary?.toLowerCase().includes(query)) {
+        return true;
+      }
+      // Search in notes
+      if (task.notes?.toLowerCase().includes(query)) {
+        return true;
+      }
+      // Search in tags
+      if (task.tags?.some(tag => tag.toLowerCase().includes(query))) {
+        return true;
+      }
+      return false;
+    });
   }
 
   /**
@@ -422,19 +694,79 @@ class SidePanelController {
 
     switch (action) {
       case 'collection.created':
+        // Reload collections with scroll position maintenance
+        this.reloadWithScrollMaintenance('collections');
+        // Highlight newly created collection
+        if (data?.collectionId) {
+          setTimeout(() => {
+            this.highlightItem('collection', data.collectionId);
+          }, 100);
+        }
+        break;
+
       case 'collection.updated':
       case 'collection.deleted':
-        // Reload collections
-        this.loadData();
+        // Reload collections with scroll position maintenance
+        this.reloadWithScrollMaintenance('collections');
         break;
 
       case 'task.created':
+        // Reload tasks with scroll position maintenance
+        this.reloadWithScrollMaintenance('tasks');
+        // Highlight newly created task
+        if (data?.taskId) {
+          setTimeout(() => {
+            this.highlightItem('task', data.taskId);
+          }, 100);
+        }
+        break;
+
       case 'task.updated':
       case 'task.deleted':
-        // Reload tasks
-        this.loadData();
+        // Reload tasks with scroll position maintenance
+        this.reloadWithScrollMaintenance('tasks');
         break;
     }
+  }
+
+  /**
+   * Reload data while maintaining scroll position
+   */
+  async reloadWithScrollMaintenance(viewName) {
+    const container = document.getElementById(`${viewName}-content`);
+    const scrollTop = container?.scrollTop || 0;
+
+    await this.loadData();
+
+    // Restore scroll position
+    requestAnimationFrame(() => {
+      if (container) {
+        container.scrollTop = scrollTop;
+      }
+    });
+  }
+
+  /**
+   * Highlight an item briefly
+   */
+  highlightItem(type, id) {
+    const selector = type === 'collection'
+      ? `.collection-card[data-collection-id="${id}"]`
+      : `.task-card[data-task-id="${id}"]`;
+
+    const element = document.querySelector(selector);
+    if (!element) return;
+
+    // Add highlight class
+    element.classList.add('highlighted');
+
+    // Remove after animation
+    setTimeout(() => {
+      element.classList.remove('highlighted');
+    }, 2000);
+
+    // Scroll into view
+    element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   /**
@@ -500,6 +832,28 @@ class SidePanelController {
     error?.classList.add('hidden');
     empty?.classList.remove('hidden');
     content?.classList.add('hidden');
+  }
+
+  /**
+   * Show no search results state
+   */
+  showNoSearchResults(view) {
+    const contentContainer = document.getElementById(`${view}-content`);
+    if (!contentContainer) return;
+
+    const entityName = view === 'collections' ? 'collections' : 'tasks';
+    contentContainer.innerHTML = `
+      <div class="empty-state" style="display: flex;">
+        <div class="empty-icon">🔍</div>
+        <h3 class="empty-title">No ${entityName} found</h3>
+        <p class="empty-description">
+          No ${entityName} match your search query "${this.escapeHtml(this.searchQuery)}".
+          Try a different search term.
+        </p>
+      </div>
+    `;
+
+    this.showContent(view);
   }
 
   /**

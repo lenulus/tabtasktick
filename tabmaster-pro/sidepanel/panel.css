@@ -1390,3 +1390,20 @@ textarea.form-control {
   border-top: none;
   margin-top: var(--spacing-md);
 }
+
+/* Highlighted item animation */
+.collection-card.highlighted,
+.task-card.highlighted {
+  animation: highlight-pulse 2s ease-in-out;
+}
+
+@keyframes highlight-pulse {
+  0%, 100% {
+    background: var(--bg-primary);
+    box-shadow: none;
+  }
+  50% {
+    background: #fef3c7;
+    box-shadow: 0 0 0 3px #fbbf24;
+  }
+}
