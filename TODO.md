@@ -629,79 +629,183 @@ Following architecture-guardian review, key improvements from initial plan:
 ---
 
 ### Phase 3: Side Panel UI (Collections + Tasks) ⏳
-**Time Estimate**: 14-16 hours
+**Time Estimate**: 22-26 hours (increased from 14-16h per UX review)
 **Priority**: HIGH
 **Dependencies**: Phase 2 complete
 **Status**: 🔴 Not Started
 
-#### 3.1 Side Panel Setup (2-3h)
+#### 3.1 Side Panel Setup + Shared Components (3-4h)
 - [ ] Create `/sidepanel/panel.html` (~250 lines)
   - Header with search, "Save Window" button, view switcher (Collections/Tasks)
   - Collections view container
   - Tasks view container
-  - Empty state messaging
-  - Loading indicators
+  - Empty state messaging (with help text for first-time users)
+  - Loading indicators (spinner component)
+  - Error state containers
 - [ ] Create `/sidepanel/panel.css` (~200 lines)
   - Reuse dashboard CSS patterns (consistent styling)
   - Responsive design (300px min width)
   - Tab switcher styles
   - Collection/task card styles
   - Active/saved indicators (🟢 for active)
+  - Loading/error/empty state styles
+  - Window info badge styles ("Window #2")
+- [ ] Create `/sidepanel/components/notification.js` (~100 lines)
+  - Toast notification system for user feedback
+  - Success, error, info variants
+  - Auto-dismiss after 3 seconds
+  - Queue management for multiple notifications
+- [ ] Create `/sidepanel/components/modal.js` (~150 lines)
+  - Reusable modal component for dialogs
+  - Backdrop click to close
+  - ESC key handling
+  - Focus trap for accessibility
 - [ ] Update `/manifest.json`:
   - Add side_panel configuration
   - Add keyboard shortcut (Cmd+B) to open side panel
 
-#### 3.2 Collections View (3-4h)
-- [ ] Create `/sidepanel/collections-view.js` (~300 lines)
+#### 3.2 Collections View (5-6h)
+- [ ] Create `/sidepanel/collections-view.js` (~400 lines)
 - [ ] Class: `CollectionsView` (THIN, message passing only)
 - [ ] Implement `render(collections)`:
   - Group by state: ACTIVE (isActive=true) / SAVED (isActive=false)
   - Render collection cards:
     - Icon, name, description
     - Tab count, folder count
-    - 🟢 indicator for active collections
-    - Last accessed timestamp
+    - 🟢 indicator for active collections with window number ("Window #2")
+    - Last accessed timestamp (relative: "2 min ago", "3 days ago")
     - Action buttons: "Focus Window" (active) / "Open" (saved), "View Tasks", "Edit", "Close"
-  - Handle empty states ("No collections yet")
+  - Handle empty states with progressive discovery:
+    - "No collections yet" with help text
+    - "Click 'Save Window' to create your first collection"
+    - Visual guide to discovery flow
+  - Loading states (skeleton cards during data fetch)
+  - Error states (connection failed, quota exceeded)
 - [ ] Implement `handleSaveWindow()`:
   - Get current window tabs via chrome.tabs.query()
   - Get current window tab groups via chrome.tabGroups.query()
+  - Get current window ID via chrome.windows.getCurrent()
   - Suggest name from top domain
+  - Open modal for collection metadata (name, icon, tags, description)
   - Send `createCollection` message to background
-  - Show success notification
+  - Show success notification ("✓ Saved Project X (15 tabs, 3 folders)")
+  - Navigate to collection detail view
 - [ ] Implement `handleFocusWindow(collectionId)`:
   - Send `focusWindow` message with windowId (Phase 6 feature)
+  - Show loading indicator
+  - Handle errors (window not found)
 - [ ] Implement `handleOpenCollection(collectionId)`:
   - Send `restoreCollection` message to background (Phase 6 feature)
-- [ ] Implement search/filter (local filtering, no backend)
-- [ ] Listen for background messages (collection.created, collection.updated, collection.deleted)
+  - Show loading indicator with tab count ("Opening 47 tabs...")
+  - Handle errors gracefully
+- [ ] Implement `handleViewTasks(collectionId)`:
+  - Switch to Tasks view filtered by collection
+  - Scroll to collection section
+- [ ] Implement search/filter (local filtering, no backend):
+  - Debounced search input (300ms)
+  - Filter by active/saved state toggle
+  - Sort dropdown (last accessed, created, name)
+- [ ] Listen for background messages (collection.created, collection.updated, collection.deleted):
+  - Real-time UI updates
+  - Maintain scroll position
+  - Highlight newly created collections
 - [ ] NO business logic - all operations via chrome.runtime.sendMessage()
 
-#### 3.3 Tasks View (3-4h)
-- [ ] Create `/sidepanel/task-view.js` (~350 lines)
+#### 3.2.5 Collection Detail View (3-4h) **NEW**
+- [ ] Create `/sidepanel/collection-detail.js` (~350 lines)
+- [ ] Class: `CollectionDetailView` (THIN, message passing only)
+- [ ] Implement `render(collection, folders, tabs, tasks)`:
+  - Collection header (name, description, tags, metadata)
+  - **Tasks section FIRST** (per proposal visual hierarchy):
+    - Group tasks by status
+    - Show priority indicators (color-coded)
+    - Show tab references with folder context ("→ API Docs, GitHub PR #234")
+    - Action buttons: "Open Tabs", "Mark Fixed", "Edit"
+    - Empty state: "No tasks yet. Create one to track your work."
+  - Folders section (collapsible):
+    - Expand/collapse per folder
+    - Show tab count per folder
+    - Show ⭐ indicator for tabs referenced by tasks
+    - Tabs with notes preview (truncated to 50 chars)
+    - Inline edit for tab notes
+  - Collection actions: "Focus Window" / "Close Window", "Edit", "Archive"
+- [ ] Implement `handleOpenTaskTabs(taskId)`:
+  - Send `openTaskTabs` message (Phase 6 feature)
+  - Show loading indicator
+- [ ] Implement `handleEditTask(taskId)`:
+  - Open task edit modal
+  - Load task data
+  - Update via message on save
+- [ ] Implement `handleCreateTask()`:
+  - Open task creation modal
+  - Pre-fill collectionId
+  - Show checkbox list of tabs in collection for references
+- [ ] Implement `handleToggleFolder(folderId)`:
+  - Persist expanded/collapsed state in component state
+- [ ] Implement `handleEditTabNote(tabId)`:
+  - Inline editing UI
+  - Send `updateTab` message on blur
+  - Show save indicator
+- [ ] NO business logic - all operations via chrome.runtime.sendMessage()
+
+#### 3.3 Tasks View (5-6h)
+- [ ] Create `/sidepanel/task-view.js` (~450 lines)
 - [ ] Class: `TaskView` (THIN, message passing only)
 - [ ] Implement `render(tasks, collections)`:
   - Group by section:
-    - UNCATEGORIZED (no collectionId)
-    - By Collection (grouped by collectionId)
-    - COMPLETED (status='fixed' or 'abandoned')
+    - UNCATEGORIZED (no collectionId) - shown first
+    - By Collection (grouped by collectionId) - sorted by last accessed
+    - COMPLETED (status='fixed' or 'abandoned') - collapsible section
   - Render task cards:
-    - Priority indicator (color-coded)
-    - Summary, due date
-    - Collection name (if present) with 🟢 for active
-    - Tab references count ("→ 3 tabs")
-    - Action buttons: "Open Tabs", "Mark Fixed", "View Collection"
-  - Sort by: dueDate (ascending), priority (descending)
-  - Handle empty states ("No tasks yet")
+    - Priority indicator (color-coded: 🔴 critical/high, ⚪ medium/low)
+    - Status badge ("Active", "Open")
+    - Summary, due date (with overdue highlighting)
+    - Collection name (if present) with 🟢 for active collections
+    - Tab references with names ("→ 3 tabs: API Docs, GitHub PR #234, Stack Overflow")
+    - Show first 2-3 tab names, "+ N more" for rest
+    - Action buttons: "Open Tabs", "Mark Fixed", "Edit", "View Collection"
+  - Sort by: dueDate (ascending), priority (descending), createdAt
+  - Handle empty states:
+    - "No tasks yet" with help text
+    - "Create tasks to track your work in collections"
+    - Link to create first task
+  - Loading states (skeleton cards)
+  - Error states
 - [ ] Implement `handleOpenTabs(taskId)`:
   - Send `openTaskTabs` message to background (Phase 6 feature)
-  - Show loading indicator
+  - Show loading indicator with context ("Restoring Collection: Project X (47 tabs)...")
+  - Handle errors (collection not found, tabs missing)
 - [ ] Implement `handleMarkFixed(taskId)`:
-  - Send `updateTaskStatus` message with status='fixed'
+  - Send `updateTask` message with status='fixed'
   - Update UI optimistically
-- [ ] Implement filters (status, priority, collection)
-- [ ] Implement search (summary, notes text match)
-- [ ] Listen for background messages (task.created, task.updated, task.deleted)
+  - Show undo notification (3 second window)
+  - Move to "Completed this week" section with animation
+- [ ] Implement `handleEditTask(taskId)`:
+  - Open task edit modal
+  - Pre-fill all fields
+  - Update on save
+- [ ] Implement `handleViewCollection(collectionId)`:
+  - Switch to Collections view
+  - Navigate to collection detail
+  - Scroll to collection
+- [ ] Implement filters (status, priority, collection):
+  - Multi-select filter UI
+  - Show active filter count badge
+  - Persist in chrome.storage.local
+  - Clear filters button
+- [ ] Implement search (summary, notes, tags text match):
+  - Debounced input (300ms)
+  - Highlight matches in results
+  - Show result count ("3 tasks match 'auth'")
+- [ ] Implement sort dropdown:
+  - Due date (ascending/descending)
+  - Priority (high to low)
+  - Created date (newest first)
+  - Persist selection
+- [ ] Listen for background messages (task.created, task.updated, task.deleted):
+  - Real-time UI updates
+  - Maintain scroll position
+  - Highlight newly created/updated tasks (brief animation)
 - [ ] NO business logic - all operations via chrome.runtime.sendMessage()
 
 #### 3.4 Tab Switcher (1-2h)
@@ -718,18 +822,26 @@ Following architecture-guardian review, key improvements from initial plan:
   - Pass to respective views
 - [ ] Handle refresh on focus (reload data when panel opens)
 
-#### 3.5 Search & Filters (2-3h)
-- [ ] Implement global search in collections view:
-  - Search in name, description, tags
-  - Filter by active/saved state
-  - Sort options (last accessed, created, name)
-- [ ] Implement global search in tasks view:
-  - Search in summary, notes, tags
-  - Filter by status (open/active/fixed/abandoned)
-  - Filter by priority (low/medium/high/critical)
-  - Filter by collection
-  - Sort options (due date, priority, created)
-- [ ] Persist filter state in chrome.storage.local
+#### 3.5 UI State Management (2-3h) **NEW**
+- [ ] Create `/sidepanel/state-manager.js` (~200 lines)
+- [ ] Implement centralized state management:
+  - Loading states (per-view)
+  - Error states with retry logic
+  - Empty states with context-appropriate messaging
+  - Filter/sort state persistence
+  - Active view tracking
+  - Scroll position restoration
+- [ ] Implement state transitions:
+  - Loading → Success (with data)
+  - Loading → Error (with message + retry button)
+  - Empty → Has Data (on first creation)
+  - Active Collection → Saved (on window close)
+- [ ] Implement error handling patterns:
+  - Network errors → "Connection lost. Retry?"
+  - Quota errors → "Storage full. Delete old collections?"
+  - Not found errors → "Collection no longer exists"
+  - Permission errors → Clear messaging
+- [ ] NO business logic - coordinates UI components only
 
 #### 3.6 Integration Testing (2h)
 - [ ] Test side panel opens via Cmd+B
@@ -755,43 +867,87 @@ Following architecture-guardian review, key improvements from initial plan:
 - `/sidepanel/panel.html` (~250 lines)
 - `/sidepanel/panel.css` (~200 lines)
 - `/sidepanel/panel.js` (~200 lines)
-- `/sidepanel/collections-view.js` (~300 lines)
-- `/sidepanel/task-view.js` (~350 lines)
+- `/sidepanel/components/notification.js` (~100 lines) **NEW**
+- `/sidepanel/components/modal.js` (~150 lines) **NEW**
+- `/sidepanel/collections-view.js` (~400 lines, increased)
+- `/sidepanel/collection-detail.js` (~350 lines) **NEW**
+- `/sidepanel/task-view.js` (~450 lines, increased)
+- `/sidepanel/state-manager.js` (~200 lines) **NEW**
 
 ---
 
 ### Phase 4: Popup Enhancement (Discovery) ⏳
-**Time Estimate**: 6-8 hours
+**Time Estimate**: 8-10 hours (increased from 6-8h per UX review)
 **Priority**: MEDIUM
 **Dependencies**: Phase 3 complete
 **Status**: 🔴 Not Started
 
-#### 4.1 Popup Layout Update (2-3h)
+#### 4.1 Popup Layout Update (3-4h)
 - [ ] Update `/popup/popup.html`:
-  - Add "💡 Try Collections" banner at top (dismissible)
-  - Add "💾 Save This Window" button (prominent)
-  - Add "Active Tasks" section (3-5 max)
-  - Add "Active Collections" section (with 🟢 and window info)
-  - Add "Recent Saved Collections" section (3-5 max)
-  - Add "Open Side Panel (Cmd+B)" link
-  - Keep existing TabMaster features below
+  - Add "💡 Try Collections" banner at top (dismissible with X button)
+  - Add "💾 Save This Window" button (prominent, large)
+  - Add "Active Tasks" section (3-5 max, sorted by priority/due date)
+  - Add "Active Collections" section (with 🟢 indicator and window info "Window #2")
+  - Add "Recent Saved Collections" section (3-5 max, sorted by lastAccessed)
+  - Add "Open Side Panel (Cmd+B)" prominent link/button
+  - Keep existing TabMaster features below (collapsible section)
 - [ ] Update `/popup/popup.css`:
   - Style new sections (consistent with existing popup)
-  - Banner styling (light blue background, dismissible X)
-  - Collection card styling (compact version)
-  - Task card styling (compact version)
+  - Banner styling (light blue background, dismissible X, border)
+  - Collection card styling (compact version with icon + metadata)
+  - Task card styling (compact version with priority indicator)
+  - Window info badge ("Window #2" in monospace font)
+  - Active indicator (🟢 with subtle glow effect)
+  - Responsive sizing (adapt to popup width constraints)
 
-#### 4.2 Popup JS Updates (2-3h)
+#### 4.2 Popup JS Updates (3-4h)
 - [ ] Update `/popup/popup.js`:
-  - Load active tasks via `getTasks` message (status='open' or 'active', limit 5)
-  - Load active collections via `getCollections` message (isActive=true)
+  - Load active tasks via `getTasks` message (status='open' or 'active', sort by priority/dueDate, limit 5)
+  - Load active collections via `getCollections` message (isActive=true, sort by lastAccessed)
   - Load recent saved collections via `getCollections` message (isActive=false, sort by lastAccessed, limit 5)
-  - Render collections with 🟢 indicator and window info
-  - Render tasks with "Open" button → send `openTaskTabs` message
-  - Handle "Save This Window" button → send `createCollection` message
-  - Handle banner dismiss → save state in chrome.storage.local
-  - Handle "Open Side Panel" link → chrome.runtime.openOptionsPage() or side panel API
+  - Get current window ID via chrome.windows.getCurrent() for window number display
+  - Render collections with:
+    - 🟢 indicator for active
+    - Window info ("Window #2") for active collections
+    - Metadata (tab count, task count)
+    - Action buttons: "Focus" (active) / "Open" (saved)
+  - Render tasks with:
+    - Priority indicator (color-coded)
+    - Collection badge (if present)
+    - "Open" button → send `openTaskTabs` message
+    - Truncated summary (max 40 chars)
+  - Handle "Save This Window" button:
+    - Send `createCollection` message with current window ID
+    - Show loading state
+    - Show success notification
+    - Prompt to open side panel
+  - Handle banner dismiss:
+    - Save dismissal state in chrome.storage.local with timestamp
+    - Don't show again for 7 days
+    - Fade out animation
+  - Handle "Open Side Panel" link:
+    - Use chrome.sidePanel.open() API (or equivalent for Cmd+B)
+    - Close popup automatically
+  - Implement progressive discovery:
+    - If no collections: Show banner + "Save This Window" emphasis
+    - If has collections but no tasks: Show task creation prompt
+    - If has both: Show active items only
+  - Handle errors gracefully (connection lost, service worker asleep)
+  - Loading states for all data fetches
 - [ ] NO business logic - all operations via chrome.runtime.sendMessage()
+
+#### 4.2.5 Popup Progressive Discovery (1-2h) **NEW**
+- [ ] Implement first-time user flow:
+  - Detect first popup open (check chrome.storage.local)
+  - Show welcome tooltip on "Save This Window" button
+  - Show arrow pointing to side panel link
+  - Progressive badge counts ("1 collection created!")
+- [ ] Implement onboarding sequence:
+  - Step 1: "Save your first window" (highlight button)
+  - Step 2: "Open side panel to manage" (highlight link)
+  - Step 3: "Create tasks for your work" (after first collection)
+  - Persist onboarding progress
+  - Allow skipping with "Got it" button
 
 #### 4.3 Integration Testing (1-2h)
 - [ ] Test popup opens and shows new sections
@@ -820,21 +976,47 @@ Following architecture-guardian review, key improvements from initial plan:
 ---
 
 ### Phase 5: Context Menus ⏳
-**Time Estimate**: 4-6 hours
+**Time Estimate**: 6-8 hours (increased from 4-6h per UX review)
 **Priority**: MEDIUM
 **Dependencies**: Phase 4 complete
 **Status**: 🔴 Not Started
 
-#### 5.1 Tab Context Menu (1-2h)
-- [ ] Update `/tabmaster-pro/background.js`:
+#### 5.1 Modal Components for Context Menus (2-3h) **NEW**
+- [ ] Create `/lib/modals/task-modal.js` (~200 lines)
+  - Task creation/editing modal
+  - Fields: summary, notes, priority, due date, tags, collection selector
+  - Tab references: Checkbox list of tabs in collection
+  - Pre-fill fields based on context (page title → summary, current collection)
+  - Validation (summary required, due date valid)
+  - Save via message to background
+  - Show success/error states
+- [ ] Create `/lib/modals/collection-selector-modal.js` (~150 lines)
+  - "Add to Collection" modal
+  - Show recent collections (5 max) + "New Collection" option
+  - Search collections by name
+  - Collection metadata preview (tab count, folder count)
+  - Create new collection inline if selected
+  - Save via message to background
+- [ ] Create `/lib/modals/note-modal.js` (~100 lines)
+  - "Add Note to Tab" modal
+  - Simple textarea (255 char limit)
+  - Character counter
+  - Save via message to background
+
+#### 5.2 Tab Context Menu (1-2h)
+- [ ] Update `/tabmaster-pro/background-integrated.js`:
   - Add context menu items for tabs:
-    - "Add to Collection" → submenu with recent collections + "New Collection"
-    - "Create Task for Tab" → modal to create task referencing this tab
-    - "Add Note to Tab" → modal to add note (if tab in collection)
+    - "Add to Collection" → opens collection selector modal
+    - "Create Task for Tab" → opens task modal pre-filled with tab
+    - "Add Note to Tab" → opens note modal (if tab in collection)
+  - Register context menu items on install/startup
+  - Handle dynamic submenu generation (recent collections)
 - [ ] Implement handlers:
   - Get tab info via chrome.tabs.get()
-  - Send message to create task or add to collection
-  - Show notification on success
+  - Check if tab is in collection (query IndexedDB)
+  - Open appropriate modal via message
+  - Send createTask/updateCollection/updateTab message
+  - Show notification on success ("✓ Added to Project X")
 
 #### 5.2 Page Context Menu (1-2h)
 - [ ] Add context menu items for pages:
@@ -876,29 +1058,49 @@ Following architecture-guardian review, key improvements from initial plan:
 ---
 
 ### Phase 6: Operations (Orchestration Services) ⏳
-**Time Estimate**: 10-12 hours
+**Time Estimate**: 12-14 hours (increased from 10-12h per UX review)
 **Priority**: HIGH
 **Dependencies**: Phase 5 complete
 **Status**: 🔴 Not Started
 
-#### 6.1 CaptureWindowService (3-4h)
-- [ ] Create `/services/execution/CaptureWindowService.js` (~250 lines)
+#### 6.1 CaptureWindowService (4-5h)
+- [ ] Create `/services/execution/CaptureWindowService.js` (~300 lines)
 - [ ] Implement `captureWindow(windowId, metadata)`:
   - Get all tabs in window via chrome.tabs.query()
   - Get all tab groups via chrome.tabGroups.query()
+  - Get window info via chrome.windows.get() (for position, state)
   - Build folders structure:
-    - For each tab group: create Folder with tabs
-    - For ungrouped tabs: create default folder or root-level tabs
-  - Capture tab metadata (url, title, favicon, pinned, position)
+    - For each tab group: create Folder with collectionId FK
+      - Map Chrome group color to folder color
+      - Capture collapsed state
+      - Capture position (group order)
+    - For ungrouped tabs: create "Ungrouped" folder or attach to collection root
+  - Capture tab metadata for each tab:
+    - url, title, favicon (from Chrome tab object)
+    - pinned status, position within folder
+    - tabId (runtime ID for active collection)
+    - Calculate dupeKeyHash from normalized URL (reuse normalizeUrlForDuplicates)
   - Create collection via CollectionService.createCollection():
-    - name (from metadata or auto-suggest)
+    - name (from metadata or auto-suggest from domain)
     - description, icon, color, tags (from metadata)
-    - folders array (built above)
     - windowId (bind to current window)
     - isActive = true
-  - Return created collection
-- [ ] Add error handling (window not found, tabs API errors)
-- [ ] Add unit tests (20 tests)
+  - Create folders via FolderService.createFolder() with collectionId FK
+  - Create tabs via TabService.createTab() with folderId FK
+  - Bind collection to window via WindowService.bindCollectionToWindow()
+  - Return created collection with full hierarchy
+- [ ] Add error handling:
+  - Window not found → clear error message
+  - Tabs API errors → retry with exponential backoff
+  - Empty window → warning message ("No tabs to save")
+  - Tab group errors → fall back to ungrouped
+  - Quota exceeded → clear error with cleanup suggestions
+- [ ] Add edge case handling:
+  - Empty tab groups → skip or create as placeholder
+  - Pinned tabs → preserve pinned state
+  - System tabs (chrome://) → skip with warning
+  - Large windows (100+ tabs) → progress indicator
+- [ ] Add unit tests (25 tests)
 
 #### 6.2 RestoreCollectionService (3-4h)
 - [ ] Create `/services/execution/RestoreCollectionService.js` (~300 lines)
@@ -973,54 +1175,130 @@ Following architecture-guardian review, key improvements from initial plan:
 ---
 
 ### Phase 7: Dashboard Integration ⏳
-**Time Estimate**: 12-14 hours
+**Time Estimate**: 20-24 hours (increased from 12-14h per UX review)
 **Priority**: MEDIUM
 **Dependencies**: Phase 6 complete
 **Status**: 🔴 Not Started
+**Note**: Consider splitting into Phase 7a (Collections) and Phase 7b (Tasks) due to complexity
 
-#### 7.1 Collections View (4-5h)
-- [ ] Create `/dashboard/modules/views/collections.js` (~400 lines)
+#### 7.1 Collections View (6-8h)
+- [ ] Create `/dashboard/modules/views/collections.js` (~500 lines)
 - [ ] Implement `loadCollectionsView()`:
   - Load collections via `getCollections` message
-  - Render grid/list view with collection cards
-  - Group by state (Active / Saved / Archived)
-  - Show stats (tab count, folder count, task count)
-  - Action buttons: "Open", "Edit", "Delete", "Archive"
+  - Render grid/list view toggle with collection cards
+  - Group by state (Active / Saved / Archived) with collapsible sections
+  - Show stats per collection (tab count, folder count, task count, last accessed)
+  - Action buttons: "Open", "Edit", "Delete", "Archive", "Export"
+  - Loading states (skeleton grid)
+  - Empty states ("No collections yet")
 - [ ] Implement collection detail modal:
-  - Show folders and tabs (nested tree view)
-  - Show tasks in collection
-  - Edit metadata (name, description, tags)
-  - Drag-and-drop to reorder folders/tabs
-  - Add/remove folders/tabs
+  - Show folders and tabs in nested tree view
+  - Show tasks in collection (with inline status updates)
+  - Edit metadata inline (name, description, tags, icon, color)
+  - **Drag-and-drop** to reorder folders/tabs (complex!):
+    - Use native HTML5 drag-and-drop API
+    - Visual feedback during drag (placeholder, ghost)
+    - Update position via messages on drop
+    - Handle inter-folder dragging
+    - Handle edge cases (drag to same position, invalid drop targets)
+  - Add/remove folders/tabs with modals
+  - Keyboard navigation support
 - [ ] Implement bulk operations:
-  - Select multiple collections (checkboxes)
+  - Multi-select collections with checkboxes
+  - Select all / deselect all
   - "Archive Selected", "Delete Selected", "Export Selected"
-- [ ] Implement filters/search (name, tags, date range)
+  - Confirmation modals for destructive actions
+  - Progress indicators for bulk operations
+  - Undo for accidental bulk deletes (5 second window)
+- [ ] Implement advanced filters/search:
+  - Search in name, description, tags (debounced)
+  - Filter by state (active/saved/archived)
+  - Filter by date range (created, last accessed)
+  - Filter by tag (multi-select)
+  - Sort by: name, created date, last accessed, tab count
+  - Persist filter/sort state
+  - Clear filters button
 - [ ] NO business logic - all via chrome.runtime.sendMessage()
 
-#### 7.2 Tasks View (4-5h)
-- [ ] Create `/dashboard/modules/views/tasks.js` (~400 lines)
-- [ ] Implement `loadTasksView()`:
+#### 7.2 Tasks View - Kanban Board (8-10h)
+- [ ] Create `/dashboard/modules/views/tasks-kanban.js` (~500 lines)
+- [ ] Implement `loadKanbanView()`:
   - Load tasks via `getTasks` message
-  - Load collections via `getCollections` message (for display)
-  - Render Kanban board (columns: Open / Active / Fixed)
-  - Show task cards with metadata (priority, due date, collection, tabs)
-  - Drag-and-drop between columns (updates status)
-- [ ] Implement calendar view:
-  - Group tasks by due date
-  - Month/week/day views
-  - Drag to change due date
+  - Load collections via `getCollections` message (for display context)
+  - Render Kanban board with 4 columns:
+    - "Open" (status='open')
+    - "Active" (status='active')
+    - "Fixed" (status='fixed')
+    - "Abandoned" (status='abandoned')
+  - Show task cards with rich metadata:
+    - Priority indicator (color-coded border)
+    - Summary with truncation
+    - Due date with overdue highlighting
+    - Collection badge (clickable)
+    - Tab references count ("→ 3 tabs")
+    - Comment count (if > 0)
+    - Tags (first 2, "+ N more")
+  - **Drag-and-drop between columns** (complex!):
+    - Use HTML5 drag-and-drop API or library (e.g., SortableJS)
+    - Visual feedback (placeholder, ghost card, drop zones)
+    - Update task status via message on drop
+    - Optimistic UI update with rollback on error
+    - Handle edge cases (drag to same column, invalid states)
+    - Animate card movement
+  - Filtering within Kanban:
+    - Filter by collection (multi-select)
+    - Filter by priority
+    - Filter by tags
+    - Search in summary/notes
+  - Loading states (skeleton columns)
+  - Empty states per column ("No open tasks")
 - [ ] Implement task detail modal:
-  - Edit summary, notes, priority, due date, tags
-  - Show collection and referenced tabs
-  - Add/remove tab references
-  - Add comments
-  - Change status
-- [ ] Implement filters/search (status, priority, collection, tags)
-- [ ] Implement reporting:
-  - Completed this week
-  - Overdue tasks
-  - Tasks by collection
+  - Full-screen or large modal
+  - Edit all fields inline (summary, notes, priority, due date, tags, status)
+  - Show collection with link to collection detail
+  - Show referenced tabs with:
+    - Folder context ("Documentation › API Docs")
+    - ⭐ indicator if tab is primary reference
+    - Remove tab reference button
+    - Add more tab references (checkbox list from collection)
+  - Comments section:
+    - Display all comments with timestamps
+    - Add new comment (textarea + submit)
+    - Edit/delete own comments
+    - Markdown support (basic)
+  - Activity log (created, status changes, assignments)
+  - Keyboard shortcuts (e.g., Cmd+Enter to save)
+- [ ] NO business logic - all via chrome.runtime.sendMessage()
+
+#### 7.2.5 Tasks View - Calendar (4-6h) **NEW**
+- [ ] Create `/dashboard/modules/views/tasks-calendar.js` (~400 lines)
+- [ ] Implement calendar view:
+  - Month/week/day view toggle
+  - Group tasks by due date on calendar grid
+  - Show task count per day
+  - Color-code by priority
+  - Click day to see tasks in detail panel
+  - **Drag tasks to change due date**:
+    - Visual feedback during drag
+    - Update dueDate via message on drop
+    - Handle edge cases (drag to past, drag to no date)
+  - Loading states
+  - Empty states ("No tasks with due dates")
+- [ ] Implement task hover preview:
+  - Show task summary, priority, collection on hover
+  - Quick actions (mark fixed, edit)
+- [ ] NO business logic - all via chrome.runtime.sendMessage()
+
+#### 7.2.7 Tasks Reporting (2-3h) **NEW**
+- [ ] Create `/dashboard/modules/views/tasks-reporting.js` (~250 lines)
+- [ ] Implement reporting dashboard:
+  - Completed this week (grouped by day, bar chart)
+  - Overdue tasks (list with collection context)
+  - Tasks by collection (pie chart or bar chart)
+  - Average completion time
+  - Task velocity (tasks completed per week, line chart)
+  - Export reports as CSV
+- [ ] Charts using existing Chart.js from analytics
 - [ ] NO business logic - all via chrome.runtime.sendMessage()
 
 #### 7.3 Navigation Integration (1-2h)
@@ -1064,8 +1342,10 @@ Following architecture-guardian review, key improvements from initial plan:
 - [ ] Performance acceptable (< 500ms load for 100 collections)
 
 **Deliverables**:
-- `/dashboard/modules/views/collections.js` (~400 lines)
-- `/dashboard/modules/views/tasks.js` (~400 lines)
+- `/dashboard/modules/views/collections.js` (~500 lines, increased)
+- `/dashboard/modules/views/tasks-kanban.js` (~500 lines) **NEW**
+- `/dashboard/modules/views/tasks-calendar.js` (~400 lines) **NEW**
+- `/dashboard/modules/views/tasks-reporting.js` (~250 lines) **NEW**
 - Updated `/dashboard/dashboard.html`
 - Updated `/dashboard/dashboard.js`
 
@@ -1124,44 +1404,57 @@ Following architecture-guardian review, key improvements from initial plan:
 
 ---
 
-## Timeline & Milestones
+## Timeline & Milestones (UPDATED per UX review)
 
-### Sprint 1-2: Foundation + Services (22-28h)
-**Weeks 1-3**:
-- [ ] Phase 1: IndexedDB + Storage (10-12h)
-- [ ] Phase 2: Core Services (12-16h)
-- [ ] Milestone: 195+ tests passing, services fully functional
+### Sprint 1-2: Foundation + Services ✅ COMPLETE
+**Weeks 1-3** (22-28h):
+- [x] Phase 1: IndexedDB + Storage (10-12h)
+- [x] Phase 2: Core Services (12-16h)
+- [x] Milestone: 691 passing tests, services fully functional ✅
 
-### Sprint 3-4: Side Panel (14-16h)
-**Weeks 4-5**:
-- [ ] Phase 3: Side Panel UI (14-16h)
-- [ ] Milestone: Side panel working with Collections + Tasks views
+### Sprint 3-5: Side Panel (22-26h)
+**Weeks 4-7** (increased from 2 weeks):
+- [ ] Phase 3: Side Panel UI (22-26h)
+  - Includes Collection Detail View (new)
+  - Includes UI State Management (new)
+  - Includes notification/modal components (new)
+- [ ] Milestone: Side panel working with Collections + Tasks views + detail views
 
-### Sprint 5: Popup + Context Menus (10-14h)
-**Week 6**:
-- [ ] Phase 4: Popup Enhancement (6-8h)
-- [ ] Phase 5: Context Menus (4-6h)
-- [ ] Milestone: Discovery flow complete
+### Sprint 6-7: Popup + Context Menus (14-18h)
+**Weeks 8-9** (increased from 1 week):
+- [ ] Phase 4: Popup Enhancement (8-10h)
+  - Includes progressive discovery flow (new)
+- [ ] Phase 5: Context Menus (6-8h)
+  - Includes modal components (new)
+- [ ] Milestone: Discovery flow complete with onboarding
 
-### Sprint 6-8: Operations (10-12h)
-**Week 7**:
-- [ ] Phase 6: Orchestration Services (10-12h)
+### Sprint 8-9: Operations (12-14h)
+**Weeks 10-11**:
+- [ ] Phase 6: Orchestration Services (12-14h)
+  - Includes enhanced error handling (new)
+  - Includes edge case coverage (new)
 - [ ] Milestone: Full workflow (capture → restore → task execution) working
 
-### Sprint 9-10: Dashboard + Polish (12-14h)
-**Weeks 8-9**:
-- [ ] Phase 7: Dashboard Integration (12-14h)
+### Sprint 10-13: Dashboard (20-24h)
+**Weeks 12-15** (increased from 2 weeks to 4 weeks):
+- [ ] Phase 7: Dashboard Integration (20-24h)
+  - Phase 7a: Collections View (6-8h) with drag-drop
+  - Phase 7b: Tasks Kanban (8-10h) with drag-drop
+  - Phase 7c: Tasks Calendar (4-6h) (new)
+  - Phase 7d: Tasks Reporting (2-3h) (new)
 - [ ] Milestone: All surfaces complete, full feature parity
 
-### Sprint 11: Testing & Polish (10-14h)
-**Week 10**:
+### Sprint 14: Testing & Polish (10-14h)
+**Week 16**:
 - [ ] Integration testing
 - [ ] Performance optimization
 - [ ] Bug fixes and refinement
 - [ ] Documentation updates
 - [ ] Release preparation
 
-**Total Timeline**: 68-84 hours (10-11 weeks at 8h/week)
+**Total Timeline**: 100-124 hours (12-16 weeks at 8h/week)
+**Previous Estimate**: 68-84 hours (under-estimated by ~40%)
+**Increase Rationale**: UX complexity (drag-drop, modals, state management, progressive discovery, calendar views) not captured in original estimate
 
 ---
 
