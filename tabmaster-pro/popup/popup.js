@@ -1337,24 +1337,26 @@ function openHelp() {
 
 async function openTestPanel() {
   try {
-    // Get the current window ID
-    const currentWindow = await chrome.windows.getCurrent();
+    // Switch to test panel (but don't open from background - no user gesture there)
+    const response = await chrome.runtime.sendMessage({
+      action: 'setSidePanel',
+      panel: 'test',
+      open: false  // Changed to false - we'll open from popup instead
+    });
 
-    // Open side panel with proper options
+    if (!response?.success) {
+      throw new Error(response?.error || 'Failed to switch to test panel');
+    }
+
+    // Open the panel from popup (has user gesture)
+    const currentWindow = await chrome.windows.getCurrent();
     await chrome.sidePanel.open({ windowId: currentWindow.id });
 
     // Close popup after opening side panel
     window.close();
   } catch (error) {
     console.error('Failed to open test panel:', error);
-    // Fallback: try without options
-    try {
-      await chrome.sidePanel.open({});
-      window.close();
-    } catch (fallbackError) {
-      console.error('Fallback also failed:', fallbackError);
-      showNotification('Failed to open test panel', 'error');
-    }
+    showNotification('Failed to open test panel: ' + error.message, 'error');
   }
 }
 

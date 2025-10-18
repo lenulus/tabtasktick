@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TabTaskTick</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="panel-header">
+    <div class="header-top">
+      <h1 class="panel-title">TabTaskTick</h1>
+      <div class="header-actions">
+        <input
+          type="search"
+          id="global-search"
+          class="search-input"
+          placeholder="Search collections & tasks..."
+          aria-label="Search collections and tasks"
+        >
+        <button
+          id="save-window-btn"
+          class="btn btn-primary save-window-btn"
+          title="Save current window as collection"
+        >
+          💾 Save Window
+        </button>
+      </div>
+    </div>
+
+    <!-- View Switcher -->
+    <nav class="view-switcher" role="tablist">
+      <button
+        id="view-collections-btn"
+        class="view-tab active"
+        role="tab"
+        aria-selected="true"
+        aria-controls="collections-view"
+      >
+        📁 Collections
+      </button>
+      <button
+        id="view-tasks-btn"
+        class="view-tab"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tasks-view"
+      >
+        ✓ Tasks
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="panel-main">
+    <!-- Collections View -->
+    <div
+      id="collections-view"
+      class="view-container active"
+      role="tabpanel"
+      aria-labelledby="view-collections-btn"
+    >
+      <!-- Loading State -->
+      <div id="collections-loading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p>Loading collections...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="collections-error" class="error-state hidden">
+        <div class="error-icon">⚠️</div>
+        <h3 class="error-title">Unable to load collections</h3>
+        <p class="error-message"></p>
+        <button class="btn btn-secondary retry-btn">Retry</button>
+      </div>
+
+      <!-- Empty State -->
+      <div id="collections-empty" class="empty-state hidden">
+        <div class="empty-icon">📁</div>
+        <h3 class="empty-title">No collections yet</h3>
+        <p class="empty-description">
+          Save your current window to create your first collection.
+          Collections help you organize and restore groups of tabs.
+        </p>
+        <button class="btn btn-primary empty-action-btn">
+          💾 Save Current Window
+        </button>
+      </div>
+
+      <!-- Collections Content -->
+      <div id="collections-content" class="content-area">
+        <!-- Active Collections Section -->
+        <section class="collections-section">
+          <h2 class="section-header">
+            <span class="section-title">Active</span>
+            <span class="section-count" id="active-count">0</span>
+          </h2>
+          <div id="active-collections" class="collections-grid"></div>
+        </section>
+
+        <!-- Saved Collections Section -->
+        <section class="collections-section">
+          <h2 class="section-header">
+            <span class="section-title">Saved</span>
+            <span class="section-count" id="saved-count">0</span>
+          </h2>
+          <div id="saved-collections" class="collections-grid"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Tasks View -->
+    <div
+      id="tasks-view"
+      class="view-container"
+      role="tabpanel"
+      aria-labelledby="view-tasks-btn"
+      hidden
+    >
+      <!-- Loading State -->
+      <div id="tasks-loading" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p>Loading tasks...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="tasks-error" class="error-state hidden">
+        <div class="error-icon">⚠️</div>
+        <h3 class="error-title">Unable to load tasks</h3>
+        <p class="error-message"></p>
+        <button class="btn btn-secondary retry-btn">Retry</button>
+      </div>
+
+      <!-- Empty State -->
+      <div id="tasks-empty" class="empty-state hidden">
+        <div class="empty-icon">✓</div>
+        <h3 class="empty-title">No tasks yet</h3>
+        <p class="empty-description">
+          Create tasks to track your work in collections.
+          Tasks help you remember what you're working on.
+        </p>
+        <button class="btn btn-primary empty-action-btn">
+          ✓ Create Your First Task
+        </button>
+      </div>
+
+      <!-- Tasks Content -->
+      <div id="tasks-content" class="content-area">
+        <!-- Task sections will be added dynamically -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Notification Container -->
+  <div id="notification-container" class="notification-container" aria-live="polite"></div>
+
+  <!-- Modal Container -->
+  <div id="modal-container" class="modal-container hidden" role="dialog" aria-modal="true"></div>
+
+  <!-- Scripts -->
+  <script type="module" src="panel.js"></script>
+</body>
+</html>

@@ -1685,6 +1685,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
 
         // ================================================================
+        // TabTaskTick Phase 3.1: Side Panel Management
+        // ================================================================
+
+        case 'setSidePanel':
+          // Swap between test panel and TabTaskTick panel
+          try {
+            const panelPath = request.panel === 'tabtasktick'
+              ? 'sidepanel/panel.html'
+              : 'test-panel/test-panel.html';
+
+            await chrome.sidePanel.setOptions({
+              path: panelPath,
+              enabled: true
+            });
+
+            // Open the panel if requested
+            if (request.open) {
+              const window = await chrome.windows.getCurrent();
+              await chrome.sidePanel.open({ windowId: window.id });
+            }
+
+            sendResponse({ success: true, panel: request.panel });
+          } catch (error) {
+            console.error('Failed to set side panel:', error);
+            sendResponse({ success: false, error: error.message });
+          }
+          break;
+
+        // ================================================================
         // TabTaskTick Phase 2.6: Collection, Folder, Tab, Task Operations
         // ================================================================
 
@@ -1976,16 +2005,6 @@ chrome.commands.onCommand.addListener(async (command) => {
   console.log('Command received:', command);
 
   switch (command) {
-    case 'open_test_panel':
-      // Note: sidePanel.open() requires user gesture, can't be triggered from keyboard shortcut
-      // Users should click the Test button in the popup or use browser's side panel button
-      console.log('Use the Test button in the popup to open the test panel');
-      break;
-
-    case 'open_command_palette':
-      // TODO: Implement command palette
-      break;
-
     case 'quick_snooze':
       await quickSnoozeCurrent();
       break;
