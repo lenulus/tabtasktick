@@ -294,7 +294,7 @@ class SidePanelController {
     const formHtml = `
       <form id="save-window-form" class="modal-form">
         <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg);">
-          Save current window with ${tabCount} tab${tabCount !== 1 ? 's' : ''} and ${folderCount} folder${folderCount !== 1 ? 's' : ''}.
+          Create a new collection from the current window with ${tabCount} tab${tabCount !== 1 ? 's' : ''} and ${folderCount} folder${folderCount !== 1 ? 's' : ''}.
         </p>
 
         <div class="form-group">
@@ -347,13 +347,13 @@ class SidePanelController {
 
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" data-modal-cancel>Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Window</button>
+          <button type="submit" class="btn btn-primary">Create Collection</button>
         </div>
       </form>
     `;
 
     modal.open({
-      title: 'Save Current Window',
+      title: 'Create Collection',
       content: formHtml
     });
 

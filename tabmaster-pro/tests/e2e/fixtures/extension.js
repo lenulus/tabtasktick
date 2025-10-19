@@ -17,6 +17,8 @@
 import { test as base, chromium } from '@playwright/test';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,11 +31,13 @@ const extensionPath = path.resolve(__dirname, '../../..');
  */
 export const test = base.extend({
   /**
-   * Browser context with extension loaded
+   * Shared browser context with worker scope
+   * All tests in a file share this context (and IndexedDB)
    */
-  context: async ({}, use) => {
-    // Create a temporary user data directory for this test run
-    const userDataDir = path.join(__dirname, '../../../.playwright-user-data');
+  sharedContext: [async ({}, use) => {
+    // Create an ephemeral temporary user data directory for this test worker
+    // All tests in the file share this directory, then it's cleaned up
+    const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'playwright-chrome-'));
 
     // Launch persistent context with extension
     const context = await chromium.launchPersistentContext(userDataDir, {
@@ -54,19 +58,33 @@ export const test = base.extend({
 
     await use(context);
     await context.close();
+
+    // Clean up the ephemeral user data directory
+    try {
+      fs.rmSync(userDataDir, { recursive: true, force: true });
+    } catch (error) {
+      console.warn(`Failed to clean up temp directory ${userDataDir}:`, error);
+    }
+  }, { scope: 'worker' }],
+
+  /**
+   * Use sharedContext as the default context
+   */
+  context: async ({ sharedContext }, use) => {
+    await use(sharedContext);
   },
 
   /**
    * Extension ID fixture
    * Automatically retrieves the loaded extension's ID
    */
-  extensionId: async ({ context }, use) => {
+  extensionId: async ({ sharedContext }, use) => {
     // Background page for Manifest V3 is the service worker
-    let [serviceWorker] = context.serviceWorkers();
+    let [serviceWorker] = sharedContext.serviceWorkers();
 
     // Wait for service worker if not immediately available
     if (!serviceWorker) {
-      serviceWorker = await context.waitForEvent('serviceworker');
+      serviceWorker = await sharedContext.waitForEvent('serviceworker');
     }
 
     const extensionId = serviceWorker.url().split('/')[2];
@@ -77,11 +95,11 @@ export const test = base.extend({
    * Service Worker page fixture
    * Provides access to the extension's background service worker
    */
-  serviceWorkerPage: async ({ context }, use) => {
-    let [serviceWorker] = context.serviceWorkers();
+  serviceWorkerPage: async ({ sharedContext }, use) => {
+    let [serviceWorker] = sharedContext.serviceWorkers();
 
     if (!serviceWorker) {
-      serviceWorker = await context.waitForEvent('serviceworker');
+      serviceWorker = await sharedContext.waitForEvent('serviceworker');
     }
 
     await use(serviceWorker);
@@ -91,8 +109,8 @@ export const test = base.extend({
    * Page fixture
    * Provides a blank page for testing
    */
-  page: async ({ context }, use) => {
-    const page = await context.newPage();
+  page: async ({ sharedContext }, use) => {
+    const page = await sharedContext.newPage();
     await use(page);
     await page.close();
   },
@@ -101,8 +119,8 @@ export const test = base.extend({
    * Test page fixture
    * Loads test-page.html from the extension for ES module imports
    */
-  testPage: async ({ context, extensionId }, use) => {
-    const page = await context.newPage();
+  testPage: async ({ sharedContext, extensionId }, use) => {
+    const page = await sharedContext.newPage();
 
     try {
       // Navigate to the extension's test page
