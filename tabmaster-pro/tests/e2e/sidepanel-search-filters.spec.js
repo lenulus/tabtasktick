@@ -6,6 +6,31 @@
 
 import { test, expect } from './fixtures/extension.js';
 
+/**
+ * Helper to ensure we're on collections view
+ * Prevents test pollution from previous tests that switched to tasks view
+ */
+async function ensureCollectionsView(page) {
+  const collectionsBtn = page.locator('#view-collections-btn');
+  const isSelected = await collectionsBtn.getAttribute('aria-selected');
+  if (isSelected !== 'true') {
+    await collectionsBtn.click();
+    await page.waitForTimeout(300);
+  }
+}
+
+/**
+ * Helper to ensure we're on tasks view
+ */
+async function ensureTasksView(page) {
+  const tasksBtn = page.locator('#view-tasks-btn');
+  const isSelected = await tasksBtn.getAttribute('aria-selected');
+  if (isSelected !== 'true') {
+    await tasksBtn.click();
+    await page.waitForTimeout(300);
+  }
+}
+
 test.describe('Side Panel Search & Filters', () => {
   test.beforeEach(async ({ page, extensionId }) => {
     // Navigate to the side panel
@@ -223,6 +248,8 @@ test.describe('Side Panel Search & Filters', () => {
 
   test.describe('Global Search', () => {
     test('should filter collections by name', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       const searchInput = page.locator('#global-search');
       await searchInput.fill('Alpha');
 
@@ -236,6 +263,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter collections by description', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       const searchInput = page.locator('#global-search');
       await searchInput.fill('React');
 
@@ -247,6 +276,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter collections by tags', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       const searchInput = page.locator('#global-search');
       await searchInput.fill('personal');
 
@@ -258,9 +289,7 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter tasks by summary', async ({ page }) => {
-      // Switch to tasks view
-      await page.click('#view-tasks-btn');
-      await page.waitForTimeout(100);
+      await ensureTasksView(page);
 
       const searchInput = page.locator('#global-search');
       await searchInput.fill('groceries');
@@ -274,8 +303,7 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter tasks by notes', async ({ page }) => {
-      await page.click('#view-tasks-btn');
-      await page.waitForTimeout(100);
+      await ensureTasksView(page);
 
       const searchInput = page.locator('#global-search');
       await searchInput.fill('useeffect');
@@ -289,12 +317,7 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should show no results message when search has no matches', async ({ page }) => {
-      // Ensure we're on collections view
-      const collectionsBtn = page.locator('#view-collections-btn');
-      if (!(await collectionsBtn.getAttribute('aria-selected')) === 'true') {
-        await collectionsBtn.click();
-        await page.waitForTimeout(500);
-      }
+      await ensureCollectionsView(page);
 
       const searchInput = page.locator('#global-search');
 
@@ -316,12 +339,7 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should clear search on input clear', async ({ page }) => {
-      // Ensure we're on collections view
-      const collectionsBtn = page.locator('#view-collections-btn');
-      if (!(await collectionsBtn.getAttribute('aria-selected')) === 'true') {
-        await collectionsBtn.click();
-        await page.waitForTimeout(500);
-      }
+      await ensureCollectionsView(page);
 
       const searchInput = page.locator('#global-search');
 
@@ -373,6 +391,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter collections by state (Active)', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -392,6 +412,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter collections by state (Saved)', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -411,6 +433,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter collections by tags', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -426,6 +450,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter collections by multiple tags (OR logic)', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -440,6 +466,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should sort collections by name', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -456,6 +484,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should sort collections by created date', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -472,6 +502,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should clear collections filters', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -505,6 +537,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter tasks by status', async ({ page }) => {
+      await ensureTasksView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -520,6 +554,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter tasks by multiple statuses', async ({ page }) => {
+      await ensureTasksView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -534,6 +570,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter tasks by priority', async ({ page }) => {
+      await ensureTasksView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -548,6 +586,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter tasks by collection', async ({ page }) => {
+      await ensureTasksView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -561,6 +601,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should filter uncategorized tasks', async ({ page }) => {
+      await ensureTasksView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -575,6 +617,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should sort tasks by due date', async ({ page }) => {
+      await ensureTasksView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -591,6 +635,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should sort tasks by priority', async ({ page }) => {
+      await ensureTasksView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -607,6 +653,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should clear tasks filters', async ({ page }) => {
+      await ensureTasksView(page);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
@@ -631,6 +679,8 @@ test.describe('Side Panel Search & Filters', () => {
 
   test.describe('Filter Persistence', () => {
     test('should persist collections filters across panel reopens', async ({ page, extensionId }) => {
+      await ensureCollectionsView(page);
+
       // Apply filters
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
@@ -659,9 +709,7 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should persist tasks filters across panel reopens', async ({ page, extensionId }) => {
-      // Switch to tasks view
-      await page.click('#view-tasks-btn');
-      await page.waitForTimeout(100);
+      await ensureTasksView(page);
 
       // Apply filters
       await page.click('#toggle-filters-btn');
@@ -691,6 +739,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should persist filter visibility state', async ({ page, extensionId }) => {
+      await ensureCollectionsView(page);
+
       // Open filters
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
@@ -710,6 +760,8 @@ test.describe('Side Panel Search & Filters', () => {
 
   test.describe('Combined Search and Filters', () => {
     test('should apply search and filters together on collections', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       // Apply search
       await page.fill('#global-search', 'Project');
       await page.waitForTimeout(350);
@@ -727,9 +779,7 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should apply search and filters together on tasks', async ({ page }) => {
-      // Switch to tasks
-      await page.click('#view-tasks-btn');
-      await page.waitForTimeout(100);
+      await ensureTasksView(page);
 
       // Apply search
       await page.fill('#global-search', 'bug');
@@ -749,6 +799,8 @@ test.describe('Side Panel Search & Filters', () => {
     });
 
     test('should show no results when search and filters exclude all items', async ({ page }) => {
+      await ensureCollectionsView(page);
+
       // Apply search that has no matches in active collections
       await page.fill('#global-search', 'Tax');
       await page.waitForTimeout(350);
