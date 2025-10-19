@@ -13,6 +13,7 @@ import { modal } from './components/modal.js';
 import { CollectionsView } from './collections-view.js';
 import { CollectionDetailView } from './collection-detail.js';
 import { TasksView } from './tasks-view.js';
+import { SearchFilter } from './search-filter.js';
 
 class SidePanelController {
   constructor() {
@@ -20,9 +21,11 @@ class SidePanelController {
     this.collectionsData = null;
     this.tasksData = null;
     this.searchQuery = '';
+    this.filtersVisible = false;
     this.collectionsView = null;
     this.collectionDetailView = null;
     this.tasksView = null;
+    this.searchFilter = null;
   }
 
   /**
@@ -34,6 +37,20 @@ class SidePanelController {
     // Initialize components
     notifications.init();
     modal.init();
+
+    // Initialize search filter
+    this.searchFilter = new SearchFilter();
+    this.searchFilter.init();
+
+    // Setup filter callbacks
+    this.searchFilter.onSearchChange = (query) => {
+      this.searchQuery = query.toLowerCase();
+      this.applyFiltersAndRender();
+    };
+
+    this.searchFilter.onFiltersChange = (view, filters) => {
+      this.applyFiltersAndRender();
+    };
 
     // Initialize views
     this.collectionsView = new CollectionsView(this);
@@ -73,16 +90,16 @@ class SidePanelController {
       this.switchView('tasks');
     });
 
+    // Toggle filters button
+    const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
+    toggleFiltersBtn?.addEventListener('click', () => {
+      this.toggleFilters();
+    });
+
     // Save window button
     const saveWindowBtn = document.getElementById('save-window-btn');
     saveWindowBtn?.addEventListener('click', () => {
       this.handleSaveWindow();
-    });
-
-    // Global search
-    const searchInput = document.getElementById('global-search');
-    searchInput?.addEventListener('input', (e) => {
-      this.handleSearch(e.target.value);
     });
 
     // Empty state action buttons
@@ -122,6 +139,8 @@ class SidePanelController {
     const tasksView = document.getElementById('tasks-view');
     const collectionsBtn = document.getElementById('view-collections-btn');
     const tasksBtn = document.getElementById('view-tasks-btn');
+    const collectionsFilters = document.getElementById('collections-filters');
+    const tasksFilters = document.getElementById('tasks-filters');
 
     if (viewName === 'collections') {
       collectionsView?.classList.add('active');
@@ -132,6 +151,16 @@ class SidePanelController {
       tasksBtn?.classList.remove('active');
       collectionsBtn?.setAttribute('aria-selected', 'true');
       tasksBtn?.setAttribute('aria-selected', 'false');
+
+      // Show collections filters, hide tasks filters
+      collectionsFilters?.classList.remove('hidden');
+      tasksFilters?.classList.add('hidden');
+
+      // Render collections filters with available tags
+      if (this.searchFilter && this.filtersVisible) {
+        const tags = this.extractUniqueTags(this.collectionsData || []);
+        this.searchFilter.renderCollectionsFilters(tags);
+      }
     } else {
       tasksView?.classList.add('active');
       collectionsView?.classList.remove('active');
@@ -141,6 +170,15 @@ class SidePanelController {
       collectionsBtn?.classList.remove('active');
       tasksBtn?.setAttribute('aria-selected', 'true');
       collectionsBtn?.setAttribute('aria-selected', 'false');
+
+      // Show tasks filters, hide collections filters
+      tasksFilters?.classList.remove('hidden');
+      collectionsFilters?.classList.add('hidden');
+
+      // Render tasks filters with available collections
+      if (this.searchFilter && this.filtersVisible) {
+        this.searchFilter.renderTasksFilters(this.collectionsData || []);
+      }
     }
 
     // Persist preference
@@ -611,22 +649,40 @@ class SidePanelController {
   }
 
   /**
-   * Handle search input (debounced)
+   * Toggle filters panel visibility
    */
-  handleSearch(query) {
-    this.searchQuery = query.toLowerCase();
+  toggleFilters() {
+    this.filtersVisible = !this.filtersVisible;
+    const filtersPanel = document.getElementById('filters-panel');
+    const toggleBtn = document.getElementById('toggle-filters-btn');
+    const collectionsFilters = document.getElementById('collections-filters');
+    const tasksFilters = document.getElementById('tasks-filters');
 
-    // Debounce search (300ms)
-    clearTimeout(this.searchTimeout);
-    this.searchTimeout = setTimeout(() => {
-      this.applySearch();
-    }, 300);
+    if (this.filtersVisible) {
+      filtersPanel?.classList.remove('hidden');
+      toggleBtn?.classList.add('active');
+
+      // Show/hide appropriate filter containers
+      if (this.currentView === 'collections') {
+        collectionsFilters?.classList.remove('hidden');
+        tasksFilters?.classList.add('hidden');
+        const tags = this.extractUniqueTags(this.collectionsData || []);
+        this.searchFilter?.renderCollectionsFilters(tags);
+      } else {
+        tasksFilters?.classList.remove('hidden');
+        collectionsFilters?.classList.add('hidden');
+        this.searchFilter?.renderTasksFilters(this.collectionsData || []);
+      }
+    } else {
+      filtersPanel?.classList.add('hidden');
+      toggleBtn?.classList.remove('active');
+    }
   }
 
   /**
-   * Apply search filter to current view
+   * Apply filters and re-render current view
    */
-  applySearch() {
+  applyFiltersAndRender() {
     if (this.currentView === 'collections') {
       this.renderCollections();
     } else if (this.currentView === 'tasks') {
@@ -635,55 +691,194 @@ class SidePanelController {
   }
 
   /**
-   * Filter collections by search query
+   * Filter collections by search query and filters
    */
   filterCollections(collections) {
-    if (!this.searchQuery || this.searchQuery.trim() === '') {
-      return collections;
+    let filtered = [...collections];
+
+    // Apply search query
+    if (this.searchQuery && this.searchQuery.trim() !== '') {
+      const query = this.searchQuery.trim();
+      filtered = filtered.filter(collection => {
+        // Search in name
+        if (collection.name?.toLowerCase().includes(query)) {
+          return true;
+        }
+        // Search in description
+        if (collection.description?.toLowerCase().includes(query)) {
+          return true;
+        }
+        // Search in tags
+        if (collection.tags?.some(tag => tag.toLowerCase().includes(query))) {
+          return true;
+        }
+        return false;
+      });
     }
 
-    const query = this.searchQuery.trim();
-    return collections.filter(collection => {
-      // Search in name
-      if (collection.name?.toLowerCase().includes(query)) {
-        return true;
+    // Apply filters from SearchFilter component
+    if (this.searchFilter) {
+      const filters = this.searchFilter.getCollectionsFilters();
+
+      // Filter by state
+      if (filters.state !== 'all') {
+        filtered = filtered.filter(c => {
+          const isActive = filters.state === 'active';
+          return c.isActive === isActive;
+        });
       }
-      // Search in description
-      if (collection.description?.toLowerCase().includes(query)) {
-        return true;
+
+      // Filter by tags
+      if (filters.tags.length > 0) {
+        filtered = filtered.filter(c => {
+          return filters.tags.some(tag => c.tags?.includes(tag));
+        });
       }
-      // Search in tags
-      if (collection.tags?.some(tag => tag.toLowerCase().includes(query))) {
-        return true;
-      }
-      return false;
-    });
+
+      // Sort collections
+      filtered = this.sortCollections(filtered, filters.sortBy);
+    }
+
+    return filtered;
   }
 
   /**
-   * Filter tasks by search query
+   * Filter tasks by search query and filters
    */
   filterTasks(tasks) {
-    if (!this.searchQuery || this.searchQuery.trim() === '') {
-      return tasks;
+    let filtered = [...tasks];
+
+    // Apply search query
+    if (this.searchQuery && this.searchQuery.trim() !== '') {
+      const query = this.searchQuery.trim();
+      filtered = filtered.filter(task => {
+        // Search in summary
+        if (task.summary?.toLowerCase().includes(query)) {
+          return true;
+        }
+        // Search in notes
+        if (task.notes?.toLowerCase().includes(query)) {
+          return true;
+        }
+        // Search in tags
+        if (task.tags?.some(tag => tag.toLowerCase().includes(query))) {
+          return true;
+        }
+        return false;
+      });
     }
 
-    const query = this.searchQuery.trim();
-    return tasks.filter(task => {
-      // Search in summary
-      if (task.summary?.toLowerCase().includes(query)) {
-        return true;
+    // Apply filters from SearchFilter component
+    if (this.searchFilter) {
+      const filters = this.searchFilter.getTasksFilters();
+
+      // Filter by status
+      if (filters.status.length > 0) {
+        filtered = filtered.filter(t => filters.status.includes(t.status));
       }
-      // Search in notes
-      if (task.notes?.toLowerCase().includes(query)) {
-        return true;
+
+      // Filter by priority
+      if (filters.priority.length > 0) {
+        filtered = filtered.filter(t => filters.priority.includes(t.priority));
       }
-      // Search in tags
-      if (task.tags?.some(tag => tag.toLowerCase().includes(query))) {
-        return true;
+
+      // Filter by collection
+      if (filters.collectionId.length > 0) {
+        filtered = filtered.filter(t => {
+          // Handle uncategorized tasks
+          if (filters.collectionId.includes('uncategorized') && !t.collectionId) {
+            return true;
+          }
+          // Handle specific collections
+          return filters.collectionId.includes(t.collectionId);
+        });
       }
-      return false;
+
+      // Sort tasks
+      filtered = this.sortTasks(filtered, filters.sortBy);
+    }
+
+    return filtered;
+  }
+
+  /**
+   * Sort collections by criteria
+   */
+  sortCollections(collections, sortBy) {
+    const sorted = [...collections];
+
+    switch (sortBy) {
+      case 'lastAccessed':
+        return sorted.sort((a, b) => {
+          const aTime = a.metadata?.lastAccessed || 0;
+          const bTime = b.metadata?.lastAccessed || 0;
+          return bTime - aTime; // Descending
+        });
+
+      case 'created':
+        return sorted.sort((a, b) => {
+          const aTime = a.metadata?.createdAt || 0;
+          const bTime = b.metadata?.createdAt || 0;
+          return bTime - aTime; // Descending
+        });
+
+      case 'name':
+        return sorted.sort((a, b) => {
+          const aName = (a.name || '').toLowerCase();
+          const bName = (b.name || '').toLowerCase();
+          return aName.localeCompare(bName); // Ascending
+        });
+
+      default:
+        return sorted;
+    }
+  }
+
+  /**
+   * Sort tasks by criteria
+   */
+  sortTasks(tasks, sortBy) {
+    const sorted = [...tasks];
+
+    switch (sortBy) {
+      case 'dueDate':
+        return sorted.sort((a, b) => {
+          // Tasks with no due date go to the end
+          if (!a.dueDate && !b.dueDate) return 0;
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return a.dueDate - b.dueDate; // Ascending
+        });
+
+      case 'priority':
+        const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        return sorted.sort((a, b) => {
+          const aPriority = priorityOrder[a.priority] ?? 999;
+          const bPriority = priorityOrder[b.priority] ?? 999;
+          return aPriority - bPriority; // Descending importance
+        });
+
+      case 'created':
+        return sorted.sort((a, b) => {
+          const aTime = a.createdAt || 0;
+          const bTime = b.createdAt || 0;
+          return bTime - aTime; // Descending
+        });
+
+      default:
+        return sorted;
+    }
+  }
+
+  /**
+   * Extract unique tags from collections
+   */
+  extractUniqueTags(collections) {
+    const tagsSet = new Set();
+    collections.forEach(c => {
+      c.tags?.forEach(tag => tagsSet.add(tag));
     });
+    return Array.from(tagsSet).sort();
   }
 
   /**

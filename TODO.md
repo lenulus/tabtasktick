@@ -692,7 +692,7 @@ Following architecture-guardian review, key improvements from initial plan:
 
 #### 3.2 Collections View (5-6h) ✅ **COMPLETED**
 **Status**: ✅ COMPLETE (2025-10-17)
-**Commit**: [To be committed]
+**Commits**: 3d44df6, f1e17d1, 9c274bf
 
 - [x] Create `/sidepanel/collections-view.js` (~415 lines)
 - [x] Class: `CollectionsView` (THIN, message passing only)
@@ -733,11 +733,8 @@ Following architecture-guardian review, key improvements from initial plan:
   - Real-time data refresh after operations
 - [x] NO business logic - THIN component with message passing only
 
-**Features NOT yet implemented (deferred):**
-- [ ] handleSaveWindow() - Deferred to later phase
-- [ ] Search/filter - Deferred to Phase 3.5
-- [ ] Background message listeners - Will add when needed
-- [ ] Open collection - Deferred to Phase 6 (RestoreCollectionService)
+**Features deferred to Phase 6:**
+- [ ] Open collection - Requires RestoreCollectionService (Phase 6)
 
 #### 3.2.5 Collection Detail View (3-4h) ✅ **COMPLETED**
 **Status**: ✅ COMPLETE (2025-10-17)

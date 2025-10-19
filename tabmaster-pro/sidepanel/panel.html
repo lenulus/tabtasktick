@@ -49,8 +49,22 @@
       >
         ✓ Tasks
       </button>
+      <button
+        id="toggle-filters-btn"
+        class="filter-toggle-btn"
+        aria-label="Toggle filters"
+        title="Show/Hide Filters"
+      >
+        🔍 Filters
+      </button>
     </nav>
   </header>
+
+  <!-- Filters Panel (collapsible) -->
+  <aside id="filters-panel" class="filters-panel hidden" aria-label="Filters">
+    <div id="collections-filters" class="filters-container hidden"></div>
+    <div id="tasks-filters" class="filters-container hidden"></div>
+  </aside>
 
   <!-- Main Content Area -->
   <main class="panel-main">

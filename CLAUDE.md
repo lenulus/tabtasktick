@@ -1,5 +1,26 @@
 # TabMaster Pro - Architecture & Implementation Guide
 
+## ⚠️ CRITICAL: NO SHORTCUTS
+
+**YOU MUST NOT take shortcuts when encountering problems.**
+
+- **DO NOT comment out failing tests** - Fix the underlying issue
+- **DO NOT skip debugging** - Investigate root causes, don't work around them
+- **DO NOT remove features** - If something doesn't work, make it work
+- **DO NOT silently reduce scope** - Ask the user before cutting anything
+- **DO NOT avoid difficult problems** - Face them head-on
+
+**When you encounter:**
+- Failing tests → Debug and fix them
+- Crashes or errors → Investigate the root cause
+- Missing functionality → Implement it fully
+- Unexpected behavior → Understand why and correct it
+
+**Before removing or deferring anything, you MUST:**
+1. Attempt to fix it yourself
+2. Clearly explain the problem to the user
+3. Get explicit approval to defer/remove
+
 ## Core Architecture Principles
 
 ### Non-Negotiable Goals
@@ -656,7 +677,9 @@ const selectedTabIds = getCheckedTabs(); // UI tracks what user selected
 await groupTabs(selectedTabIds, { byDomain: true });
 ```
 
-## Testing Commands
+## Testing
+
+### Unit Tests
 
 ```bash
 # Run unit tests
@@ -668,6 +691,29 @@ npm run test:watch
 # Run tests with coverage
 npm run test:coverage
 ```
+
+### E2E Tests with Playwright
+
+**IMPORTANT:** Read `/tabmaster-pro/tests/e2e/README.md` before writing E2E tests.
+
+Key points:
+- Tests within a file **share the same browser context and IndexedDB**
+- Each test gets a **new page** but keeps the **same profile**
+- Tests run **sequentially** and can build on each other's state
+- Each test file gets a **fresh ephemeral Chrome profile** that's cleaned up after
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run specific test file
+npx playwright test tests/e2e/sidepanel-tasks-view.spec.js --headed
+
+# Run with debug mode
+npx playwright test --debug
+```
+
+See the full E2E testing guide: `/tabmaster-pro/tests/e2e/README.md`
 
 ## Development Workflow
 
