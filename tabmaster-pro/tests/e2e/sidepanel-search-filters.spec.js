@@ -70,6 +70,9 @@ async function verifyTestDataExists(page) {
   return dataExists;
 }
 
+// Store collection IDs created in setup for use in task tests
+let testCollectionIds = {};
+
 test.describe('Side Panel Search & Filters', () => {
   test.beforeEach(async ({ page, extensionId }, testInfo) => {
     // Navigate to the side panel
@@ -130,7 +133,8 @@ test.describe('Side Panel Search & Filters', () => {
   // Setup test - creates test data for all subsequent tests
   test('setup: create test collections', async ({ page }) => {
     // Create 4 test collections directly in IndexedDB with proper isActive property
-    const created = await page.evaluate(async () => {
+    // Returns the created collection IDs for use in task setup
+    const collectionIds = await page.evaluate(async () => {
       const dbName = 'TabTaskTickDB';
       const request = indexedDB.open(dbName);
 
@@ -140,9 +144,15 @@ test.describe('Side Panel Search & Filters', () => {
           const tx = db.transaction(['collections'], 'readwrite');
           const store = tx.objectStore('collections');
 
+          // Generate UUIDs first so we can return them
+          const projectAlphaId = crypto.randomUUID();
+          const learningReactId = crypto.randomUUID();
+          const taxPrepId = crypto.randomUUID();
+          const houseRenovationId = crypto.randomUUID();
+
           const collections = [
             {
-              id: crypto.randomUUID(),
+              id: projectAlphaId,
               name: 'Project Alpha',
               description: 'Backend API development',
               icon: '📁',
@@ -156,7 +166,7 @@ test.describe('Side Panel Search & Filters', () => {
               }
             },
             {
-              id: crypto.randomUUID(),
+              id: learningReactId,
               name: 'Learning React',
               description: 'React hooks and patterns',
               icon: '📚',
@@ -170,7 +180,7 @@ test.describe('Side Panel Search & Filters', () => {
               }
             },
             {
-              id: crypto.randomUUID(),
+              id: taxPrepId,
               name: 'Tax Prep 2024',
               description: 'Tax documents and forms',
               icon: '📋',
@@ -184,7 +194,7 @@ test.describe('Side Panel Search & Filters', () => {
               }
             },
             {
-              id: crypto.randomUUID(),
+              id: houseRenovationId,
               name: 'House Renovation',
               description: 'DIY and home improvement',
               icon: '🏠',
@@ -205,7 +215,12 @@ test.describe('Side Panel Search & Filters', () => {
             req.onsuccess = () => count++;
           });
 
-          tx.oncomplete = () => resolve(count);
+          tx.oncomplete = () => resolve({
+            projectAlpha: projectAlphaId,
+            learningReact: learningReactId,
+            taxPrep: taxPrepId,
+            houseRenovation: houseRenovationId
+          });
           tx.onerror = () => reject(tx.error);
         };
 
@@ -218,6 +233,9 @@ test.describe('Side Panel Search & Filters', () => {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
 
+    // Store collection IDs for use in task setup
+    testCollectionIds = collectionIds;
+
     // Verify all collections were created
     const collectionCards = page.locator('.collection-card');
     await expect(collectionCards).toHaveCount(4);
@@ -225,7 +243,8 @@ test.describe('Side Panel Search & Filters', () => {
 
   test('setup: create test tasks', async ({ page }) => {
     // Create 5 test tasks directly in IndexedDB
-    const created = await page.evaluate(async () => {
+    // Link 2 tasks to Project Alpha, 1 to Learning React, 2 uncategorized
+    const created = await page.evaluate(async (collectionIds) => {
       const dbName = 'TabTaskTickDB';
       const request = indexedDB.open(dbName);
 
@@ -242,7 +261,7 @@ test.describe('Side Panel Search & Filters', () => {
               notes: 'Users logged out after 5 min',
               status: 'active',
               priority: 'high',
-              collectionId: null,
+              collectionId: collectionIds.projectAlpha, // Linked to Project Alpha
               tabIds: [],
               tags: ['bug'],
               comments: [],
@@ -255,7 +274,7 @@ test.describe('Side Panel Search & Filters', () => {
               notes: 'Document authentication endpoints',
               status: 'open',
               priority: 'medium',
-              collectionId: null,
+              collectionId: collectionIds.projectAlpha, // Linked to Project Alpha
               tabIds: [],
               tags: ['docs'],
               comments: [],
@@ -268,7 +287,7 @@ test.describe('Side Panel Search & Filters', () => {
               notes: 'useEffect, useState, useCallback',
               status: 'active',
               priority: 'low',
-              collectionId: null,
+              collectionId: collectionIds.learningReact, // Linked to Learning React
               tabIds: [],
               tags: ['learning'],
               comments: [],
@@ -281,7 +300,7 @@ test.describe('Side Panel Search & Filters', () => {
               notes: 'Milk, eggs, bread',
               status: 'open',
               priority: 'critical',
-              collectionId: null,
+              collectionId: null, // Uncategorized
               tabIds: [],
               tags: [],
               comments: [],
@@ -294,7 +313,7 @@ test.describe('Side Panel Search & Filters', () => {
               notes: 'Review all code changes',
               status: 'fixed',
               priority: 'high',
-              collectionId: null,
+              collectionId: null, // Uncategorized
               tabIds: [],
               tags: ['review'],
               comments: [],
@@ -315,7 +334,7 @@ test.describe('Side Panel Search & Filters', () => {
 
         request.onerror = () => reject(request.error);
       });
-    });
+    }, testCollectionIds); // Pass collection IDs as argument
 
     // Reload page to pick up new tasks
     await page.reload();
@@ -686,15 +705,36 @@ test.describe('Side Panel Search & Filters', () => {
       await ensureTasksView(page);
 
       await page.click('#toggle-filters-btn');
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(300);
 
-      // Select Project Alpha collection
-      await page.locator('[data-filter="collection"][value="col-1"]').check();
-      await page.waitForTimeout(100);
+      // Scroll filters panel to ensure COLLECTION section is visible
+      const filtersPanel = page.locator('#filters-panel');
+      await filtersPanel.evaluate(el => el.scrollTo(0, el.scrollHeight));
+      await page.waitForTimeout(200);
 
-      // Should show 3 tasks from Project Alpha
+      // Find all collection filter checkboxes and locate Project Alpha by its label text
+      // The checkbox structure: <label><input type="checkbox" data-filter="collection" value="{id}"> Project Alpha</label>
+      const collectionCheckboxes = await page.locator('[data-filter="collection"]').all();
+
+      let projectAlphaCheckbox = null;
+      for (const checkbox of collectionCheckboxes) {
+        const labelText = await checkbox.evaluate(el => el.parentElement?.textContent?.trim() || '');
+        if (labelText.includes('Project Alpha')) {
+          projectAlphaCheckbox = checkbox;
+          break;
+        }
+      }
+
+      if (!projectAlphaCheckbox) {
+        throw new Error('Could not find Project Alpha collection filter checkbox');
+      }
+
+      await projectAlphaCheckbox.check();
+      await page.waitForTimeout(300);
+
+      // Should show 2 tasks from Project Alpha (Fix auth bug, Write API docs)
       const taskCards = page.locator('.task-card');
-      await expect(taskCards).toHaveCount(3);
+      await expect(taskCards).toHaveCount(2);
     });
 
     test('should filter uncategorized tasks', async ({ page }) => {
@@ -707,10 +747,11 @@ test.describe('Side Panel Search & Filters', () => {
       await page.locator('[data-filter="collection"][value="uncategorized"]').check();
       await page.waitForTimeout(100);
 
-      // Should show only "Buy groceries"
+      // Should show 2 uncategorized tasks: "Buy groceries" and "Complete project review"
       const taskCards = page.locator('.task-card');
-      await expect(taskCards).toHaveCount(1);
-      await expect(taskCards.first()).toContainText('Buy groceries');
+      await expect(taskCards).toHaveCount(2);
+      await expect(taskCards.filter({ hasText: 'Buy groceries' })).toHaveCount(1);
+      await expect(taskCards.filter({ hasText: 'Complete project review' })).toHaveCount(1);
     });
 
     test('should sort tasks by due date', async ({ page }) => {
