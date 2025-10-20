@@ -139,19 +139,18 @@ export class TasksView {
    * Render a task section
    */
   renderTaskSection(sectionId, sectionTitle, tasks, isUncategorized = false, isActive = false) {
-    // Sort tasks: priority (high→low), then due date (ascending), then created (newest first)
-    const sorted = this.sortTasks(tasks);
-
+    // Tasks are already sorted by panel.js controller according to user's sortBy filter
+    // DO NOT re-sort here - respect the order from controller
     const activeIndicator = isActive ? '<span class="active-indicator">🟢</span>' : '';
 
     return `
       <section class="task-section" data-section-id="${sectionId}">
         <h2 class="section-header">
           <span class="section-title">${sectionTitle}${activeIndicator}</span>
-          <span class="section-count">${sorted.length}</span>
+          <span class="section-count">${tasks.length}</span>
         </h2>
         <div class="tasks-list">
-          ${sorted.map(task => this.renderTaskCard(task, isUncategorized)).join('')}
+          ${tasks.map(task => this.renderTaskCard(task, isUncategorized)).join('')}
         </div>
       </section>
     `;
@@ -161,8 +160,8 @@ export class TasksView {
    * Render completed section (collapsible)
    */
   renderCompletedSection(tasks) {
-    const sorted = this.sortTasks(tasks);
-
+    // Tasks are already sorted by panel.js controller according to user's sortBy filter
+    // DO NOT re-sort here - respect the order from controller
     return `
       <section class="task-section task-section-collapsible collapsed" data-section-id="completed">
         <h2 class="section-header clickable" data-toggle-section="completed">
@@ -170,39 +169,13 @@ export class TasksView {
             <span class="collapse-icon">▶</span>
             Completed
           </span>
-          <span class="section-count">${sorted.length}</span>
+          <span class="section-count">${tasks.length}</span>
         </h2>
         <div class="tasks-list">
-          ${sorted.map(task => this.renderTaskCard(task, false, true)).join('')}
+          ${tasks.map(task => this.renderTaskCard(task, false, true)).join('')}
         </div>
       </section>
     `;
-  }
-
-  /**
-   * Sort tasks by priority, due date, and created date
-   */
-  sortTasks(tasks) {
-    const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-
-    return [...tasks].sort((a, b) => {
-      // 1. Priority (high to low)
-      const aPriority = priorityOrder[a.priority || 'medium'];
-      const bPriority = priorityOrder[b.priority || 'medium'];
-      if (aPriority !== bPriority) {
-        return aPriority - bPriority;
-      }
-
-      // 2. Due date (ascending, nulls last)
-      if (a.dueDate && b.dueDate) {
-        return a.dueDate - b.dueDate;
-      }
-      if (a.dueDate) return -1;
-      if (b.dueDate) return 1;
-
-      // 3. Created date (newest first)
-      return (b.createdAt || 0) - (a.createdAt || 0);
-    });
   }
 
   /**
