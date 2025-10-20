@@ -645,8 +645,9 @@ test.describe('Side Panel Search & Filters', () => {
       // Should show 2 active tasks
       const taskCards = page.locator('.task-card');
       await expect(taskCards).toHaveCount(2);
-      await expect(page.locator('.task-card')).toContainText('Fix auth bug');
-      await expect(page.locator('.task-card')).toContainText('Study hooks patterns');
+      // Check that both expected tasks are present
+      await expect(taskCards.filter({ hasText: 'Fix auth bug' })).toHaveCount(1);
+      await expect(taskCards.filter({ hasText: 'Study hooks patterns' })).toHaveCount(1);
     });
 
     test('should filter tasks by multiple statuses', async ({ page }) => {
