@@ -2,7 +2,15 @@
 
 ## Purpose
 
-A specialized sub-agent for systematically debugging and fixing E2E test failures with clean separation of concerns between test execution, analysis, debugging, and code modification.
+A specialized sub-agent for systematically debugging and fixing **Playwright E2E test failures** for Chrome extension testing, with clean separation of concerns between test execution, analysis, debugging, and code modification.
+
+**Primary Use Case**: Debugging Playwright tests for TabMaster Pro Chrome extension, particularly tests involving browser context, IndexedDB, chrome.storage, and UI state management.
+
+**Generalization Potential**: The 5-phase methodology (Execute → Analyze → Debug → Fix → Verify) and pattern-based debugging approach can be adapted for:
+- Other E2E frameworks (Cypress, Selenium, Puppeteer)
+- Unit test debugging (Jest, Mocha, Vitest)
+- Integration test failures
+- Any iterative test-debug-fix workflow
 
 **Design Goal**: Manage context explosion by encapsulating the iterative test-debug-fix cycle in a focused agent with well-defined inputs, outputs, and decision points.
 
@@ -520,25 +528,76 @@ Before committing any fix, agent must verify:
 
 ---
 
+## Adapting to Other Testing Frameworks
+
+This specification is **currently Playwright-specific** but the core methodology generalizes to other testing contexts:
+
+### Framework-Specific Adaptations
+
+**Playwright (Current)**:
+- Screenshot analysis via `test-results/`
+- Browser context and page manipulation
+- Extension-specific APIs (chrome.tabs, IndexedDB)
+- Async/await patterns in `page.evaluate()`
+
+**Cypress**:
+- cy.screenshot() and custom commands
+- Test isolation via `beforeEach()` hooks
+- Application state inspection via `cy.window()`
+- Retry-ability and command chaining patterns
+
+**Jest/Vitest (Unit)**:
+- Mock inspection and jest.fn() analysis
+- Module dependency issues
+- Snapshot comparison
+- Coverage-guided debugging
+
+**Selenium/WebDriver**:
+- Browser driver state management
+- Element location strategies
+- Wait condition patterns
+- Cross-browser compatibility issues
+
+### Universal Patterns
+
+The following apply regardless of framework:
+1. **Execute → Analyze → Debug → Fix → Verify** workflow
+2. **Known Patterns Library** approach (catalog solutions)
+3. **Structured reporting** with clear inputs/outputs
+4. **Context management** to prevent explosion
+5. **Quality gates** before committing fixes
+
+### Adaptation Checklist
+
+When adapting to a new framework:
+- [ ] Update "Test Execution" section with framework-specific commands
+- [ ] Modify "Failure Analysis" for framework's error format
+- [ ] Adjust "Debugging Strategy" for available tooling
+- [ ] Update "Known Patterns Library" with framework-specific issues
+- [ ] Revise output examples to match framework reporting
+
+---
+
 ## Future Enhancements
 
-### Short Term
+### Short Term (Playwright-Specific)
 1. Add screenshot diffing to detect UI state changes
 2. Create test pattern templates for common fixes
 3. Build failure pattern database from past sessions
 4. Implement automatic diagnostic injection
 
-### Medium Term
+### Medium Term (Cross-Framework)
 1. Integrate with git bisect for regression hunting
-2. Add test flakiness detection
+2. Add test flakiness detection (applicable to all frameworks)
 3. Create visual test report generation
 4. Implement parallel test debugging
 
-### Long Term
+### Long Term (Universal)
 1. ML-based pattern recognition for novel failures
 2. Automatic fix suggestion based on past patterns
 3. Test generation from bug reports
 4. Integration with CI/CD for continuous debugging
+5. Framework-agnostic pattern library
 
 ---
 
