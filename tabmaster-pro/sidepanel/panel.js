@@ -1102,6 +1102,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const controller = new SidePanelController();
     await controller.init();
     console.log('[Panel] Initialization complete');
+
+    // Expose controller globally for E2E testing
+    // This allows tests to programmatically clear filters and manipulate state
+    window.panelController = controller;
   } catch (error) {
     console.error('[Panel] Initialization failed:', error);
     // Show error in UI

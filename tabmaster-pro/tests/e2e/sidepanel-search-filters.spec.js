@@ -31,12 +31,82 @@ async function ensureTasksView(page) {
   }
 }
 
+/**
+ * Helper to verify test data exists in IndexedDB
+ * Prevents tests from hanging when data is missing
+ */
+async function verifyTestDataExists(page) {
+  const dataExists = await page.evaluate(async () => {
+    const dbName = 'TabTaskTickDB';
+    const request = indexedDB.open(dbName);
+
+    return new Promise((resolve) => {
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const tx = db.transaction(['collections', 'tasks'], 'readonly');
+
+        const collectionsStore = tx.objectStore('collections');
+        const tasksStore = tx.objectStore('tasks');
+
+        const collectionsCount = collectionsStore.count();
+        const tasksCount = tasksStore.count();
+
+        Promise.all([
+          new Promise(r => { collectionsCount.onsuccess = () => r(collectionsCount.result); }),
+          new Promise(r => { tasksCount.onsuccess = () => r(tasksCount.result); })
+        ]).then(([collections, tasks]) => {
+          resolve({ collections, tasks });
+        });
+      };
+
+      request.onerror = () => resolve({ collections: 0, tasks: 0 });
+    });
+  });
+
+  if (dataExists.collections === 0 && dataExists.tasks === 0) {
+    throw new Error(`Test data missing! Setup tests must run first. Found: ${dataExists.collections} collections, ${dataExists.tasks} tasks`);
+  }
+
+  return dataExists;
+}
+
 test.describe('Side Panel Search & Filters', () => {
-  test.beforeEach(async ({ page, extensionId }) => {
+  test.beforeEach(async ({ page, extensionId }, testInfo) => {
     // Navigate to the side panel
     await page.goto(`chrome-extension://${extensionId}/sidepanel/panel.html`);
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(1000);
+
+    // Clear persisted filter state AND in-memory UI state to prevent test pollution
+    if (!testInfo.title.startsWith('setup:')) {
+      // Wait for panel controller to be available
+      await page.waitForFunction(() => window.panelController != null, { timeout: 5000 });
+
+      // CRITICAL: Must use async function and await storage.remove() to prevent race conditions
+      await page.evaluate(async () => {
+        // Clear storage persistence (properly awaited to ensure completion)
+        await chrome.storage.local.remove([
+          'tabtasktick.filters.collections',
+          'tabtasktick.filters.tasks'
+        ]);
+
+        // Clear in-memory UI state by calling clear methods
+        // This is crucial - storage clear alone doesn't reset active UI filters
+        const panelController = window.panelController;
+        if (panelController && panelController.searchFilter) {
+          panelController.searchFilter.clearCollectionsFilters();
+          panelController.searchFilter.clearTasksFilters();
+          // Trigger re-render with cleared filters
+          panelController.applyFiltersAndRender();
+        }
+      });
+
+      await page.waitForTimeout(500); // Wait for re-render
+
+      // Verify data exists
+      const data = await verifyTestDataExists(page);
+      console.log(`[${testInfo.title}] Test data: ${data.collections} collections, ${data.tasks} tasks`);
+    }
   });
 
   // Setup test - creates test data for all subsequent tests
@@ -471,12 +541,20 @@ test.describe('Side Panel Search & Filters', () => {
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
+      // CRITICAL: First ensure "All" state filter is active (clear any Active/Saved filter from previous tests)
+      const allBtn = page.locator('[data-filter="state"][data-value="all"]');
+      await allBtn.click();
+      await page.waitForTimeout(300); // Wait for filter to apply and UI to re-render
+
+      // Verify we now have all 4 collections showing
+      const collectionCards = page.locator('.collection-card');
+      await expect(collectionCards).toHaveCount(4);
+
       // Select name sort
       await page.selectOption('[data-filter="sortBy"]', 'name');
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
 
-      // Should be alphabetically sorted
-      const collectionCards = page.locator('.collection-card');
+      // Should be alphabetically sorted (all 4 collections)
       await expect(collectionCards.nth(0)).toContainText('House Renovation');
       await expect(collectionCards.nth(1)).toContainText('Learning React');
       await expect(collectionCards.nth(2)).toContainText('Project Alpha');
