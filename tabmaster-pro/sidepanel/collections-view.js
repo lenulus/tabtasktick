@@ -33,14 +33,28 @@ export class CollectionsView {
 
   /**
    * Render collections
+   * @param {Array} collections - Already filtered and sorted by panel.js
+   * @param {Object} options - Rendering options
+   * @param {string} options.stateFilter - Current state filter ('all', 'active', 'saved')
    */
-  render(collections) {
+  render(collections, options = {}) {
     if (!collections || collections.length === 0) {
       this.renderEmpty();
       return;
     }
 
-    // Separate active and saved
+    const stateFilter = options.stateFilter || 'all';
+
+    // When state filter is 'all', render as unified list in active container
+    // This maintains sort order from panel.js without active/saved separation
+    if (stateFilter === 'all') {
+      this.updateCounts(collections.length, 0);
+      this.renderCollectionGroup(this.activeContainer, collections, false);
+      this.savedContainer.innerHTML = '';
+      return;
+    }
+
+    // Otherwise, separate active and saved collections
     const active = collections.filter(c => c.isActive);
     const saved = collections.filter(c => !c.isActive);
 
@@ -83,14 +97,9 @@ export class CollectionsView {
       return;
     }
 
-    // Sort by last accessed (most recent first)
-    const sorted = [...collections].sort((a, b) => {
-      const aTime = a.metadata?.lastAccessed || a.createdAt || 0;
-      const bTime = b.metadata?.lastAccessed || b.createdAt || 0;
-      return bTime - aTime;
-    });
-
-    container.innerHTML = sorted.map(c => this.renderCollectionCard(c, isActive)).join('');
+    // Collections are already sorted by panel.js (via sortCollections method)
+    // Respect the controller's sort order - DO NOT re-sort here
+    container.innerHTML = collections.map(c => this.renderCollectionCard(c, isActive)).join('');
 
     // Attach event listeners
     this.attachEventListeners(container);

@@ -240,7 +240,9 @@ class SidePanelController {
     // Show content and delegate to CollectionsView
     this.showContent('collections');
     if (this.collectionsView) {
-      this.collectionsView.render(filteredCollections);
+      // Pass current state filter to view so it knows whether to separate or unify
+      const stateFilter = this.searchFilter?.getCollectionsFilters().state || 'all';
+      this.collectionsView.render(filteredCollections, { stateFilter });
     }
   }
 
