@@ -757,12 +757,35 @@ test.describe('Side Panel Search & Filters', () => {
     test('should sort tasks by due date', async ({ page }) => {
       await ensureTasksView(page);
 
+      // DIAGNOSTIC: Count tasks before opening filters
+      const beforeCount = await page.locator('.task-card').count();
+      console.log(`[should sort tasks by due date] Tasks visible BEFORE filters: ${beforeCount}`);
+
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
-      // Select due date sort (default)
-      await page.selectOption('[data-filter="sortBy"]', 'dueDate');
-      await page.waitForTimeout(100);
+      // Scroll filters panel to ensure SORT BY dropdown is visible
+      const filtersPanel = page.locator('#filters-panel');
+      await filtersPanel.evaluate(el => el.scrollTo(0, el.scrollHeight));
+      await page.waitForTimeout(200);
+
+      // Select due date sort (default) - use specific selector for tasks view
+      await page.selectOption('#tasks-filters [data-filter="sortBy"]', 'dueDate');
+      await page.waitForTimeout(300); // Increased wait for sort to apply
+
+      // DIAGNOSTIC: Count tasks after sort selection
+      const afterSortCount = await page.locator('.task-card').count();
+      console.log(`[should sort tasks by due date] Tasks visible AFTER sort: ${afterSortCount}`);
+
+      // DIAGNOSTIC: Log actual task order
+      const taskOrder = await page.evaluate(() => {
+        const cards = document.querySelectorAll('.task-card');
+        return Array.from(cards).map((card, idx) => {
+          const summary = card.querySelector('.task-summary, .task-card-summary, h4, h3');
+          return `[${idx}] ${summary?.textContent?.trim() || 'Unknown'}`;
+        });
+      });
+      console.log(`[should sort tasks by due date] Actual task order:`, taskOrder);
 
       // Should be sorted by due date (soonest first, null last)
       const taskCards = page.locator('.task-card');
@@ -778,8 +801,13 @@ test.describe('Side Panel Search & Filters', () => {
       await page.click('#toggle-filters-btn');
       await page.waitForTimeout(100);
 
-      // Select priority sort
-      await page.selectOption('[data-filter="sortBy"]', 'priority');
+      // Scroll filters panel to ensure SORT BY dropdown is visible
+      const filtersPanel = page.locator('#filters-panel');
+      await filtersPanel.evaluate(el => el.scrollTo(0, el.scrollHeight));
+      await page.waitForTimeout(200);
+
+      // Select priority sort - use specific selector for tasks view
+      await page.selectOption('#tasks-filters [data-filter="sortBy"]', 'priority');
       await page.waitForTimeout(100);
 
       // Should be sorted by priority (critical, high, medium, low)
