@@ -27,6 +27,9 @@ export class SearchFilter {
     this.searchDebounceTimeout = null;
     this.onSearchChange = null;
     this.onFiltersChange = null;
+    // Store available options for re-rendering
+    this.availableTags = [];
+    this.availableCollections = [];
   }
 
   /**
@@ -72,7 +75,10 @@ export class SearchFilter {
   /**
    * Render collections filters
    */
-  renderCollectionsFilters(availableTags = []) {
+  renderCollectionsFilters(availableTags = this.availableTags) {
+    // Store tags for re-rendering when state filter changes
+    this.availableTags = availableTags;
+
     const container = document.getElementById('collections-filters');
     if (!container) return;
 
@@ -154,7 +160,10 @@ export class SearchFilter {
   /**
    * Render tasks filters
    */
-  renderTasksFilters(collections = []) {
+  renderTasksFilters(collections = this.availableCollections) {
+    // Store collections for re-rendering when filters change
+    this.availableCollections = collections;
+
     const container = document.getElementById('tasks-filters');
     if (!container) return;
 

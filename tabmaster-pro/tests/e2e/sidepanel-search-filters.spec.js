@@ -82,6 +82,15 @@ test.describe('Side Panel Search & Filters', () => {
       // Wait for panel controller to be available
       await page.waitForFunction(() => window.panelController != null, { timeout: 5000 });
 
+      // DIAGNOSTIC: Log filter state BEFORE clearing
+      const filtersBefore = await page.evaluate(() => {
+        return {
+          collections: window.panelController?.searchFilter?.getCollectionsFilters(),
+          tasks: window.panelController?.searchFilter?.getTasksFilters()
+        };
+      });
+      console.log(`[${testInfo.title}] Filters BEFORE clear:`, JSON.stringify(filtersBefore, null, 2));
+
       // CRITICAL: Must use async function and await storage.remove() to prevent race conditions
       await page.evaluate(async () => {
         // Clear storage persistence (properly awaited to ensure completion)
@@ -102,6 +111,15 @@ test.describe('Side Panel Search & Filters', () => {
       });
 
       await page.waitForTimeout(500); // Wait for re-render
+
+      // DIAGNOSTIC: Log filter state AFTER clearing
+      const filtersAfter = await page.evaluate(() => {
+        return {
+          collections: window.panelController?.searchFilter?.getCollectionsFilters(),
+          tasks: window.panelController?.searchFilter?.getTasksFilters()
+        };
+      });
+      console.log(`[${testInfo.title}] Filters AFTER clear:`, JSON.stringify(filtersAfter, null, 2));
 
       // Verify data exists
       const data = await verifyTestDataExists(page);
