@@ -99,16 +99,31 @@ test.describe('Side Panel Search & Filters', () => {
         // Clear storage persistence (properly awaited to ensure completion)
         await chrome.storage.local.remove([
           'tabtasktick.filters.collections',
-          'tabtasktick.filters.tasks'
+          'tabtasktick.filters.tasks',
+          'tabtasktick.tasks.groupBy',
+          'tabtasktick.tasks.sortBy',
+          'tabtasktick.tasks.sortDirection'
         ]);
 
         // Clear in-memory UI state by calling clear methods
         // This is crucial - storage clear alone doesn't reset active UI filters
         const panelController = window.panelController;
-        if (panelController && panelController.searchFilter) {
-          panelController.searchFilter.clearCollectionsFilters();
-          panelController.searchFilter.clearTasksFilters();
-          // Trigger re-render with cleared filters
+        if (panelController) {
+          // Clear filters state
+          if (panelController.searchFilter) {
+            panelController.searchFilter.clearCollectionsFilters();
+            panelController.searchFilter.clearTasksFilters();
+          }
+
+          // Reset presentation controls to defaults (for consistent test state)
+          if (panelController.presentationControls) {
+            panelController.presentationControls.groupBy = 'collection';
+            panelController.presentationControls.sortBy = 'priority';
+            panelController.presentationControls.sortDirection = 'desc';
+            panelController.presentationControls.render();
+          }
+
+          // Trigger re-render with cleared state
           panelController.applyFiltersAndRender();
         }
       });
@@ -757,21 +772,18 @@ test.describe('Side Panel Search & Filters', () => {
     test('should sort tasks by due date', async ({ page }) => {
       await ensureTasksView(page);
 
-      // DIAGNOSTIC: Count tasks before opening filters
+      // DIAGNOSTIC: Count tasks before changing presentation controls
       const beforeCount = await page.locator('.task-card').count();
       console.log(`[should sort tasks by due date] Tasks visible BEFORE filters: ${beforeCount}`);
 
-      await page.click('#toggle-filters-btn');
-      await page.waitForTimeout(100);
+      // IMPORTANT: Set groupBy='none' first to get flat list (global sort)
+      // Per design doc: Sort By only works globally when groupBy='none'
+      await page.selectOption('#group-by-select', 'none');
+      await page.waitForTimeout(300);
 
-      // Scroll filters panel to ensure SORT BY dropdown is visible
-      const filtersPanel = page.locator('#filters-panel');
-      await filtersPanel.evaluate(el => el.scrollTo(0, el.scrollHeight));
-      await page.waitForTimeout(200);
-
-      // Select due date sort (default) - use specific selector for tasks view
-      await page.selectOption('#tasks-filters [data-filter="sortBy"]', 'dueDate');
-      await page.waitForTimeout(300); // Increased wait for sort to apply
+      // Now select due date sort using NEW presentation controls selector
+      await page.selectOption('#sort-by-select', 'dueDate');
+      await page.waitForTimeout(300);
 
       // DIAGNOSTIC: Count tasks after sort selection
       const afterSortCount = await page.locator('.task-card').count();
@@ -798,17 +810,13 @@ test.describe('Side Panel Search & Filters', () => {
     test('should sort tasks by priority', async ({ page }) => {
       await ensureTasksView(page);
 
-      await page.click('#toggle-filters-btn');
-      await page.waitForTimeout(100);
+      // IMPORTANT: Set groupBy='none' first to get flat list (global sort)
+      await page.selectOption('#group-by-select', 'none');
+      await page.waitForTimeout(300);
 
-      // Scroll filters panel to ensure SORT BY dropdown is visible
-      const filtersPanel = page.locator('#filters-panel');
-      await filtersPanel.evaluate(el => el.scrollTo(0, el.scrollHeight));
-      await page.waitForTimeout(200);
-
-      // Select priority sort - use specific selector for tasks view
-      await page.selectOption('#tasks-filters [data-filter="sortBy"]', 'priority');
-      await page.waitForTimeout(100);
+      // Select priority sort using NEW presentation controls selector
+      await page.selectOption('#sort-by-select', 'priority');
+      await page.waitForTimeout(300);
 
       // Should be sorted by priority (critical, high, medium, low)
       const taskCards = page.locator('.task-card');
