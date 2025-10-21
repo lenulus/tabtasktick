@@ -21,8 +21,8 @@ export class SearchFilter {
       status: [],       // Array of selected statuses
       priority: [],     // Array of selected priorities
       collectionId: [], // Array of selected collection IDs
-      dueDateRange: null, // { start: Date, end: Date } or null
-      sortBy: 'dueDate' // 'dueDate' | 'priority' | 'created'
+      dueDateRange: null // { start: Date, end: Date } or null
+      // Note: sortBy moved to presentation-controls.js (always-visible controls)
     };
     this.searchDebounceTimeout = null;
     this.onSearchChange = null;
@@ -231,20 +231,7 @@ export class SearchFilter {
           </div>
         ` : ''}
 
-        <div class="filter-group">
-          <label class="filter-label">Sort by</label>
-          <select class="filter-select" data-filter="sortBy">
-            <option value="dueDate" ${this.tasksFilters.sortBy === 'dueDate' ? 'selected' : ''}>
-              Due Date
-            </option>
-            <option value="priority" ${this.tasksFilters.sortBy === 'priority' ? 'selected' : ''}>
-              Priority
-            </option>
-            <option value="created" ${this.tasksFilters.sortBy === 'created' ? 'selected' : ''}>
-              Created
-            </option>
-          </select>
-        </div>
+        <!-- Note: Sort By control moved to presentation-controls.js (always-visible) -->
 
         ${this.getActiveFilterCount('tasks') > 0 ? `
           <button class="filter-clear-btn" data-clear-filters="tasks">
@@ -381,17 +368,7 @@ export class SearchFilter {
       });
     });
 
-    // Sort select
-    const sortSelect = container.querySelector('[data-filter="sortBy"]');
-    if (sortSelect) {
-      sortSelect.addEventListener('change', () => {
-        this.tasksFilters.sortBy = sortSelect.value;
-        this.saveFilterState();
-        if (this.onFiltersChange) {
-          this.onFiltersChange('tasks', this.tasksFilters);
-        }
-      });
-    }
+    // Note: sortBy event handler removed - now in presentation-controls.js
 
     // Clear filters button
     const clearBtn = container.querySelector('[data-clear-filters="tasks"]');
@@ -426,8 +403,8 @@ export class SearchFilter {
       status: [],
       priority: [],
       collectionId: [],
-      dueDateRange: null,
-      sortBy: 'dueDate'
+      dueDateRange: null
+      // Note: sortBy is not part of filters anymore (moved to presentation-controls.js)
     };
     this.saveFilterState();
     this.renderTasksFilters(); // Re-render to clear UI

@@ -33,9 +33,15 @@ export class TasksView {
   }
 
   /**
-   * Render tasks with collections context
+   * Render tasks with grouping and sorting options
+   * @param {Array} tasks - Tasks to render (already sorted by panel.js controller)
+   * @param {Array} collections - Collections for lookups
+   * @param {Object} options - Presentation options from presentation-controls.js
+   * @param {string} options.groupBy - 'collection'|'priority'|'status'|'none'
+   * @param {string} options.sortBy - 'priority'|'dueDate'|'created'|'alpha' (for reference, sorting done by controller)
+   * @param {string} options.sortDirection - 'asc'|'desc' (for reference, sorting done by controller)
    */
-  render(tasks, collections) {
+  render(tasks, collections, options = {}) {
     if (!tasks || tasks.length === 0) {
       this.renderEmpty();
       return;
@@ -44,7 +50,59 @@ export class TasksView {
     // Cache collections for lookups
     this.collections = collections || [];
 
-    // Group tasks
+    // Default options (fallback to collection grouping for backwards compatibility)
+    const groupBy = options.groupBy || 'collection';
+    const sortBy = options.sortBy || 'priority';
+    const sortDirection = options.sortDirection || 'desc';
+
+    // Render based on grouping mode
+    if (groupBy === 'none') {
+      // Flat list - no grouping
+      this.renderUnifiedList(tasks);
+    } else {
+      // Grouped rendering
+      this.renderGroups(tasks, groupBy);
+    }
+
+    // Attach event listeners
+    this.attachEventListeners();
+  }
+
+  /**
+   * Render tasks as flat list (no grouping)
+   * Used when groupBy='none'
+   */
+  renderUnifiedList(tasks) {
+    const html = `
+      <section class="task-section unified-list">
+        <div class="tasks-list">
+          ${tasks.map(task => this.renderTaskCard(task, false)).join('')}
+        </div>
+      </section>
+    `;
+    this.contentContainer.innerHTML = html;
+  }
+
+  /**
+   * Render tasks with grouping
+   * @param {Array} tasks - Tasks to render
+   * @param {string} groupBy - 'collection'|'priority'|'status'
+   */
+  renderGroups(tasks, groupBy) {
+    if (groupBy === 'collection') {
+      this.renderGroupsByCollection(tasks);
+    } else if (groupBy === 'priority') {
+      this.renderGroupsByPriority(tasks);
+    } else if (groupBy === 'status') {
+      this.renderGroupsByStatus(tasks);
+    }
+  }
+
+  /**
+   * Render tasks grouped by collection (original behavior)
+   */
+  renderGroupsByCollection(tasks) {
+    // Group tasks by collection
     const groups = this.groupTasks(tasks);
 
     // Render groups
@@ -80,9 +138,80 @@ export class TasksView {
     }
 
     this.contentContainer.innerHTML = html.join('');
+  }
 
-    // Attach event listeners
-    this.attachEventListeners();
+  /**
+   * Render tasks grouped by priority
+   */
+  renderGroupsByPriority(tasks) {
+    const groups = {
+      critical: [],
+      high: [],
+      medium: [],
+      low: [],
+      none: []
+    };
+
+    for (const task of tasks) {
+      const priority = task.priority || 'none';
+      if (groups[priority]) {
+        groups[priority].push(task);
+      } else {
+        groups.none.push(task);
+      }
+    }
+
+    const html = [];
+    const priorities = [
+      { key: 'critical', label: 'Critical', emoji: '🔴' },
+      { key: 'high', label: 'High Priority', emoji: '🟠' },
+      { key: 'medium', label: 'Medium Priority', emoji: '🟡' },
+      { key: 'low', label: 'Low Priority', emoji: '🟢' },
+      { key: 'none', label: 'No Priority', emoji: '⚪' }
+    ];
+
+    for (const { key, label, emoji } of priorities) {
+      if (groups[key].length > 0) {
+        html.push(this.renderTaskSection(key, `${emoji} ${label}`, groups[key], false));
+      }
+    }
+
+    this.contentContainer.innerHTML = html.join('');
+  }
+
+  /**
+   * Render tasks grouped by status
+   */
+  renderGroupsByStatus(tasks) {
+    const groups = {
+      open: [],
+      active: [],
+      fixed: [],
+      abandoned: []
+    };
+
+    for (const task of tasks) {
+      const status = task.status || 'open';
+      if (groups[status]) {
+        groups[status].push(task);
+      }
+    }
+
+    const html = [];
+    const statuses = [
+      { key: 'open', label: 'Open', emoji: '📋' },
+      { key: 'active', label: 'Active', emoji: '🔵' },
+      { key: 'fixed', label: 'Fixed', emoji: '✅' },
+      { key: 'abandoned', label: 'Abandoned', emoji: '❌' }
+    ];
+
+    for (const { key, label, emoji } of statuses) {
+      if (groups[key].length > 0) {
+        html.push(this.renderTaskSection(key, `${emoji} ${label}`, groups[key], false));
+      }
+    }
+
+    this.contentContainer.innerHTML = html.join('');
   }
 
   /**

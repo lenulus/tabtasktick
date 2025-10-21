@@ -14,6 +14,7 @@ import { CollectionsView } from './collections-view.js';
 import { CollectionDetailView } from './collection-detail.js';
 import { TasksView } from './tasks-view.js';
 import { SearchFilter } from './search-filter.js';
+import { PresentationControls } from './presentation-controls.js';
 
 class SidePanelController {
   constructor() {
@@ -26,6 +27,7 @@ class SidePanelController {
     this.collectionDetailView = null;
     this.tasksView = null;
     this.searchFilter = null;
+    this.presentationControls = null;
   }
 
   /**
@@ -49,6 +51,23 @@ class SidePanelController {
     };
 
     this.searchFilter.onFiltersChange = (view, filters) => {
+      this.applyFiltersAndRender();
+    };
+
+    // Initialize presentation controls
+    this.presentationControls = new PresentationControls();
+    await this.presentationControls.init();
+
+    // Setup presentation control callbacks
+    this.presentationControls.onGroupByChange = (groupBy) => {
+      this.applyFiltersAndRender();
+    };
+
+    this.presentationControls.onSortByChange = (sortBy) => {
+      this.applyFiltersAndRender();
+    };
+
+    this.presentationControls.onSortDirectionChange = (direction) => {
       this.applyFiltersAndRender();
     };
 
@@ -266,10 +285,15 @@ class SidePanelController {
       return;
     }
 
-    // Show content and delegate to TasksView
+    // Get presentation options from presentation controls
+    const presentationOptions = this.presentationControls
+      ? this.presentationControls.getPresentationOptions()
+      : { groupBy: 'collection', sortBy: 'priority', sortDirection: 'desc' };
+
+    // Show content and delegate to TasksView with presentation options
     this.showContent('tasks');
     if (this.tasksView) {
-      this.tasksView.render(filteredTasks, this.collectionsData || []);
+      this.tasksView.render(filteredTasks, this.collectionsData || [], presentationOptions);
     }
   }
 
@@ -795,9 +819,13 @@ class SidePanelController {
           return filters.collectionId.includes(t.collectionId);
         });
       }
+    }
 
-      // Sort tasks
-      filtered = this.sortTasks(filtered, filters.sortBy);
+    // Sort tasks using presentation controls (sortBy moved from filters to presentation)
+    if (this.presentationControls) {
+      const sortBy = this.presentationControls.getSortBy();
+      const sortDirection = this.presentationControls.getSortDirection();
+      filtered = this.sortTasks(filtered, sortBy, sortDirection);
     }
 
     return filtered;
@@ -837,35 +865,53 @@ class SidePanelController {
   }
 
   /**
-   * Sort tasks by criteria
+   * Sort tasks by criteria with direction support
+   * @param {Array} tasks - Tasks to sort
+   * @param {string} sortBy - 'priority'|'dueDate'|'created'|'alpha'
+   * @param {string} sortDirection - 'asc'|'desc'
    */
-  sortTasks(tasks, sortBy) {
+  sortTasks(tasks, sortBy, sortDirection = 'desc') {
     const sorted = [...tasks];
 
     switch (sortBy) {
       case 'dueDate':
-        return sorted.sort((a, b) => {
+        sorted.sort((a, b) => {
           // Tasks with no due date go to the end
           if (!a.dueDate && !b.dueDate) return 0;
           if (!a.dueDate) return 1;
           if (!b.dueDate) return -1;
-          return a.dueDate - b.dueDate; // Ascending
+          return a.dueDate - b.dueDate; // Natural: earliest first
         });
+        // Reverse if descending
+        return sortDirection === 'desc' ? sorted.reverse() : sorted;
 
       case 'priority':
         const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-        return sorted.sort((a, b) => {
+        sorted.sort((a, b) => {
           const aPriority = priorityOrder[a.priority] ?? 999;
           const bPriority = priorityOrder[b.priority] ?? 999;
-          return aPriority - bPriority; // Descending importance
+          return aPriority - bPriority; // Natural: critical first
         });
+        // Reverse if ascending
+        return sortDirection === 'asc' ? sorted.reverse() : sorted;
 
       case 'created':
-        return sorted.sort((a, b) => {
+        sorted.sort((a, b) => {
           const aTime = a.createdAt || 0;
           const bTime = b.createdAt || 0;
-          return bTime - aTime; // Descending
+          return aTime - bTime; // Natural: oldest first
         });
+        // Reverse if descending (newest first)
+        return sortDirection === 'desc' ? sorted.reverse() : sorted;
+
+      case 'alpha':
+        sorted.sort((a, b) => {
+          const aName = (a.summary || '').toLowerCase();
+          const bName = (b.summary || '').toLowerCase();
+          return aName.localeCompare(bName); // Natural: A → Z
+        });
+        // Reverse if descending (Z → A)
+        return sortDirection === 'desc' ? sorted.reverse() : sorted;
 
       default:
         return sorted;

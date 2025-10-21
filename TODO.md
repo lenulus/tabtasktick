@@ -868,33 +868,145 @@ Following architecture-guardian review, key improvements from initial plan:
   - Pass to respective views
 - [x] Handle refresh on focus (reload data when panel opens)
 
-#### 3.5 Search & Filters Infrastructure (2-3h)
-- [ ] Create `/sidepanel/search-filter.js` (~200 lines)
-- [ ] Implement global search component:
-  - Debounced search input (300ms delay)
-  - Search across collections (name, description, tags)
-  - Search across tasks (summary, notes, tags)
-  - Highlight matches in results
-  - Show result count ("3 collections, 5 tasks match 'auth'")
-  - Clear search button
-- [ ] Implement filter components:
-  - Collections filters:
-    - State toggle (active/saved/all)
-    - Tag multi-select dropdown
-    - Sort dropdown (last accessed, created, name)
-  - Tasks filters:
-    - Status multi-select (open/active/fixed/abandoned)
-    - Priority multi-select (low/medium/high/critical)
-    - Collection multi-select
-    - Due date range picker
-    - Sort dropdown (due date, priority, created)
-  - Active filter count badge
-  - Clear all filters button
-- [ ] Implement filter/sort state persistence:
-  - Save to chrome.storage.local per view
-  - Restore on panel reopen
-  - Sync across sessions
-- [ ] NO business logic - pure UI components
+#### 3.5 Search & Filters Infrastructure (2-3h) 🔄 IN PROGRESS
+**Status**: Design complete, test fixes committed, ready for implementation (2025-10-21)
+**Design Document**: `/docs/GROUPBY-SORTBY-DESIGN.md`
+
+**Recent Progress**:
+- ✅ Fixed test #23-24 timeout (scroll + specific selector) - commit 81640b3
+- ✅ Fixed architecture violation (removed duplicate sorting from tasks-view.js) - commit 2054357
+- ✅ Created comprehensive design document
+- ✅ Updated TODO.md with approved design
+- ✅ Completed code audit (2025-10-21):
+  - search-filter.js EXISTS (531 lines) - collapsible filters panel
+  - tasks-view.js needs refactor to accept { groupBy, sortBy, sortDirection }
+  - panel.js needs update to pass presentation options to view
+  - **Architecture clarified**: Need TWO separate components (presentation controls vs filters)
+- ⚠️  **E2E test data setup failing** (test #48 "setup: create test tasks")
+  - All tests after setup fail with "Test data missing! Setup tests must run first"
+  - **Strategy**: Implement Phase 3.5 features FIRST, then fix E2E tests LAST (per plan)
+  - Don't get stuck debugging tests before building the feature
+
+**Key Design Decision**: Separate "Group By" and "Sort By" controls (inspired by database visualization patterns)
+
+**UI Treatment**:
+```
+┌─────────────────────────────────────────────────┐
+│ TASKS VIEW                                      │
+├─────────────────────────────────────────────────┤
+│ Group By: [Collection ▼]   Sort By: [Priority ▼] [↓] │  ← Always visible
+├─────────────────────────────────────────────────┤
+│ [🔍 Search...] [Filters ▼]                      │  ← Toggle filters panel
+│ ┌─ Filters Panel (collapsible) ──────────────┐ │
+│ │ Status: ☐ Open ☐ Active ☐ Fixed            │ │
+│ │ Priority: ☐ High ☐ Medium ☐ Low            │ │
+│ │ Collection: ☐ Project A ☐ Project B        │ │
+│ └─────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────┤
+│ [Task Cards displayed here based on above]      │
+└─────────────────────────────────────────────────┘
+```
+
+**Distinction**:
+- **Group By**: Visual organization (Collection, Priority, Status, None)
+- **Sort By**: Order within groups or globally (Due Date, Priority, Created, Alpha)
+- **Filters**: Data selection (what to show) - collapsible advanced panel
+
+**Defaults**:
+- Group By: Collection (shows project context)
+- Sort By: Priority (High → Low) (actionable items first)
+
+**User Control**:
+- Both controls are independent and explicit
+- No side effects or automatic changes
+- Changes are visible at top of task panel
+- Settings persist via chrome.storage
+
+**Architecture**: TWO separate components (presentation layer vs data layer)
+1. **Presentation Controls** (always visible) - NEW component
+2. **Search & Filters Panel** (collapsible) - EXISTING component (refactor)
+
+**Implementation Tasks**:
+- [✅] Audit existing Phase 3.5 implementation (COMPLETED 2025-10-21)
+  - search-filter.js EXISTS (531 lines) - collapsible filters panel
+  - tasks-view.js needs { groupBy, sortBy, sortDirection } parameters
+  - panel.js needs to extract presentation options and pass to view
+  - **Decision**: Create separate presentation-controls.js component
+
+**Component 1: Create `/sidepanel/presentation-controls.js` (~200 lines)**
+- [ ] Always-visible controls at top of tasks view (NOT collapsible):
+  - Group By dropdown: [Collection, Priority, Status, None]
+  - Sort By dropdown: [Priority, Due Date, Created, Alpha]
+  - Sort direction toggle: [↑ Ascending / ↓ Descending]
+  - Clean, minimal UI - always visible above content
+- [ ] State persistence to chrome.storage.local:
+  - 'tabtasktick.tasks.groupBy': 'collection'
+  - 'tabtasktick.tasks.sortBy': 'priority'
+  - 'tabtasktick.tasks.sortDirection': 'desc'
+- [ ] Event emitters for panel.js:
+  - onGroupByChange(groupBy)
+  - onSortByChange(sortBy)
+  - onSortDirectionChange(direction)
+- [ ] Getter methods:
+  - getGroupBy() → 'collection'|'priority'|'status'|'none'
+  - getSortBy() → 'priority'|'dueDate'|'created'|'alpha'
+  - getSortDirection() → 'asc'|'desc'
+- [ ] NO business logic - pure UI component
+
+**Component 2: Refactor `/sidepanel/search-filter.js` (EXISTING - 531 lines)**
+- [ ] Keep as collapsible filters panel (data selection):
+  - Global search input (debounced 300ms) - KEEP
+  - Collections filters (state, tags) - KEEP
+  - Tasks filters (status, priority, collection, due date) - KEEP
+  - Active filter count badge - KEEP
+  - Clear all filters button - KEEP
+- [ ] REMOVE sortBy from filters panel (moved to presentation-controls.js)
+- [ ] Keep existing persistence for filter state
+- [ ] NO changes to search functionality
+- [ ] Remains collapsible (toggle on/off)
+
+**Component 3: Update `/sidepanel/tasks-view.js`**
+- [ ] Update render() signature:
+  - OLD: `render(tasks, collections)`
+  - NEW: `render(tasks, collections, { groupBy, sortBy, sortDirection })`
+- [ ] Implement renderUnifiedList() for groupBy='none':
+  - Flat list (no grouping)
+  - Sorted by sortBy/sortDirection
+  - No collection headers
+- [ ] Implement renderGroups() supporting multiple groupBy modes:
+  - groupBy='collection': Group by collection (current behavior)
+  - groupBy='priority': Group by High/Medium/Low/Critical
+  - groupBy='status': Group by Open/Active/Fixed/Abandoned
+- [ ] Respect sortBy/sortDirection within each group
+- [ ] NO re-sorting in view (panel.js handles sorting)
+
+**Component 4: Update `/sidepanel/panel.js`**
+- [ ] Initialize presentationControls component
+- [ ] Extract presentation options:
+  - groupBy from presentationControls.getGroupBy()
+  - sortBy from presentationControls.getSortBy()
+  - sortDirection from presentationControls.getSortDirection()
+- [ ] Update sortTasks() to accept sortDirection parameter:
+  - Support both asc and desc for all sort types
+  - Remove hardcoded direction
+- [ ] Pass options to view:
+  - tasksView.render(filteredTasks, collections, { groupBy, sortBy, sortDirection })
+
+**Component 5: Update E2E tests (LAST - after implementation)**
+- [ ] Fix test #48 "setup: create test tasks" (data setup failure)
+- [ ] Update test #69 to explicitly set groupBy='none' before testing global sort
+- [ ] Update all 31 tests in sidepanel-search-filters.spec.js:
+  - Test new presentation-controls.js UI
+  - Test groupBy options (none, collection, priority, status)
+  - Test sortDirection toggle
+  - Verify independent controls (no side effects)
+
+**Key Benefits**:
+- ✅ Predictable (no magic, what you see is what you get)
+- ✅ Flexible (any combination: Group=Collection Sort=DueDate works)
+- ✅ Discoverable (controls visible = users understand state)
+- ✅ Persistent (respects user preferences)
+- ✅ Test-friendly (explicit state, no side effects)
 
 #### 3.6 UI State Management (2-3h) **NEW**
 - [ ] Create `/sidepanel/state-manager.js` (~200 lines)
