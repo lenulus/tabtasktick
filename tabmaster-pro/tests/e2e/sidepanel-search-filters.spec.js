@@ -772,18 +772,46 @@ test.describe('Side Panel Search & Filters', () => {
     test('should sort tasks by due date', async ({ page }) => {
       await ensureTasksView(page);
 
+      // CRITICAL: Wait for presentation controls to be rendered before interacting
+      await page.waitForSelector('#group-by-select', { state: 'visible', timeout: 5000 });
+
       // DIAGNOSTIC: Count tasks before changing presentation controls
       const beforeCount = await page.locator('.task-card').count();
       console.log(`[should sort tasks by due date] Tasks visible BEFORE filters: ${beforeCount}`);
 
+      // DIAGNOSTIC: Check current groupBy value before change
+      const groupByBefore = await page.locator('#group-by-select').inputValue();
+      console.log(`[should sort tasks by due date] groupBy BEFORE: ${groupByBefore}`);
+
       // IMPORTANT: Set groupBy='none' first to get flat list (global sort)
       // Per design doc: Sort By only works globally when groupBy='none'
       await page.selectOption('#group-by-select', 'none');
-      await page.waitForTimeout(300);
+
+      // DIAGNOSTIC: Confirm groupBy was changed
+      const groupByAfter = await page.locator('#group-by-select').inputValue();
+      console.log(`[should sort tasks by due date] groupBy AFTER: ${groupByAfter}`);
+
+      // DIAGNOSTIC: Check what classes exist on task sections
+      const taskSectionClasses = await page.evaluate(() => {
+        const sections = document.querySelectorAll('.task-section');
+        return Array.from(sections).map(s => ({
+          classes: Array.from(s.classList),
+          html: s.outerHTML.substring(0, 200)
+        }));
+      });
+      console.log(`[should sort tasks by due date] Task section classes:`, JSON.stringify(taskSectionClasses, null, 2));
+
+      // Wait for the unified list class to appear (indicates flat list rendering)
+      await page.waitForSelector('.task-section.unified-list', { timeout: 5000 });
+
+      // Wait a bit more for any async operations to settle
+      await page.waitForTimeout(500);
 
       // Now select due date sort using NEW presentation controls selector
       await page.selectOption('#sort-by-select', 'dueDate');
-      await page.waitForTimeout(300);
+
+      // Wait for re-render after sort change
+      await page.waitForTimeout(500);
 
       // DIAGNOSTIC: Count tasks after sort selection
       const afterSortCount = await page.locator('.task-card').count();
@@ -810,13 +838,23 @@ test.describe('Side Panel Search & Filters', () => {
     test('should sort tasks by priority', async ({ page }) => {
       await ensureTasksView(page);
 
+      // CRITICAL: Wait for presentation controls to be rendered before interacting
+      await page.waitForSelector('#group-by-select', { state: 'visible', timeout: 5000 });
+
       // IMPORTANT: Set groupBy='none' first to get flat list (global sort)
       await page.selectOption('#group-by-select', 'none');
-      await page.waitForTimeout(300);
+
+      // Wait for the unified list class to appear (indicates flat list rendering)
+      await page.waitForSelector('.task-section.unified-list', { timeout: 5000 });
+
+      // Wait for async operations to settle
+      await page.waitForTimeout(500);
 
       // Select priority sort using NEW presentation controls selector
       await page.selectOption('#sort-by-select', 'priority');
-      await page.waitForTimeout(300);
+
+      // Wait for re-render after sort change
+      await page.waitForTimeout(500);
 
       // Should be sorted by priority (critical, high, medium, low)
       const taskCards = page.locator('.task-card');
