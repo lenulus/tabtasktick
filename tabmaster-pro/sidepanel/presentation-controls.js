@@ -75,6 +75,9 @@ export class PresentationControls {
     `;
 
     container.innerHTML = html;
+
+    // Signal that controls are fully rendered (for E2E tests)
+    container.setAttribute('data-ready', 'true');
   }
 
   /**

@@ -121,6 +121,8 @@ test.describe('Side Panel Search & Filters', () => {
             panelController.presentationControls.sortBy = 'priority';
             panelController.presentationControls.sortDirection = 'desc';
             panelController.presentationControls.render();
+            // CRITICAL: Re-attach event listeners after render() destroys/recreates DOM
+            panelController.presentationControls.setupEventListeners();
           }
 
           // Trigger re-render with cleared state
@@ -772,8 +774,31 @@ test.describe('Side Panel Search & Filters', () => {
     test('should sort tasks by due date', async ({ page }) => {
       await ensureTasksView(page);
 
-      // CRITICAL: Wait for presentation controls to be rendered before interacting
-      await page.waitForSelector('#group-by-select', { state: 'visible', timeout: 5000 });
+      // DIAGNOSTIC: Check if presentation controls container exists
+      const containerExists = await page.evaluate(() => {
+        const container = document.getElementById('presentation-controls');
+        return {
+          exists: !!container,
+          html: container ? container.outerHTML.substring(0, 500) : null,
+          hasDataReady: container ? container.getAttribute('data-ready') : null,
+          children: container ? container.children.length : 0
+        };
+      });
+      console.log(`[should sort tasks by due date] Container state:`, JSON.stringify(containerExists, null, 2));
+
+      // DIAGNOSTIC: Check if panelController and presentationControls exist
+      const controllerState = await page.evaluate(() => {
+        return {
+          hasPanelController: !!window.panelController,
+          hasPresentationControls: !!(window.panelController?.presentationControls),
+          groupBy: window.panelController?.presentationControls?.groupBy,
+          sortBy: window.panelController?.presentationControls?.sortBy
+        };
+      });
+      console.log(`[should sort tasks by due date] Controller state:`, JSON.stringify(controllerState, null, 2));
+
+      // CRITICAL: Wait for presentation controls to be fully initialized before interacting
+      await page.waitForSelector('#group-by-select', { state: 'visible', timeout: 10000 });
 
       // DIAGNOSTIC: Count tasks before changing presentation controls
       const beforeCount = await page.locator('.task-card').count();
@@ -787,21 +812,28 @@ test.describe('Side Panel Search & Filters', () => {
       // Per design doc: Sort By only works globally when groupBy='none'
       await page.selectOption('#group-by-select', 'none');
 
-      // DIAGNOSTIC: Confirm groupBy was changed
-      const groupByAfter = await page.locator('#group-by-select').inputValue();
-      console.log(`[should sort tasks by due date] groupBy AFTER: ${groupByAfter}`);
+      // Give it a moment for the change event to fire
+      await page.waitForTimeout(1000);
 
-      // DIAGNOSTIC: Check what classes exist on task sections
-      const taskSectionClasses = await page.evaluate(() => {
+      // DIAGNOSTIC: See what actually rendered after groupBy change
+      const afterGroupByChange = await page.evaluate(() => {
         const sections = document.querySelectorAll('.task-section');
-        return Array.from(sections).map(s => ({
-          classes: Array.from(s.classList),
-          html: s.outerHTML.substring(0, 200)
-        }));
+        return {
+          sectionCount: sections.length,
+          sections: Array.from(sections).map(s => ({
+            classes: Array.from(s.classList),
+            hasUnifiedList: s.classList.contains('unified-list'),
+            html: s.outerHTML.substring(0, 300)
+          })),
+          groupByValue: document.getElementById('group-by-select')?.value,
+          taskCardCount: document.querySelectorAll('.task-card').length
+        };
       });
-      console.log(`[should sort tasks by due date] Task section classes:`, JSON.stringify(taskSectionClasses, null, 2));
+      console.log(`[should sort tasks by due date] After groupBy=none:`, JSON.stringify(afterGroupByChange, null, 2));
 
-      // Wait for the unified list class to appear (indicates flat list rendering)
+      // CRITICAL: Wait for re-render to complete after groupBy change
+      // The change event triggers: onGroupByChange() → applyFiltersAndRender() → render()
+      // We need to wait for the unified-list class to appear (indicates flat list rendering)
       await page.waitForSelector('.task-section.unified-list', { timeout: 5000 });
 
       // Wait a bit more for any async operations to settle
@@ -810,19 +842,45 @@ test.describe('Side Panel Search & Filters', () => {
       // Now select due date sort using NEW presentation controls selector
       await page.selectOption('#sort-by-select', 'dueDate');
 
+      // Click sort direction toggle to change from desc to asc (soonest first)
+      await page.click('#sort-direction-toggle');
+
       // Wait for re-render after sort change
       await page.waitForTimeout(500);
+
+      // DIAGNOSTIC: Check if sortBy actually changed AND if callbacks exist
+      const sortByState = await page.evaluate(() => {
+        const pc = window.panelController?.presentationControls;
+        return {
+          dropdownValue: document.getElementById('sort-by-select')?.value,
+          controllerSortBy: pc?.sortBy,
+          controllerSortDirection: pc?.sortDirection,
+          hasOnGroupByChange: typeof pc?.onGroupByChange === 'function',
+          hasOnSortByChange: typeof pc?.onSortByChange === 'function',
+          hasOnSortDirectionChange: typeof pc?.onSortDirectionChange === 'function'
+        };
+      });
+      console.log(`[should sort tasks by due date] SortBy state AFTER change:`, JSON.stringify(sortByState, null, 2));
 
       // DIAGNOSTIC: Count tasks after sort selection
       const afterSortCount = await page.locator('.task-card').count();
       console.log(`[should sort tasks by due date] Tasks visible AFTER sort: ${afterSortCount}`);
 
-      // DIAGNOSTIC: Log actual task order
+      // DIAGNOSTIC: Log actual task order WITH DUE DATES
       const taskOrder = await page.evaluate(() => {
+        // Get tasks from controller to see their due dates
+        const tasks = window.panelController?.tasksData || [];
+        const taskMap = {};
+        tasks.forEach(t => {
+          taskMap[t.summary] = t.dueDate;
+        });
+
         const cards = document.querySelectorAll('.task-card');
         return Array.from(cards).map((card, idx) => {
-          const summary = card.querySelector('.task-summary, .task-card-summary, h4, h3');
-          return `[${idx}] ${summary?.textContent?.trim() || 'Unknown'}`;
+          const summary = card.querySelector('.task-summary, .task-card-summary, h4, h3')?.textContent?.trim() || 'Unknown';
+          const dueDate = taskMap[summary];
+          const dueDateStr = dueDate ? new Date(dueDate).toLocaleString() : 'null';
+          return `[${idx}] ${summary} (due: ${dueDateStr})`;
         });
       });
       console.log(`[should sort tasks by due date] Actual task order:`, taskOrder);
@@ -838,7 +896,9 @@ test.describe('Side Panel Search & Filters', () => {
     test('should sort tasks by priority', async ({ page }) => {
       await ensureTasksView(page);
 
-      // CRITICAL: Wait for presentation controls to be rendered before interacting
+      // CRITICAL: Wait for presentation controls to be fully initialized before interacting
+      // presentation-controls.js sets data-ready="true" after render() completes
+      await page.waitForSelector('#presentation-controls[data-ready="true"]', { timeout: 5000 });
       await page.waitForSelector('#group-by-select', { state: 'visible', timeout: 5000 });
 
       // IMPORTANT: Set groupBy='none' first to get flat list (global sort)
