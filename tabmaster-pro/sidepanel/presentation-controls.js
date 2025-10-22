@@ -87,14 +87,16 @@ export class PresentationControls {
     // Group By dropdown
     const groupBySelect = document.getElementById('group-by-select');
     if (groupBySelect) {
-      groupBySelect.addEventListener('change', async (e) => {
+      groupBySelect.addEventListener('change', (e) => {
         const newGroupBy = e.target.value;
         if (newGroupBy !== this.groupBy) {
           this.groupBy = newGroupBy;
-          await this.saveState();
+          // Fire callback IMMEDIATELY with updated value (don't wait for saveState)
           if (this.onGroupByChange) {
             this.onGroupByChange(this.groupBy);
           }
+          // Save state in background (non-blocking)
+          this.saveState().catch(err => console.error('Failed to save groupBy state:', err));
         }
       });
     }
@@ -102,14 +104,16 @@ export class PresentationControls {
     // Sort By dropdown
     const sortBySelect = document.getElementById('sort-by-select');
     if (sortBySelect) {
-      sortBySelect.addEventListener('change', async (e) => {
+      sortBySelect.addEventListener('change', (e) => {
         const newSortBy = e.target.value;
         if (newSortBy !== this.sortBy) {
           this.sortBy = newSortBy;
-          await this.saveState();
+          // Fire callback IMMEDIATELY with updated value (don't wait for saveState)
           if (this.onSortByChange) {
             this.onSortByChange(this.sortBy);
           }
+          // Save state in background (non-blocking)
+          this.saveState().catch(err => console.error('Failed to save sortBy state:', err));
         }
       });
     }
@@ -117,7 +121,7 @@ export class PresentationControls {
     // Sort Direction toggle button
     const sortDirectionBtn = document.getElementById('sort-direction-toggle');
     if (sortDirectionBtn) {
-      sortDirectionBtn.addEventListener('click', async () => {
+      sortDirectionBtn.addEventListener('click', () => {
         // Toggle direction
         this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
 
@@ -125,10 +129,12 @@ export class PresentationControls {
         sortDirectionBtn.textContent = this.sortDirection === 'asc' ? '↑' : '↓';
         sortDirectionBtn.title = this.sortDirection === 'asc' ? 'Ascending' : 'Descending';
 
-        await this.saveState();
+        // Fire callback IMMEDIATELY with updated value (don't wait for saveState)
         if (this.onSortDirectionChange) {
           this.onSortDirectionChange(this.sortDirection);
         }
+        // Save state in background (non-blocking)
+        this.saveState().catch(err => console.error('Failed to save sortDirection state:', err));
       });
     }
   }

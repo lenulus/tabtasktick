@@ -1,0 +1,1161 @@
+
+> tabmaster-pro@1.0.0 test:e2e
+> playwright test tests/e2e/sidepanel-search-filters.spec.js --reporter=line
+
+
+Running 31 tests using 1 worker
+
+[1A[2K[1/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:134:3 › Side Panel Search & Filters › setup: create test collections
+[1A[2K[2/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:244:3 › Side Panel Search & Filters › setup: create test tasks
+[1A[2K[3/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:357:5 › Side Panel Search & Filters › Global Search › should filter collections by name
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:357:5 › Side Panel Search & Filters › Global Search › should filter collections by name
+[should filter collections by name] Filters BEFORE clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter collections by name] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter collections by name] Test data: 4 collections, 5 tasks
+
+[1A[2K[4/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:372:5 › Side Panel Search & Filters › Global Search › should filter collections by description
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:372:5 › Side Panel Search & Filters › Global Search › should filter collections by description
+[should filter collections by description] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter collections by description] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter collections by description] Test data: 4 collections, 5 tasks
+
+[1A[2K[5/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:385:5 › Side Panel Search & Filters › Global Search › should filter collections by tags
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:385:5 › Side Panel Search & Filters › Global Search › should filter collections by tags
+[should filter collections by tags] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter collections by tags] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter collections by tags] Test data: 4 collections, 5 tasks
+
+[1A[2K[6/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:398:5 › Side Panel Search & Filters › Global Search › should filter tasks by summary
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:398:5 › Side Panel Search & Filters › Global Search › should filter tasks by summary
+[should filter tasks by summary] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter tasks by summary] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter tasks by summary] Test data: 4 collections, 5 tasks
+
+[1A[2K[7/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:412:5 › Side Panel Search & Filters › Global Search › should filter tasks by notes
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:412:5 › Side Panel Search & Filters › Global Search › should filter tasks by notes
+[should filter tasks by notes] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter tasks by notes] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter tasks by notes] Test data: 4 collections, 5 tasks
+
+[1A[2K[8/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:426:5 › Side Panel Search & Filters › Global Search › should show no results message when search has no matches
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:426:5 › Side Panel Search & Filters › Global Search › should show no results message when search has no matches
+[should show no results message when search has no matches] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should show no results message when search has no matches] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should show no results message when search has no matches] Test data: 4 collections, 5 tasks
+
+[1A[2K[9/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:448:5 › Side Panel Search & Filters › Global Search › should clear search on input clear
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:448:5 › Side Panel Search & Filters › Global Search › should clear search on input clear
+[should clear search on input clear] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should clear search on input clear] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should clear search on input clear] Test data: 4 collections, 5 tasks
+
+[1A[2K[10/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:480:5 › Side Panel Search & Filters › Collections Filters › should toggle filters panel
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:480:5 › Side Panel Search & Filters › Collections Filters › should toggle filters panel
+[should toggle filters panel] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should toggle filters panel] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should toggle filters panel] Test data: 4 collections, 5 tasks
+
+[1A[2K[11/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:500:5 › Side Panel Search & Filters › Collections Filters › should filter collections by state (Active)
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:500:5 › Side Panel Search & Filters › Collections Filters › should filter collections by state (Active)
+[should filter collections by state (Active)] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter collections by state (Active)] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter collections by state (Active)] Test data: 4 collections, 5 tasks
+
+[1A[2K[12/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:521:5 › Side Panel Search & Filters › Collections Filters › should filter collections by state (Saved)
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:521:5 › Side Panel Search & Filters › Collections Filters › should filter collections by state (Saved)
+[should filter collections by state (Saved)] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "active",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter collections by state (Saved)] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter collections by state (Saved)] Test data: 4 collections, 5 tasks
+
+[1A[2K[13/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:542:5 › Side Panel Search & Filters › Collections Filters › should filter collections by tags
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:542:5 › Side Panel Search & Filters › Collections Filters › should filter collections by tags
+[should filter collections by tags] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "saved",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter collections by tags] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter collections by tags] Test data: 4 collections, 5 tasks
+
+[1A[2K[14/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:559:5 › Side Panel Search & Filters › Collections Filters › should filter collections by multiple tags (OR logic)
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:559:5 › Side Panel Search & Filters › Collections Filters › should filter collections by multiple tags (OR logic)
+[should filter collections by multiple tags (OR logic)] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": [
+      "work"
+    ]
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter collections by multiple tags (OR logic)] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter collections by multiple tags (OR logic)] Test data: 4 collections, 5 tasks
+
+[1A[2K[15/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:575:5 › Side Panel Search & Filters › Collections Filters › should sort collections by name
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:575:5 › Side Panel Search & Filters › Collections Filters › should sort collections by name
+[should sort collections by name] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": [
+      "work",
+      "personal"
+    ]
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should sort collections by name] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should sort collections by name] Test data: 4 collections, 5 tasks
+
+[1A[2K[16/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:601:5 › Side Panel Search & Filters › Collections Filters › should sort collections by created date
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:601:5 › Side Panel Search & Filters › Collections Filters › should sort collections by created date
+[should sort collections by created date] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "name",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should sort collections by created date] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should sort collections by created date] Test data: 4 collections, 5 tasks
+
+[1A[2K[17/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:619:5 › Side Panel Search & Filters › Collections Filters › should clear collections filters
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:619:5 › Side Panel Search & Filters › Collections Filters › should clear collections filters
+[should clear collections filters] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "created",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should clear collections filters] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should clear collections filters] Test data: 4 collections, 5 tasks
+
+[1A[2K[18/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:654:5 › Side Panel Search & Filters › Tasks Filters › should filter tasks by status
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:654:5 › Side Panel Search & Filters › Tasks Filters › should filter tasks by status
+[should filter tasks by status] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter tasks by status] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter tasks by status] Test data: 4 collections, 5 tasks
+
+[1A[2K[19/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:672:5 › Side Panel Search & Filters › Tasks Filters › should filter tasks by multiple statuses
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:672:5 › Side Panel Search & Filters › Tasks Filters › should filter tasks by multiple statuses
+[should filter tasks by multiple statuses] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": [
+      "active"
+    ]
+  }
+}
+
+[1A[2K[should filter tasks by multiple statuses] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter tasks by multiple statuses] Test data: 4 collections, 5 tasks
+
+[1A[2K[20/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:688:5 › Side Panel Search & Filters › Tasks Filters › should filter tasks by priority
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:688:5 › Side Panel Search & Filters › Tasks Filters › should filter tasks by priority
+[should filter tasks by priority] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [],
+    "status": [
+      "open",
+      "fixed"
+    ]
+  }
+}
+
+[1A[2K[should filter tasks by priority] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter tasks by priority] Test data: 4 collections, 5 tasks
+
+[1A[2K[21/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:704:5 › Side Panel Search & Filters › Tasks Filters › should filter tasks by collection
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:704:5 › Side Panel Search & Filters › Tasks Filters › should filter tasks by collection
+[should filter tasks by collection] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [],
+    "dueDateRange": null,
+    "priority": [
+      "critical"
+    ],
+    "status": []
+  }
+}
+
+[1A[2K[should filter tasks by collection] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter tasks by collection] Test data: 4 collections, 5 tasks
+
+[1A[2K[22/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:740:5 › Side Panel Search & Filters › Tasks Filters › should filter uncategorized tasks
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:740:5 › Side Panel Search & Filters › Tasks Filters › should filter uncategorized tasks
+[should filter uncategorized tasks] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [
+      "f65a5652-66f0-4066-9ff9-d8c899446f77"
+    ],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should filter uncategorized tasks] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should filter uncategorized tasks] Test data: 4 collections, 5 tasks
+
+[1A[2K[23/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:757:5 › Side Panel Search & Filters › Tasks Filters › should sort tasks by due date
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:757:5 › Side Panel Search & Filters › Tasks Filters › should sort tasks by due date
+[should sort tasks by due date] Filters BEFORE clear: {
+  "collections": {
+    "sortBy": "lastAccessed",
+    "state": "all",
+    "tags": []
+  },
+  "tasks": {
+    "collectionId": [
+      "uncategorized"
+    ],
+    "dueDateRange": null,
+    "priority": [],
+    "status": []
+  }
+}
+
+[1A[2K[should sort tasks by due date] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should sort tasks by due date] Test data: 4 collections, 5 tasks
+
+[1A[2K[should sort tasks by due date] Tasks visible BEFORE filters: 5
+
+[1A[2K  1) [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:757:5 › Side Panel Search & Filters › Tasks Filters › should sort tasks by due date 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.selectOption: Target page, context or browser has been closed
+    Call log:
+    [2m  - waiting for locator('#tasks-filters [data-filter="sortBy"]')[22m
+
+
+      771 |
+      772 |       // Select due date sort (default) - use specific selector for tasks view
+    > 773 |       await page.selectOption('#tasks-filters [data-filter="sortBy"]', 'dueDate');
+          |                  ^
+      774 |       await page.waitForTimeout(300); // Increased wait for sort to apply
+      775 |
+      776 |       // DIAGNOSTIC: Count tasks after sort selection
+        at /Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:773:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-4ca2a-ould-sort-tasks-by-due-date-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-4ca2a-ould-sort-tasks-by-due-date-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[24/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:798:5 › Side Panel Search & Filters › Tasks Filters › should sort tasks by priority
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:798:5 › Side Panel Search & Filters › Tasks Filters › should sort tasks by priority
+[should sort tasks by priority] Filters BEFORE clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should sort tasks by priority] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K  2) [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:798:5 › Side Panel Search & Filters › Tasks Filters › should sort tasks by priority 
+
+    Error: Test data missing! Setup tests must run first. Found: 0 collections, 0 tasks
+
+      65 |
+      66 |   if (dataExists.collections === 0 && dataExists.tasks === 0) {
+    > 67 |     throw new Error(`Test data missing! Setup tests must run first. Found: ${dataExists.collections} collections, ${dataExists.tasks} tasks`);
+         |           ^
+      68 |   }
+      69 |
+      70 |   return dataExists;
+        at verifyTestDataExists (/Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:67:11)
+        at /Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:128:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-33f1e-ould-sort-tasks-by-priority-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-33f1e-ould-sort-tasks-by-priority-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[25/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:821:5 › Side Panel Search & Filters › Tasks Filters › should clear tasks filters
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:821:5 › Side Panel Search & Filters › Tasks Filters › should clear tasks filters
+[should clear tasks filters] Filters BEFORE clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should clear tasks filters] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K  3) [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:821:5 › Side Panel Search & Filters › Tasks Filters › should clear tasks filters 
+
+    Error: Test data missing! Setup tests must run first. Found: 0 collections, 0 tasks
+
+      65 |
+      66 |   if (dataExists.collections === 0 && dataExists.tasks === 0) {
+    > 67 |     throw new Error(`Test data missing! Setup tests must run first. Found: ${dataExists.collections} collections, ${dataExists.tasks} tasks`);
+         |           ^
+      68 |   }
+      69 |
+      70 |   return dataExists;
+        at verifyTestDataExists (/Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:67:11)
+        at /Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:128:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-65857--should-clear-tasks-filters-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-65857--should-clear-tasks-filters-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[26/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:847:5 › Side Panel Search & Filters › Filter Persistence › should persist collections filters across panel reopens
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:847:5 › Side Panel Search & Filters › Filter Persistence › should persist collections filters across panel reopens
+[should persist collections filters across panel reopens] Filters BEFORE clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should persist collections filters across panel reopens] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K  4) [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:847:5 › Side Panel Search & Filters › Filter Persistence › should persist collections filters across panel reopens 
+
+    Error: Test data missing! Setup tests must run first. Found: 0 collections, 0 tasks
+
+      65 |
+      66 |   if (dataExists.collections === 0 && dataExists.tasks === 0) {
+    > 67 |     throw new Error(`Test data missing! Setup tests must run first. Found: ${dataExists.collections} collections, ${dataExists.tasks} tasks`);
+         |           ^
+      68 |   }
+      69 |
+      70 |   return dataExists;
+        at verifyTestDataExists (/Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:67:11)
+        at /Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:128:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-471a1-ilters-across-panel-reopens-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-471a1-ilters-across-panel-reopens-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[27/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:877:5 › Side Panel Search & Filters › Filter Persistence › should persist tasks filters across panel reopens
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:877:5 › Side Panel Search & Filters › Filter Persistence › should persist tasks filters across panel reopens
+[should persist tasks filters across panel reopens] Filters BEFORE clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should persist tasks filters across panel reopens] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K  5) [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:877:5 › Side Panel Search & Filters › Filter Persistence › should persist tasks filters across panel reopens 
+
+    Error: Test data missing! Setup tests must run first. Found: 0 collections, 0 tasks
+
+      65 |
+      66 |   if (dataExists.collections === 0 && dataExists.tasks === 0) {
+    > 67 |     throw new Error(`Test data missing! Setup tests must run first. Found: ${dataExists.collections} collections, ${dataExists.tasks} tasks`);
+         |           ^
+      68 |   }
+      69 |
+      70 |   return dataExists;
+        at verifyTestDataExists (/Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:67:11)
+        at /Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:128:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-a2e21-ilters-across-panel-reopens-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-a2e21-ilters-across-panel-reopens-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[28/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:907:5 › Side Panel Search & Filters › Filter Persistence › should persist filter visibility state
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:907:5 › Side Panel Search & Filters › Filter Persistence › should persist filter visibility state
+[should persist filter visibility state] Filters BEFORE clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should persist filter visibility state] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K  6) [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:907:5 › Side Panel Search & Filters › Filter Persistence › should persist filter visibility state 
+
+    Error: Test data missing! Setup tests must run first. Found: 0 collections, 0 tasks
+
+      65 |
+      66 |   if (dataExists.collections === 0 && dataExists.tasks === 0) {
+    > 67 |     throw new Error(`Test data missing! Setup tests must run first. Found: ${dataExists.collections} collections, ${dataExists.tasks} tasks`);
+         |           ^
+      68 |   }
+      69 |
+      70 |   return dataExists;
+        at verifyTestDataExists (/Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:67:11)
+        at /Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:128:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-18820-ist-filter-visibility-state-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-18820-ist-filter-visibility-state-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[29/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:928:5 › Side Panel Search & Filters › Combined Search and Filters › should apply search and filters together on collections
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:928:5 › Side Panel Search & Filters › Combined Search and Filters › should apply search and filters together on collections
+[should apply search and filters together on collections] Filters BEFORE clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should apply search and filters together on collections] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K  7) [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:928:5 › Side Panel Search & Filters › Combined Search and Filters › should apply search and filters together on collections 
+
+    Error: Test data missing! Setup tests must run first. Found: 0 collections, 0 tasks
+
+      65 |
+      66 |   if (dataExists.collections === 0 && dataExists.tasks === 0) {
+    > 67 |     throw new Error(`Test data missing! Setup tests must run first. Found: ${dataExists.collections} collections, ${dataExists.tasks} tasks`);
+         |           ^
+      68 |   }
+      69 |
+      70 |   return dataExists;
+        at verifyTestDataExists (/Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:67:11)
+        at /Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:128:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-92196-ers-together-on-collections-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-92196-ers-together-on-collections-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[30/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:947:5 › Side Panel Search & Filters › Combined Search and Filters › should apply search and filters together on tasks
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:947:5 › Side Panel Search & Filters › Combined Search and Filters › should apply search and filters together on tasks
+[should apply search and filters together on tasks] Filters BEFORE clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should apply search and filters together on tasks] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K  8) [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:947:5 › Side Panel Search & Filters › Combined Search and Filters › should apply search and filters together on tasks 
+
+    Error: Test data missing! Setup tests must run first. Found: 0 collections, 0 tasks
+
+      65 |
+      66 |   if (dataExists.collections === 0 && dataExists.tasks === 0) {
+    > 67 |     throw new Error(`Test data missing! Setup tests must run first. Found: ${dataExists.collections} collections, ${dataExists.tasks} tasks`);
+         |           ^
+      68 |   }
+      69 |
+      70 |   return dataExists;
+        at verifyTestDataExists (/Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:67:11)
+        at /Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:128:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-501eb-d-filters-together-on-tasks-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-501eb-d-filters-together-on-tasks-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[31/31] [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:967:5 › Side Panel Search & Filters › Combined Search and Filters › should show no results when search and filters exclude all items
+[1A[2K[chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:967:5 › Side Panel Search & Filters › Combined Search and Filters › should show no results when search and filters exclude all items
+[should show no results when search and filters exclude all items] Filters BEFORE clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K[should show no results when search and filters exclude all items] Filters AFTER clear: {
+  "collections": {
+    "state": "all",
+    "tags": [],
+    "sortBy": "lastAccessed"
+  },
+  "tasks": {
+    "status": [],
+    "priority": [],
+    "collectionId": [],
+    "dueDateRange": null
+  }
+}
+
+[1A[2K  9) [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:967:5 › Side Panel Search & Filters › Combined Search and Filters › should show no results when search and filters exclude all items 
+
+    Error: Test data missing! Setup tests must run first. Found: 0 collections, 0 tasks
+
+      65 |
+      66 |   if (dataExists.collections === 0 && dataExists.tasks === 0) {
+    > 67 |     throw new Error(`Test data missing! Setup tests must run first. Found: ${dataExists.collections} collections, ${dataExists.tasks} tasks`);
+         |           ^
+      68 |   }
+      69 |
+      70 |   return dataExists;
+        at verifyTestDataExists (/Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:67:11)
+        at /Users/anthonylaforge/dev/bmpro/tabmaster-pro/tests/e2e/sidepanel-search-filters.spec.js:128:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-a325e-d-filters-exclude-all-items-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/sidepanel-search-filters-S-a325e-d-filters-exclude-all-items-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  9 failed
+    [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:757:5 › Side Panel Search & Filters › Tasks Filters › should sort tasks by due date 
+    [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:798:5 › Side Panel Search & Filters › Tasks Filters › should sort tasks by priority 
+    [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:821:5 › Side Panel Search & Filters › Tasks Filters › should clear tasks filters 
+    [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:847:5 › Side Panel Search & Filters › Filter Persistence › should persist collections filters across panel reopens 
+    [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:877:5 › Side Panel Search & Filters › Filter Persistence › should persist tasks filters across panel reopens 
+    [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:907:5 › Side Panel Search & Filters › Filter Persistence › should persist filter visibility state 
+    [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:928:5 › Side Panel Search & Filters › Combined Search and Filters › should apply search and filters together on collections 
+    [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:947:5 › Side Panel Search & Filters › Combined Search and Filters › should apply search and filters together on tasks 
+    [chromium-extension] › tests/e2e/sidepanel-search-filters.spec.js:967:5 › Side Panel Search & Filters › Combined Search and Filters › should show no results when search and filters exclude all items 
+  22 passed (1.9m)
