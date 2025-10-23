@@ -872,20 +872,21 @@ Following architecture-guardian review, key improvements from initial plan:
 **Status**: Design complete, test fixes committed, ready for implementation (2025-10-21)
 **Design Document**: `/docs/GROUPBY-SORTBY-DESIGN.md`
 
-**Recent Progress**:
-- ✅ Fixed test #23-24 timeout (scroll + specific selector) - commit 81640b3
-- ✅ Fixed architecture violation (removed duplicate sorting from tasks-view.js) - commit 2054357
-- ✅ Created comprehensive design document
-- ✅ Updated TODO.md with approved design
-- ✅ Completed code audit (2025-10-21):
-  - search-filter.js EXISTS (531 lines) - collapsible filters panel
-  - tasks-view.js needs refactor to accept { groupBy, sortBy, sortDirection }
-  - panel.js needs update to pass presentation options to view
-  - **Architecture clarified**: Need TWO separate components (presentation controls vs filters)
-- ⚠️  **E2E test data setup failing** (test #48 "setup: create test tasks")
-  - All tests after setup fail with "Test data missing! Setup tests must run first"
-  - **Strategy**: Implement Phase 3.5 features FIRST, then fix E2E tests LAST (per plan)
-  - Don't get stuck debugging tests before building the feature
+**Recent Progress** (2025-10-22):
+- ✅ Fixed test #23 async race condition - commit 88338a1
+  - Root cause: presentation-controls.js event handlers awaited saveState() before firing callbacks
+  - Fix: Fire callbacks immediately, saveState() runs in background (non-blocking)
+  - Result: Test #23 "should sort tasks by due date" now passes
+- ✅ E2E Test Status: **24/31 passing** (77% pass rate)
+  - Tests #1-2: Setup tests PASS ✓
+  - Tests #3-24: Feature tests PASS ✓
+  - Test #25: "should clear tasks filters" HANGS (30s timeout → browser crash)
+  - Tests #26-31: Cascade failures (browser crash clears IndexedDB → "Test data missing!")
+- 🔴 **NEXT SESSION: Debug test #25 hang**
+  - Location: sidepanel-search-filters.spec.js:927 (line 943 fails clicking clear button)
+  - Issue: Browser crashes between lines 940-943 (after filtering to 1 task, before clearing)
+  - Impact: Crash discards IndexedDB state → cascades to 6 more failures
+  - Approach: Use shortened test runs (setup + test #25 only) to debug efficiently
 
 **Key Design Decision**: Separate "Group By" and "Sort By" controls (inspired by database visualization patterns)
 
