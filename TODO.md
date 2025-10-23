@@ -868,8 +868,8 @@ Following architecture-guardian review, key improvements from initial plan:
   - Pass to respective views
 - [x] Handle refresh on focus (reload data when panel opens)
 
-#### 3.5 Search & Filters Infrastructure (2-3h) 🔄 IN PROGRESS
-**Status**: Design complete, test fixes committed, ready for implementation (2025-10-21)
+#### 3.5 Search & Filters Infrastructure (2-3h) ✅ **COMPLETE**
+**Status**: All tests passing, ready for implementation (2025-10-22)
 **Design Document**: `/docs/GROUPBY-SORTBY-DESIGN.md`
 
 **Recent Progress** (2025-10-22):
@@ -877,16 +877,16 @@ Following architecture-guardian review, key improvements from initial plan:
   - Root cause: presentation-controls.js event handlers awaited saveState() before firing callbacks
   - Fix: Fire callbacks immediately, saveState() runs in background (non-blocking)
   - Result: Test #23 "should sort tasks by due date" now passes
-- ✅ E2E Test Status: **24/31 passing** (77% pass rate)
-  - Tests #1-2: Setup tests PASS ✓
-  - Tests #3-24: Feature tests PASS ✓
-  - Test #25: "should clear tasks filters" HANGS (30s timeout → browser crash)
-  - Tests #26-31: Cascade failures (browser crash clears IndexedDB → "Test data missing!")
-- 🔴 **NEXT SESSION: Debug test #25 hang**
-  - Location: sidepanel-search-filters.spec.js:927 (line 943 fails clicking clear button)
-  - Issue: Browser crashes between lines 940-943 (after filtering to 1 task, before clearing)
-  - Impact: Crash discards IndexedDB state → cascades to 6 more failures
-  - Approach: Use shortened test runs (setup + test #25 only) to debug efficiently
+- ✅ Fixed test #25 browser crash - commit e887d70
+  - Root cause: Checkbox filter handlers updated state but didn't re-render UI, so "Clear Filters" button never appeared
+  - Fix: Added debounced re-render helpers, updated all checkbox handlers + clear methods
+  - Pattern: Same as presentation-controls.js - fire callbacks immediately, defer DOM manipulation
+  - Result: Test #25 now passes, cascade failures (#26-31) resolved
+- ✅ **E2E Test Status: 31/31 passing (100% pass rate)**
+  - All setup tests PASS ✓
+  - All feature tests PASS ✓
+  - All filter/sort tests PASS ✓
+  - Duration: 1.5 minutes
 
 **Key Design Decision**: Separate "Group By" and "Sort By" controls (inspired by database visualization patterns)
 
