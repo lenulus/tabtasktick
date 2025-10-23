@@ -25,6 +25,8 @@ export class SearchFilter {
       // Note: sortBy moved to presentation-controls.js (always-visible controls)
     };
     this.searchDebounceTimeout = null;
+    this.collectionsRenderTimeout = null; // Debounce timer for collections re-render
+    this.tasksRenderTimeout = null;       // Debounce timer for tasks re-render
     this.onSearchChange = null;
     this.onFiltersChange = null;
     // Store available options for re-rendering
@@ -276,10 +278,17 @@ export class SearchFilter {
             t => t !== checkbox.value
           );
         }
-        this.saveFilterState();
+
+        // Save state in background (non-blocking)
+        this.saveFilterState().catch(err => console.error('Failed to save filter state:', err));
+
+        // Fire callback IMMEDIATELY with updated filters
         if (this.onFiltersChange) {
           this.onFiltersChange('collections', this.collectionsFilters);
         }
+
+        // Schedule debounced re-render (shows/hides clear button, avoids destroying checkbox during event)
+        this.scheduleCollectionsRender();
       });
     });
 
@@ -323,10 +332,17 @@ export class SearchFilter {
             s => s !== checkbox.value
           );
         }
-        this.saveFilterState();
+
+        // Save state in background (non-blocking)
+        this.saveFilterState().catch(err => console.error('Failed to save filter state:', err));
+
+        // Fire callback IMMEDIATELY with updated filters
         if (this.onFiltersChange) {
           this.onFiltersChange('tasks', this.tasksFilters);
         }
+
+        // Schedule debounced re-render (shows/hides clear button, avoids destroying checkbox during event)
+        this.scheduleTasksRender();
       });
     });
 
@@ -342,10 +358,17 @@ export class SearchFilter {
             p => p !== checkbox.value
           );
         }
-        this.saveFilterState();
+
+        // Save state in background (non-blocking)
+        this.saveFilterState().catch(err => console.error('Failed to save filter state:', err));
+
+        // Fire callback IMMEDIATELY with updated filters
         if (this.onFiltersChange) {
           this.onFiltersChange('tasks', this.tasksFilters);
         }
+
+        // Schedule debounced re-render (shows/hides clear button, avoids destroying checkbox during event)
+        this.scheduleTasksRender();
       });
     });
 
@@ -361,10 +384,17 @@ export class SearchFilter {
             c => c !== checkbox.value
           );
         }
-        this.saveFilterState();
+
+        // Save state in background (non-blocking)
+        this.saveFilterState().catch(err => console.error('Failed to save filter state:', err));
+
+        // Fire callback IMMEDIATELY with updated filters
         if (this.onFiltersChange) {
           this.onFiltersChange('tasks', this.tasksFilters);
         }
+
+        // Schedule debounced re-render (shows/hides clear button, avoids destroying checkbox during event)
+        this.scheduleTasksRender();
       });
     });
 
@@ -388,11 +418,17 @@ export class SearchFilter {
       tags: [],
       sortBy: 'lastAccessed'
     };
-    this.saveFilterState();
-    this.renderCollectionsFilters(); // Re-render to clear UI
+
+    // Save state in background (non-blocking)
+    this.saveFilterState().catch(err => console.error('Failed to save filter state:', err));
+
+    // Fire callback IMMEDIATELY with updated filters (don't wait for re-render)
     if (this.onFiltersChange) {
       this.onFiltersChange('collections', this.collectionsFilters);
     }
+
+    // Schedule debounced re-render (avoid destroying button during click event)
+    this.scheduleCollectionsRender();
   }
 
   /**
@@ -406,11 +442,17 @@ export class SearchFilter {
       dueDateRange: null
       // Note: sortBy is not part of filters anymore (moved to presentation-controls.js)
     };
-    this.saveFilterState();
-    this.renderTasksFilters(); // Re-render to clear UI
+
+    // Save state in background (non-blocking)
+    this.saveFilterState().catch(err => console.error('Failed to save filter state:', err));
+
+    // Fire callback IMMEDIATELY with updated filters (don't wait for re-render)
     if (this.onFiltersChange) {
       this.onFiltersChange('tasks', this.tasksFilters);
     }
+
+    // Schedule debounced re-render (avoid destroying button during click event)
+    this.scheduleTasksRender();
   }
 
   /**
@@ -503,5 +545,27 @@ export class SearchFilter {
    */
   capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  /**
+   * Schedule a debounced re-render of collections filters
+   * Multiple rapid filter changes will only trigger one re-render
+   */
+  scheduleCollectionsRender() {
+    clearTimeout(this.collectionsRenderTimeout);
+    this.collectionsRenderTimeout = setTimeout(() => {
+      this.renderCollectionsFilters();
+    }, 0);
+  }
+
+  /**
+   * Schedule a debounced re-render of tasks filters
+   * Multiple rapid filter changes will only trigger one re-render
+   */
+  scheduleTasksRender() {
+    clearTimeout(this.tasksRenderTimeout);
+    this.tasksRenderTimeout = setTimeout(() => {
+      this.renderTasksFilters();
+    }, 0);
   }
 }

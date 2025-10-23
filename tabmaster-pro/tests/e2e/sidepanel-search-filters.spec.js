@@ -989,8 +989,10 @@ test.describe('Side Panel Search & Filters', () => {
 
       await page.locator('[data-filter="status"][value="active"]').check();
       await page.locator('[data-filter="priority"][value="high"]').check();
-      await page.selectOption('[data-filter="sortBy"]', 'priority');
       await page.waitForTimeout(200);
+
+      // NOTE: sortBy moved to presentation-controls.js (always-visible, not in filter panel)
+      // It persists separately - tested in presentation controls tests
 
       // Reload panel
       await page.goto(`chrome-extension://${extensionId}/sidepanel/panel.html`);
@@ -1007,7 +1009,7 @@ test.describe('Side Panel Search & Filters', () => {
       // Verify filters persisted
       await expect(page.locator('[data-filter="status"][value="active"]')).toBeChecked();
       await expect(page.locator('[data-filter="priority"][value="high"]')).toBeChecked();
-      await expect(page.locator('[data-filter="sortBy"]')).toHaveValue('priority');
+      // sortBy persistence tested separately in presentation controls tests
     });
 
     test('should persist filter visibility state', async ({ page, extensionId }) => {
