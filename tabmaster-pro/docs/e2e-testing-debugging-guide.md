@@ -166,6 +166,76 @@ await page.waitForTimeout(500); // Wait for re-render
 
 **Why**: Storage clearing alone doesn't reset active UI filters already applied to the view.
 
+### Pattern: Debounced UI Re-render (Established Architecture Pattern)
+
+When event handlers update state that affects UI visibility, use debounced re-renders to avoid destroying DOM elements during their own event processing.
+
+**Use Cases**:
+1. Checkbox handlers that update filter state → Show/hide "Clear" button
+2. Button clicks that update state → Prevent destroying the button mid-click
+3. Any state change that should update UI visibility
+
+**Implementation**:
+```javascript
+class MyComponent {
+  constructor() {
+    // Add debounce timers
+    this.renderTimeout = null;
+  }
+
+  scheduleRender() {
+    // Clear any pending render
+    clearTimeout(this.renderTimeout);
+
+    // Schedule render for next event loop tick
+    this.renderTimeout = setTimeout(() => {
+      this.render();
+    }, 0);
+  }
+
+  handleStateChange(event) {
+    // 1. Update state immediately
+    this.state.value = event.target.value;
+
+    // 2. Save state in background (non-blocking)
+    this.saveState().catch(err => console.error('Failed to save state:', err));
+
+    // 3. Fire callbacks IMMEDIATELY (don't wait for re-render)
+    if (this.onChange) {
+      this.onChange(this.state);
+    }
+
+    // 4. Schedule debounced re-render (defers DOM manipulation)
+    this.scheduleRender();
+  }
+}
+```
+
+**Why This Pattern**:
+- **Prevents browser crashes**: DOM elements aren't destroyed during their own event handlers
+- **Ensures UI updates**: State changes trigger appropriate UI visibility changes
+- **Non-blocking**: Callbacks fire immediately, async operations run in background
+- **Efficient**: Multiple rapid state changes only trigger one re-render
+
+**Examples in Codebase**:
+- `presentation-controls.js` (commit 88338a1) - Prevents destroying controls during saveState()
+- `search-filter.js` (commit e887d70) - Shows/hides clear button after checkbox changes
+
+**Anti-Pattern** (causes bugs):
+```javascript
+// ❌ BAD - synchronous re-render during event
+handleCheckbox(event) {
+  this.state.checked = event.target.checked;
+  this.render(); // May destroy checkbox during its own event!
+}
+
+// ❌ BAD - no re-render at all
+handleCheckbox(event) {
+  this.state.checked = event.target.checked;
+  // Forgot to re-render - UI never updates!
+}
+```
+
 ---
 
 ## Issues Discovered & Solutions
@@ -182,36 +252,77 @@ await page.waitForTimeout(500); // Wait for re-render
 
 **Architecture Review**: ✅ Approved by architecture-guardian
 
-### Issue #2: Test Data Deletion (Status: 🔴 INVESTIGATING)
+### Issue #2: Missing UI Re-render After State Changes ✅ FIXED
 
-**Symptom**: Tests #16-31 fail with "Test data missing! Found: 0 collections, 0 tasks"
+**Symptom**: Test #25 "should clear tasks filters" hangs for 30s then crashes browser. Tests #26-31 fail with "Test data missing!" (cascade failures from browser crash clearing IndexedDB).
 
-**Context**: After fixing async/await issue, test #15 now appears to delete all IndexedDB data, causing subsequent tests to fail.
+**Root Cause**: Checkbox filter handlers in `search-filter.js` updated internal state but didn't trigger UI re-render. The "Clear Filters" button never appeared in the DOM. Test tried to click a non-existent button → hang → timeout → browser crash.
 
-**Hypothesis**: Test #15 has a workaround (clicking "All" button, verifying 4 collections) that times out and may trigger unexpected IndexedDB operations.
-
-**Investigation Needed**:
-1. Check if `verifyTestDataExists()` timeout causes test to corrupt database
-2. Review test #15's explicit "All" button click logic
-3. Verify `clearCollectionsFilters()` doesn't inadvertently affect IndexedDB
-4. Check if test failure cleanup is deleting database
-
-**Debugging Steps**:
+**Solution**: Added debounced re-render pattern (similar to presentation-controls.js fix):
 ```javascript
-// Add diagnostic logging in beforeEach
-test.beforeEach(async ({ page }, testInfo) => {
-  console.log(`[${testInfo.title}] Starting...`);
+// In search-filter.js
 
-  // Log data state before and after operations
-  const before = await verifyTestDataExists(page);
-  console.log(`[${testInfo.title}] Data before: ${before.collections} collections`);
+// 1. Add debounce timers to constructor
+constructor() {
+  this.collectionsRenderTimeout = null;
+  this.tasksRenderTimeout = null;
+}
 
-  // ... clear filters ...
+// 2. Add debounced re-render helpers
+scheduleCollectionsRender() {
+  clearTimeout(this.collectionsRenderTimeout);
+  this.collectionsRenderTimeout = setTimeout(() => {
+    this.renderCollectionsFilters();
+  }, 0);
+}
 
-  const after = await verifyTestDataExists(page);
-  console.log(`[${testInfo.title}] Data after: ${after.collections} collections`);
-});
+scheduleTasksRender() {
+  clearTimeout(this.tasksRenderTimeout);
+  this.tasksRenderTimeout = setTimeout(() => {
+    this.renderTasksFilters();
+  }, 0);
+}
+
+// 3. Update checkbox handlers to trigger re-render
+handleTagCheckbox(event) {
+  // Update state
+  this.collectionsFilters.tags = getCheckedValues();
+
+  // Save state in background (non-blocking)
+  this.saveFilterState().catch(err => console.error(...));
+
+  // Fire callback IMMEDIATELY
+  if (this.onFiltersChange) {
+    this.onFiltersChange('collections', this.collectionsFilters);
+  }
+
+  // Schedule debounced re-render (shows/hides clear button)
+  this.scheduleCollectionsRender();
+}
+
+// 4. Update clear methods to use debounced re-render
+clearTasksFilters() {
+  // Clear state
+  this.tasksFilters = { /* defaults */ };
+
+  // Save + callback (same pattern)
+  this.saveFilterState().catch(...);
+  if (this.onFiltersChange) {
+    this.onFiltersChange('tasks', this.tasksFilters);
+  }
+
+  // Defer re-render (avoids destroying button during click event)
+  this.scheduleTasksRender();
+}
 ```
+
+**Pattern**: Fire callbacks immediately, defer DOM manipulation to next event loop tick.
+
+**Commit**: e887d70 - "fix(e2e): Add debounced re-renders to filter checkboxes to show/hide clear button"
+
+**Architecture Review**: ✅ Approved - follows established pattern from commit 88338a1
+
+**Test Results**: Before: 24/31 passing (77%) → After: 31/31 passing (100%)
 
 ### Issue #3: Controller Exposure in Production Code ⚠️ NEEDS IMPROVEMENT
 
@@ -296,7 +407,50 @@ test('setup: create test collections', async ({ page }) => {
 
 ## Debugging Techniques
 
-### 1. Add Diagnostic Logging
+### 1. Use Shortened Test Runs for Efficient Debugging
+
+When debugging a specific failing test, run only setup tests + the failing test to iterate quickly.
+
+```bash
+# Run only setup + test #25
+npx playwright test tests/e2e/sidepanel-search-filters.spec.js \
+  --grep "(setup|should clear tasks filters)"
+
+# Generic pattern
+npx playwright test path/to/test.spec.js \
+  --grep "(setup|your failing test name)"
+```
+
+**Why**: Full test suite may take 1.5 minutes. Shortened runs complete in ~10 seconds, enabling rapid iteration during debugging.
+
+**Critical for Cascade Failures**: When one test crashes the browser and causes subsequent tests to fail, shortened runs isolate the root cause test from cascade failures.
+
+### 2. Understanding Browser Crash Cascade Failures
+
+**Pattern**: Test hangs → timeout → browser crash → IndexedDB cleared → subsequent tests fail with "Test data missing!"
+
+**Example**:
+```
+Test #25: ❌ Browser crash (root cause)
+Test #26: ❌ "Test data missing!" (cascade)
+Test #27: ❌ "Test data missing!" (cascade)
+Test #28: ❌ "Test data missing!" (cascade)
+...
+```
+
+**Debugging Strategy**:
+1. Identify the FIRST failing test (test #25 in example)
+2. Use shortened test run (setup + test #25 only)
+3. Fix the root cause (browser crash)
+4. All cascade failures resolve automatically
+
+**Root Causes of Browser Crashes**:
+- Destroying DOM elements during their own event handlers
+- Infinite loops in event handlers
+- Missing UI re-renders causing tests to click non-existent elements
+- Excessive memory consumption
+
+### 3. Add Diagnostic Logging
 
 ```javascript
 test.beforeEach(async ({ page }, testInfo) => {
@@ -307,7 +461,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 });
 ```
 
-### 2. Take Screenshots on Failure
+### 4. Take Screenshots on Failure
 
 Playwright automatically saves screenshots to `test-results/`. Review them to see actual UI state at failure.
 
@@ -316,7 +470,7 @@ Playwright automatically saves screenshots to `test-results/`. Review them to se
 open test-results/[test-name]/test-failed-1.png
 ```
 
-### 3. Use `--headed` Mode
+### 5. Use `--headed` Mode
 
 ```bash
 # Run tests in visible browser
@@ -326,7 +480,7 @@ npm run test:e2e:headed
 npx playwright test tests/e2e/sidepanel-search-filters.spec.js --grep "sort by name" --headed
 ```
 
-### 4. Add Wait Conditions
+### 6. Add Wait Conditions
 
 ```javascript
 // Wait for specific element state
@@ -339,7 +493,7 @@ await expect(page.locator('.collection-card')).toHaveCount(4);
 await page.waitForFunction(() => window.panelController != null);
 ```
 
-### 5. Inspect IndexedDB Directly
+### 7. Inspect IndexedDB Directly
 
 ```javascript
 const dbState = await page.evaluate(async () => {
