@@ -9,6 +9,8 @@
  * - NO business logic - just UI state management
  */
 
+import { debounce } from '../dashboard/modules/core/utils.js';
+
 export class SearchFilter {
   constructor() {
     this.searchQuery = '';
@@ -25,13 +27,21 @@ export class SearchFilter {
       // Note: sortBy moved to presentation-controls.js (always-visible controls)
     };
     this.searchDebounceTimeout = null;
-    this.collectionsRenderTimeout = null; // Debounce timer for collections re-render
-    this.tasksRenderTimeout = null;       // Debounce timer for tasks re-render
     this.onSearchChange = null;
     this.onFiltersChange = null;
     // Store available options for re-rendering
     this.availableTags = [];
     this.availableCollections = [];
+
+    // Create debounced re-render methods (defer to next tick for DOM safety)
+    this.deferredRenderCollections = debounce(
+      () => this.renderCollectionsFilters(),
+      0 // Defer to next event loop tick
+    );
+    this.deferredRenderTasks = debounce(
+      () => this.renderTasksFilters(),
+      0 // Defer to next event loop tick
+    );
   }
 
   /**
@@ -288,7 +298,7 @@ export class SearchFilter {
         }
 
         // Schedule debounced re-render (shows/hides clear button, avoids destroying checkbox during event)
-        this.scheduleCollectionsRender();
+        this.deferredRenderCollections();
       });
     });
 
@@ -342,7 +352,7 @@ export class SearchFilter {
         }
 
         // Schedule debounced re-render (shows/hides clear button, avoids destroying checkbox during event)
-        this.scheduleTasksRender();
+        this.deferredRenderTasks();
       });
     });
 
@@ -368,7 +378,7 @@ export class SearchFilter {
         }
 
         // Schedule debounced re-render (shows/hides clear button, avoids destroying checkbox during event)
-        this.scheduleTasksRender();
+        this.deferredRenderTasks();
       });
     });
 
@@ -394,7 +404,7 @@ export class SearchFilter {
         }
 
         // Schedule debounced re-render (shows/hides clear button, avoids destroying checkbox during event)
-        this.scheduleTasksRender();
+        this.deferredRenderTasks();
       });
     });
 
@@ -428,7 +438,7 @@ export class SearchFilter {
     }
 
     // Schedule debounced re-render (avoid destroying button during click event)
-    this.scheduleCollectionsRender();
+    this.deferredRenderCollections();
   }
 
   /**
@@ -452,7 +462,7 @@ export class SearchFilter {
     }
 
     // Schedule debounced re-render (avoid destroying button during click event)
-    this.scheduleTasksRender();
+    this.deferredRenderTasks();
   }
 
   /**
@@ -545,27 +555,5 @@ export class SearchFilter {
    */
   capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  /**
-   * Schedule a debounced re-render of collections filters
-   * Multiple rapid filter changes will only trigger one re-render
-   */
-  scheduleCollectionsRender() {
-    clearTimeout(this.collectionsRenderTimeout);
-    this.collectionsRenderTimeout = setTimeout(() => {
-      this.renderCollectionsFilters();
-    }, 0);
-  }
-
-  /**
-   * Schedule a debounced re-render of tasks filters
-   * Multiple rapid filter changes will only trigger one re-render
-   */
-  scheduleTasksRender() {
-    clearTimeout(this.tasksRenderTimeout);
-    this.tasksRenderTimeout = setTimeout(() => {
-      this.renderTasksFilters();
-    }, 0);
   }
 }

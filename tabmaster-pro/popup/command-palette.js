@@ -1,6 +1,8 @@
 // Command Palette for TabMaster Pro
 // Provides fuzzy search for commands and tabs with keyboard navigation
 
+import { debounce } from '../dashboard/modules/core/utils.js';
+
 // ============================================================================
 // State Management
 // ============================================================================
@@ -793,18 +795,6 @@ function renderTab(tab, index) {
 // ============================================================================
 // Utilities
 // ============================================================================
-
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
 
 function escapeHtml(text) {
   const div = document.createElement('div');
