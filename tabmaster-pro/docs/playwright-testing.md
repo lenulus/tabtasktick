@@ -208,6 +208,114 @@ Chrome extensions require explicit `web_accessible_resources` declaration for ES
 - **Check**: Extension path in fixtures is correct (3 levels up from fixtures/)
 - **Debug**: Run with `--debug` flag to step through
 
+### Message Handler Parameter Mismatches
+
+**⚠️ CRITICAL LESSON LEARNED**
+
+When testing message handlers, ensure parameter structure matches between test and handler:
+
+**Problem**: Tests send IDs outside of `params` object, but handlers only read from `params`:
+```javascript
+// Test sends:
+chrome.runtime.sendMessage({
+  action: 'createFolder',
+  collectionId: 'abc123',  // Outside params!
+  params: { name: 'Test', color: 'blue' }
+});
+
+// Handler expects:
+FolderService.createFolder(request.params);  // Missing collectionId!
+```
+
+**Solution**: Merge IDs into params in message handler:
+```javascript
+case 'createFolder':
+  const createdFolder = await FolderService.createFolder({
+    ...request.params,
+    collectionId: request.collectionId || request.params.collectionId
+  });
+  break;
+```
+
+**Symptoms**:
+- `Cannot read properties of undefined (reading 'id')`
+- Service methods throw validation errors about missing required fields
+- Tests fail with cryptic undefined errors
+
+**Debugging Strategy**:
+1. Add logging to message handlers to see full request structure
+2. Check service method signatures for required parameters
+3. Verify test sends all required data in correct location
+
+### Context Menu Setup Timing Issues
+
+**⚠️ CRITICAL LESSON LEARNED**
+
+Context menus must be set up with proper async handling:
+
+**Problem**: `chrome.contextMenus.removeAll()` is async but not awaited, causing race condition:
+```javascript
+async function setupContextMenus() {
+  chrome.contextMenus.removeAll();  // Not awaited!
+  chrome.contextMenus.create({ id: 'menu1' });  // Runs while removeAll is still clearing
+}
+```
+
+**Solution**: Await removeAll before creating menus:
+```javascript
+async function setupContextMenus() {
+  await new Promise((resolve) => {
+    chrome.contextMenus.removeAll(resolve);
+  });
+  chrome.contextMenus.create({ id: 'menu1' });
+}
+```
+
+**Also Important**: Call `setupContextMenus()` in BOTH `onInstalled` and `onStartup` listeners:
+```javascript
+chrome.runtime.onInstalled.addListener(async () => {
+  await setupContextMenus();
+  // ... other initialization
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+  await setupContextMenus();  // Needed for E2E tests!
+  // ... other initialization
+});
+```
+
+**Why**: E2E tests may not trigger `onInstalled` consistently, so `onStartup` ensures menus are registered.
+
+### Context Menu Introspection Limitations
+
+**Known Limitation**: `chrome.contextMenus.getAll()` returns empty array in Playwright test environment, even when menus are successfully registered. This appears to be a Playwright/Chrome limitation.
+
+**Workaround**: Test context menu functionality indirectly:
+- Test the message handlers that create the menus
+- Test the click handlers for menu actions
+- Don't rely on introspecting registered menu items
+
+### Missing Required Service Parameters
+
+**Common Issue**: Services validate required parameters, but tests don't provide them.
+
+**Example**: `FolderService.createFolder()` requires `color` parameter:
+```javascript
+// ❌ Test fails - missing color
+chrome.runtime.sendMessage({
+  action: 'createFolder',
+  params: { name: 'Test Folder', position: 0 }
+});
+
+// ✅ Test passes
+chrome.runtime.sendMessage({
+  action: 'createFolder',
+  params: { name: 'Test Folder', color: 'blue', position: 0 }
+});
+```
+
+**Solution**: Check service method signatures for ALL required parameters before writing tests.
+
 ## Best Practices
 
 1. **Use testPage for Complex Tests**: Service workers have limitations

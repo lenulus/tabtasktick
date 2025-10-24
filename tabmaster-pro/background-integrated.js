@@ -391,6 +391,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 chrome.runtime.onStartup.addListener(async () => {
   await loadDomainCategories();
+  await setupContextMenus(); // Ensure context menus are set up on startup
   await loadSettings();
   await loadRules();
   await SnoozeService.initialize();
@@ -1750,7 +1751,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         // Folder Operations
         case 'createFolder':
-          const createdFolder = await FolderService.createFolder(request.params);
+          const createdFolder = await FolderService.createFolder({
+            ...request.params,
+            collectionId: request.collectionId || request.params.collectionId
+          });
           sendResponse({ success: true, folder: createdFolder });
           break;
 
@@ -1771,12 +1775,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         // Tab Operations
         case 'createTab':
-          const createdTab = await TabService.createTab(request.params);
+          const createdTab = await TabService.createTab({
+            ...request.params,
+            folderId: request.folderId || request.params.folderId
+          });
           sendResponse({ success: true, tab: createdTab });
           break;
 
         case 'updateTab':
-          const updatedTab = await TabService.updateTab(request.id, request.updates);
+          const tabId = request.tabId || request.id;
+          const updatedTab = await TabService.updateTab(tabId, request.updates);
           sendResponse({ success: true, tab: updatedTab });
           break;
 
@@ -1819,6 +1827,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'getTask':
           const task = await getTask(request.id);
           sendResponse({ success: true, task });
+          break;
+
+        // Context Menus (for testing)
+        case 'setupContextMenus':
+          await setupContextMenus();
+          sendResponse({ success: true });
+          break;
+
+        case 'getContextMenus':
+          const menuItems = await new Promise((resolve) => {
+            chrome.contextMenus.getAll((items) => {
+              resolve(items);
+            });
+          });
+          sendResponse({ success: true, items: menuItems });
           break;
 
         default:
@@ -2046,7 +2069,10 @@ chrome.commands.onCommand.addListener(async (command) => {
 // ============================================================================
 
 async function setupContextMenus() {
-  chrome.contextMenus.removeAll();
+  // Wait for removeAll to complete before creating new menus
+  await new Promise((resolve) => {
+    chrome.contextMenus.removeAll(resolve);
+  });
 
   // Snooze menu
   chrome.contextMenus.create({
@@ -2150,6 +2176,45 @@ async function setupContextMenus() {
     id: 'dedupe-window',
     title: 'Remove Duplicates in Window',
     contexts: ['page']
+  });
+
+  // TabTaskTick: Collections & Tasks context menus (Phase 5)
+  chrome.contextMenus.create({
+    id: 'tabtasktick-separator',
+    type: 'separator',
+    contexts: ['page', 'action']
+  });
+
+  // Tab/Page context menus
+  chrome.contextMenus.create({
+    id: 'add-to-collection',
+    title: 'Add to Collection',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'create-task-for-tab',
+    title: 'Create Task for Tab',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'add-note-to-tab',
+    title: 'Add Note to Tab',
+    contexts: ['page']
+  });
+
+  // Action (toolbar icon) context menus
+  chrome.contextMenus.create({
+    id: 'save-window-as-collection',
+    title: 'Save Window as Collection',
+    contexts: ['action']
+  });
+
+  chrome.contextMenus.create({
+    id: 'open-side-panel',
+    title: 'Open Side Panel',
+    contexts: ['action']
   });
 }
 
@@ -2397,6 +2462,64 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         false
       );
       console.log('Window deduplicated:', result);
+      break;
+
+    // TabTaskTick: Context menu handlers (Phase 5)
+    case 'add-to-collection':
+      // Open collection selector modal
+      chrome.windows.create({
+        url: chrome.runtime.getURL('lib/modals/collection-selector.html') +
+          `?tabId=${tab.id}&url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title)}`,
+        type: 'popup',
+        width: 500,
+        height: 600
+      });
+      break;
+
+    case 'create-task-for-tab':
+      // Open task creation modal with tab pre-filled
+      chrome.windows.create({
+        url: chrome.runtime.getURL('lib/modals/task-modal.html') +
+          `?summary=${encodeURIComponent(tab.title)}&tabId=${tab.id}&url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title)}`,
+        type: 'popup',
+        width: 600,
+        height: 700
+      });
+      break;
+
+    case 'add-note-to-tab':
+      // Open note modal
+      chrome.windows.create({
+        url: chrome.runtime.getURL('lib/modals/note-modal.html') +
+          `?tabId=${tab.id}&url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title)}`,
+        type: 'popup',
+        width: 500,
+        height: 400
+      });
+      break;
+
+    case 'save-window-as-collection':
+      // Get current window from the action context
+      const currentWindow = await chrome.windows.getCurrent({ populate: true });
+      // Note: This would require CaptureWindowService from Phase 6
+      // For now, show a notification that this feature is coming
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/icon-128.png',
+        title: 'Feature Coming Soon',
+        message: 'Save Window as Collection will be available in Phase 6'
+      });
+      console.log('Save window as collection - coming in Phase 6');
+      break;
+
+    case 'open-side-panel':
+      // Open the side panel
+      try {
+        await chrome.sidePanel.open({ windowId: tab.windowId });
+        console.log('Side panel opened');
+      } catch (error) {
+        console.error('Error opening side panel:', error);
+      }
       break;
   }
 });
