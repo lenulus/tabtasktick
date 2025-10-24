@@ -330,6 +330,110 @@ chrome.runtime.sendMessage({
 2. **Service Worker Imports**: Cannot use dynamic `import()` - use testPage instead
 3. **Parallel Execution**: Must run sequentially due to Chrome profile locking
 
+## Playwright Assessment for Chrome Extensions
+
+### The Good ✅
+
+**1. Real Browser Environment is Invaluable**
+- Testing with actual Chrome APIs instead of mocks/fakes is a game-changer
+- The fake-indexeddb index query issues we had with Jest completely disappear
+- What you test is exactly what runs in production
+
+**2. Official Chrome Extension Support**
+- Playwright's dedicated extension testing capabilities work well
+- The fixture system (`extensionId`, `serviceWorkerPage`, `testPage`) is well-designed
+- Automatic extension loading and profile management is solid
+
+**3. Excellent Debugging Experience**
+- Screenshots on failure are incredibly helpful
+- The ability to run headed mode (`--headed`) makes debugging visual
+- Trace viewer and video recording for failures are professional-grade tools
+
+### The Challenging 😐
+
+**1. Async Timing is Tricky**
+- The `chrome.contextMenus.removeAll()` race condition is a perfect example
+- Chrome extension APIs have subtle async behaviors that require careful handling
+- You need to deeply understand the Chrome API lifecycle (onInstalled vs onStartup)
+
+**2. Service Worker Limitations**
+- No dynamic imports in service workers is a real constraint
+- Need the `testPage` workaround to test code with ES modules
+- This adds cognitive overhead - developers need to remember which fixture to use
+
+**3. Context Visibility Issues**
+- The context menu introspection limitation (getAll returning empty) shows there are blind spots
+- Some Chrome APIs may not be fully accessible or behave differently in test environments
+- You can't always test things the way you'd like - need workarounds
+
+### The Architectural Implications 🏗️
+
+**1. Forces Better Design**
+- The parameter mismatch issues we fixed (`collectionId` outside `params`) were actually API design problems
+- Tests revealed these issues that might have lurked in production
+- Having to test message handlers forces you to think about contract clarity
+
+**2. Sequential Execution Constraint**
+- `workers: 1` (no parallelization) means slower test suites as they grow
+- This is a Chrome profile locking limitation, not Playwright's fault
+- Need to be strategic about test organization and runtime
+
+**3. Headful Mode Requirement**
+- Can't run truly headless, which complicates CI/CD
+- Requires display/X11 in CI environments
+- Adds infrastructure complexity compared to unit tests
+
+### Overall Rating: 8/10
+
+**Strengths:**
+- Best-in-class tool for E2E Chrome extension testing
+- Real browser environment eliminates entire classes of test failures
+- Excellent developer experience and debugging tools
+- Official support means it stays current with Chrome
+
+**Weaknesses:**
+- Steeper learning curve than unit testing
+- Some Chrome APIs have limitations in test environments
+- Performance constraints (sequential, headful)
+- Requires deeper understanding of Chrome extension lifecycle
+
+## When to Use Playwright
+
+### Use Playwright For ✅
+
+- **Integration testing across services** (like context menu tests)
+- **Testing real Chrome API interactions** (tabs, windows, storage, alarms)
+- **Validating IndexedDB operations** with real indexes and queries
+- **End-to-end user flows** spanning multiple components
+- **Testing things that can't be mocked reliably**
+
+### Don't Use Playwright For ❌
+
+- **Pure logic/algorithm testing** (use Jest instead)
+- **Fast feedback loops during development** (unit tests are faster)
+- **Testing business logic in isolation** (services can be unit tested)
+- **Simple utility functions** (no Chrome API dependency)
+
+### The Recommended Hybrid Approach 🎯
+
+**Testing Strategy:**
+1. **Unit Tests (Jest)**: Business logic, services, utilities, algorithms
+2. **E2E Tests (Playwright)**: Integration points, Chrome API interactions, IndexedDB
+3. **Focus Playwright on**: Things that can't be tested any other way
+
+**Example Distribution:**
+```
+services/
+  ├── TabService.test.js          (Jest - business logic)
+  └── TabService.e2e.spec.js      (Playwright - chrome.tabs API integration)
+
+tests/
+  ├── unit/                        (Jest - fast, isolated)
+  └── e2e/                         (Playwright - real browser, integration)
+```
+
+**Key Insight**: The lessons documented in this guide (parameter mismatches, async timing, required parameters) are exactly the kind of real-world integration bugs that Playwright catches but unit tests miss. That alone justifies the investment, even with the constraints.
+
 ## Next Steps
 
 1. Write E2E tests for Phase 2 services (Collections, Tasks)
