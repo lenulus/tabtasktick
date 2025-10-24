@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add to Collection</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      min-width: 400px;
+      max-width: 500px;
+    }
+
+    .modal-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 24px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      margin-bottom: 16px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .collections-list {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+
+    .collection-item {
+      padding: 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .collection-item:hover {
+      border-color: #667eea;
+      background: #f9f9ff;
+    }
+
+    .collection-item.selected {
+      border-color: #667eea;
+      background: #f0f2ff;
+    }
+
+    .collection-name {
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .collection-meta {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .collection-status {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+
+    .collection-status.active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .collection-status.saved {
+      background: #e5e5e5;
+      color: #666;
+    }
+
+    .new-collection-option {
+      background: #f9f9f9;
+      border: 2px dashed #ddd;
+      padding: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      color: #667eea;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .new-collection-option:hover {
+      border-color: #667eea;
+      background: #f9f9ff;
+    }
+
+    .new-collection-form {
+      display: none;
+      padding: 16px;
+      background: #f9f9f9;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+
+    .new-collection-form.visible {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel {
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .btn-cancel:hover {
+      background: #e5e5e5;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .error {
+      background: #fee;
+      color: #c00;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .tab-info {
+      background: #f9f9f9;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .tab-info .label {
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .tab-info .value {
+      color: #1a1a1a;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="modal-container">
+    <h2>Add to Collection</h2>
+
+    <div id="error" class="error" style="display: none;"></div>
+
+    <div id="loading" class="loading" style="display: none;">
+      Loading collections...
+    </div>
+
+    <div id="tab-info" class="tab-info" style="display: none;">
+      <div class="label">Tab:</div>
+      <div class="value" id="tab-title"></div>
+    </div>
+
+    <div id="content" style="display: none;">
+      <div class="search-box">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search collections..."
+        />
+      </div>
+
+      <div id="new-collection-form" class="new-collection-form">
+        <div class="form-group">
+          <label for="new-collection-name">Collection Name</label>
+          <input type="text" id="new-collection-name" placeholder="Enter collection name..." />
+        </div>
+        <div class="actions">
+          <button type="button" class="btn-cancel" id="cancel-new-btn">Cancel</button>
+          <button type="button" class="btn-primary" id="create-new-btn">Create</button>
+        </div>
+      </div>
+
+      <div class="collections-list" id="collections-list">
+        <div class="new-collection-option" id="new-collection-option">
+          + Create New Collection
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn-cancel" id="cancel-btn">Cancel</button>
+        <button type="button" class="btn-primary" id="add-btn" disabled>Add to Collection</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="collection-selector-modal.js" type="module"></script>
+</body>
+</html>

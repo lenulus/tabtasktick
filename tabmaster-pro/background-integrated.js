@@ -1821,6 +1821,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: true, task });
           break;
 
+        case 'getTab':
+          // Get tab from IndexedDB by storage ID
+          const tabData = await getTab(request.tabId);
+          sendResponse({ success: true, tab: tabData });
+          break;
+
+        case 'addTabToCollection':
+          // Placeholder for Phase 6 - actual tab capture logic
+          // For now, just log and acknowledge
+          console.log('Add tab to collection requested:', request);
+          sendResponse({ success: true, message: 'Feature will be implemented in Phase 6' });
+          break;
+
+        case 'updateTabNote':
+          // Placeholder for Phase 6 - update tab note in collection
+          // For now, just log and acknowledge
+          console.log('Update tab note requested:', request);
+          sendResponse({ success: true, message: 'Feature will be implemented in Phase 6' });
+          break;
+
         default:
           sendResponse({ error: 'Unknown action' });
       }
@@ -2151,6 +2171,44 @@ async function setupContextMenus() {
     title: 'Remove Duplicates in Window',
     contexts: ['page']
   });
+
+  // TabTaskTick context menus (Phase 5)
+  chrome.contextMenus.create({
+    id: 'separator-1',
+    type: 'separator',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'add-to-collection',
+    title: 'Add to Collection...',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'create-task-for-tab',
+    title: 'Create Task for Tab...',
+    contexts: ['page']
+  });
+
+  chrome.contextMenus.create({
+    id: 'add-note-to-tab',
+    title: 'Add Note to Tab...',
+    contexts: ['page']
+  });
+
+  // Toolbar (action) context menus
+  chrome.contextMenus.create({
+    id: 'save-window-as-collection',
+    title: 'Save Window as Collection',
+    contexts: ['action']
+  });
+
+  chrome.contextMenus.create({
+    id: 'open-side-panel',
+    title: 'Open Side Panel',
+    contexts: ['action']
+  });
 }
 
 /**
@@ -2311,6 +2369,138 @@ async function exportFromContextMenu(scope, windowId = null) {
   }
 }
 
+/**
+ * Open collection selector modal for a tab
+ * @param {object} tab - Chrome tab object
+ */
+async function openCollectionSelectorModal(tab) {
+  try {
+    const url = chrome.runtime.getURL('lib/modals/collection-selector-modal.html');
+    const params = new URLSearchParams({
+      tabId: tab.id.toString(),
+      tabUrl: tab.url,
+      tabTitle: tab.title || 'Untitled'
+    });
+
+    await chrome.windows.create({
+      url: `${url}?${params.toString()}`,
+      type: 'popup',
+      width: 500,
+      height: 600,
+      focused: true
+    });
+  } catch (error) {
+    console.error('Failed to open collection selector modal:', error);
+  }
+}
+
+/**
+ * Open task creation modal for a tab
+ * @param {object} tab - Chrome tab object
+ */
+async function openTaskModal(tab) {
+  try {
+    const url = chrome.runtime.getURL('lib/modals/task-modal.html');
+    const params = new URLSearchParams({
+      tabId: tab.id.toString(),
+      tabUrl: tab.url,
+      tabTitle: tab.title || 'Untitled'
+    });
+
+    await chrome.windows.create({
+      url: `${url}?${params.toString()}`,
+      type: 'popup',
+      width: 600,
+      height: 700,
+      focused: true
+    });
+  } catch (error) {
+    console.error('Failed to open task modal:', error);
+  }
+}
+
+/**
+ * Open note modal for a tab
+ * @param {object} tab - Chrome tab object
+ */
+async function openNoteModal(tab) {
+  try {
+    // Check if tab is in a collection (placeholder - will implement in Phase 6)
+    // For now, just open the modal
+    const url = chrome.runtime.getURL('lib/modals/note-modal.html');
+    const params = new URLSearchParams({
+      tabId: tab.id.toString(),
+      tabUrl: tab.url,
+      tabTitle: tab.title || 'Untitled'
+    });
+
+    await chrome.windows.create({
+      url: `${url}?${params.toString()}`,
+      type: 'popup',
+      width: 500,
+      height: 500,
+      focused: true
+    });
+  } catch (error) {
+    console.error('Failed to open note modal:', error);
+  }
+}
+
+/**
+ * Save current window as a collection
+ * @param {number} windowId - Chrome window ID
+ */
+async function saveWindowAsCollection(windowId) {
+  try {
+    // Get all tabs in window
+    const tabs = await chrome.tabs.query({ windowId });
+
+    // Generate collection name from tabs
+    const domains = new Set(tabs.map(tab => {
+      try {
+        return new URL(tab.url).hostname;
+      } catch {
+        return 'unknown';
+      }
+    }));
+
+    const topDomains = Array.from(domains).slice(0, 3);
+    const name = topDomains.length > 0
+      ? `${topDomains.join(', ')} (${tabs.length} tabs)`
+      : `Window with ${tabs.length} tabs`;
+
+    // Create collection via message handler
+    const response = await handleMessage({
+      action: 'createCollection',
+      name,
+      windowId,
+      description: `Saved on ${new Date().toLocaleDateString()}`,
+      tags: []
+    }, null);
+
+    if (response && response.collection) {
+      // Show notification
+      await chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+        title: 'Collection Created',
+        message: `"${name}" has been saved as a collection.`
+      });
+    } else {
+      throw new Error(response?.error || 'Failed to create collection');
+    }
+
+  } catch (error) {
+    console.error('Failed to save window as collection:', error);
+    await chrome.notifications.create({
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+      title: 'Error',
+      message: 'Failed to save window as collection: ' + error.message
+    });
+  }
+}
+
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   switch (info.menuItemId) {
     case 'snooze-1h':
@@ -2397,6 +2587,32 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         false
       );
       console.log('Window deduplicated:', result);
+      break;
+
+    // TabTaskTick context menu handlers (Phase 5)
+    case 'add-to-collection':
+      await openCollectionSelectorModal(tab);
+      break;
+
+    case 'create-task-for-tab':
+      await openTaskModal(tab);
+      break;
+
+    case 'add-note-to-tab':
+      await openNoteModal(tab);
+      break;
+
+    case 'save-window-as-collection':
+      await saveWindowAsCollection(tab.windowId);
+      break;
+
+    case 'open-side-panel':
+      // Open side panel programmatically
+      try {
+        await chrome.sidePanel.open({ windowId: tab.windowId });
+      } catch (error) {
+        console.error('Failed to open side panel:', error);
+      }
       break;
   }
 });

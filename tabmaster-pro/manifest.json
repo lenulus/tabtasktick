@@ -75,7 +75,9 @@
     {
       "resources": [
         "services/*/*.js",
-        "test-page.html"
+        "test-page.html",
+        "lib/modals/*.html",
+        "lib/modals/*.js"
       ],
       "matches": ["<all_urls>"],
       "extension_ids": ["*"]
