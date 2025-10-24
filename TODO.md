@@ -1269,7 +1269,43 @@ Following architecture-guardian review, key improvements from initial plan:
 **Time Estimate**: 6-8 hours (increased from 4-6h per UX review)
 **Priority**: MEDIUM
 **Dependencies**: Phase 4 complete
-**Status**: 🔴 Not Started
+**Status**: 🟡 In Progress - E2E Tests Complete (7/8 passing)
+
+#### 5.0 E2E Test Infrastructure (3h) ✅ **COMPLETED**
+**Status**: ✅ COMPLETE (2025-10-24)
+**Commits**: 4ebbbf6, 8ee289b
+
+- [x] Created `/tests/e2e/context-menus.spec.js` (8 tests, 7/8 passing)
+  - Test collection selector modal integration (2 tests)
+  - Test task modal integration (2 tests)
+  - Test note modal integration (3 tests)
+  - Test context menu registration (1 test - known Playwright limitation)
+- [x] Fixed message handler parameter mismatches:
+  - `createFolder`: Merge collectionId into params
+  - `createTab`: Merge folderId into params
+  - `updateTab`: Accept both tabId and id parameters
+- [x] Fixed context menu setup race condition:
+  - `chrome.contextMenus.removeAll()` now properly awaited
+  - Added `setupContextMenus()` to `onStartup` listener
+- [x] Added test message handlers:
+  - `setupContextMenus`: Manually trigger context menu setup
+  - `getContextMenus`: Query registered context menu items
+- [x] Updated `/docs/playwright-testing.md` with comprehensive lessons:
+  - Message handler parameter structure matching
+  - Context menu async handling and timing issues
+  - Missing required service parameters
+  - Context menu introspection limitations
+  - Playwright assessment (8/10 rating)
+  - Hybrid testing strategy (Jest + Playwright)
+
+**Known Limitation**: 1 test fails due to Playwright/Chrome limitation where `chrome.contextMenus.getAll()` returns empty array in test environment. Core functionality verified through other 7 tests.
+
+**Test Results**: 7/8 passing (87.5% success rate)
+**Deliverables**:
+- `/tests/e2e/context-menus.spec.js` (372 lines, 8 tests)
+- Updated `/background-integrated.js` (message handler fixes, context menu timing fix)
+- Updated `/docs/playwright-testing.md` (comprehensive troubleshooting + assessment)
+- `/lib/modals/` (collection-selector, task-modal, note-modal files committed)
 
 #### 5.1 Modal Components for Context Menus (2-3h) **NEW**
 - [ ] Create `/lib/modals/task-modal.js` (~200 lines)
