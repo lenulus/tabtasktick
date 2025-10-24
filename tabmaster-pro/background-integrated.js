@@ -26,6 +26,11 @@ import * as TabService from './services/execution/TabService.js';
 import * as TaskService from './services/execution/TaskService.js';
 import { selectCollections } from './services/selection/selectCollections.js';
 import { selectTasks } from './services/selection/selectTasks.js';
+
+// TabTaskTick Phase 6: Import orchestration services
+import * as CaptureWindowService from './services/execution/CaptureWindowService.js';
+import * as RestoreCollectionService from './services/execution/RestoreCollectionService.js';
+import * as TaskExecutionService from './services/execution/TaskExecutionService.js';
 import { initialize as initializeDB } from './services/utils/db.js';
 import {
   getCollection,
@@ -1860,6 +1865,37 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'getTask':
           const task = await getTask(request.id);
           sendResponse({ success: true, task });
+          break;
+
+        // TabTaskTick Phase 6: Orchestration service message handlers
+        case 'captureWindow':
+          const captureResult = await CaptureWindowService.captureWindow({
+            windowId: request.windowId,
+            metadata: request.metadata,
+            keepActive: request.keepActive
+          });
+          sendResponse({ success: true, ...captureResult });
+          break;
+
+        case 'restoreCollection':
+          const restoreResult = await RestoreCollectionService.restoreCollection({
+            collectionId: request.collectionId,
+            createNewWindow: request.createNewWindow,
+            windowId: request.windowId,
+            focused: request.focused,
+            windowState: request.windowState
+          });
+          sendResponse({ success: true, ...restoreResult });
+          break;
+
+        case 'openTaskTabs':
+          const openResult = await TaskExecutionService.openTaskTabs(request.taskId);
+          sendResponse({ success: true, ...openResult });
+          break;
+
+        case 'focusWindow':
+          await chrome.windows.update(request.windowId, { focused: true });
+          sendResponse({ success: true });
           break;
 
         // Context Menus (for testing)
