@@ -327,9 +327,9 @@ class CollectionSelectorController {
       throw new Error('No tab data available');
     }
 
-    // Get collection to find a folder to add tab to
+    // Get collection with folders to find where to add tab
     const collectionResponse = await chrome.runtime.sendMessage({
-      action: 'getCollection',
+      action: 'getCompleteCollection',
       collectionId
     });
 
@@ -356,7 +356,7 @@ class CollectionSelectorController {
       const folderResponse = await chrome.runtime.sendMessage({
         action: 'createFolder',
         collectionId,
-        params: { name: 'Unsorted', position: 0 }
+        params: { name: 'Unsorted', color: 'grey', position: 0 }
       });
 
       if (!folderResponse || !folderResponse.success) {

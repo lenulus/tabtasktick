@@ -104,6 +104,11 @@ class NoteModalController {
 
       const tab = response.tab;
 
+      // Check if tab exists in storage (must be in a collection)
+      if (!tab) {
+        throw new Error('This tab is not in a collection. Use "Add to Collection" first.');
+      }
+
       // Display tab info
       document.getElementById('tab-title').textContent = tab.title || tab.url;
       document.getElementById('tab-url').textContent = tab.url;

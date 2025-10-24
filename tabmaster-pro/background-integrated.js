@@ -29,9 +29,12 @@ import { selectTasks } from './services/selection/selectTasks.js';
 import { initialize as initializeDB } from './services/utils/db.js';
 import {
   getCollection,
+  getCompleteCollection,
   getFoldersByCollection,
+  getTab,
   getTabsByFolder,
-  getTask
+  getTask,
+  findTabByRuntimeId
 } from './services/utils/storage-queries.js';
 
 console.log('Background service worker loaded with Rules Engine V2');
@@ -1740,13 +1743,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
 
         case 'getCollection':
-          const collection = await getCollection(request.id);
+          const collection = await getCollection(request.id || request.collectionId);
           sendResponse({ success: true, collection });
           break;
 
         case 'getCollections':
           const collections = await selectCollections(request.filters || {});
           sendResponse({ success: true, collections });
+          break;
+
+        case 'getCompleteCollection':
+          const completeCollection = await getCompleteCollection(request.id || request.collectionId);
+          sendResponse({ success: true, collection: completeCollection });
           break;
 
         // Folder Operations
@@ -1790,6 +1798,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         case 'deleteTab':
           await TabService.deleteTab(request.id);
+          sendResponse({ success: true });
+          break;
+
+        case 'getTab':
+          const tabIdOrRuntimeId = request.tabId || request.id;
+          let tab;
+
+          // If it's a number, it's a Chrome runtime tab ID
+          if (typeof tabIdOrRuntimeId === 'number' || !isNaN(Number(tabIdOrRuntimeId))) {
+            tab = await findTabByRuntimeId(Number(tabIdOrRuntimeId));
+          } else {
+            // Otherwise it's a storage ID (UUID)
+            tab = await getTab(tabIdOrRuntimeId);
+          }
+
+          sendResponse({ success: true, tab });
+          break;
+
+        case 'showNotification':
+          chrome.notifications.create({
+            type: 'basic',
+            iconUrl: 'icons/icon-128.png',
+            title: request.title || 'TabMaster Pro',
+            message: request.message || ''
+          });
           sendResponse({ success: true });
           break;
 
