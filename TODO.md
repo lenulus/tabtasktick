@@ -1014,9 +1014,68 @@ Following architecture-guardian review, key improvements from initial plan:
 - ✅ Persistent (respects user preferences)
 - ✅ Test-friendly (explicit state, no side effects)
 
+---
+
+### Phase 3 UX Lessons Learned ✅
+
+**Date**: 2025-10-23
+**Context**: Post-Phase 3.5 visual design review
+
+#### Lesson 1: Desktop vs Mobile UX Patterns - Context Matters More Than Dimensions
+
+**Issue**: Initial side panel design used mobile-optimized patterns (large spacing, touch targets, heavy card treatment) despite being desktop-only.
+
+**Root Cause**: Confused narrow viewport width (~300-500px) with mobile interaction model, leading to inappropriate design choices:
+- Touch-optimized spacing (16-24px padding on cards)
+- Large touch targets (44px+ tap areas)
+- Heavy visual weight (prominent borders, shadows)
+- Low information density
+
+**Reality Check**: Chrome side panels are:
+- Desktop-only feature (not available on mobile)
+- Always narrow by design (persistent alongside browser)
+- Mouse/keyboard driven (not touch)
+- Similar use case to popup (quick access, scanning)
+
+**The Fix**: Compact desktop-optimized spacing scale:
+- Spacing variables: xs(2px), sm(4px), md(8px), lg(12px), xl(16px) - down from xs(4px), sm(8px), md(12px), lg(16px), xl(24px)
+- Collection cards: 12px padding (matching popup stat-cards)
+- Lighter visual treatment: Reduced shadow weights from `0 4px 6px` to `0 2px 4px`
+- Result: 30-40% more visible content, faster scanning
+
+**Key Insight**: **Interaction model trumps viewport dimensions**. Don't conflate narrow width with mobile UX. A narrow desktop interface (side panel, popup) should use desktop patterns (compact, dense, lightweight), not mobile patterns (spacious, touch-friendly, heavy).
+
+**Application to TabTaskTick V3**:
+- Side panels require desktop-optimized compact spacing
+- Narrow viewports ≠ mobile affordances
+- Optimize for mouse/keyboard, not touch
+- Prioritize information density for scanning workflows
+- Use lightweight visual treatment (subtle shadows, minimal borders)
+
+#### Lesson 2: Brand Consistency Across Surfaces
+
+**Issue**: Side panel initially used different primary color (#2563eb blue) vs popup/dashboard (#667eea purple with #764ba2 gradient).
+
+**Impact**: Visual inconsistency undermined brand identity and created confusion about whether side panel was part of same product.
+
+**The Fix**: Standardized on canonical purple brand identity:
+- Primary color: #667eea
+- Accent gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+- Applied to all interactive elements (buttons, active states, badges)
+
+**Key Insight**: **Establish canonical design early, enforce rigorously**. Popup and dashboard were already aligned; side panel should have matched from day one. Post-hoc visual alignment creates rework.
+
+**Application to TabTaskTick V3**:
+- Document canonical visual design (colors, gradients, spacing, typography)
+- Review all new UI surfaces against canonical design before implementation
+- Use shared CSS variables for brand colors across all surfaces
+- Perform visual consistency audits during development, not just at end
+
+---
+
 #### 3.6 UI State Management (2-3h) ✅ **COMPLETE**
 **Status**: ✅ COMPLETE (2025-10-22)
-**Commit**: [To be committed]
+**Commit**: a32414c
 
 - [x] Create `/sidepanel/state-manager.js` (270 lines)
 - [x] Implement centralized state management:
