@@ -13,6 +13,8 @@ import {
   showNotification
 } from '../core/shared-utils.js';
 
+import modalService from '../core/modal-service.js';
+
 // ============================================================================
 // Data Loading
 // ============================================================================
@@ -128,56 +130,9 @@ export function sortTasks(tasks, sortBy, sortDirection = 'asc') {
 // ============================================================================
 
 export function showTaskDetailModal(task, collections) {
-  const modal = document.getElementById('taskDetailModal');
-  if (!modal) {
-    createTaskDetailModal();
-    return showTaskDetailModal(task, collections);
-  }
-
-  // Populate modal with task data
-  document.getElementById('taskDetailId').value = task.id;
-  document.getElementById('taskDetailSummary').value = task.summary || '';
-  document.getElementById('taskDetailNotes').value = task.notes || '';
-  document.getElementById('taskDetailStatus').value = task.status || 'open';
-  document.getElementById('taskDetailPriority').value = task.priority || 'medium';
-  document.getElementById('taskDetailDueDate').value = task.dueDate || '';
-  document.getElementById('taskDetailTags').value = (task.tags || []).join(', ');
-
-  // Populate collection dropdown
-  const collectionSelect = document.getElementById('taskDetailCollection');
-  collectionSelect.innerHTML = '<option value="">Uncategorized</option>';
-  collections.forEach(collection => {
-    const option = document.createElement('option');
-    option.value = collection.id;
-    option.textContent = collection.name;
-    if (collection.id === task.collectionId) {
-      option.selected = true;
-    }
-    collectionSelect.appendChild(option);
-  });
-
-  // Show modal
-  modal.style.display = 'flex';
-}
-
-export function hideTaskDetailModal() {
-  const modal = document.getElementById('taskDetailModal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
-
-function createTaskDetailModal() {
-  const modal = document.createElement('div');
-  modal.id = 'taskDetailModal';
-  modal.className = 'modal';
-  modal.innerHTML = `
-    <div class="modal-content modal-lg">
-      <div class="modal-header">
-        <h3>Task Details</h3>
-        <button class="close-btn" id="closeTaskDetailModal">&times;</button>
-      </div>
-      <div class="modal-body">
+  // Create modal using ModalService if it doesn't exist
+  if (!modalService.exists('taskDetailModal')) {
+    const bodyHtml = `
         <input type="hidden" id="taskDetailId">
 
         <div class="form-group">
@@ -228,29 +183,56 @@ function createTaskDetailModal() {
           <label for="taskDetailTags">Tags (comma-separated)</label>
           <input type="text" id="taskDetailTags" class="form-control" placeholder="tag1, tag2, tag3">
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-danger" id="deleteTaskBtn">Delete</button>
-        <button class="btn btn-secondary" id="cancelTaskDetailBtn">Cancel</button>
-        <button class="btn btn-primary" id="saveTaskDetailBtn">Save</button>
-      </div>
-    </div>
-  `;
+    `;
 
-  document.body.appendChild(modal);
+    const footerHtml = `
+      <button class="btn btn-danger" id="deleteTaskBtn">Delete</button>
+      <button class="btn btn-secondary" id="cancelTaskDetailBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveTaskDetailBtn">Save</button>
+    `;
 
-  // Setup event listeners
-  document.getElementById('closeTaskDetailModal').addEventListener('click', hideTaskDetailModal);
-  document.getElementById('cancelTaskDetailBtn').addEventListener('click', hideTaskDetailModal);
-  document.getElementById('saveTaskDetailBtn').addEventListener('click', handleSaveTaskDetail);
-  document.getElementById('deleteTaskBtn').addEventListener('click', handleDeleteTask);
+    modalService.create({
+      id: 'taskDetailModal',
+      title: 'Task Details',
+      size: 'lg',
+      body: bodyHtml,
+      footer: footerHtml,
+      events: {
+        '#cancelTaskDetailBtn': hideTaskDetailModal,
+        '#saveTaskDetailBtn': handleSaveTaskDetail,
+        '#deleteTaskBtn': handleDeleteTask
+      }
+    });
+  }
 
-  // Close on backdrop click
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      hideTaskDetailModal();
+  // Populate modal with task data
+  document.getElementById('taskDetailId').value = task.id;
+  document.getElementById('taskDetailSummary').value = task.summary || '';
+  document.getElementById('taskDetailNotes').value = task.notes || '';
+  document.getElementById('taskDetailStatus').value = task.status || 'open';
+  document.getElementById('taskDetailPriority').value = task.priority || 'medium';
+  document.getElementById('taskDetailDueDate').value = task.dueDate || '';
+  document.getElementById('taskDetailTags').value = (task.tags || []).join(', ');
+
+  // Populate collection dropdown
+  const collectionSelect = document.getElementById('taskDetailCollection');
+  collectionSelect.innerHTML = '<option value="">Uncategorized</option>';
+  collections.forEach(collection => {
+    const option = document.createElement('option');
+    option.value = collection.id;
+    option.textContent = collection.name;
+    if (collection.id === task.collectionId) {
+      option.selected = true;
     }
+    collectionSelect.appendChild(option);
   });
+
+  // Show modal
+  modalService.show('taskDetailModal');
+}
+
+export function hideTaskDetailModal() {
+  modalService.hide('taskDetailModal');
 }
 
 async function handleSaveTaskDetail() {

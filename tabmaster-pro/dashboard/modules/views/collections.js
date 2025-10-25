@@ -13,6 +13,10 @@ import {
   showNotification
 } from '../core/shared-utils.js';
 
+import modalService from '../core/modal-service.js';
+
+import { EMOJI_CATEGORIES } from '../data/emoji-data.js';
+
 // ============================================================================
 // Main Load Function
 // ============================================================================
@@ -539,19 +543,25 @@ async function handleViewDetails(collectionId) {
 }
 
 function showCollectionDetailsModal(collection) {
-  // Check if modal already exists
-  let modal = document.getElementById('collectionDetailsModal');
-
-  if (!modal) {
-    modal = createCollectionDetailsModal();
+  // Create modal using ModalService if it doesn't exist
+  if (!modalService.exists('collectionDetailsModal')) {
+    modalService.create({
+      id: 'collectionDetailsModal',
+      title: 'Collection Details',
+      size: 'lg',
+      body: '<!-- Content will be populated dynamically -->',
+      footer: '<button class="btn btn-secondary" id="closeCollectionDetails">Close</button>',
+      events: {
+        '#closeCollectionDetails': () => modalService.hide('collectionDetailsModal')
+      }
+    });
   }
 
   // Populate modal with collection data
-  const modalBody = modal.querySelector('.modal-body');
-  modalBody.innerHTML = renderCollectionDetails(collection);
+  modalService.updateBody('collectionDetailsModal', renderCollectionDetails(collection));
 
   // Show modal
-  modal.style.display = 'flex';
+  modalService.show('collectionDetailsModal');
 }
 
 function renderCollectionDetails(collection) {
@@ -708,48 +718,6 @@ function renderCollectionDetails(collection) {
   return html;
 }
 
-function createCollectionDetailsModal() {
-  const modal = document.createElement('div');
-  modal.id = 'collectionDetailsModal';
-  modal.className = 'modal';
-  modal.innerHTML = `
-    <div class="modal-content modal-lg">
-      <div class="modal-header">
-        <h3>Collection Details</h3>
-        <button class="close-btn" id="closeCollectionDetailsModal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <!-- Content will be populated dynamically -->
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="closeCollectionDetails">Close</button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  // Setup event listeners
-  document.getElementById('closeCollectionDetailsModal').addEventListener('click', hideCollectionDetailsModal);
-  document.getElementById('closeCollectionDetails').addEventListener('click', hideCollectionDetailsModal);
-
-  // Close on backdrop click
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      hideCollectionDetailsModal();
-    }
-  });
-
-  return modal;
-}
-
-function hideCollectionDetailsModal() {
-  const modal = document.getElementById('collectionDetailsModal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
-
 async function handleEditCollection(collectionId) {
   const collections = state.get('collections') || [];
   const collection = collections.find(c => c.id === collectionId);
@@ -763,42 +731,9 @@ async function handleEditCollection(collectionId) {
 }
 
 function showEditCollectionModal(collection) {
-  // Check if modal already exists
-  let modal = document.getElementById('editCollectionModal');
-
-  if (!modal) {
-    modal = createEditCollectionModal();
-  }
-
-  // Populate modal with collection data
-  document.getElementById('editCollectionId').value = collection.id;
-  document.getElementById('editCollectionName').value = collection.name || '';
-  document.getElementById('editCollectionDescription').value = collection.description || '';
-  document.getElementById('editCollectionIcon').value = collection.icon || '📁';
-  document.getElementById('editCollectionColor').value = collection.color || '#667eea';
-  document.getElementById('editCollectionTags').value = (collection.tags || []).join(', ');
-
-  // Update emoji picker current emoji
-  const currentEmoji = document.getElementById('currentEmoji');
-  if (currentEmoji) {
-    currentEmoji.textContent = collection.icon || '📁';
-  }
-
-  // Show modal
-  modal.style.display = 'flex';
-}
-
-function createEditCollectionModal() {
-  const modal = document.createElement('div');
-  modal.id = 'editCollectionModal';
-  modal.className = 'modal';
-  modal.innerHTML = `
-    <div class="modal-content modal-md">
-      <div class="modal-header">
-        <h3>Edit Collection</h3>
-        <button class="close-btn" id="closeEditCollectionModal">&times;</button>
-      </div>
-      <div class="modal-body">
+  // Create modal using ModalService if it doesn't exist
+  if (!modalService.exists('editCollectionModal')) {
+    const bodyHtml = `
         <input type="hidden" id="editCollectionId">
 
         <div class="form-group">
@@ -841,53 +776,46 @@ function createEditCollectionModal() {
           <label for="editCollectionTags">Tags (comma-separated)</label>
           <input type="text" id="editCollectionTags" class="form-control" placeholder="work, important, project">
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="cancelEditCollection">Cancel</button>
-        <button class="btn btn-primary" id="saveEditCollection">Save Changes</button>
-      </div>
-    </div>
-  `;
+    `;
 
-  document.body.appendChild(modal);
+    const footerHtml = `
+      <button class="btn btn-secondary" id="cancelEditCollection">Cancel</button>
+      <button class="btn btn-primary" id="saveEditCollection">Save Changes</button>
+    `;
 
-  // Setup event listeners
-  document.getElementById('closeEditCollectionModal').addEventListener('click', hideEditCollectionModal);
-  document.getElementById('cancelEditCollection').addEventListener('click', hideEditCollectionModal);
-  document.getElementById('saveEditCollection').addEventListener('click', handleSaveEditCollection);
+    modalService.create({
+      id: 'editCollectionModal',
+      title: 'Edit Collection',
+      size: 'md',
+      body: bodyHtml,
+      footer: footerHtml,
+      events: {
+        '#cancelEditCollection': () => modalService.hide('editCollectionModal'),
+        '#saveEditCollection': handleSaveEditCollection
+      }
+    });
 
-  // Close on backdrop click
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      hideEditCollectionModal();
-    }
-  });
-
-  // Setup emoji picker
-  setupEmojiPicker();
-
-  return modal;
-}
-
-// Emoji picker data organized by categories
-const EMOJI_CATEGORIES = {
-  folders: {
-    name: 'Folders & Files',
-    emojis: ['📁', '📂', '🗂️', '📋', '📄', '📃', '📑', '🗃️', '🗄️', '📦', '📇', '🗳️', '📰', '📚', '📖']
-  },
-  work: {
-    name: 'Work & Productivity',
-    emojis: ['💼', '🏢', '📊', '📈', '📉', '💰', '💵', '💳', '🏦', '📞', '📱', '💻', '⌨️', '🖥️', '🖨️', '📠', '✉️', '📧', '📮', '📬', '📭', '📪', '🗒️', '📝', '✏️', '✒️', '🖊️', '🖋️', '📌', '📍', '🔖', '🏷️']
-  },
-  dev: {
-    name: 'Development & Tech',
-    emojis: ['💻', '🖥️', '⌨️', '🖱️', '🖲️', '💾', '💿', '📀', '🔌', '🔋', '🔧', '🔨', '⚙️', '🛠️', '⚡', '🔥', '💡', '🔍', '🔎', '🧪', '🧬', '🚀', '🛸', '🤖', '👾', '🎮', '🕹️']
-  },
-  misc: {
-    name: 'Miscellaneous',
-    emojis: ['🎯', '📌', '⭐', '✨', '🌟', '💫', '🔔', '🔕', '🎨', '🎭', '🎪', '🎬', '🎤', '🎧', '🎵', '🎶', '📻', '📺', '📷', '📸', '🔐', '🔒', '🔓', '🔑', '🗝️', '🏆', '🥇', '🥈', '🥉', '🎖️', '🏅', '🎗️', '🎀', '🎁', '🎉', '🎊', '🎈', '❤️', '💙', '💚', '💛', '🧡', '💜', '🖤', '🤍', '🤎', '💖', '💝']
+    // Setup emoji picker after modal is created
+    setupEmojiPicker();
   }
-};
+
+  // Populate modal with collection data
+  document.getElementById('editCollectionId').value = collection.id;
+  document.getElementById('editCollectionName').value = collection.name || '';
+  document.getElementById('editCollectionDescription').value = collection.description || '';
+  document.getElementById('editCollectionIcon').value = collection.icon || '📁';
+  document.getElementById('editCollectionColor').value = collection.color || '#667eea';
+  document.getElementById('editCollectionTags').value = (collection.tags || []).join(', ');
+
+  // Update emoji picker current emoji
+  const currentEmoji = document.getElementById('currentEmoji');
+  if (currentEmoji) {
+    currentEmoji.textContent = collection.icon || '📁';
+  }
+
+  // Show modal
+  modalService.show('editCollectionModal');
+}
 
 function setupEmojiPicker() {
   const currentEmoji = document.getElementById('currentEmoji');
@@ -930,13 +858,6 @@ function setupEmojiPicker() {
   }
 }
 
-function hideEditCollectionModal() {
-  const modal = document.getElementById('editCollectionModal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
-
 async function handleSaveEditCollection() {
   const collectionId = document.getElementById('editCollectionId').value;
   const name = document.getElementById('editCollectionName').value.trim();
@@ -968,7 +889,7 @@ async function handleSaveEditCollection() {
 
     if (result.success) {
       showNotification('Collection updated', 'success');
-      hideEditCollectionModal();
+      modalService.hide('editCollectionModal');
       await loadCollectionsView(); // Refresh
     } else {
       showNotification('Failed to update collection', 'error');
