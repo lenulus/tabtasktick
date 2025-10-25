@@ -21,7 +21,7 @@
  *
  * Edge Cases Handled:
  * - System tabs (chrome://) - skipped with warning
- * - Empty collections - error
+ * - Empty collections - creates empty window with default "New Tab"
  * - Tab group recreation with proper order
  * - Pinned tab preservation
  * - Window state (normal, maximized, minimized)
@@ -188,24 +188,56 @@ export async function restoreCollection(options) {
     }
   }
 
+  // Handle empty collections - create window with default "New Tab"
+  let result;
   if (tabsForCreation.length === 0) {
-    throw new Error('Collection has no tabs to restore');
-  }
-
-  // Step 3: Use shared window creation utility
-  const result = await createWindowWithTabsAndGroups({
-    tabs: tabsForCreation,
-    createNewWindow,
-    windowId,
-    focused,
-    windowState,
-    // Callback: Update storage tab with Chrome tabId after each tab created
-    onTabCreated: async (chromeTab, tabData) => {
-      await TabService.updateTab(tabData.metadata.id, {
-        tabId: chromeTab.id
+    // Create empty window (Chrome creates with default "New Tab")
+    if (createNewWindow) {
+      const newWindow = await chrome.windows.create({
+        focused: focused !== undefined ? focused : true,
+        state: windowState || 'normal'
       });
+      result = {
+        windowId: newWindow.id,
+        tabs: [],
+        groups: [],
+        stats: {
+          tabsRestored: 0,
+          tabsSkipped: 0,
+          groupsRestored: 0,
+          warnings: ['Collection has no tabs - created empty window']
+        }
+      };
+    } else {
+      // Use existing window
+      result = {
+        windowId,
+        tabs: [],
+        groups: [],
+        stats: {
+          tabsRestored: 0,
+          tabsSkipped: 0,
+          groupsRestored: 0,
+          warnings: ['Collection has no tabs - using current window']
+        }
+      };
     }
-  });
+  } else {
+    // Step 3: Use shared window creation utility
+    result = await createWindowWithTabsAndGroups({
+      tabs: tabsForCreation,
+      createNewWindow,
+      windowId,
+      focused,
+      windowState,
+      // Callback: Update storage tab with Chrome tabId after each tab created
+      onTabCreated: async (chromeTab, tabData) => {
+        await TabService.updateTab(tabData.metadata.id, {
+          tabId: chromeTab.id
+        });
+      }
+    });
+  }
 
   // Step 4: Bind collection to window and mark active
   await CollectionService.bindToWindow(collectionId, result.windowId);
