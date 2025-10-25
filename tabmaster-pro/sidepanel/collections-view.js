@@ -278,8 +278,19 @@ export class CollectionsView {
    */
   async handleOpenCollection(collectionId) {
     try {
-      // TODO: Phase 6 - Implement with RestoreCollectionService
-      notifications.info('Open collection feature coming in Phase 6');
+      const result = await this.controller.sendMessage('restoreCollection', {
+        collectionId,
+        createNewWindow: true,
+        focused: true
+      });
+
+      if (result?.success) {
+        notifications.success('Collection opened in new window');
+        // Refresh to show updated active state
+        await this.controller.loadData();
+      } else {
+        notifications.error('Failed to open collection');
+      }
     } catch (error) {
       console.error('Failed to open collection:', error);
       notifications.error('Failed to open collection');

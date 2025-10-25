@@ -665,8 +665,13 @@ export class CollectionDetailView {
    */
   async handleOpenTaskTabs(taskId) {
     try {
-      // TODO: Phase 6 - Implement with TaskExecutionService
-      notifications.info('Open task tabs feature coming in Phase 6');
+      const result = await this.controller.sendMessage('openTaskTabs', { taskId });
+
+      if (result?.success) {
+        notifications.success(`Opened ${result.tabsOpened || 0} tab(s) for task`);
+      } else {
+        notifications.error('Failed to open task tabs');
+      }
     } catch (error) {
       console.error('Failed to open task tabs:', error);
       notifications.error('Failed to open task tabs');
@@ -790,8 +795,19 @@ export class CollectionDetailView {
    */
   async handleOpenCollection() {
     try {
-      // TODO: Phase 6 - Implement with RestoreCollectionService
-      notifications.info('Open collection feature coming in Phase 6');
+      const result = await this.controller.sendMessage('restoreCollection', {
+        collectionId: this.currentCollectionId,
+        createNewWindow: true,
+        focused: true
+      });
+
+      if (result?.success) {
+        notifications.success('Collection opened in new window');
+        // Reload collection to show updated active state
+        await this.show(this.currentCollectionId);
+      } else {
+        notifications.error('Failed to open collection');
+      }
     } catch (error) {
       console.error('Failed to open collection:', error);
       notifications.error('Failed to open collection');
