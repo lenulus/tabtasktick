@@ -305,8 +305,8 @@ export async function moveTabsToWindow(tabIds, options = {}) {
 
       // Handle "new" window creation
       if (windowId === 'new') {
-        // Store original focused window
-        const currentWindow = await chrome.windows.getCurrent();
+        // Store original focused window (service workers can't use getCurrent)
+        const currentWindow = await chrome.windows.getLastFocused();
         const originalFocusedWindowId = currentWindow.id;
 
         const newWindow = await chrome.windows.create({
@@ -346,8 +346,8 @@ export async function moveTabsToWindow(tabIds, options = {}) {
 
       // Re-group if needed
       if (groupTitle && preserveGroup) {
-        // Store original focused window
-        const currentWindow = await chrome.windows.getCurrent();
+        // Store original focused window (service workers can't use getCurrent)
+        const currentWindow = await chrome.windows.getLastFocused();
         const originalFocusedWindowId = currentWindow.id;
 
         // CRITICAL: Focus the target window first, otherwise Chrome creates group in focused window

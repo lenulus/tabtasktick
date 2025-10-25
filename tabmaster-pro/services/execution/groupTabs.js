@@ -145,7 +145,7 @@
  *
  * @example
  * // Group with focus restoration
- * const currentWindow = await chrome.windows.getCurrent();
+ * const currentWindow = await chrome.windows.getLastFocused();
  * const result = await groupTabs([123, 456], {
  *   byDomain: true,
  *   callerWindowId: currentWindow.id // Ensures focus returns here

@@ -26,6 +26,11 @@ import * as TabService from './services/execution/TabService.js';
 import * as TaskService from './services/execution/TaskService.js';
 import { selectCollections } from './services/selection/selectCollections.js';
 import { selectTasks } from './services/selection/selectTasks.js';
+
+// TabTaskTick Phase 6: Import orchestration services
+import * as CaptureWindowService from './services/execution/CaptureWindowService.js';
+import * as RestoreCollectionService from './services/execution/RestoreCollectionService.js';
+import * as TaskExecutionService from './services/execution/TaskExecutionService.js';
 import { initialize as initializeDB } from './services/utils/db.js';
 import {
   getCollection,
@@ -1085,9 +1090,9 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
     id: `temp-${action}-${Date.now()}`,
     name: `Manual ${action} action`,
     enabled: true,
-    conditions: {
-      // Match only tabs with IDs in our list
-      any: tabIds.map(id => ({ eq: ['tab.id', id] }))
+    when: {
+      // Match only tabs with IDs in our list (v2-services format)
+      any: tabIds.map(id => ({ subject: 'id', operator: 'equals', value: id }))
     },
     then: [{ action, ...params }]
   };
@@ -1337,7 +1342,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             id: 'temp-suspend-inactive',
             name: 'Suspend Inactive Tabs',
             enabled: true,
-            conditions: {
+            when: {
               all: [
                 { subject: 'active', operator: 'equals', value: false },
                 { subject: 'pinned', operator: 'equals', value: false }
@@ -1711,7 +1716,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
             // Open the panel if requested
             if (request.open) {
-              const window = await chrome.windows.getCurrent();
+              const window = await chrome.windows.getLastFocused();
               await chrome.sidePanel.open({ windowId: window.id });
             }
 
@@ -1862,6 +1867,37 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: true, task });
           break;
 
+        // TabTaskTick Phase 6: Orchestration service message handlers
+        case 'captureWindow':
+          const captureResult = await CaptureWindowService.captureWindow({
+            windowId: request.windowId,
+            metadata: request.metadata,
+            keepActive: request.keepActive
+          });
+          sendResponse({ success: true, ...captureResult });
+          break;
+
+        case 'restoreCollection':
+          const restoreResult = await RestoreCollectionService.restoreCollection({
+            collectionId: request.collectionId,
+            createNewWindow: request.createNewWindow,
+            windowId: request.windowId,
+            focused: request.focused,
+            windowState: request.windowState
+          });
+          sendResponse({ success: true, ...restoreResult });
+          break;
+
+        case 'openTaskTabs':
+          const openResult = await TaskExecutionService.openTaskTabs(request.taskId);
+          sendResponse({ success: true, ...openResult });
+          break;
+
+        case 'focusWindow':
+          await chrome.windows.update(request.windowId, { focused: true });
+          sendResponse({ success: true });
+          break;
+
         // Context Menus (for testing)
         case 'setupContextMenus':
           await setupContextMenus();
@@ -1910,8 +1946,8 @@ async function findAndCloseDuplicates() {
     id: 'manual-close-duplicates',
     name: 'Manual Close Duplicates',
     enabled: true,
-    conditions: {}, // Empty conditions object matches all tabs
-    actions: [{
+    when: { all: [] }, // Empty conditions matches all tabs (v2-services format)
+    then: [{
       action: 'close-duplicates',
       keep: 'oldest' // Keep first instance, close duplicates
     }]
@@ -2532,8 +2568,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       break;
 
     case 'save-window-as-collection':
-      // Get current window from the action context
-      const currentWindow = await chrome.windows.getCurrent({ populate: true });
+      // Get current window from the action context (service workers can't use getCurrent)
+      const currentWindow = await chrome.windows.getLastFocused({ populate: true });
       // Note: This would require CaptureWindowService from Phase 6
       // For now, show a notification that this feature is coming
       chrome.notifications.create({
