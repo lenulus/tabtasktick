@@ -488,6 +488,7 @@ async function importTabsAndGroups(tabs, groups, windows, scope, importGroups) {
     const windowIdMap = new Map();
     const groupIdMap = new Map();
     const newWindowIds = [];
+    let windowNeedingDefaultTabCleanup = null; // Track windows that need cleanup
 
     if (scope === 'current-window' || scope === 'replace-all') {
       const currentWindow = await chrome.windows.getCurrent();
@@ -514,15 +515,12 @@ async function importTabsAndGroups(tabs, groups, windows, scope, importGroups) {
         }
       }
       if (windows.length === 0 && tabs.length > 0) {
+        // Create window but DON'T remove default tabs yet
+        // We'll clean them up after creating real tabs to avoid closing the window
         const newWindow = await chrome.windows.create({ focused: true });
         targetWindowId = newWindow.id;
+        windowNeedingDefaultTabCleanup = newWindow.id;
         result.windowCount = 1;
-        const defaultTabs = await chrome.tabs.query({ windowId: newWindow.id });
-        for (const tab of defaultTabs) {
-          try {
-            await chrome.tabs.remove(tab.id);
-          } catch (e) {}
-        }
       }
     }
 
@@ -591,6 +589,25 @@ async function importTabsAndGroups(tabs, groups, windows, scope, importGroups) {
         result.errors.push(...createResult.stats.warnings);
       } catch (error) {
         result.errors.push(`Failed to create tabs in window ${windowId}: ${error.message}`);
+      }
+    }
+
+    // Remove default blank tabs from windows created without metadata
+    // (only after real tabs have been created to avoid closing the window)
+    if (windowNeedingDefaultTabCleanup) {
+      try {
+        const allTabsInWindow = await chrome.tabs.query({ windowId: windowNeedingDefaultTabCleanup });
+        for (const tab of allTabsInWindow) {
+          if (tab.url === 'about:blank' || tab.url === 'chrome://newtab/') {
+            try {
+              await chrome.tabs.remove(tab.id);
+            } catch (e) {
+              // Ignore errors - tab may have already been removed
+            }
+          }
+        }
+      } catch (error) {
+        // Ignore cleanup errors
       }
     }
 
