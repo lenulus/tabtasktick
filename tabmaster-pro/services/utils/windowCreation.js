@@ -166,6 +166,8 @@ export async function createWindowWithTabsAndGroups(options) {
   const warnings = [];
   let targetWindowId = windowId;
 
+  console.log('[windowCreation] Initial params:', { createNewWindow, windowId, tabsCount: tabs.length });
+
   // Step 1: Filter system tabs
   const restorableTabs = [];
   let skippedCount = 0;
@@ -191,6 +193,7 @@ export async function createWindowWithTabsAndGroups(options) {
       url: 'about:blank' // Create with blank tab first
     });
     targetWindowId = newWindow.id;
+    console.log('[windowCreation] Created new window:', targetWindowId);
 
     // Remove the default blank tab
     const defaultTabs = await chrome.tabs.query({ windowId: targetWindowId });
@@ -201,7 +204,17 @@ export async function createWindowWithTabsAndGroups(options) {
         // Ignore errors removing default tabs
       }
     }
+  } else {
+    console.log('[windowCreation] Using existing window:', targetWindowId);
+    // Verify window exists if using existing window
+    try {
+      await chrome.windows.get(targetWindowId);
+    } catch (error) {
+      throw new Error(`Window ${targetWindowId} does not exist. Cannot create tabs in non-existent window.`);
+    }
   }
+
+  console.log('[windowCreation] About to create tabs in window:', targetWindowId);
 
   // Step 3: Prepare tab groups
   // groupKey -> Chrome group ID

@@ -28,8 +28,11 @@ test.describe('Phase 6 - Orchestration Services', () => {
     await testWindow.goto('https://example.com');
     await testWindow.waitForLoadState('load');
 
-    const windowId = await testWindow.evaluate(() => {
-      return chrome.windows.getCurrent().then(w => w.id);
+    // Get all windows from extension context (testPage has Chrome APIs)
+    const windowId = await testPage.evaluate(async () => {
+      const windows = await chrome.windows.getAll();
+      // Return the last window (most recently created)
+      return windows[windows.length - 1].id;
     });
 
     // Step 2: Capture window as collection using background message handler
@@ -51,6 +54,12 @@ test.describe('Phase 6 - Orchestration Services', () => {
     expect(captureResult.success).toBe(true);
     expect(captureResult.collection).toBeDefined();
     expect(captureResult.stats.tabsCaptured).toBeGreaterThan(0);
+
+    console.log('Capture result:', {
+      tabsCaptured: captureResult.stats.tabsCaptured,
+      tabs: captureResult.tabs?.length,
+      folders: captureResult.folders?.length
+    });
 
     const collectionId = captureResult.collection.id;
     const capturedTabIds = captureResult.tabs.map(t => t.id);
@@ -103,6 +112,12 @@ test.describe('Phase 6 - Orchestration Services', () => {
       });
     }, collectionId);
 
+    console.log('Restore result:', {
+      tabsRestored: restoreResult.stats.tabsRestored,
+      tabsSkipped: restoreResult.stats.tabsSkipped,
+      warnings: restoreResult.stats.warnings
+    });
+
     expect(restoreResult.success).toBe(true);
     expect(restoreResult.windowId).toBeDefined();
     expect(restoreResult.stats.tabsRestored).toBeGreaterThan(0);
@@ -141,8 +156,9 @@ test.describe('Phase 6 - Orchestration Services', () => {
     await testWindow.goto('https://playwright.dev');
     await testWindow.waitForLoadState('load');
 
-    const windowId = await testWindow.evaluate(() => {
-      return chrome.windows.getCurrent().then(w => w.id);
+    const windowId = await testPage.evaluate(async () => {
+      const windows = await chrome.windows.getAll();
+      return windows[windows.length - 1].id;
     });
 
     // Capture window
@@ -174,8 +190,9 @@ test.describe('Phase 6 - Orchestration Services', () => {
     await testWindow.goto('https://example.com');
     await testWindow.waitForLoadState('load');
 
-    const windowId = await testWindow.evaluate(() => {
-      return chrome.windows.getCurrent().then(w => w.id);
+    const windowId = await testPage.evaluate(async () => {
+      const windows = await chrome.windows.getAll();
+      return windows[windows.length - 1].id;
     });
 
     const captureResult = await testPage.evaluate(async (winId) => {
@@ -215,8 +232,9 @@ test.describe('Phase 6 - Orchestration Services', () => {
     await testWindow.goto('https://example.com');
     await testWindow.waitForLoadState('load');
 
-    const windowId = await testWindow.evaluate(() => {
-      return chrome.windows.getCurrent().then(w => w.id);
+    const windowId = await testPage.evaluate(async () => {
+      const windows = await chrome.windows.getAll();
+      return windows[windows.length - 1].id;
     });
 
     const captureResult = await testPage.evaluate(async (winId) => {
