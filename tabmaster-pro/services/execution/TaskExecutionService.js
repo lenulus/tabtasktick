@@ -225,8 +225,8 @@ async function openUncategorizedTaskTabs(task, warnings) {
   // For uncategorized tasks, tab IDs may not map to active tabs
   // We need to create new tabs with the URLs
 
-  // Get current window
-  const currentWindow = await chrome.windows.getCurrent();
+  // Get last focused window (service workers can't use getCurrent)
+  const currentWindow = await chrome.windows.getLastFocused();
   const windowId = currentWindow.id;
 
   let tabsOpened = 0;

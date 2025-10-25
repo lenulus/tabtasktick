@@ -166,7 +166,7 @@ export async function createWindowWithTabsAndGroups(options) {
   const warnings = [];
   let targetWindowId = windowId;
 
-  console.log('[windowCreation] Initial params:', { createNewWindow, windowId, tabsCount: tabs.length });
+  console.log('[windowCreation] Initial params:', { createNewWindow, windowId, targetWindowId, tabsCount: tabs.length });
 
   // Step 1: Filter system tabs
   const restorableTabs = [];
