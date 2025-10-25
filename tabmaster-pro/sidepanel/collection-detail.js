@@ -11,6 +11,7 @@
 
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
+import { EmojiPicker } from './components/emoji-picker.js';
 
 export class CollectionDetailView {
   constructor(controller) {
@@ -362,7 +363,7 @@ export class CollectionDetailView {
       <div class="tab-item" data-tab-id="${tab.id}">
         <div class="tab-header-item">
           ${tab.isPinned ? '<span class="tab-pinned-icon">📌</span>' : ''}
-          <img src="${favicon}" class="tab-favicon" onerror="this.style.display='none'" alt="">
+          <img src="${favicon}" class="tab-favicon" alt="" data-favicon>
           <span class="tab-title">${title}</span>
         </div>
         <div class="tab-note-container">
@@ -465,6 +466,14 @@ export class CollectionDetailView {
           charsSpan.textContent = `${e.target.value.length}/255`;
         }
       }
+    });
+
+    // Favicon error handling (CSP-compliant)
+    const faviconImages = this.container.querySelectorAll('[data-favicon]');
+    faviconImages.forEach(img => {
+      img.addEventListener('error', function() {
+        this.style.display = 'none';
+      });
     });
   }
 
@@ -656,8 +665,13 @@ export class CollectionDetailView {
    */
   async handleOpenTaskTabs(taskId) {
     try {
-      // TODO: Phase 6 - Implement with TaskExecutionService
-      notifications.info('Open task tabs feature coming in Phase 6');
+      const result = await this.controller.sendMessage('openTaskTabs', { taskId });
+
+      if (result?.success) {
+        notifications.success(`Opened ${result.tabsOpened || 0} tab(s) for task`);
+      } else {
+        notifications.error('Failed to open task tabs');
+      }
     } catch (error) {
       console.error('Failed to open task tabs:', error);
       notifications.error('Failed to open task tabs');
@@ -781,8 +795,19 @@ export class CollectionDetailView {
    */
   async handleOpenCollection() {
     try {
-      // TODO: Phase 6 - Implement with RestoreCollectionService
-      notifications.info('Open collection feature coming in Phase 6');
+      const result = await this.controller.sendMessage('restoreCollection', {
+        collectionId: this.currentCollectionId,
+        createNewWindow: true,
+        focused: true
+      });
+
+      if (result?.success) {
+        notifications.success('Collection opened in new window');
+        // Reload collection to show updated active state
+        await this.show(this.currentCollectionId);
+      } else {
+        notifications.error('Failed to open collection');
+      }
     } catch (error) {
       console.error('Failed to open collection:', error);
       notifications.error('Failed to open collection');
@@ -856,16 +881,8 @@ export class CollectionDetailView {
         >${this.escapeHtml(collection.description || '')}</textarea>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="icon-group">
         <label for="edit-icon">Icon</label>
-        <input
-          type="text"
-          id="edit-icon"
-          name="icon"
-          value="${this.escapeHtml(collection.icon || '📁')}"
-          class="form-input"
-          maxlength="2"
-        >
       </div>
 
       <div class="form-group">
@@ -880,6 +897,16 @@ export class CollectionDetailView {
         >
       </div>
     `;
+
+    // Add emoji picker component
+    const emojiPicker = new EmojiPicker({
+      inputId: 'edit-icon',
+      initialEmoji: collection.icon || '📁'
+    });
+
+    const iconGroup = form.querySelector('#icon-group');
+    iconGroup.appendChild(emojiPicker.create());
+
     return form;
   }
 

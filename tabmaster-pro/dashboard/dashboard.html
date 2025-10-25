@@ -64,6 +64,21 @@
           History
         </a>
 
+        <a href="#" class="nav-item" data-view="collections">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Collections
+        </a>
+
+        <a href="#" class="nav-item" data-view="tasks">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M9 11l3 3L22 4"></path>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          Tasks
+        </a>
+
         <a href="#" class="nav-item" data-view="rules">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M3 3h18v18H3zM12 8v8m-4-4h8"></path>
@@ -683,6 +698,87 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Collections View -->
+      <div class="view" id="collections">
+        <div class="view-header">
+          <h1>Collections</h1>
+          <div class="header-actions">
+            <button class="btn btn-primary" id="saveCurrentWindow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Save Window
+            </button>
+          </div>
+        </div>
+
+        <div class="collections-container" id="collectionsContainer">
+          <!-- Collections will be rendered here -->
+        </div>
+      </div>
+
+      <!-- Tasks View -->
+      <div class="view" id="tasks">
+        <div class="view-header">
+          <h1>Tasks</h1>
+          <div class="header-actions">
+            <div class="view-toggle" style="display: inline-flex; gap: 2px; background: #f0f0f0; border-radius: 6px; padding: 2px; margin-right: 8px;">
+              <button class="view-toggle-btn active" data-view="kanban" title="Kanban View" id="tasksViewKanban">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="3" width="7" height="18"></rect>
+                  <rect x="14" y="3" width="7" height="10"></rect>
+                </svg>
+                Kanban
+              </button>
+              <button class="view-toggle-btn" data-view="list" title="List View" id="tasksViewList">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+                List
+              </button>
+            </div>
+            <button class="btn btn-primary" id="createNewTask">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              New Task
+            </button>
+          </div>
+        </div>
+
+        <!-- Bulk Actions Bar -->
+        <div class="bulk-toolbar" id="tasksBulkBar" style="display: none;">
+          <div class="bulk-info">
+            <span class="bulk-count">0 tasks selected</span>
+            <button class="link-btn" id="tasksSelectAll">Select All</button>
+            <button class="link-btn" id="tasksClearSelection">Clear</button>
+          </div>
+          <div class="bulk-actions">
+            <button class="bulk-action-btn" data-action="changeStatus">Change Status</button>
+            <button class="bulk-action-btn" data-action="changePriority">Change Priority</button>
+            <button class="bulk-action-btn" data-action="delete">Delete Selected</button>
+          </div>
+        </div>
+
+        <!-- Kanban Container -->
+        <div class="tasks-view-container active" id="tasksKanbanContainer" data-view="kanban">
+          <!-- Kanban board will be rendered here -->
+        </div>
+
+        <!-- List Container -->
+        <div class="tasks-view-container" id="tasksListContainer" data-view="list" style="display: none;">
+          <!-- List view will be rendered here -->
         </div>
       </div>
     </main>
