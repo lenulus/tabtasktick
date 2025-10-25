@@ -11,6 +11,7 @@
 
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
+import { EmojiPicker } from './components/emoji-picker.js';
 
 export class CollectionsView {
   constructor(controller) {
@@ -470,16 +471,8 @@ export class CollectionsView {
         >${this.escapeHtml(collection.description || '')}</textarea>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="icon-group">
         <label for="edit-icon">Icon</label>
-        <input
-          type="text"
-          id="edit-icon"
-          name="icon"
-          value="${this.escapeHtml(collection.icon || '📁')}"
-          class="form-input"
-          maxlength="2"
-        >
       </div>
 
       <div class="form-group">
@@ -494,6 +487,16 @@ export class CollectionsView {
         >
       </div>
     `;
+
+    // Add emoji picker component
+    const emojiPicker = new EmojiPicker({
+      inputId: 'edit-icon',
+      initialEmoji: collection.icon || '📁'
+    });
+
+    const iconGroup = form.querySelector('#icon-group');
+    iconGroup.appendChild(emojiPicker.create());
+
     return form;
   }
 
