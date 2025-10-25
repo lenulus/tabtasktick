@@ -19,15 +19,18 @@ import {
 
 export async function loadTasksData() {
   try {
-    const [tasks, collections] = await Promise.all([
+    const [tasksResponse, collectionsResponse] = await Promise.all([
       chrome.runtime.sendMessage({ action: 'getTasks' }),
       chrome.runtime.sendMessage({ action: 'getCollections' })
     ]);
 
-    state.set('tasks', tasks || []);
-    state.set('collections', collections || []);
+    const tasks = tasksResponse?.tasks || [];
+    const collections = collectionsResponse?.collections || [];
 
-    return { tasks: tasks || [], collections: collections || [] };
+    state.set('tasks', tasks);
+    state.set('collections', collections);
+
+    return { tasks, collections };
   } catch (error) {
     console.error('Error loading tasks data:', error);
     throw error;
@@ -264,36 +267,65 @@ async function handleSaveTaskDetail() {
     .map(t => t.trim())
     .filter(t => t.length > 0);
 
-  const updates = {
+  const taskData = {
     summary,
     notes: document.getElementById('taskDetailNotes').value.trim(),
     status: document.getElementById('taskDetailStatus').value,
     priority: document.getElementById('taskDetailPriority').value,
     dueDate: document.getElementById('taskDetailDueDate').value || null,
     collectionId: document.getElementById('taskDetailCollection').value || null,
-    tags
+    tags,
+    tabIds: []
   };
 
+  // Check if this is a new task or an update
+  const tasks = state.get('tasks') || [];
+  const existingTask = tasks.find(t => t.id === taskId);
+  const isNewTask = !existingTask;
+
   try {
-    const result = await chrome.runtime.sendMessage({
-      action: 'updateTask',
-      taskId,
-      updates
-    });
+    let result;
+
+    if (isNewTask) {
+      // Create new task
+      result = await chrome.runtime.sendMessage({
+        action: 'createTask',
+        params: {
+          id: taskId,
+          ...taskData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      });
+
+      if (result.success) {
+        showNotification('Task created', 'success');
+      }
+    } else {
+      // Update existing task
+      result = await chrome.runtime.sendMessage({
+        action: 'updateTask',
+        id: taskId,
+        updates: taskData
+      });
+
+      if (result.success) {
+        showNotification('Task updated', 'success');
+      }
+    }
 
     if (result.success) {
-      showNotification('Task updated', 'success');
       hideTaskDetailModal();
 
       // Trigger refresh
-      const event = new CustomEvent('taskUpdated', { detail: { taskId } });
+      const event = new CustomEvent(isNewTask ? 'taskCreated' : 'taskUpdated', { detail: { taskId } });
       window.dispatchEvent(event);
     } else {
-      showNotification('Failed to update task', 'error');
+      showNotification(`Failed to ${isNewTask ? 'create' : 'update'} task`, 'error');
     }
   } catch (error) {
-    console.error('Error updating task:', error);
-    showNotification('Failed to update task', 'error');
+    console.error(`Error ${isNewTask ? 'creating' : 'updating'} task:`, error);
+    showNotification(`Failed to ${isNewTask ? 'create' : 'update'} task`, 'error');
   }
 }
 
@@ -308,7 +340,7 @@ async function handleDeleteTask() {
   try {
     const result = await chrome.runtime.sendMessage({
       action: 'deleteTask',
-      taskId
+      id: taskId
     });
 
     if (result.success) {
@@ -422,7 +454,7 @@ async function bulkUpdateTasks(taskIds, updates) {
     try {
       await chrome.runtime.sendMessage({
         action: 'updateTask',
-        taskId,
+        id: taskId,
         updates
       });
       successCount++;
@@ -445,7 +477,7 @@ async function bulkDeleteTasks(taskIds) {
     try {
       await chrome.runtime.sendMessage({
         action: 'deleteTask',
-        taskId
+        id: taskId
       });
       successCount++;
     } catch (error) {

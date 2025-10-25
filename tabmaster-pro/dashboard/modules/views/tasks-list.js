@@ -292,10 +292,35 @@ function setupListEventListeners(collections) {
     handleKeyboardNavigation(e);
   });
 
+  // Handle "Create Your First Task" button
+  container.addEventListener('click', (e) => {
+    if (e.target.id === 'createFirstTask' || e.target.closest('#createFirstTask')) {
+      e.preventDefault();
+      const newTask = {
+        id: crypto.randomUUID(),
+        summary: '',
+        notes: '',
+        status: 'open',
+        priority: 'medium',
+        dueDate: null,
+        collectionId: null,
+        tags: [],
+        tabIds: []
+      };
+      showTaskDetailModal(newTask, collections);
+    }
+  });
+
   // Drag and drop for reordering
   setupRowDragAndDrop();
 
   // Listen for task updates
+  window.addEventListener('taskCreated', () => {
+    const filters = state.get('taskFilters') || {};
+    const sortConfig = state.get('taskSortConfig') || {};
+    loadListView(filters, sortConfig);
+  });
+
   window.addEventListener('taskUpdated', () => {
     const filters = state.get('taskFilters') || {};
     const sortConfig = state.get('taskSortConfig') || {};
@@ -405,7 +430,7 @@ function handleInlineEdit(cell, field, taskId) {
 
       const result = await chrome.runtime.sendMessage({
         action: 'updateTask',
-        taskId,
+        id: taskId,
         updates
       });
 
@@ -568,7 +593,7 @@ async function handleRowAction(action, taskId, collections) {
 
         const result = await chrome.runtime.sendMessage({
           action: 'deleteTask',
-          taskId
+          id: taskId
         });
 
         if (result.success) {

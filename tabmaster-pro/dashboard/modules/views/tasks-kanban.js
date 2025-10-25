@@ -271,7 +271,7 @@ async function handleDrop(e) {
     // Update the task status via backend
     const result = await chrome.runtime.sendMessage({
       action: 'updateTask',
-      taskId: draggedTaskId,
+      id: draggedTaskId,
       updates: { status: newStatus }
     });
 
@@ -374,7 +374,31 @@ function setupKanbanEventListeners(collections) {
     }
   });
 
+  // Handle "Create Your First Task" button
+  container.addEventListener('click', (e) => {
+    if (e.target.id === 'createFirstTask' || e.target.closest('#createFirstTask')) {
+      e.preventDefault();
+      const newTask = {
+        id: crypto.randomUUID(),
+        summary: '',
+        notes: '',
+        status: 'open',
+        priority: 'medium',
+        dueDate: null,
+        collectionId: null,
+        tags: [],
+        tabIds: []
+      };
+      showTaskDetailModal(newTask, collections);
+    }
+  });
+
   // Listen for task updates from detail modal
+  window.addEventListener('taskCreated', () => {
+    const filters = state.get('taskFilters') || {};
+    loadKanbanView(filters);
+  });
+
   window.addEventListener('taskUpdated', () => {
     const filters = state.get('taskFilters') || {};
     loadKanbanView(filters);

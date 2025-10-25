@@ -22,20 +22,22 @@ export async function loadCollectionsView() {
 
   try {
     // Get collections and tasks data via message passing
-    const collections = await chrome.runtime.sendMessage({ action: 'getCollections' });
-    const tasks = await chrome.runtime.sendMessage({ action: 'getTasks' });
+    const collectionsResponse = await chrome.runtime.sendMessage({ action: 'getCollections' });
+    const tasksResponse = await chrome.runtime.sendMessage({ action: 'getTasks' });
+    const collections = collectionsResponse?.collections || [];
+    const tasks = tasksResponse?.tasks || [];
 
     // Get windows for active state display
     const windows = await chrome.windows.getAll();
     const windowMap = new Map(windows.map(w => [w.id, w]));
 
     // Store in state
-    state.set('collections', collections || []);
-    state.set('collectionTasks', tasks || []);
+    state.set('collections', collections);
+    state.set('collectionTasks', tasks);
     state.set('windowMap', windowMap);
 
     // Render the view
-    renderCollectionsView(collections || [], tasks || [], windowMap);
+    renderCollectionsView(collections, tasks, windowMap);
 
     // Setup event listeners
     setupCollectionsEventListeners();
@@ -516,15 +518,465 @@ async function handleCloseWindow(collectionId) {
 }
 
 async function handleViewDetails(collectionId) {
-  // TODO: Implement detail view modal (Phase 7.1 requirement)
-  showNotification('Detail view coming soon', 'info');
-  console.log('View details for collection:', collectionId);
+  try {
+    showNotification('Loading collection details...', 'info');
+
+    // Get complete collection with all tabs, folders, and tasks
+    const response = await chrome.runtime.sendMessage({
+      action: 'getCompleteCollection',
+      id: collectionId
+    });
+
+    if (response.success && response.collection) {
+      showCollectionDetailsModal(response.collection);
+    } else {
+      showNotification('Failed to load collection details', 'error');
+    }
+  } catch (error) {
+    console.error('Error loading collection details:', error);
+    showNotification('Failed to load collection details', 'error');
+  }
+}
+
+function showCollectionDetailsModal(collection) {
+  // Check if modal already exists
+  let modal = document.getElementById('collectionDetailsModal');
+
+  if (!modal) {
+    modal = createCollectionDetailsModal();
+  }
+
+  // Populate modal with collection data
+  const modalBody = modal.querySelector('.modal-body');
+  modalBody.innerHTML = renderCollectionDetails(collection);
+
+  // Show modal
+  modal.style.display = 'flex';
+}
+
+function renderCollectionDetails(collection) {
+  const createdDate = collection.createdAt ? new Date(collection.createdAt).toLocaleString() : 'Unknown';
+  const lastAccessed = collection.metadata?.lastAccessed
+    ? getTimeAgo(collection.metadata.lastAccessed)
+    : 'Never';
+
+  const tabs = collection.tabs || [];
+  const folders = collection.folders || [];
+  const tasks = collection.tasks || [];
+
+  let html = `
+    <div class="collection-details">
+      <!-- Header Section -->
+      <div class="details-header">
+        <div class="details-icon" style="background-color: ${collection.color || '#667eea'}">
+          ${collection.icon || '📁'}
+        </div>
+        <div class="details-info">
+          <h2>${escapeHtml(collection.name)}</h2>
+          ${collection.description ? `<p class="details-description">${escapeHtml(collection.description)}</p>` : ''}
+        </div>
+      </div>
+
+      <!-- Metadata Section -->
+      <div class="details-section">
+        <h4>Information</h4>
+        <div class="details-grid">
+          <div class="detail-item">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value">${collection.isActive ? '🟢 Active' : '💾 Saved'}</span>
+          </div>
+          ${collection.windowId ? `
+            <div class="detail-item">
+              <span class="detail-label">Window:</span>
+              <span class="detail-value">#${collection.windowId}</span>
+            </div>
+          ` : ''}
+          <div class="detail-item">
+            <span class="detail-label">Created:</span>
+            <span class="detail-value">${createdDate}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Last Accessed:</span>
+            <span class="detail-value">${lastAccessed}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Tabs:</span>
+            <span class="detail-value">${tabs.length}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Folders:</span>
+            <span class="detail-value">${folders.length}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Tasks:</span>
+            <span class="detail-value">${tasks.length}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags Section -->
+      ${collection.tags && collection.tags.length > 0 ? `
+        <div class="details-section">
+          <h4>Tags</h4>
+          <div class="details-tags">
+            ${collection.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Tabs Section -->
+      ${tabs.length > 0 ? `
+        <div class="details-section">
+          <h4>Tabs (${tabs.length})</h4>
+          <div class="details-list">
+            ${tabs.map(tab => `
+              <div class="detail-list-item">
+                <img src="${tab.favIconUrl || 'chrome://favicon/size/16@1x/' + tab.url}"
+                     width="16" height="16"
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ctext y=%2212%22 font-size=%2212%22%3E🌐%3C/text%3E%3C/svg%3E'">
+                <div class="detail-list-info">
+                  <div class="detail-list-title">${escapeHtml(tab.title || 'Untitled')}</div>
+                  <div class="detail-list-url">${escapeHtml(tab.url || '')}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Folders Section -->
+      ${folders.length > 0 ? `
+        <div class="details-section">
+          <h4>Folders (${folders.length})</h4>
+          <div class="details-list">
+            ${folders.map(folder => `
+              <div class="detail-list-item">
+                <span class="folder-icon">📁</span>
+                <div class="detail-list-info">
+                  <div class="detail-list-title">${escapeHtml(folder.name || 'Untitled Folder')}</div>
+                  ${folder.children ? `<div class="detail-list-url">${folder.children.length} items</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Tasks Section -->
+      ${tasks.length > 0 ? `
+        <div class="details-section">
+          <h4>Tasks (${tasks.length})</h4>
+          <div class="details-list">
+            ${tasks.map(task => {
+              const priorityColors = {
+                critical: '#f5576c',
+                high: '#fa709a',
+                medium: '#667eea',
+                low: '#4facfe'
+              };
+              const statusColors = {
+                open: '#667eea',
+                active: '#4facfe',
+                fixed: '#43e97b',
+                abandoned: '#999'
+              };
+              return `
+                <div class="detail-list-item">
+                  <div class="detail-list-info">
+                    <div class="detail-list-title">${escapeHtml(task.summary)}</div>
+                    <div class="detail-list-meta">
+                      <span class="task-status-badge" style="background: ${statusColors[task.status] || statusColors.open}">
+                        ${task.status}
+                      </span>
+                      <span class="task-priority-badge" style="background: ${priorityColors[task.priority] || priorityColors.medium}">
+                        ${task.priority}
+                      </span>
+                      ${task.tabIds && task.tabIds.length > 0 ? `
+                        <span class="task-meta">${task.tabIds.length} tab${task.tabIds.length !== 1 ? 's' : ''}</span>
+                      ` : ''}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  return html;
+}
+
+function createCollectionDetailsModal() {
+  const modal = document.createElement('div');
+  modal.id = 'collectionDetailsModal';
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h3>Collection Details</h3>
+        <button class="close-btn" id="closeCollectionDetailsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Content will be populated dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeCollectionDetails">Close</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Setup event listeners
+  document.getElementById('closeCollectionDetailsModal').addEventListener('click', hideCollectionDetailsModal);
+  document.getElementById('closeCollectionDetails').addEventListener('click', hideCollectionDetailsModal);
+
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      hideCollectionDetailsModal();
+    }
+  });
+
+  return modal;
+}
+
+function hideCollectionDetailsModal() {
+  const modal = document.getElementById('collectionDetailsModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
 }
 
 async function handleEditCollection(collectionId) {
-  // TODO: Implement edit modal (Phase 7.1 requirement)
-  showNotification('Edit modal coming soon', 'info');
-  console.log('Edit collection:', collectionId);
+  const collections = state.get('collections') || [];
+  const collection = collections.find(c => c.id === collectionId);
+
+  if (!collection) {
+    showNotification('Collection not found', 'error');
+    return;
+  }
+
+  showEditCollectionModal(collection);
+}
+
+function showEditCollectionModal(collection) {
+  // Check if modal already exists
+  let modal = document.getElementById('editCollectionModal');
+
+  if (!modal) {
+    modal = createEditCollectionModal();
+  }
+
+  // Populate modal with collection data
+  document.getElementById('editCollectionId').value = collection.id;
+  document.getElementById('editCollectionName').value = collection.name || '';
+  document.getElementById('editCollectionDescription').value = collection.description || '';
+  document.getElementById('editCollectionIcon').value = collection.icon || '📁';
+  document.getElementById('editCollectionColor').value = collection.color || '#667eea';
+  document.getElementById('editCollectionTags').value = (collection.tags || []).join(', ');
+
+  // Update emoji picker current emoji
+  const currentEmoji = document.getElementById('currentEmoji');
+  if (currentEmoji) {
+    currentEmoji.textContent = collection.icon || '📁';
+  }
+
+  // Show modal
+  modal.style.display = 'flex';
+}
+
+function createEditCollectionModal() {
+  const modal = document.createElement('div');
+  modal.id = 'editCollectionModal';
+  modal.className = 'modal';
+  modal.innerHTML = `
+    <div class="modal-content modal-md">
+      <div class="modal-header">
+        <h3>Edit Collection</h3>
+        <button class="close-btn" id="closeEditCollectionModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editCollectionId">
+
+        <div class="form-group">
+          <label for="editCollectionName">Name *</label>
+          <input type="text" id="editCollectionName" class="form-control" placeholder="Collection name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="editCollectionDescription">Description</label>
+          <textarea id="editCollectionDescription" class="form-control" rows="3" placeholder="Optional description"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 2;">
+            <label for="editCollectionIcon">Icon</label>
+            <input type="hidden" id="editCollectionIcon" value="📁">
+            <div class="emoji-picker-container">
+              <div class="emoji-current" id="currentEmoji">📁</div>
+              <div class="emoji-grid-wrapper">
+                <div class="emoji-categories">
+                  <button type="button" class="emoji-category-btn active" data-category="folders">📁</button>
+                  <button type="button" class="emoji-category-btn" data-category="work">💼</button>
+                  <button type="button" class="emoji-category-btn" data-category="dev">💻</button>
+                  <button type="button" class="emoji-category-btn" data-category="misc">🎯</button>
+                </div>
+                <div class="emoji-grid" id="emojiGrid">
+                  <!-- Will be populated by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="flex: 1;">
+            <label for="editCollectionColor">Color</label>
+            <input type="color" id="editCollectionColor" class="form-control" value="#667eea">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="editCollectionTags">Tags (comma-separated)</label>
+          <input type="text" id="editCollectionTags" class="form-control" placeholder="work, important, project">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelEditCollection">Cancel</button>
+        <button class="btn btn-primary" id="saveEditCollection">Save Changes</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Setup event listeners
+  document.getElementById('closeEditCollectionModal').addEventListener('click', hideEditCollectionModal);
+  document.getElementById('cancelEditCollection').addEventListener('click', hideEditCollectionModal);
+  document.getElementById('saveEditCollection').addEventListener('click', handleSaveEditCollection);
+
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      hideEditCollectionModal();
+    }
+  });
+
+  // Setup emoji picker
+  setupEmojiPicker();
+
+  return modal;
+}
+
+// Emoji picker data organized by categories
+const EMOJI_CATEGORIES = {
+  folders: {
+    name: 'Folders & Files',
+    emojis: ['📁', '📂', '🗂️', '📋', '📄', '📃', '📑', '🗃️', '🗄️', '📦', '📇', '🗳️', '📰', '📚', '📖']
+  },
+  work: {
+    name: 'Work & Productivity',
+    emojis: ['💼', '🏢', '📊', '📈', '📉', '💰', '💵', '💳', '🏦', '📞', '📱', '💻', '⌨️', '🖥️', '🖨️', '📠', '✉️', '📧', '📮', '📬', '📭', '📪', '🗒️', '📝', '✏️', '✒️', '🖊️', '🖋️', '📌', '📍', '🔖', '🏷️']
+  },
+  dev: {
+    name: 'Development & Tech',
+    emojis: ['💻', '🖥️', '⌨️', '🖱️', '🖲️', '💾', '💿', '📀', '🔌', '🔋', '🔧', '🔨', '⚙️', '🛠️', '⚡', '🔥', '💡', '🔍', '🔎', '🧪', '🧬', '🚀', '🛸', '🤖', '👾', '🎮', '🕹️']
+  },
+  misc: {
+    name: 'Miscellaneous',
+    emojis: ['🎯', '📌', '⭐', '✨', '🌟', '💫', '🔔', '🔕', '🎨', '🎭', '🎪', '🎬', '🎤', '🎧', '🎵', '🎶', '📻', '📺', '📷', '📸', '🔐', '🔒', '🔓', '🔑', '🗝️', '🏆', '🥇', '🥈', '🥉', '🎖️', '🏅', '🎗️', '🎀', '🎁', '🎉', '🎊', '🎈', '❤️', '💙', '💚', '💛', '🧡', '💜', '🖤', '🤍', '🤎', '💖', '💝']
+  }
+};
+
+function setupEmojiPicker() {
+  const currentEmoji = document.getElementById('currentEmoji');
+  const emojiGrid = document.getElementById('emojiGrid');
+  const emojiInput = document.getElementById('editCollectionIcon');
+  const categoryButtons = document.querySelectorAll('.emoji-category-btn');
+
+  // Initialize with folders category
+  renderEmojiGrid('folders');
+
+  // Category switching
+  categoryButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      categoryButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderEmojiGrid(btn.dataset.category);
+    });
+  });
+
+  function renderEmojiGrid(category) {
+    const emojis = EMOJI_CATEGORIES[category].emojis;
+    emojiGrid.innerHTML = emojis.map(emoji =>
+      `<button type="button" class="emoji-btn" data-emoji="${emoji}">${emoji}</button>`
+    ).join('');
+
+    // Add click handlers to emoji buttons
+    emojiGrid.querySelectorAll('.emoji-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const emoji = btn.dataset.emoji;
+        currentEmoji.textContent = emoji;
+        emojiInput.value = emoji;
+
+        // Visual feedback
+        emojiGrid.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+  }
+}
+
+function hideEditCollectionModal() {
+  const modal = document.getElementById('editCollectionModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+async function handleSaveEditCollection() {
+  const collectionId = document.getElementById('editCollectionId').value;
+  const name = document.getElementById('editCollectionName').value.trim();
+
+  if (!name) {
+    showNotification('Collection name is required', 'error');
+    return;
+  }
+
+  const tags = document.getElementById('editCollectionTags').value
+    .split(',')
+    .map(t => t.trim())
+    .filter(t => t.length > 0);
+
+  const updates = {
+    name,
+    description: document.getElementById('editCollectionDescription').value.trim(),
+    icon: document.getElementById('editCollectionIcon').value.trim() || '📁',
+    color: document.getElementById('editCollectionColor').value,
+    tags
+  };
+
+  try {
+    const result = await chrome.runtime.sendMessage({
+      action: 'updateCollection',
+      id: collectionId,
+      updates
+    });
+
+    if (result.success) {
+      showNotification('Collection updated', 'success');
+      hideEditCollectionModal();
+      await loadCollectionsView(); // Refresh
+    } else {
+      showNotification('Failed to update collection', 'error');
+    }
+  } catch (error) {
+    console.error('Error updating collection:', error);
+    showNotification('Failed to update collection', 'error');
+  }
 }
 
 async function handleDeleteCollection(collectionId) {
@@ -543,7 +995,7 @@ async function handleDeleteCollection(collectionId) {
 
     const result = await chrome.runtime.sendMessage({
       action: 'deleteCollection',
-      collectionId
+      id: collectionId
     });
 
     if (result.success) {
