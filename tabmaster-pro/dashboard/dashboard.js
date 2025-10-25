@@ -75,6 +75,9 @@ import {
 import { loadGroupsView, groupTabsByDomain, ungroupAllTabs } from './modules/views/groups.js';
 import { loadSnoozedView } from './modules/views/snoozed.js';
 import { loadHistoryView } from './modules/views/history.js';
+import { loadCollectionsView } from './modules/views/collections.js';
+import { loadKanbanView } from './modules/views/tasks-kanban.js';
+import { loadListView } from './modules/views/tasks-list.js';
 
 // ============================================================================
 // State Management
@@ -229,6 +232,19 @@ function switchView(view, filter = null) {
         initializeExportImport();
       }
       break;
+    case 'collections':
+      loadCollectionsView();
+      break;
+    case 'tasks':
+      // Load with current view preference (Kanban or List)
+      const tasksViewPreference = state.get('tasksViewPreference') || 'kanban';
+      if (tasksViewPreference === 'kanban') {
+        loadKanbanView();
+      } else {
+        loadListView();
+      }
+      setupTasksViewToggle();
+      break;
   }
 }
 
@@ -370,6 +386,110 @@ function setupEventListeners() {
     if (e.key === 'Escape' && state.selectedTabs.size > 0) {
       clearSelection();
     }
+  });
+
+  // Collections view - Save Current Window button
+  document.getElementById('saveCurrentWindow')?.addEventListener('click', async () => {
+    const currentWindow = await chrome.windows.getCurrent();
+    showNotification('Saving current window...', 'info');
+
+    try {
+      const result = await chrome.runtime.sendMessage({
+        action: 'captureWindow',
+        windowId: currentWindow.id,
+        metadata: {
+          name: `Window ${currentWindow.id}`,
+          description: 'Captured from dashboard'
+        }
+      });
+
+      if (result.success) {
+        showNotification('Collection created!', 'success');
+        loadCollectionsView(); // Refresh
+      } else {
+        showNotification('Failed to create collection', 'error');
+      }
+    } catch (error) {
+      console.error('Error creating collection:', error);
+      showNotification('Failed to create collection', 'error');
+    }
+  });
+
+  // Tasks view - Create New Task button
+  document.getElementById('createNewTask')?.addEventListener('click', async () => {
+    // This will be handled by the task detail modal from tasks-base.js
+    const { showTaskDetailModal } = await import('./modules/views/tasks-base.js');
+    const collections = state.get('collections') || [];
+    const newTask = {
+      id: crypto.randomUUID(),
+      summary: '',
+      notes: '',
+      status: 'open',
+      priority: 'medium',
+      dueDate: null,
+      collectionId: null,
+      tags: [],
+      tabIds: []
+    };
+    showTaskDetailModal(newTask, collections);
+  });
+
+  // Tasks view - Bulk action buttons
+  document.querySelectorAll('#tasksBulkBar .bulk-action-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const { handleBulkAction } = await import('./modules/views/tasks-base.js');
+      const selectedTasks = state.get('selectedTasks') || new Set();
+      await handleBulkAction(btn.dataset.action, selectedTasks);
+    });
+  });
+}
+
+// ============================================================================
+// Tasks View Toggle
+// ============================================================================
+
+function setupTasksViewToggle() {
+  const kanbanBtn = document.getElementById('tasksViewKanban');
+  const listBtn = document.getElementById('tasksViewList');
+  const kanbanContainer = document.getElementById('tasksKanbanContainer');
+  const listContainer = document.getElementById('tasksListContainer');
+
+  if (!kanbanBtn || !listBtn) return;
+
+  kanbanBtn.addEventListener('click', () => {
+    // Update buttons
+    kanbanBtn.classList.add('active');
+    listBtn.classList.remove('active');
+
+    // Update containers
+    kanbanContainer.style.display = 'block';
+    kanbanContainer.classList.add('active');
+    listContainer.style.display = 'none';
+    listContainer.classList.remove('active');
+
+    // Save preference
+    state.set('tasksViewPreference', 'kanban');
+
+    // Load Kanban view
+    loadKanbanView();
+  });
+
+  listBtn.addEventListener('click', () => {
+    // Update buttons
+    listBtn.classList.add('active');
+    kanbanBtn.classList.remove('active');
+
+    // Update containers
+    listContainer.style.display = 'block';
+    listContainer.classList.add('active');
+    kanbanContainer.style.display = 'none';
+    kanbanContainer.classList.remove('active');
+
+    // Save preference
+    state.set('tasksViewPreference', 'list');
+
+    // Load List view
+    loadListView();
   });
 }
 
