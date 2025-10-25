@@ -850,30 +850,34 @@ export class TestMode {
         ]
       },
       {
-        name: 'per-window-deduplication',
-        description: 'Test per-window scope deduplication (Phase 8.2)',
+        name: 'global-deduplication',
+        description: 'Test global scope deduplication - keeps oldest tab across ALL windows (Phase 8.2)',
         category: 'multi-window',
         steps: [
-          // Create 3 windows
+          // Create 3 isolated test windows
           { action: 'createWindow', captureAs: 'window1' },
           { action: 'createWindow', captureAs: 'window2' },
           { action: 'createWindow', captureAs: 'window3' },
 
-          // Window 1: 2 github.com duplicates + 1 unique
-          { action: 'createTab', url: 'https://github.com/trending', count: 2, useCaptured: 'window1' },
-          { action: 'createTab', url: 'https://unique1.com', count: 1, useCaptured: 'window1' },
+          // Use unique test URLs to avoid collisions with pre-existing tabs
+          // Window 1: 2 test duplicates + 1 unique
+          { action: 'createTab', url: 'https://test-dedupe.example.com/page1', count: 2, useCaptured: 'window1' },
+          { action: 'createTab', url: 'https://unique-test-1.example.com', count: 1, useCaptured: 'window1' },
 
-          // Window 2: 2 github.com duplicates + 1 unique (same URL as window1 duplicates!)
-          { action: 'createTab', url: 'https://github.com/trending', count: 2, useCaptured: 'window2' },
-          { action: 'createTab', url: 'https://unique2.com', count: 1, useCaptured: 'window2' },
+          // Window 2: 2 test duplicates (same as window1) + 1 unique
+          { action: 'createTab', url: 'https://test-dedupe.example.com/page1', count: 2, useCaptured: 'window2' },
+          { action: 'createTab', url: 'https://unique-test-2.example.com', count: 1, useCaptured: 'window2' },
 
-          // Window 3: No duplicates within window, but has github.com (duplicate globally)
-          { action: 'createTab', url: 'https://github.com/trending', count: 1, useCaptured: 'window3' },
-          { action: 'createTab', url: 'https://unique3.com', count: 1, useCaptured: 'window3' },
+          // Window 3: 1 test duplicate (global duplicate) + 1 unique
+          { action: 'createTab', url: 'https://test-dedupe.example.com/page1', count: 1, useCaptured: 'window3' },
+          { action: 'createTab', url: 'https://unique-test-3.example.com', count: 1, useCaptured: 'window3' },
 
           { action: 'wait', ms: 500 },
 
-          // Test 1: Global scope (should close across all windows)
+          // Count tabs before dedupe: should be 5 test-dedupe tabs total (2+2+1) across ALL windows
+          { action: 'assert', type: 'tabCount', expected: 5, url: 'test-dedupe.example.com', windowId: 'all' },
+
+          // Global scope dedupe: should keep only 1 across ALL windows (the oldest)
           {
             action: 'createRule',
             rule: {
@@ -886,15 +890,49 @@ export class TestMode {
           { action: 'executeRule', ruleId: 'Global Dedupe Test' },
           { action: 'wait', ms: 1000 },
 
-          // Should have only 1 github.com across all windows
-          { action: 'assert', type: 'tabCount', expected: 1, url: 'github.com/trending' },
+          // Should have only 1 test-dedupe tab remaining across all windows
+          { action: 'assert', type: 'tabCount', expected: 1, url: 'test-dedupe.example.com', windowId: 'all' },
 
-          // Restore tabs for next test
-          { action: 'createTab', url: 'https://github.com/trending', count: 1, useCaptured: 'window1' },
-          { action: 'createTab', url: 'https://github.com/trending', count: 2, useCaptured: 'window2' },
+          // Verify each window still exists and has appropriate tabs
+          // Window 1: Should have 1 or 2 tabs (kept oldest test-dedupe + unique-test-1)
+          { action: 'assert', type: 'windowExists', windowId: 'window1', useCaptured: true },
+
+          // Window 2: Should have 1 tab (unique-test-2, its test-dedupe tabs were closed)
+          { action: 'assert', type: 'windowExists', windowId: 'window2', useCaptured: true },
+
+          // Window 3: Should have 1 tab (unique-test-3, its test-dedupe tab was closed)
+          { action: 'assert', type: 'windowExists', windowId: 'window3', useCaptured: true }
+        ]
+      },
+      {
+        name: 'per-window-deduplication',
+        description: 'Test per-window scope deduplication - keeps oldest tab PER WINDOW (Phase 8.2)',
+        category: 'multi-window',
+        steps: [
+          // Create 3 fresh windows for this test
+          { action: 'createWindow', captureAs: 'window1' },
+          { action: 'createWindow', captureAs: 'window2' },
+          { action: 'createWindow', captureAs: 'window3' },
+
+          // Use unique test URLs to avoid collisions
+          // Window 1: 2 duplicates within window + 1 unique
+          { action: 'createTab', url: 'https://test-perwin-dedupe.example.com/page', count: 2, useCaptured: 'window1' },
+          { action: 'createTab', url: 'https://unique-perwin-1.example.com', count: 1, useCaptured: 'window1' },
+
+          // Window 2: 2 duplicates within window (same URL as window1, but different window!) + 1 unique
+          { action: 'createTab', url: 'https://test-perwin-dedupe.example.com/page', count: 2, useCaptured: 'window2' },
+          { action: 'createTab', url: 'https://unique-perwin-2.example.com', count: 1, useCaptured: 'window2' },
+
+          // Window 3: No duplicates within window, but has same URL as other windows
+          { action: 'createTab', url: 'https://test-perwin-dedupe.example.com/page', count: 1, useCaptured: 'window3' },
+          { action: 'createTab', url: 'https://unique-perwin-3.example.com', count: 1, useCaptured: 'window3' },
+
           { action: 'wait', ms: 500 },
 
-          // Test 2: Per-window scope (should only dedupe within each window)
+          // Count before dedupe: should be 5 test-perwin-dedupe tabs total (2+2+1) across ALL windows
+          { action: 'assert', type: 'tabCount', expected: 5, url: 'test-perwin-dedupe.example.com', windowId: 'all' },
+
+          // Per-window scope: should only dedupe within each window
           {
             action: 'createRule',
             rule: {
@@ -907,18 +945,18 @@ export class TestMode {
           { action: 'executeRule', ruleId: 'Per-Window Dedupe Test' },
           { action: 'wait', ms: 1000 },
 
-          // Should have 1 github.com in window1, 1 in window2, 1 in window3 (3 total)
-          // Because per-window only dedupes within each window, not across windows
-          { action: 'assert', type: 'tabCount', expected: 3, url: 'github.com/trending' },
+          // Should have 3 test-perwin-dedupe tabs total (1 per window)
+          // Because per-window only dedupes WITHIN each window, not ACROSS windows
+          { action: 'assert', type: 'tabCount', expected: 3, url: 'test-perwin-dedupe.example.com', windowId: 'all' },
 
-          // Verify window1 has 1 github.com (closed 1 duplicate within window)
-          { action: 'assert', type: 'windowTabCount', windowId: 'window1', expected: 2, useCaptured: true },
+          // Verify window1 has 3 tabs total: 1 chrome://newtab + 1 test-perwin-dedupe + 1 unique
+          { action: 'assert', type: 'windowTabCount', windowId: 'window1', expected: 3, useCaptured: true },
 
-          // Verify window2 has 1 github.com (closed 1 duplicate within window)
-          { action: 'assert', type: 'windowTabCount', windowId: 'window2', expected: 2, useCaptured: true },
+          // Verify window2 has 3 tabs total: 1 chrome://newtab + 1 test-perwin-dedupe + 1 unique
+          { action: 'assert', type: 'windowTabCount', windowId: 'window2', expected: 3, useCaptured: true },
 
-          // Verify window3 unchanged (no duplicates within window)
-          { action: 'assert', type: 'windowTabCount', windowId: 'window3', expected: 2, useCaptured: true }
+          // Verify window3 unchanged: 3 tabs total (1 chrome://newtab + 1 test-perwin-dedupe + 1 unique, no duplicates within window)
+          { action: 'assert', type: 'windowTabCount', windowId: 'window3', expected: 3, useCaptured: true }
         ]
       },
       {

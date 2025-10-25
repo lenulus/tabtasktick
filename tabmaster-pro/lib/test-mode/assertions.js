@@ -73,24 +73,32 @@ export class Assertions {
    */
   async assertTabCount(params) {
     const { expected, url, windowId, condition = 'equals' } = params;
-    
+
     // Build query
     const query = {};
-    if (windowId !== undefined) {
-      query.windowId = windowId === 'test' ? this.testMode.testWindow?.id : windowId;
+    if (windowId === null || windowId === 'all') {
+      // Search ALL windows (no windowId filter)
+      // Do not add windowId to query
+    } else if (windowId === 'test') {
+      // Search in test control window
+      query.windowId = this.testMode.testWindow?.id;
+    } else if (windowId !== undefined) {
+      // Search in specific window ID
+      query.windowId = windowId;
     } else {
+      // Default: search in test window for backwards compatibility
       query.windowId = this.testMode.testWindow?.id;
     }
-    
+
     // Get tabs first, then filter by URL
     const tabs = await chrome.tabs.query(query);
     let filteredTabs = tabs;
-    
+
     if (url) {
       // Filter tabs by URL substring
       filteredTabs = tabs.filter(tab => tab.url.includes(url));
     }
-    
+
     const actual = filteredTabs.length;
     const passed = this.evaluateCondition(actual, expected, condition);
 
@@ -99,8 +107,8 @@ export class Assertions {
       actual,
       expected,
       condition,
-      message: passed 
-        ? `Tab count ${condition} ${expected}` 
+      message: passed
+        ? `Tab count ${condition} ${expected}`
         : `Expected tab count ${condition} ${expected}, but got ${actual}`,
       tabs: filteredTabs.map(t => ({ id: t.id, url: t.url, title: t.title }))
     };
