@@ -561,7 +561,7 @@ export class TasksView {
       // Get task data
       const response = await chrome.runtime.sendMessage({
         action: 'getTask',
-        taskId
+        id: taskId
       });
 
       if (response.error) {
@@ -589,7 +589,7 @@ export class TasksView {
       // Get task data for confirmation
       const response = await chrome.runtime.sendMessage({
         action: 'getTask',
-        taskId
+        id: taskId
       });
 
       if (response.error) {
@@ -605,7 +605,7 @@ export class TasksView {
       // Delete the task via message
       const deleteResponse = await chrome.runtime.sendMessage({
         action: 'deleteTask',
-        taskId
+        id: taskId
       });
 
       if (deleteResponse && deleteResponse.success) {
