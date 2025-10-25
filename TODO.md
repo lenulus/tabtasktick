@@ -234,13 +234,13 @@ Following architecture-guardian review, key improvements from initial plan:
 ---
 
 ### Phase 7: Dashboard Integration ⏳
-**Time Estimate**: 20-24 hours (increased from 12-14h per UX review)
+**Time Estimate**: 14-18 hours (revised down from 20-24h)
 **Priority**: MEDIUM
 **Dependencies**: Phase 6 complete
 **Status**: 🔴 Not Started
-**Note**: Consider splitting into Phase 7a (Collections) and Phase 7b (Tasks) due to complexity
+**Note**: Desktop-optimized design per Phase 3 UX lessons; DAG hierarchy deferred to future release
 
-#### 7.1 Collections View (6-8h)
+#### 7.1 Collections Management View (6-8h)
 - [ ] Create `/dashboard/modules/views/collections.js` (~500 lines)
 - [ ] Implement `loadCollectionsView()`:
   - Load collections via `getCollections` message
@@ -279,86 +279,73 @@ Following architecture-guardian review, key improvements from initial plan:
   - Clear filters button
 - [ ] NO business logic - all via chrome.runtime.sendMessage()
 
-#### 7.2 Tasks View - Kanban Board (8-10h)
-- [ ] Create `/dashboard/modules/views/tasks-kanban.js` (~500 lines)
-- [ ] Implement `loadKanbanView()`:
-  - Load tasks via `getTasks` message
-  - Load collections via `getCollections` message (for display context)
-  - Render Kanban board with 4 columns:
-    - "Open" (status='open')
-    - "Active" (status='active')
-    - "Fixed" (status='fixed')
-    - "Abandoned" (status='abandoned')
-  - Show task cards with rich metadata:
-    - Priority indicator (color-coded border)
-    - Summary with truncation
-    - Due date with overdue highlighting
-    - Collection badge (clickable)
-    - Tab references count ("→ 3 tabs")
-    - Comment count (if > 0)
-    - Tags (first 2, "+ N more")
-  - **Drag-and-drop between columns** (complex!):
-    - Use HTML5 drag-and-drop API or library (e.g., SortableJS)
+#### 7.2 Tasks - Dual View System (6-8h)
+**View Toggle**: Kanban ↔ List (segmented control or tabs at top of tasks view)
+
+**Shared Infrastructure**:
+- [ ] Create `/dashboard/modules/views/tasks-base.js` (base class with common functionality)
+  - Data loading via `getTasks` and `getCollections` messages
+  - Shared filters/search UI (collection, status, priority, tags, search text)
+  - Task detail modal (full-screen, all fields editable, **includes Delete button**)
+  - Bulk action bar (appears when tasks selected via checkboxes)
+  - Loading states, empty states, error states
+
+**Kanban View** (keep as option for status-focused workflow):
+- [ ] Create `/dashboard/modules/views/tasks-kanban.js` (~400 lines)
+- [ ] Implement Kanban board:
+  - 4 columns: Open, Active, Fixed, Abandoned
+  - **Drag-and-drop between columns to change status**:
+    - Use HTML5 drag-and-drop API
     - Visual feedback (placeholder, ghost card, drop zones)
-    - Update task status via message on drop
+    - Update status via message on drop
     - Optimistic UI update with rollback on error
-    - Handle edge cases (drag to same column, invalid states)
-    - Animate card movement
-  - Filtering within Kanban:
-    - Filter by collection (multi-select)
-    - Filter by priority
-    - Filter by tags
-    - Search in summary/notes
-  - Loading states (skeleton columns)
-  - Empty states per column ("No open tasks")
-- [ ] Implement task detail modal:
-  - Full-screen or large modal
-  - Edit all fields inline (summary, notes, priority, due date, tags, status)
-  - Show collection with link to collection detail
-  - Show referenced tabs with:
-    - Folder context ("Documentation › API Docs")
-    - ⭐ indicator if tab is primary reference
-    - Remove tab reference button
-    - Add more tab references (checkbox list from collection)
-  - Comments section:
-    - Display all comments with timestamps
-    - Add new comment (textarea + submit)
-    - Edit/delete own comments
-    - Markdown support (basic)
-  - Activity log (created, status changes, assignments)
-  - Keyboard shortcuts (e.g., Cmd+Enter to save)
+  - Task cards with priority indicator, summary, due date, collection badge
+  - Empty state per column ("No open tasks")
+  - Match existing dashboard styling
+
+**List View** (NEW - desktop-optimized, table-based):
+- [ ] Create `/dashboard/modules/views/tasks-list.js` (~400 lines)
+- [ ] Implement desktop-optimized task table:
+  - **Columns**: ☑ Checkbox | ⋮ Drag Handle | Task | Collection | Priority | Status | Due Date
+  - **Sortable columns**: Click header to sort (ASC/DESC toggle)
+  - **Drag handles (⋮)**: Manual reordering (updates position field)
+  - **Checkboxes**: Multi-select for bulk operations
+  - **Inline editing**: Double-click cells to edit (summary, priority, status, due date)
+  - **Keyboard navigation**: Arrow keys, Enter, Tab
+  - **Row actions on hover**: Edit, Delete, Open Tabs buttons appear
+  - Match existing dashboard table styles (similar to All Tabs view)
+  - Responsive column widths
+  - Fixed header on scroll
+
+**Bulk Operations** (both views):
+- [ ] Implement bulk action bar (appears when ≥1 task selected):
+  - "Change Status" → dropdown (Open, Active, Fixed, Abandoned)
+  - "Change Priority" → dropdown (Low, Medium, High, Critical)
+  - "Delete Selected" → confirmation modal with count
+  - "Select All" / "Deselect All" buttons
+  - Selection counter ("3 tasks selected")
+  - Match existing tab management bulk action patterns
+
+**Task Detail Modal** (shared by both views):
+- [ ] Large modal (centered, 80% viewport width)
+- [ ] All fields editable: summary, notes, priority, status, due date, tags, collection
+- [ ] Tab references section:
+  - Show tabs with folder context ("Documentation › API Docs")
+  - Remove tab reference button
+  - Add more tab references (checkbox list from collection tabs)
+- [ ] **Delete button** in modal footer (matches side panel delete flow)
+- [ ] Comments section:
+  - Display all comments with timestamps
+  - Add new comment (textarea + submit button)
+  - Simple text only (defer Markdown to future)
+- [ ] Keyboard shortcuts: Cmd+Enter to save, ESC to cancel
 - [ ] NO business logic - all via chrome.runtime.sendMessage()
 
-#### 7.2.5 Tasks View - Calendar (4-6h) **NEW**
-- [ ] Create `/dashboard/modules/views/tasks-calendar.js` (~400 lines)
-- [ ] Implement calendar view:
-  - Month/week/day view toggle
-  - Group tasks by due date on calendar grid
-  - Show task count per day
-  - Color-code by priority
-  - Click day to see tasks in detail panel
-  - **Drag tasks to change due date**:
-    - Visual feedback during drag
-    - Update dueDate via message on drop
-    - Handle edge cases (drag to past, drag to no date)
-  - Loading states
-  - Empty states ("No tasks with due dates")
-- [ ] Implement task hover preview:
-  - Show task summary, priority, collection on hover
-  - Quick actions (mark fixed, edit)
-- [ ] NO business logic - all via chrome.runtime.sendMessage()
-
-#### 7.2.7 Tasks Reporting (2-3h) **NEW**
-- [ ] Create `/dashboard/modules/views/tasks-reporting.js` (~250 lines)
-- [ ] Implement reporting dashboard:
-  - Completed this week (grouped by day, bar chart)
-  - Overdue tasks (list with collection context)
-  - Tasks by collection (pie chart or bar chart)
-  - Average completion time
-  - Task velocity (tasks completed per week, line chart)
-  - Export reports as CSV
-- [ ] Charts using existing Chart.js from analytics
-- [ ] NO business logic - all via chrome.runtime.sendMessage()
+**Notes**:
+- **DAG hierarchy (parent/child tasks)**: Deferred to future release
+- **Calendar view**: Deferred to future release
+- **Reporting**: Deferred to future release
+- Focus on core task management with excellent keyboard/mouse UX
 
 #### 7.3 Navigation Integration (1-2h)
 - [ ] Update `/dashboard/dashboard.html`:
@@ -377,36 +364,47 @@ Following architecture-guardian review, key improvements from initial plan:
   - Show results grouped by type (Tabs / Collections / Tasks)
   - Click result → navigate to detail view
 
-#### 7.5 Integration Testing (2h)
+#### 7.5 Integration Testing (1-2h)
 - [ ] Test Collections view loads and displays
-- [ ] Test Tasks view (Kanban board) loads
-- [ ] Test calendar view for tasks
-- [ ] Test creating/editing collections
-- [ ] Test creating/editing tasks
-- [ ] Test bulk operations (delete, archive)
-- [ ] Test drag-and-drop (tasks between columns, reorder)
+- [ ] Test Tasks Kanban view loads and drag-drop works
+- [ ] Test Tasks List view loads with sortable columns
+- [ ] Test view toggle between Kanban ↔ List
+- [ ] Test creating/editing/deleting collections
+- [ ] Test creating/editing/deleting tasks
+- [ ] Test bulk operations: Change Status, Change Priority, Delete Selected
+- [ ] Test checkboxes and bulk action bar
+- [ ] Test keyboard navigation in List view (arrow keys, Enter, Tab)
+- [ ] Test inline editing in List view (double-click cells)
+- [ ] Test drag handles for manual reordering in List view
 - [ ] Test unified search includes collections/tasks
-- [ ] Test navigation between views
+- [ ] Test navigation between views (#collections, #tasks)
 - [ ] Test with 100+ collections and 500+ tasks (performance)
+- [ ] Test Delete buttons in both modals
 
 **Success Criteria**:
-- [ ] Collections view displays with grid/list toggle
-- [ ] Tasks view displays as Kanban board and calendar
-- [ ] Collection detail modal allows full editing
-- [ ] Task detail modal allows full editing
-- [ ] Drag-and-drop works (status changes, reordering)
-- [ ] Bulk operations work (archive, delete, export)
+- [ ] Collections view displays with grid/list toggle and bulk operations
+- [ ] Tasks view has working Kanban ↔ List view toggle
+- [ ] Kanban drag-and-drop changes task status correctly
+- [ ] List view table is keyboard navigable (arrow keys, Enter, Tab)
+- [ ] List view inline editing works (double-click cells)
+- [ ] List view manual reordering works (drag handles)
+- [ ] Bulk operations work: Change Status, Change Priority, Delete Selected
+- [ ] Task detail modal allows full editing with Delete button
+- [ ] Collection detail modal allows full editing with Delete button
 - [ ] Unified search finds collections and tasks
+- [ ] All views match existing dashboard styling (desktop-optimized)
 - [ ] NO business logic in dashboard/*.js (all via messages)
-- [ ] Performance acceptable (< 500ms load for 100 collections)
+- [ ] Performance acceptable (< 500ms load for 100 collections, < 200ms for 500 tasks)
+- [ ] Keyboard shortcuts work (Cmd+Enter, ESC, etc.)
 
 **Deliverables**:
-- `/dashboard/modules/views/collections.js` (~500 lines, increased)
-- `/dashboard/modules/views/tasks-kanban.js` (~500 lines) **NEW**
-- `/dashboard/modules/views/tasks-calendar.js` (~400 lines) **NEW**
-- `/dashboard/modules/views/tasks-reporting.js` (~250 lines) **NEW**
+- `/dashboard/modules/views/collections.js` (~500 lines)
+- `/dashboard/modules/views/tasks-base.js` (~300 lines) **NEW**
+- `/dashboard/modules/views/tasks-kanban.js` (~400 lines) **NEW**
+- `/dashboard/modules/views/tasks-list.js` (~400 lines) **NEW**
 - Updated `/dashboard/dashboard.html`
 - Updated `/dashboard/dashboard.js`
+- Updated `/dashboard/dashboard.css` (table styles, bulk action bar)
 
 ---
 
@@ -495,26 +493,28 @@ Following architecture-guardian review, key improvements from initial plan:
   - Includes edge case coverage (new)
 - [ ] Milestone: Full workflow (capture → restore → task execution) working
 
-### Sprint 10-13: Dashboard (20-24h)
-**Weeks 12-15** (increased from 2 weeks to 4 weeks):
-- [ ] Phase 7: Dashboard Integration (20-24h)
-  - Phase 7a: Collections View (6-8h) with drag-drop
-  - Phase 7b: Tasks Kanban (8-10h) with drag-drop
-  - Phase 7c: Tasks Calendar (4-6h) (new)
-  - Phase 7d: Tasks Reporting (2-3h) (new)
-- [ ] Milestone: All surfaces complete, full feature parity
+### Sprint 10-12: Dashboard (14-18h)
+**Weeks 12-14** (revised down from 4 weeks to 3 weeks):
+- [ ] Phase 7: Dashboard Integration (14-18h)
+  - Phase 7.1: Collections View (6-8h) with drag-drop
+  - Phase 7.2: Tasks Dual View System (6-8h) - Kanban + List views
+  - Phase 7.3: Navigation Integration (1-2h)
+  - Phase 7.4: Unified Search Enhancement (1-2h)
+  - **Deferred**: DAG hierarchy, calendar view, reporting (future release)
+- [ ] Milestone: All surfaces complete, desktop-optimized UX
 
-### Sprint 14: Testing & Polish (10-14h)
-**Week 16**:
+### Sprint 13: Testing & Polish (10-14h)
+**Week 15**:
 - [ ] Integration testing
 - [ ] Performance optimization
 - [ ] Bug fixes and refinement
 - [ ] Documentation updates
 - [ ] Release preparation
 
-**Total Timeline**: 102-127 hours (13-16 weeks at 8h/week)
+**Total Timeline**: 96-121 hours (12-15 weeks at 8h/week)
 **Previous Estimate**: 68-84 hours (under-estimated by ~40%)
-**Increase Rationale**: UX complexity (drag-drop, modals, state management, search/filters, progressive discovery, calendar views) not captured in original estimate
+**Latest Revision**: Reduced Phase 7 by 6h by deferring calendar/reporting/DAG hierarchy
+**Rationale**: Desktop-optimized UX patterns simpler than mobile-style interactions; focus on core task management first
 
 ---
 
