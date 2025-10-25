@@ -1716,7 +1716,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
             // Open the panel if requested
             if (request.open) {
-              const window = await chrome.windows.getCurrent();
+              const window = await chrome.windows.getLastFocused();
               await chrome.sidePanel.open({ windowId: window.id });
             }
 
@@ -2568,8 +2568,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       break;
 
     case 'save-window-as-collection':
-      // Get current window from the action context
-      const currentWindow = await chrome.windows.getCurrent({ populate: true });
+      // Get current window from the action context (service workers can't use getCurrent)
+      const currentWindow = await chrome.windows.getLastFocused({ populate: true });
       // Note: This would require CaptureWindowService from Phase 6
       // For now, show a notification that this feature is coming
       chrome.notifications.create({

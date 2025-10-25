@@ -134,7 +134,7 @@ export async function initialize() {
  * @example
  * // Snooze multiple tabs with window context
  * const tabIds = [123, 456, 789];
- * const windowId = await chrome.windows.getCurrent().id;
+ * const windowId = (await chrome.windows.getLastFocused()).id;
  * const windowSnoozeId = `window_${Date.now()}_${windowId}`;
  * await snoozeTabs(tabIds, snoozeUntil, {
  *   reason: 'window_snooze',
@@ -260,15 +260,15 @@ export async function wakeTabs(snoozedTabIds, options = {}) {
             await chrome.windows.get(tab.sourceWindowId);
             windowId = tab.sourceWindowId;
           } catch (e) {
-            // Original window doesn't exist, fall back to current
-            windowId = (await chrome.windows.getCurrent()).id;
+            // Original window doesn't exist, fall back to last focused
+            windowId = (await chrome.windows.getLastFocused()).id;
           }
         } else if (mode === 'current') {
-          // Restore to current window
-          windowId = (await chrome.windows.getCurrent()).id;
+          // Restore to last focused window (service workers can't use getCurrent)
+          windowId = (await chrome.windows.getLastFocused()).id;
         } else if (mode === 'original' && !tab.sourceWindowId) {
-          // Legacy tab without sourceWindowId - restore to current window
-          windowId = (await chrome.windows.getCurrent()).id;
+          // Legacy tab without sourceWindowId - restore to last focused window
+          windowId = (await chrome.windows.getLastFocused()).id;
         }
         // If mode === 'new', windowId stays undefined (creates new window)
 

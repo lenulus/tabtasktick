@@ -491,7 +491,7 @@ async function importTabsAndGroups(tabs, groups, windows, scope, importGroups) {
     let windowNeedingDefaultTabCleanup = null; // Track windows that need cleanup
 
     if (scope === 'current-window' || scope === 'replace-all') {
-      const currentWindow = await chrome.windows.getCurrent();
+      const currentWindow = await chrome.windows.getLastFocused();
       targetWindowId = currentWindow.id;
       windows.forEach(window => {
         const oldId = window.windowId || parseInt(window.id.replace('w', ''));
@@ -799,7 +799,7 @@ export async function importData(data, options = {}, state, loadRules, scheduler
   try {
     if (!data || !data.session) throw new Error('Invalid import data: missing session information');
     if (scope === 'replace-all') {
-      const currentWindow = await chrome.windows.getCurrent();
+      const currentWindow = await chrome.windows.getLastFocused();
       const allWindows = await chrome.windows.getAll();
       for (const window of allWindows) {
         if (window.id !== currentWindow.id) {

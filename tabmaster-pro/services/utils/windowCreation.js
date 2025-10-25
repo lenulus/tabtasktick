@@ -184,6 +184,7 @@ export async function createWindowWithTabsAndGroups(options) {
   }
 
   // Step 2: Create window if requested
+  let defaultTabIds = []; // Track default tabs to remove after creating real tabs
   if (createNewWindow) {
     const newWindow = await chrome.windows.create({
       focused,
@@ -195,7 +196,7 @@ export async function createWindowWithTabsAndGroups(options) {
     // Save default tab IDs to remove later (after creating real tabs)
     // This avoids closing the window by removing all tabs
     const defaultTabs = await chrome.tabs.query({ windowId: targetWindowId });
-    var defaultTabIds = defaultTabs.map(t => t.id);
+    defaultTabIds = defaultTabs.map(t => t.id);
   } else {
     // Verify window exists if using existing window
     try {
@@ -203,7 +204,7 @@ export async function createWindowWithTabsAndGroups(options) {
     } catch (error) {
       throw new Error(`Window ${targetWindowId} does not exist. Cannot create tabs in non-existent window.`);
     }
-    var defaultTabIds = []; // No default tabs to remove
+    // No default tabs to remove when using existing window
   }
 
   // Step 3: Prepare tab groups
