@@ -363,7 +363,7 @@ export class CollectionDetailView {
       <div class="tab-item" data-tab-id="${tab.id}">
         <div class="tab-header-item">
           ${tab.isPinned ? '<span class="tab-pinned-icon">📌</span>' : ''}
-          <img src="${favicon}" class="tab-favicon" onerror="this.style.display='none'" alt="">
+          <img src="${favicon}" class="tab-favicon" alt="" data-favicon>
           <span class="tab-title">${title}</span>
         </div>
         <div class="tab-note-container">
@@ -466,6 +466,14 @@ export class CollectionDetailView {
           charsSpan.textContent = `${e.target.value.length}/255`;
         }
       }
+    });
+
+    // Favicon error handling (CSP-compliant)
+    const faviconImages = this.container.querySelectorAll('[data-favicon]');
+    faviconImages.forEach(img => {
+      img.addEventListener('error', function() {
+        this.style.display = 'none';
+      });
     });
   }
 
