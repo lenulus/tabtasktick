@@ -1090,9 +1090,9 @@ async function executeActionViaEngine(action, tabIds, params = {}) {
     id: `temp-${action}-${Date.now()}`,
     name: `Manual ${action} action`,
     enabled: true,
-    conditions: {
-      // Match only tabs with IDs in our list
-      any: tabIds.map(id => ({ eq: ['tab.id', id] }))
+    when: {
+      // Match only tabs with IDs in our list (v2-services format)
+      any: tabIds.map(id => ({ subject: 'id', operator: 'equals', value: id }))
     },
     then: [{ action, ...params }]
   };
