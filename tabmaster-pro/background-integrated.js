@@ -1342,7 +1342,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             id: 'temp-suspend-inactive',
             name: 'Suspend Inactive Tabs',
             enabled: true,
-            conditions: {
+            when: {
               all: [
                 { subject: 'active', operator: 'equals', value: false },
                 { subject: 'pinned', operator: 'equals', value: false }
@@ -1946,8 +1946,8 @@ async function findAndCloseDuplicates() {
     id: 'manual-close-duplicates',
     name: 'Manual Close Duplicates',
     enabled: true,
-    conditions: {}, // Empty conditions object matches all tabs
-    actions: [{
+    when: { all: [] }, // Empty conditions matches all tabs (v2-services format)
+    then: [{
       action: 'close-duplicates',
       keep: 'oldest' // Keep first instance, close duplicates
     }]
