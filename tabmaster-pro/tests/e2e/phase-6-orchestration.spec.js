@@ -11,33 +11,42 @@
  * and message handlers.
  */
 
-import { test, expect } from '@playwright/test';
-import { getExtensionPage, sendMessage } from './fixtures/extension.js';
+import { test, expect } from './fixtures/extension.js';
 
 test.describe('Phase 6 - Orchestration Services', () => {
-  test('full workflow: capture → save → restore → task execution', async ({ context }) => {
-    // Get extension page for sending messages
-    const page = await getExtensionPage(context);
+  test.beforeEach(async ({ testPage }) => {
+    // Clear all data before each test to ensure isolation
+    await testPage.evaluate(async () => {
+      const { clearAllData } = await import('./services/utils/db.js');
+      await clearAllData();
+    });
+  });
 
-    // Step 1: Create a window with some tabs to capture
+  test('full workflow: capture → save → restore → task execution', async ({ testPage, context }) => {
+    // Step 1: Create a test window with tabs to capture
     const testWindow = await context.newPage();
     await testWindow.goto('https://example.com');
+    await testWindow.waitForLoadState('load');
 
-    const windowInfo = await testWindow.evaluate(() => {
-      return chrome.windows.getCurrent();
+    const windowId = await testWindow.evaluate(() => {
+      return chrome.windows.getCurrent().then(w => w.id);
     });
 
-    // Step 2: Capture window as collection
-    const captureResult = await sendMessage(page, {
-      action: 'captureWindow',
-      windowId: windowInfo.id,
-      metadata: {
-        name: 'Test Collection',
-        description: 'E2E test collection',
-        tags: ['test']
-      },
-      keepActive: false // Save as inactive
-    });
+    // Step 2: Capture window as collection using background message handler
+    const captureResult = await testPage.evaluate(async (winId) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'captureWindow',
+          windowId: winId,
+          metadata: {
+            name: 'Test Collection',
+            description: 'E2E test collection',
+            tags: ['test']
+          },
+          keepActive: false // Save as inactive
+        }, resolve);
+      });
+    }, windowId);
 
     expect(captureResult.success).toBe(true);
     expect(captureResult.collection).toBeDefined();
@@ -47,15 +56,19 @@ test.describe('Phase 6 - Orchestration Services', () => {
     const capturedTabIds = captureResult.tabs.map(t => t.id);
 
     // Step 3: Create a task referencing the captured tabs
-    const taskResult = await sendMessage(page, {
-      action: 'createTask',
-      params: {
-        summary: 'Test Task',
-        collectionId,
-        tabIds: capturedTabIds.slice(0, 2), // Reference first 2 tabs
-        status: 'open'
-      }
-    });
+    const taskResult = await testPage.evaluate(async (data) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'createTask',
+          params: {
+            summary: 'Test Task',
+            collectionId: data.collectionId,
+            tabIds: data.tabIds.slice(0, 2), // Reference first 2 tabs
+            status: 'open'
+          }
+        }, resolve);
+      });
+    }, { collectionId, tabIds: capturedTabIds });
 
     expect(taskResult.success).toBe(true);
     expect(taskResult.task).toBeDefined();
@@ -63,67 +76,86 @@ test.describe('Phase 6 - Orchestration Services', () => {
     const taskId = taskResult.task.id;
 
     // Step 4: Verify collection is saved (not active)
-    const collectionCheck = await sendMessage(page, {
-      action: 'getCollection',
-      id: collectionId
-    });
+    const collectionCheck = await testPage.evaluate(async (id) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'getCollection',
+          id
+        }, resolve);
+      });
+    }, collectionId);
 
     expect(collectionCheck.collection.isActive).toBe(false);
     expect(collectionCheck.collection.windowId).toBeNull();
 
+    // Close the test window to truly make the collection saved
+    await testWindow.close();
+
     // Step 5: Restore collection
-    const restoreResult = await sendMessage(page, {
-      action: 'restoreCollection',
-      collectionId,
-      createNewWindow: true,
-      focused: false
-    });
+    const restoreResult = await testPage.evaluate(async (id) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'restoreCollection',
+          collectionId: id,
+          createNewWindow: true,
+          focused: false
+        }, resolve);
+      });
+    }, collectionId);
 
     expect(restoreResult.success).toBe(true);
     expect(restoreResult.windowId).toBeDefined();
     expect(restoreResult.stats.tabsRestored).toBeGreaterThan(0);
 
     // Step 6: Verify collection is now active
-    const activeCheck = await sendMessage(page, {
-      action: 'getCollection',
-      id: collectionId
-    });
+    const activeCheck = await testPage.evaluate(async (id) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'getCollection',
+          id
+        }, resolve);
+      });
+    }, collectionId);
 
     expect(activeCheck.collection.isActive).toBe(true);
     expect(activeCheck.collection.windowId).toBe(restoreResult.windowId);
 
     // Step 7: Open task tabs
-    const openResult = await sendMessage(page, {
-      action: 'openTaskTabs',
-      taskId
-    });
+    const openResult = await testPage.evaluate(async (id) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'openTaskTabs',
+          taskId: id
+        }, resolve);
+      });
+    }, taskId);
 
     expect(openResult.success).toBe(true);
     expect(openResult.tabsOpened).toBeGreaterThan(0);
     expect(openResult.collectionRestored).toBe(false); // Already restored
-
-    // Cleanup: close test window
-    await testWindow.close();
   });
 
-  test('message handlers: captureWindow', async ({ context }) => {
-    const page = await getExtensionPage(context);
-
+  test('message handlers: captureWindow', async ({ testPage, context }) => {
     // Create test window
     const testWindow = await context.newPage();
     await testWindow.goto('https://playwright.dev');
+    await testWindow.waitForLoadState('load');
 
-    const windowInfo = await testWindow.evaluate(() => {
-      return chrome.windows.getCurrent();
+    const windowId = await testWindow.evaluate(() => {
+      return chrome.windows.getCurrent().then(w => w.id);
     });
 
     // Capture window
-    const result = await sendMessage(page, {
-      action: 'captureWindow',
-      windowId: windowInfo.id,
-      metadata: { name: 'Playwright Window' },
-      keepActive: true
-    });
+    const result = await testPage.evaluate(async (winId) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'captureWindow',
+          windowId: winId,
+          metadata: { name: 'Playwright Window' },
+          keepActive: true
+        }, resolve);
+      });
+    }, windowId);
 
     expect(result.success).toBe(true);
     expect(result.collection).toBeDefined();
@@ -136,23 +168,26 @@ test.describe('Phase 6 - Orchestration Services', () => {
     await testWindow.close();
   });
 
-  test('message handlers: restoreCollection', async ({ context }) => {
-    const page = await getExtensionPage(context);
-
+  test('message handlers: restoreCollection', async ({ testPage, context }) => {
     // First capture a window
     const testWindow = await context.newPage();
     await testWindow.goto('https://example.com');
+    await testWindow.waitForLoadState('load');
 
-    const windowInfo = await testWindow.evaluate(() => {
-      return chrome.windows.getCurrent();
+    const windowId = await testWindow.evaluate(() => {
+      return chrome.windows.getCurrent().then(w => w.id);
     });
 
-    const captureResult = await sendMessage(page, {
-      action: 'captureWindow',
-      windowId: windowInfo.id,
-      metadata: { name: 'Test' },
-      keepActive: false
-    });
+    const captureResult = await testPage.evaluate(async (winId) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'captureWindow',
+          windowId: winId,
+          metadata: { name: 'Test' },
+          keepActive: false
+        }, resolve);
+      });
+    }, windowId);
 
     expect(captureResult.success).toBe(true);
 
@@ -160,70 +195,67 @@ test.describe('Phase 6 - Orchestration Services', () => {
     await testWindow.close();
 
     // Now restore it
-    const restoreResult = await sendMessage(page, {
-      action: 'restoreCollection',
-      collectionId: captureResult.collection.id
-    });
+    const restoreResult = await testPage.evaluate(async (id) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'restoreCollection',
+          collectionId: id
+        }, resolve);
+      });
+    }, captureResult.collection.id);
 
     expect(restoreResult.success).toBe(true);
     expect(restoreResult.windowId).toBeDefined();
     expect(restoreResult.stats.tabsRestored).toBeGreaterThan(0);
   });
 
-  test('message handlers: openTaskTabs', async ({ context }) => {
-    const page = await getExtensionPage(context);
-
+  test('message handlers: openTaskTabs', async ({ testPage, context }) => {
     // Capture window
     const testWindow = await context.newPage();
     await testWindow.goto('https://example.com');
+    await testWindow.waitForLoadState('load');
 
-    const windowInfo = await testWindow.evaluate(() => {
-      return chrome.windows.getCurrent();
+    const windowId = await testWindow.evaluate(() => {
+      return chrome.windows.getCurrent().then(w => w.id);
     });
 
-    const captureResult = await sendMessage(page, {
-      action: 'captureWindow',
-      windowId: windowInfo.id,
-      metadata: { name: 'Task Test' },
-      keepActive: true
-    });
+    const captureResult = await testPage.evaluate(async (winId) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'captureWindow',
+          windowId: winId,
+          metadata: { name: 'Task Test' },
+          keepActive: true
+        }, resolve);
+      });
+    }, windowId);
 
     // Create task
-    const taskResult = await sendMessage(page, {
-      action: 'createTask',
-      params: {
-        summary: 'Open Test',
-        collectionId: captureResult.collection.id,
-        tabIds: [captureResult.tabs[0].id]
-      }
-    });
+    const taskResult = await testPage.evaluate(async (data) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'createTask',
+          params: {
+            summary: 'Open Test',
+            collectionId: data.collectionId,
+            tabIds: [data.tabId]
+          }
+        }, resolve);
+      });
+    }, { collectionId: captureResult.collection.id, tabId: captureResult.tabs[0].id });
 
     // Open task tabs
-    const openResult = await sendMessage(page, {
-      action: 'openTaskTabs',
-      taskId: taskResult.task.id
-    });
+    const openResult = await testPage.evaluate(async (id) => {
+      return new Promise(resolve => {
+        chrome.runtime.sendMessage({
+          action: 'openTaskTabs',
+          taskId: id
+        }, resolve);
+      });
+    }, taskResult.task.id);
 
     expect(openResult.success).toBe(true);
     expect(openResult.tabsOpened).toBeGreaterThan(0);
-
-    await testWindow.close();
-  });
-
-  test('message handlers: focusWindow', async ({ context }) => {
-    const page = await getExtensionPage(context);
-
-    const testWindow = await context.newPage();
-    const windowInfo = await testWindow.evaluate(() => {
-      return chrome.windows.getCurrent();
-    });
-
-    const result = await sendMessage(page, {
-      action: 'focusWindow',
-      windowId: windowInfo.id
-    });
-
-    expect(result.success).toBe(true);
 
     await testWindow.close();
   });

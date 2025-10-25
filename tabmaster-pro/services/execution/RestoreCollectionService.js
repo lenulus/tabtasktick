@@ -60,30 +60,11 @@ import * as CollectionService from './CollectionService.js';
 import * as WindowService from './WindowService.js';
 import { getCollection, getCompleteCollection } from '../utils/storage-queries.js';
 import * as TabService from './TabService.js';
+import { createWindowWithTabsAndGroups } from '../utils/windowCreation.js';
 
-/**
- * System URL prefixes that cannot be restored
- * @constant
- */
-const SYSTEM_URL_PREFIXES = [
-  'chrome://',
-  'chrome-extension://',
-  'edge://',
-  'about:',
-  'view-source:'
-];
-
-/**
- * Batch size for tab creation (rate limiting)
- * @constant
- */
-const TAB_CREATION_BATCH_SIZE = 10;
-
-/**
- * Delay between batches (milliseconds)
- * @constant
- */
-const BATCH_DELAY_MS = 100;
+// Note: System tab filtering, batching, and delays are now handled by
+// the shared windowCreation utility. This service focuses on data transformation
+// and storage updates.
 
 /**
  * Restores a saved collection as a browser window.
@@ -167,13 +148,6 @@ export async function restoreCollection(options) {
     windowState = 'normal'
   } = options;
 
-  if (!createNewWindow && !windowId) {
-    throw new Error('windowId is required when createNewWindow=false');
-  }
-
-  const warnings = [];
-  let targetWindowId = windowId;
-
   // Step 1: Fetch collection with complete hierarchy
   const collectionData = await getCompleteCollection(collectionId);
 
@@ -185,182 +159,75 @@ export async function restoreCollection(options) {
   // getCompleteCollection returns { ...collection, folders: [{ ...folder, tabs: [...] }] }
   const { folders, ...collection } = collectionData;
 
-  // Flatten tabs from nested folder structure
-  const tabs = [];
+  // Step 2: Transform collection data into windowCreation format
+  // Build tab array with group metadata embedded
+  const tabsForCreation = [];
+
   for (const folder of folders) {
-    if (folder.tabs) {
-      tabs.push(...folder.tabs);
+    if (!folder.tabs || folder.tabs.length === 0) continue;
+
+    for (const tab of folder.tabs) {
+      // Skip "Ungrouped" folder (grey color by convention)
+      const shouldGroup = folder.name !== 'Ungrouped' && folder.color !== 'grey';
+
+      tabsForCreation.push({
+        url: tab.url,
+        pinned: tab.isPinned || false,
+        groupKey: shouldGroup ? folder.id : null,
+        groupInfo: shouldGroup ? {
+          name: folder.name,
+          color: folder.color,
+          collapsed: folder.collapsed || false,
+          position: folder.position
+        } : null,
+        metadata: {
+          id: tab.id, // Storage tab ID for callback
+          position: tab.position
+        }
+      });
     }
   }
 
-  if (tabs.length === 0) {
+  if (tabsForCreation.length === 0) {
     throw new Error('Collection has no tabs to restore');
   }
 
-  // Step 2: Filter system tabs
-  const restorableTabs = [];
-  let skippedCount = 0;
-
-  for (const tab of tabs) {
-    if (isSystemTab(tab.url)) {
-      skippedCount++;
-      warnings.push(`Skipped system tab: ${tab.url}`);
-      continue;
+  // Step 3: Use shared window creation utility
+  const result = await createWindowWithTabsAndGroups({
+    tabs: tabsForCreation,
+    createNewWindow,
+    windowId,
+    focused,
+    windowState,
+    // Callback: Update storage tab with Chrome tabId after each tab created
+    onTabCreated: async (chromeTab, tabData) => {
+      await TabService.updateTab(tabData.metadata.id, {
+        tabId: chromeTab.id
+      });
     }
-    restorableTabs.push(tab);
-  }
+  });
 
-  if (restorableTabs.length === 0) {
-    throw new Error('No restorable tabs in collection (all are system tabs)');
-  }
+  // Step 4: Bind collection to window and mark active
+  await CollectionService.bindToWindow(collectionId, result.windowId);
+  await WindowService.bindCollectionToWindow(collectionId, result.windowId);
 
-  // Step 3: Create window if requested
-  if (createNewWindow) {
-    const newWindow = await chrome.windows.create({
-      focused,
-      state: windowState,
-      url: 'about:blank' // Create with blank tab first
-    });
-    targetWindowId = newWindow.id;
+  // Step 5: Transform result to match expected format
+  const restoredTabs = result.tabs.map(tab => ({
+    storageId: tab.metadata.id,
+    chromeTabId: tab.chromeTabId,
+    url: tab.url
+  }));
 
-    // Remove the default blank tab
-    const defaultTabs = await chrome.tabs.query({ windowId: targetWindowId });
-    for (const tab of defaultTabs) {
-      try {
-        await chrome.tabs.remove(tab.id);
-      } catch (error) {
-        // Ignore errors removing default tabs
-      }
-    }
-  }
-
-  // Step 4: Prepare tab groups (folders → Chrome tab groups)
-  // We'll create groups as we create tabs (find-or-create pattern)
-  const folderIdToGroupId = new Map();
-  const createdGroups = new Set();
-
-  // Step 5: Sort tabs by folder and position
-  // Group tabs by folder for efficient batch processing
-  const tabsByFolder = new Map();
-  for (const tab of restorableTabs) {
-    if (!tabsByFolder.has(tab.folderId)) {
-      tabsByFolder.set(tab.folderId, []);
-    }
-    tabsByFolder.get(tab.folderId).push(tab);
-  }
-
-  // Sort folders by position
-  const sortedFolders = folders.sort((a, b) => a.position - b.position);
-
-  // Step 6: Create tabs in batches with proper grouping
-  const restoredTabs = [];
-  let tabsCreated = 0;
-
-  for (const folder of sortedFolders) {
-    const folderTabs = tabsByFolder.get(folder.id) || [];
-    if (folderTabs.length === 0) continue;
-
-    // Sort tabs by position within folder
-    folderTabs.sort((a, b) => a.position - b.position);
-
-    // Process tabs in batches
-    for (let i = 0; i < folderTabs.length; i += TAB_CREATION_BATCH_SIZE) {
-      const batch = folderTabs.slice(i, i + TAB_CREATION_BATCH_SIZE);
-
-      // Create tabs in parallel within batch
-      await Promise.all(batch.map(async (storageTab) => {
-        try {
-          // Create Chrome tab
-          const chromeTab = await chrome.tabs.create({
-            windowId: targetWindowId,
-            url: storageTab.url,
-            pinned: storageTab.isPinned || false,
-            active: false
-          });
-
-          tabsCreated++;
-
-          // Assign to tab group (folder)
-          // Skip "Ungrouped" folder (grey color by convention)
-          if (folder.name !== 'Ungrouped' && folder.color !== 'grey') {
-            // Find or create group for this folder
-            let groupId = folderIdToGroupId.get(folder.id);
-
-            if (!groupId) {
-              // Create new group
-              groupId = await chrome.tabs.group({
-                tabIds: [chromeTab.id],
-                createProperties: { windowId: targetWindowId }
-              });
-
-              // Update group properties
-              await chrome.tabGroups.update(groupId, {
-                title: folder.name,
-                color: folder.color,
-                collapsed: folder.collapsed || false
-              });
-
-              folderIdToGroupId.set(folder.id, groupId);
-              createdGroups.add(groupId);
-            } else {
-              // Add to existing group
-              await chrome.tabs.group({
-                tabIds: [chromeTab.id],
-                groupId
-              });
-            }
-          }
-
-          // Update storage tab with Chrome tabId
-          await TabService.updateTab(storageTab.id, {
-            tabId: chromeTab.id
-          });
-
-          restoredTabs.push({
-            storageId: storageTab.id,
-            chromeTabId: chromeTab.id,
-            url: storageTab.url
-          });
-
-        } catch (error) {
-          warnings.push(`Failed to restore tab ${storageTab.url}: ${error.message}`);
-        }
-      }));
-
-      // Rate limiting: delay between batches
-      if (i + TAB_CREATION_BATCH_SIZE < folderTabs.length) {
-        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
-      }
-    }
-  }
-
-  // Step 7: Bind collection to window and mark active
-  await CollectionService.bindToWindow(collectionId, targetWindowId);
-  await WindowService.bindCollectionToWindow(collectionId, targetWindowId);
-
-  // Step 8: Return result
   return {
     collectionId,
-    windowId: targetWindowId,
+    windowId: result.windowId,
     tabs: restoredTabs,
     stats: {
-      tabsRestored: tabsCreated,
-      tabsSkipped: skippedCount,
-      groupsRestored: createdGroups.size,
-      warnings
+      tabsRestored: result.stats.tabsCreated,
+      tabsSkipped: result.stats.tabsSkipped,
+      groupsRestored: result.stats.groupsCreated,
+      warnings: result.stats.warnings
     }
   };
 }
 
-/**
- * Checks if a URL is a system URL that cannot be restored.
- *
- * @param {string} url - URL to check
- * @returns {boolean} True if URL is a system URL
- *
- * @private
- */
-function isSystemTab(url) {
-  if (!url) return false;
-  return SYSTEM_URL_PREFIXES.some(prefix => url.startsWith(prefix));
-}

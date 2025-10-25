@@ -48,8 +48,7 @@
  */
 
 import * as RestoreCollectionService from './RestoreCollectionService.js';
-import { getTask } from '../utils/storage-queries.js';
-import { getCollection, getCompleteCollection } from '../utils/storage-queries.js';
+import { getTask, getTab, getCollection, getCompleteCollection } from '../utils/storage-queries.js';
 
 /**
  * Opens tabs referenced by a task.
@@ -235,9 +234,6 @@ async function openUncategorizedTaskTabs(task, warnings) {
   // For uncategorized tasks, we'd need to store tab URLs directly
   // Since the current data model stores task.tabIds as references to storage tabs,
   // we'll need to fetch those tabs to get URLs
-
-  // Import getTab from storage-queries
-  const { getTab } = await import('../utils/storage-queries.js');
 
   for (const tabId of task.tabIds) {
     try {

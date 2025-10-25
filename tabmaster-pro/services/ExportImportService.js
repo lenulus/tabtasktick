@@ -63,6 +63,7 @@
  */
 // Service for handling all export and import functionality.
 import * as SnoozeService from './execution/SnoozeService.js';
+import { createWindowWithTabsAndGroups } from './utils/windowCreation.js';
 
 // Helper functions for human-readable formatting
 function getTimeAgo(timestamp, now) {
@@ -525,6 +526,7 @@ async function importTabsAndGroups(tabs, groups, windows, scope, importGroups) {
       }
     }
 
+    // Build group ID map for tab-to-group assignment
     if (importGroups && groups.length > 0) {
       for (const groupData of groups) {
         try {
@@ -544,52 +546,52 @@ async function importTabsAndGroups(tabs, groups, windows, scope, importGroups) {
       }
     }
 
-    const BATCH_SIZE = 10;
-    const tabsToCreate = [];
+    // Transform export format tabs into windowCreation format
+    // Group tabs by window for efficient batch processing
+    const tabsByWindow = new Map();
+
     for (const tabData of tabs) {
-      if (tabData.url && (tabData.url.startsWith('chrome://') || tabData.url.startsWith('edge://') || tabData.url.startsWith('about:') || tabData.url.startsWith('chrome-extension://'))) {
-        result.errors.push(`Skipped restricted URL: ${tabData.url}`);
-        continue;
-      }
       const oldWindowId = tabData.windowId ? parseInt(tabData.windowId.replace('w', '')) : null;
       const newWindowId = oldWindowId ? windowIdMap.get(oldWindowId) : targetWindowId;
       if (!newWindowId) continue;
-      tabsToCreate.push({
+
+      // Get group info if this tab belongs to a group
+      const oldGroupId = tabData.groupId ? parseInt((tabData.groupId || '-1').toString().replace('g', '')) : null;
+      const groupInfo = oldGroupId ? groupIdMap.get(oldGroupId) : null;
+
+      // Transform to windowCreation format
+      const transformedTab = {
         url: tabData.url || 'about:blank',
-        windowId: newWindowId,
         pinned: tabData.pinned || false,
-        active: false,
-        groupId: tabData.groupId,
-        groupData: groupIdMap.get(parseInt((tabData.groupId || '-1').toString().replace('g', ''))),
-        originalData: tabData
-      });
+        groupKey: groupInfo && importGroups ? `${groupInfo.windowId}-${groupInfo.title}` : null,
+        groupInfo: groupInfo && importGroups ? groupInfo : null,
+        metadata: tabData // Store original data for reference
+      };
+
+      // Group by window
+      if (!tabsByWindow.has(newWindowId)) {
+        tabsByWindow.set(newWindowId, []);
+      }
+      tabsByWindow.get(newWindowId).push(transformedTab);
     }
 
-    if (tabsToCreate.length === 0) return result;
+    if (tabsByWindow.size === 0) return result;
 
-    const createdGroups = new Map();
-    for (let i = 0; i < tabsToCreate.length; i += BATCH_SIZE) {
-      const batch = tabsToCreate.slice(i, i + BATCH_SIZE);
-      await Promise.all(batch.map(async (tabInfo) => {
-        try {
-          const newTab = await chrome.tabs.create({ url: tabInfo.url, windowId: tabInfo.windowId, pinned: tabInfo.pinned, active: false });
-          result.tabCount++;
-          if (importGroups && tabInfo.groupData) {
-            const groupKey = `${tabInfo.windowId}-${tabInfo.groupData.title}`;
-            if (!createdGroups.has(groupKey)) {
-              const groupId = await chrome.tabs.group({ tabIds: [newTab.id], createProperties: { windowId: tabInfo.windowId } });
-              await chrome.tabGroups.update(groupId, { title: tabInfo.groupData.title, color: tabInfo.groupData.color, collapsed: tabInfo.groupData.collapsed });
-              createdGroups.set(groupKey, groupId);
-              result.groupCount++;
-            } else {
-              await chrome.tabs.group({ tabIds: [newTab.id], groupId: createdGroups.get(groupKey) });
-            }
-          }
-        } catch (e) {
-          result.errors.push(`Failed to create tab: ${e.message}`);
-        }
-      }));
-      if (i + BATCH_SIZE < tabsToCreate.length) await new Promise(resolve => setTimeout(resolve, 100));
+    // Create tabs in each window using shared utility
+    for (const [windowId, windowTabs] of tabsByWindow) {
+      try {
+        const createResult = await createWindowWithTabsAndGroups({
+          tabs: windowTabs,
+          createNewWindow: false, // Windows already created
+          windowId: windowId
+        });
+
+        result.tabCount += createResult.stats.tabsCreated;
+        result.groupCount += createResult.stats.groupsCreated;
+        result.errors.push(...createResult.stats.warnings);
+      } catch (error) {
+        result.errors.push(`Failed to create tabs in window ${windowId}: ${error.message}`);
+      }
     }
 
     if (scope === 'new-windows' && newWindowIds && newWindowIds.length > 0) {
