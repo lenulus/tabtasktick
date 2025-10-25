@@ -319,12 +319,16 @@ export class TasksView {
     const tabReferences = this.renderTabReferences(task.tabIds, task.collectionId);
 
     const actionButtons = isCompleted
-      ? `<button class="btn btn-link task-action" data-action="view-collection" data-collection-id="${task.collectionId || ''}" ${!task.collectionId ? 'disabled' : ''}>View Collection</button>`
+      ? `
+          <button class="btn btn-link task-action" data-action="view-collection" data-collection-id="${task.collectionId || ''}" ${!task.collectionId ? 'disabled' : ''}>View Collection</button>
+          <button class="btn btn-danger task-action" data-action="delete" data-task-id="${task.id}">Delete</button>
+        `
       : `
           <button class="btn btn-primary task-action" data-action="open-tabs" data-task-id="${task.id}">Open Tabs</button>
           <button class="btn btn-secondary task-action" data-action="mark-fixed" data-task-id="${task.id}">Mark Fixed</button>
           <button class="btn btn-link task-action" data-action="edit" data-task-id="${task.id}">Edit</button>
           ${task.collectionId ? `<button class="btn btn-link task-action" data-action="view-collection" data-collection-id="${task.collectionId}">View Collection</button>` : ''}
+          <button class="btn btn-danger task-action" data-action="delete" data-task-id="${task.id}">Delete</button>
         `;
 
     return `
@@ -470,6 +474,9 @@ export class TasksView {
           case 'view-collection':
             this.handleViewCollection(collectionId);
             break;
+          case 'delete':
+            await this.handleDeleteTask(taskId);
+            break;
         }
       }
 
@@ -572,6 +579,85 @@ export class TasksView {
         'error'
       );
     }
+  }
+
+  /**
+   * Handle delete task
+   */
+  async handleDeleteTask(taskId) {
+    try {
+      // Get task data for confirmation
+      const response = await chrome.runtime.sendMessage({
+        action: 'getTask',
+        taskId
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      const task = response.task;
+
+      // Show confirmation modal
+      const confirmed = await this.showDeleteConfirmation(task);
+      if (!confirmed) return;
+
+      // Delete the task via message
+      const deleteResponse = await chrome.runtime.sendMessage({
+        action: 'deleteTask',
+        taskId
+      });
+
+      if (deleteResponse && deleteResponse.success) {
+        notifications.success(`Task "${task.summary}" deleted`);
+        // Reload data
+        await this.controller.loadData();
+      } else {
+        throw new Error(deleteResponse?.error || 'Delete failed');
+      }
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      notifications.error('Failed to delete task');
+    }
+  }
+
+  /**
+   * Show delete confirmation modal
+   */
+  async showDeleteConfirmation(task) {
+    return new Promise((resolve) => {
+      const collectionInfo = task.collectionId
+        ? `<p>This task is part of the collection. The collection will not be affected.</p>`
+        : '';
+
+      modal.open({
+        title: 'Delete Task',
+        content: `
+          <p>Are you sure you want to delete this task?</p>
+          <p class="task-summary-preview"><strong>"${this.escapeHtml(task.summary)}"</strong></p>
+          ${collectionInfo}
+          <p class="danger-text">This action cannot be undone.</p>
+        `,
+        actions: [
+          {
+            label: 'Cancel',
+            className: 'btn-secondary',
+            onClick: () => {
+              modal.close();
+              resolve(false);
+            }
+          },
+          {
+            label: 'Delete',
+            className: 'btn-danger',
+            onClick: () => {
+              modal.close();
+              resolve(true);
+            }
+          }
+        ]
+      });
+    });
   }
 
   /**

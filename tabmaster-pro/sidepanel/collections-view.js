@@ -186,6 +186,9 @@ export class CollectionsView {
               ❌ Close
             </button>
           ` : ''}
+          <button class="btn btn-danger btn-sm action-delete" data-action="delete">
+            🗑️ Delete
+          </button>
         </div>
       </div>
     `;
@@ -223,6 +226,9 @@ export class CollectionsView {
           break;
         case 'close':
           await this.handleCloseCollection(collectionId);
+          break;
+        case 'delete':
+          await this.handleDeleteCollection(collectionId);
           break;
       }
     });
@@ -355,6 +361,84 @@ export class CollectionsView {
       console.error('Failed to close window:', error);
       notifications.error('Failed to close window');
     }
+  }
+
+  /**
+   * Handle delete collection action
+   */
+  async handleDeleteCollection(collectionId) {
+    try {
+      const collection = this.controller.collectionsData.find(c => c.id === collectionId);
+      if (!collection) {
+        notifications.error('Collection not found');
+        return;
+      }
+
+      // Show confirmation modal
+      const confirmed = await this.showDeleteConfirmation(collection);
+      if (!confirmed) return;
+
+      // Delete the collection via message
+      const response = await chrome.runtime.sendMessage({
+        action: 'deleteCollection',
+        collectionId
+      });
+
+      if (response && response.success) {
+        notifications.success(`Collection "${collection.name}" deleted`);
+        // Reload data
+        await this.controller.loadData();
+      } else {
+        throw new Error(response?.error || 'Delete failed');
+      }
+    } catch (error) {
+      console.error('Failed to delete collection:', error);
+      notifications.error('Failed to delete collection');
+    }
+  }
+
+  /**
+   * Show delete confirmation modal
+   */
+  async showDeleteConfirmation(collection) {
+    return new Promise((resolve) => {
+      const isActive = collection.isActive;
+      const warningText = isActive
+        ? '<p class="warning-text">⚠️ This collection is currently active. The window will remain open but the collection data will be permanently deleted.</p>'
+        : '';
+
+      modal.open({
+        title: 'Delete Collection',
+        content: `
+          <p>Are you sure you want to delete "<strong>${this.escapeHtml(collection.name)}</strong>"?</p>
+          ${warningText}
+          <p>This will permanently delete:</p>
+          <ul>
+            <li>All folders and tabs in this collection</li>
+            <li>All tasks associated with this collection</li>
+          </ul>
+          <p class="danger-text">This action cannot be undone.</p>
+        `,
+        actions: [
+          {
+            label: 'Cancel',
+            className: 'btn-secondary',
+            onClick: () => {
+              modal.close();
+              resolve(false);
+            }
+          },
+          {
+            label: 'Delete',
+            className: 'btn-danger',
+            onClick: () => {
+              modal.close();
+              resolve(true);
+            }
+          }
+        ]
+      });
+    });
   }
 
   /**

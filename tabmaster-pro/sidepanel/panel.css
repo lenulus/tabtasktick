@@ -861,6 +861,42 @@ body {
   color: var(--text-primary);
 }
 
+.btn-danger {
+  background: #ef4444;
+  color: white;
+  border: none;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Modal text styles */
+.danger-text {
+  color: #ef4444;
+  font-weight: 500;
+  margin-top: var(--spacing-md);
+}
+
+.warning-text {
+  color: #f59e0b;
+  font-weight: 500;
+  padding: var(--spacing-md);
+  background: #fef3c7;
+  border-left: 3px solid #f59e0b;
+  border-radius: var(--radius-sm);
+  margin: var(--spacing-md) 0;
+}
+
+.task-summary-preview {
+  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  margin: var(--spacing-md) 0;
+}
+
 /* Notification Container */
 .notification-container {
   position: fixed;
