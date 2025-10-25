@@ -193,13 +193,6 @@ export async function restoreCollection(options) {
   }
 
   // Step 3: Use shared window creation utility
-  console.log('[RestoreCollectionService] Calling windowCreation with:', {
-    createNewWindow,
-    windowId,
-    tabCount: tabsForCreation.length,
-    sampleTab: tabsForCreation[0]
-  });
-
   const result = await createWindowWithTabsAndGroups({
     tabs: tabsForCreation,
     createNewWindow,

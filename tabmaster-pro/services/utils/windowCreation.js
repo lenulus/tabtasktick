@@ -166,8 +166,6 @@ export async function createWindowWithTabsAndGroups(options) {
   const warnings = [];
   let targetWindowId = windowId;
 
-  console.log('[windowCreation] Initial params:', { createNewWindow, windowId, targetWindowId, tabsCount: tabs.length });
-
   // Step 1: Filter system tabs
   const restorableTabs = [];
   let skippedCount = 0;
@@ -193,28 +191,20 @@ export async function createWindowWithTabsAndGroups(options) {
       url: 'about:blank' // Create with blank tab first
     });
     targetWindowId = newWindow.id;
-    console.log('[windowCreation] Created new window:', targetWindowId);
 
-    // Remove the default blank tab
+    // Save default tab IDs to remove later (after creating real tabs)
+    // This avoids closing the window by removing all tabs
     const defaultTabs = await chrome.tabs.query({ windowId: targetWindowId });
-    for (const tab of defaultTabs) {
-      try {
-        await chrome.tabs.remove(tab.id);
-      } catch (error) {
-        // Ignore errors removing default tabs
-      }
-    }
+    var defaultTabIds = defaultTabs.map(t => t.id);
   } else {
-    console.log('[windowCreation] Using existing window:', targetWindowId);
     // Verify window exists if using existing window
     try {
       await chrome.windows.get(targetWindowId);
     } catch (error) {
       throw new Error(`Window ${targetWindowId} does not exist. Cannot create tabs in non-existent window.`);
     }
+    var defaultTabIds = []; // No default tabs to remove
   }
-
-  console.log('[windowCreation] About to create tabs in window:', targetWindowId);
 
   // Step 3: Prepare tab groups
   // groupKey -> Chrome group ID
@@ -381,7 +371,18 @@ export async function createWindowWithTabsAndGroups(options) {
     }
   }
 
-  // Step 6: Return result
+  // Step 6: Remove default blank tabs (now that we have real tabs)
+  if (defaultTabIds.length > 0) {
+    for (const tabId of defaultTabIds) {
+      try {
+        await chrome.tabs.remove(tabId);
+      } catch (error) {
+        // Ignore errors removing default tabs (they may have been auto-closed)
+      }
+    }
+  }
+
+  // Step 7: Return result
   return {
     windowId: targetWindowId,
     tabs: createdTabs,
