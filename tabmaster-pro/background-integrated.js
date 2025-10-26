@@ -1898,48 +1898,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: true });
           break;
 
-        // Phase 4: Side panel deep linking
-        case 'openSidePanelView':
-          // Open side panel and send message to switch view
-          try {
-            const currentWindow = await chrome.windows.getCurrent();
-            await chrome.sidePanel.open({ windowId: currentWindow.id });
-
-            // Send message to side panel to switch view
-            chrome.runtime.sendMessage({
-              action: 'openSidePanelView',
-              data: { view: request.view }
-            });
-
-            sendResponse({ success: true });
-          } catch (error) {
-            console.error('Failed to open side panel:', error);
-            sendResponse({ success: false, error: error.message });
-          }
-          break;
-
-        case 'openSidePanelWithAction':
-          // Open side panel and send message to perform action
-          try {
-            const currentWindow = await chrome.windows.getCurrent();
-            await chrome.sidePanel.open({ windowId: currentWindow.id });
-
-            // Send message to side panel to perform action
-            chrome.runtime.sendMessage({
-              action: 'openSidePanelWithAction',
-              data: {
-                panelAction: request.panelAction,
-                windowId: request.windowId
-              }
-            });
-
-            sendResponse({ success: true });
-          } catch (error) {
-            console.error('Failed to open side panel with action:', error);
-            sendResponse({ success: false, error: error.message });
-          }
-          break;
-
         // Context Menus (for testing)
         case 'setupContextMenus':
           await setupContextMenus();

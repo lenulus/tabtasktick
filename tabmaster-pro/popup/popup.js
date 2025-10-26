@@ -561,14 +561,14 @@ function setupStatCardLinks() {
 }
 
 function setupCollectionsLinks() {
-  // Collections card deep link
-  elements.collectionsCard?.addEventListener('click', async () => {
-    await openSidePanel('collections');
+  // Collections card deep link to dashboard
+  elements.collectionsCard?.addEventListener('click', () => {
+    openDashboard('collections');
   });
 
-  // Tasks card deep link
-  elements.tasksCard?.addEventListener('click', async () => {
-    await openSidePanel('tasks');
+  // Tasks card deep link to dashboard
+  elements.tasksCard?.addEventListener('click', () => {
+    openDashboard('tasks');
   });
 }
 
@@ -592,46 +592,23 @@ async function handleBannerDismiss() {
 
 async function handleSaveWindow() {
   try {
-    // Open side panel with create collection modal
-    await openSidePanelWithAction('createCollection');
+    // Open side panel directly (popup has user gesture)
+    const currentWindow = await chrome.windows.getCurrent();
+    await chrome.sidePanel.open({ windowId: currentWindow.id });
+
+    // Send message to side panel to open create collection modal
+    chrome.runtime.sendMessage({
+      action: 'openSidePanelWithAction',
+      data: {
+        panelAction: 'createCollection',
+        windowId: currentWindow.id
+      }
+    });
+
+    // Close popup after opening side panel
+    window.close();
   } catch (error) {
     console.error('Failed to open save window modal:', error);
-    showNotification('Failed to open save window', 'error');
-  }
-}
-
-async function openSidePanel(view) {
-  try {
-    // Send message to background to open side panel with specific view
-    await sendMessage({
-      action: 'openSidePanelView',
-      view: view
-    });
-
-    // Close popup
-    window.close();
-  } catch (error) {
-    console.error('Failed to open side panel:', error);
-    showNotification('Failed to open side panel', 'error');
-  }
-}
-
-async function openSidePanelWithAction(action) {
-  try {
-    // Get current window info for pre-population
-    const currentWindow = await chrome.windows.getCurrent({ populate: true });
-
-    // Send message to background to open side panel with action
-    await sendMessage({
-      action: 'openSidePanelWithAction',
-      panelAction: action,
-      windowId: currentWindow.id
-    });
-
-    // Close popup
-    window.close();
-  } catch (error) {
-    console.error('Failed to open side panel with action:', error);
     showNotification('Failed to open side panel', 'error');
   }
 }
