@@ -173,7 +173,7 @@ describe('TabActionsService', () => {
       const mockNewWindow = { id: 999 };
 
       chrome.tabs.get.mockResolvedValue(mockTab);
-      chrome.windows.getCurrent.mockResolvedValue({ id: 100 });
+      chrome.windows.getLastFocused.mockResolvedValue({ id: 100 });
       chrome.windows.create.mockResolvedValue(mockNewWindow);
 
       const result = await moveTabsToWindow([1], { windowId: 'new' });
@@ -197,7 +197,7 @@ describe('TabActionsService', () => {
       chrome.tabs.move.mockResolvedValue({});
       chrome.tabs.group.mockResolvedValue(10); // New group ID
       chrome.tabGroups.update.mockResolvedValue({});
-      chrome.windows.getCurrent.mockResolvedValue({ id: 100 });
+      chrome.windows.getLastFocused.mockResolvedValue({ id: 100 });
       chrome.windows.update.mockResolvedValue({});
 
       const result = await moveTabsToWindow([1], { windowId: 200, preserveGroup: true });
@@ -223,7 +223,7 @@ describe('TabActionsService', () => {
       chrome.tabs.move.mockResolvedValue({});
       chrome.tabs.group.mockResolvedValue(10);
       chrome.tabGroups.update.mockResolvedValue({});
-      chrome.windows.getCurrent.mockResolvedValue({ id: 100 });
+      chrome.windows.getLastFocused.mockResolvedValue({ id: 100 });
       chrome.windows.update.mockResolvedValue({});
 
       await moveTabsToWindow([1], { windowId: 200, preserveGroup: true });
@@ -241,7 +241,7 @@ describe('TabActionsService', () => {
 
       chrome.tabs.get.mockResolvedValue(mockTab);
       chrome.tabGroups.get.mockResolvedValue(mockGroup);
-      chrome.windows.getCurrent.mockResolvedValue({ id: 100 });
+      chrome.windows.getLastFocused.mockResolvedValue({ id: 100 });
       chrome.windows.create.mockResolvedValue(mockNewWindow);
       chrome.windows.update.mockResolvedValue({});
       chrome.tabs.group.mockResolvedValue(10);
