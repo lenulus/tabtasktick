@@ -33,6 +33,43 @@
       </button>
     </header>
 
+    <!-- Collections Banner (Discovery) -->
+    <div class="collections-banner" id="collectionsBanner">
+      <div class="banner-content">
+        <div class="banner-icon">💡</div>
+        <div class="banner-text">
+          <strong>Try Collections</strong>
+          <p>Save windows as collections and restore them anytime</p>
+        </div>
+      </div>
+      <button class="banner-close" id="bannerClose" aria-label="Dismiss banner">×</button>
+    </div>
+
+    <!-- Collections & Tasks Counts -->
+    <section class="collections-section">
+      <button class="save-window-btn" id="saveWindowBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        <span>Save This Window</span>
+      </button>
+
+      <div class="counts-grid">
+        <div class="count-card collections-card" id="collectionsCard">
+          <div class="count-value" id="collectionsCount">-</div>
+          <div class="count-label">Collections</div>
+          <div class="count-detail" id="collectionsDetail">-</div>
+        </div>
+        <div class="count-card tasks-card" id="tasksCard">
+          <div class="count-value" id="tasksCount">-</div>
+          <div class="count-label">Tasks</div>
+          <div class="count-detail" id="tasksDetail">-</div>
+        </div>
+      </div>
+    </section>
+
     <!-- Statistics Overview -->
     <div class="stats-grid">
       <div class="stat-card clickable" data-dashboard-view="tabs">

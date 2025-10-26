@@ -147,6 +147,148 @@ body.modal-open {
   letter-spacing: 0.5px;
 }
 
+/* Collections Banner */
+.collections-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #e7f3ff 0%, #f0f7ff 100%);
+  border-bottom: 1px solid #b3d9ff;
+  animation: slideIn 0.3s ease;
+}
+
+.collections-banner.hidden {
+  display: none;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.banner-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.banner-text {
+  flex: 1;
+}
+
+.banner-text strong {
+  display: block;
+  font-size: 14px;
+  color: #2c3e50;
+  margin-bottom: 2px;
+}
+
+.banner-text p {
+  font-size: 12px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.banner-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.banner-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #2c3e50;
+}
+
+/* Collections Section */
+.collections-section {
+  padding: 16px 20px;
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.save-window-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.save-window-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.save-window-btn svg {
+  stroke-width: 2;
+}
+
+.counts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.count-card {
+  text-align: center;
+  padding: 16px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.count-card:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.count-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #667eea;
+  line-height: 1;
+}
+
+.count-label {
+  font-size: 12px;
+  color: #495057;
+  margin-top: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.count-detail {
+  font-size: 11px;
+  color: #6c757d;
+  margin-top: 4px;
+}
+
 /* Sections */
 section {
   padding: 20px;

@@ -10,14 +10,25 @@ const elements = {
   groupedTabs: document.getElementById('groupedTabs'),
   snoozedTabs: document.getElementById('snoozedTabs'),
   duplicates: document.getElementById('duplicates'),
-  
+
+  // Collections & Tasks
+  collectionsBanner: document.getElementById('collectionsBanner'),
+  bannerClose: document.getElementById('bannerClose'),
+  saveWindowBtn: document.getElementById('saveWindowBtn'),
+  collectionsCard: document.getElementById('collectionsCard'),
+  tasksCard: document.getElementById('tasksCard'),
+  collectionsCount: document.getElementById('collectionsCount'),
+  collectionsDetail: document.getElementById('collectionsDetail'),
+  tasksCount: document.getElementById('tasksCount'),
+  tasksDetail: document.getElementById('tasksDetail'),
+
   // Action Buttons
   closeDuplicates: document.getElementById('closeDuplicates'),
   groupByDomain: document.getElementById('groupByDomain'),
   snoozeCurrent: document.getElementById('snoozeCurrent'),
   snoozeWindow: document.getElementById('snoozeWindow'),
   suspendInactive: document.getElementById('suspendInactive'),
-  
+
   // Sections
   snoozeOptions: document.getElementById('snoozeOptions'),
   rulesList: document.getElementById('rulesList'),
@@ -25,7 +36,7 @@ const elements = {
   snoozedList: document.getElementById('snoozedList'),
   snoozedSection: document.getElementById('snoozedSection'),
   snoozedCount: document.getElementById('snoozedCount'),
-  
+
   // Header
   settingsBtn: document.getElementById('settingsBtn'),
   debugBtn: document.getElementById('debugBtn'),
@@ -37,7 +48,7 @@ const elements = {
   import: document.getElementById('import'),
   testPanel: document.getElementById('testPanel'),
   help: document.getElementById('help'),
-  
+
   // Badge
   duplicateBadge: document.getElementById('duplicateBadge'),
 
@@ -60,18 +71,22 @@ let currentTab = null;
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+  await loadBannerState();
+  await loadCollectionsAndTasks();
   await loadStatistics();
   await loadRules();
   await loadSnoozedTabs();
   await loadCurrentTab();
   setupEventListeners();
   setupStatCardLinks();
+  setupCollectionsLinks();
 
   // Initialize snooze modal
   snoozeModal = new SnoozeModal();
 
   // Refresh data every 5 seconds
   setInterval(async () => {
+    await loadCollectionsAndTasks();
     await loadStatistics();
     await loadSnoozedTabs();
   }, 5000);
@@ -80,6 +95,80 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ============================================================================
 // Data Loading Functions
 // ============================================================================
+
+async function loadBannerState() {
+  try {
+    const storage = await chrome.storage.local.get(['bannerDismissed']);
+    const dismissed = storage.bannerDismissed;
+
+    if (dismissed) {
+      // Check if 7 days have passed
+      const now = Date.now();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+
+      if (now - dismissed < sevenDays) {
+        elements.collectionsBanner.classList.add('hidden');
+        return;
+      }
+    }
+
+    // Show banner
+    elements.collectionsBanner.classList.remove('hidden');
+  } catch (error) {
+    console.error('Failed to load banner state:', error);
+  }
+}
+
+async function loadCollectionsAndTasks() {
+  try {
+    // Load collections count
+    const collectionsResult = await sendMessage({ action: 'getCollections' });
+    const collections = collectionsResult?.collections || [];
+
+    const totalCollections = collections.length;
+    const activeCollections = collections.filter(c => c.isActive).length;
+    const savedCollections = collections.filter(c => !c.isActive).length;
+
+    elements.collectionsCount.textContent = totalCollections;
+    elements.collectionsDetail.textContent = `${activeCollections} active, ${savedCollections} saved`;
+
+    // Load tasks count
+    const tasksResult = await sendMessage({ action: 'getTasks' });
+    const tasks = tasksResult?.tasks || [];
+
+    const totalTasks = tasks.length;
+    const openTasks = tasks.filter(t => t.status === 'open').length;
+    const activeTasks = tasks.filter(t => t.status === 'active').length;
+
+    elements.tasksCount.textContent = totalTasks;
+    elements.tasksDetail.textContent = `${openTasks} open, ${activeTasks} active`;
+
+    // Progressive discovery: update banner visibility
+    if (totalCollections === 0) {
+      // First time user - show banner
+      elements.collectionsBanner.classList.remove('hidden');
+    } else if (totalCollections > 0 && totalTasks === 0) {
+      // Has collections but no tasks - could show task creation prompt
+      // For now, just hide banner
+      const storage = await chrome.storage.local.get(['bannerDismissed']);
+      if (storage.bannerDismissed) {
+        elements.collectionsBanner.classList.add('hidden');
+      }
+    } else {
+      // Has both collections and tasks - hide banner if dismissed
+      const storage = await chrome.storage.local.get(['bannerDismissed']);
+      if (storage.bannerDismissed) {
+        elements.collectionsBanner.classList.add('hidden');
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load collections and tasks:', error);
+    elements.collectionsCount.textContent = '0';
+    elements.collectionsDetail.textContent = 'Error loading';
+    elements.tasksCount.textContent = '0';
+    elements.tasksDetail.textContent = 'Error loading';
+  }
+}
 
 async function loadCurrentTab() {
   try {
@@ -430,6 +519,10 @@ function groupSnoozedTabsByPeriod(items) {
 // ============================================================================
 
 function setupEventListeners() {
+  // Collections & Tasks
+  elements.bannerClose?.addEventListener('click', handleBannerDismiss);
+  elements.saveWindowBtn?.addEventListener('click', handleSaveWindow);
+
   // Quick Actions
   elements.closeDuplicates.addEventListener('click', handleCloseDuplicates);
   elements.groupByDomain.addEventListener('click', handleGroupByDomain);
@@ -465,6 +558,82 @@ function setupStatCardLinks() {
       openDashboard(view, filter);
     });
   });
+}
+
+function setupCollectionsLinks() {
+  // Collections card deep link
+  elements.collectionsCard?.addEventListener('click', async () => {
+    await openSidePanel('collections');
+  });
+
+  // Tasks card deep link
+  elements.tasksCard?.addEventListener('click', async () => {
+    await openSidePanel('tasks');
+  });
+}
+
+async function handleBannerDismiss() {
+  try {
+    // Save dismissal timestamp
+    await chrome.storage.local.set({
+      bannerDismissed: Date.now()
+    });
+
+    // Hide banner with fade animation
+    elements.collectionsBanner.style.opacity = '0';
+    setTimeout(() => {
+      elements.collectionsBanner.classList.add('hidden');
+      elements.collectionsBanner.style.opacity = '1';
+    }, 300);
+  } catch (error) {
+    console.error('Failed to dismiss banner:', error);
+  }
+}
+
+async function handleSaveWindow() {
+  try {
+    // Open side panel with create collection modal
+    await openSidePanelWithAction('createCollection');
+  } catch (error) {
+    console.error('Failed to open save window modal:', error);
+    showNotification('Failed to open save window', 'error');
+  }
+}
+
+async function openSidePanel(view) {
+  try {
+    // Send message to background to open side panel with specific view
+    await sendMessage({
+      action: 'openSidePanelView',
+      view: view
+    });
+
+    // Close popup
+    window.close();
+  } catch (error) {
+    console.error('Failed to open side panel:', error);
+    showNotification('Failed to open side panel', 'error');
+  }
+}
+
+async function openSidePanelWithAction(action) {
+  try {
+    // Get current window info for pre-population
+    const currentWindow = await chrome.windows.getCurrent({ populate: true });
+
+    // Send message to background to open side panel with action
+    await sendMessage({
+      action: 'openSidePanelWithAction',
+      panelAction: action,
+      windowId: currentWindow.id
+    });
+
+    // Close popup
+    window.close();
+  } catch (error) {
+    console.error('Failed to open side panel with action:', error);
+    showNotification('Failed to open side panel', 'error');
+  }
 }
 
 // ============================================================================
