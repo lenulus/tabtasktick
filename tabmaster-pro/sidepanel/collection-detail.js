@@ -117,6 +117,55 @@ export class CollectionDetailView {
   }
 
   /**
+   * Load and display sync status for collection
+   */
+  async loadSyncStatus(collectionId) {
+    try {
+      const response = await this.controller.sendMessage('getSyncStatus', { collectionId });
+
+      if (!response || !this.container) return;
+
+      const lastSyncElement = this.container.querySelector('[data-status="last-sync"]');
+      const pendingChangesElement = this.container.querySelector('[data-status="pending-changes"]');
+
+      if (lastSyncElement) {
+        if (response.lastSyncTime) {
+          const timeAgo = this.formatTimeAgo(response.lastSyncTime);
+          lastSyncElement.textContent = timeAgo;
+          lastSyncElement.title = new Date(response.lastSyncTime).toLocaleString();
+        } else {
+          lastSyncElement.textContent = 'Never';
+        }
+      }
+
+      if (pendingChangesElement) {
+        const count = response.pendingChanges || 0;
+        pendingChangesElement.textContent = count.toString();
+        if (count > 0) {
+          pendingChangesElement.classList.add('has-pending');
+        } else {
+          pendingChangesElement.classList.remove('has-pending');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load sync status:', error);
+    }
+  }
+
+  /**
+   * Format time ago (e.g., "2 minutes ago")
+   */
+  formatTimeAgo(timestamp) {
+    const now = Date.now();
+    const diff = now - timestamp;
+
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return `${Math.floor(diff / 86400000)}d ago`;
+  }
+
+  /**
    * Render detail view
    */
   render(collection, folders, tabs, tasks) {
@@ -136,6 +185,11 @@ export class CollectionDetailView {
 
     // Attach event listeners
     this.attachEventListeners();
+
+    // Load sync status if collection is active
+    if (collection.isActive) {
+      this.loadSyncStatus(collection.id);
+    }
   }
 
   /**
@@ -467,6 +521,22 @@ export class CollectionDetailView {
                   </div>
                 </div>
               </label>
+            </div>
+
+            <div class="sync-status" data-collection-id="${collection.id}">
+              <div class="sync-status-header">
+                <strong>Sync Status</strong>
+              </div>
+              <div class="sync-status-info">
+                <div class="sync-status-row">
+                  <span class="sync-status-label">Last synced:</span>
+                  <span class="sync-status-value" data-status="last-sync">Loading...</span>
+                </div>
+                <div class="sync-status-row">
+                  <span class="sync-status-label">Pending changes:</span>
+                  <span class="sync-status-value" data-status="pending-changes">Loading...</span>
+                </div>
+              </div>
             </div>
 
             <div class="settings-footer">

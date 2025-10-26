@@ -59,7 +59,8 @@ import {
   saveTab,
   deleteTab,
   getFoldersByCollection,
-  getTabsByFolder
+  getTabsByFolder,
+  findTabByRuntimeId
 } from '../utils/storage-queries.js';
 
 // ============================================================================
@@ -1073,21 +1074,6 @@ async function findOrCreateFolder(collectionId, groupId) {
 async function findFolderByGroupId(collectionId, groupId) {
   const folders = await getFoldersByCollection(collectionId);
   return folders.find(f => f.groupId === groupId) || null;
-}
-
-/**
- * Finds tab by Chrome tab ID (runtime ID).
- *
- * This is a linear search across all tabs - not optimized.
- * Consider adding an index on tabId if performance becomes an issue.
- *
- * @param {number} chromeTabId - Chrome tab ID
- * @returns {Promise<Object|null>} Tab or null
- */
-async function findTabByRuntimeId(chromeTabId) {
-  // Import from storage-queries.js
-  const { findTabByRuntimeId: findTab } = await import('../utils/storage-queries.js');
-  return await findTab(chromeTabId);
 }
 
 // ============================================================================

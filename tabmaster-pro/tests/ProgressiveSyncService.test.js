@@ -3,31 +3,19 @@
  * Phase 8: Progressive Collection Sync
  */
 
+import 'fake-indexeddb/auto';
+import { closeDB } from '../services/utils/db.js';
 import * as ProgressiveSyncService from '../services/execution/ProgressiveSyncService.js';
 import * as CollectionService from '../services/execution/CollectionService.js';
 
-// Mock dependencies
-jest.mock('../services/utils/storage-queries.js', () => ({
-  getCollection: jest.fn(),
-  saveCollection: jest.fn(),
-  getCollectionsByIndex: jest.fn(),
-  getFolder: jest.fn(),
-  saveFolder: jest.fn(),
-  deleteFolder: jest.fn(),
-  getTab: jest.fn(),
-  saveTab: jest.fn(),
-  deleteTab: jest.fn(),
-  getFoldersByCollection: jest.fn(),
-  getTabsByFolder: jest.fn(),
-  findTabByRuntimeId: jest.fn()
-}));
-
-import * as storageQueries from '../services/utils/storage-queries.js';
-
 describe('ProgressiveSyncService', () => {
   beforeEach(async () => {
-    // Reset mocks
-    jest.clearAllMocks();
+    // Close any existing connection and clear all databases
+    closeDB();
+    const databases = await indexedDB.databases();
+    for (const db of databases) {
+      indexedDB.deleteDatabase(db.name);
+    }
 
     // Mock Chrome APIs
     global.chrome = {

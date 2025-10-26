@@ -1880,3 +1880,45 @@ textarea.form-control {
 .emoji-grid-container::-webkit-scrollbar-thumb:hover {
   background: var(--text-tertiary);
 }
+
+/* Phase 8: Sync Status Section */
+.sync-status {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.sync-status-header {
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.sync-status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sync-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.sync-status-label {
+  color: var(--text-secondary);
+}
+
+.sync-status-value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.sync-status-value.has-pending {
+  color: var(--warning-color);
+  font-weight: 600;
+}

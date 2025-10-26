@@ -3817,3 +3817,107 @@ input:checked + .slider:before {
     grid-template-columns: repeat(6, 1fr);
   }
 }
+
+/* Phase 8: Progressive Sync Settings in Dashboard */
+.section-label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.settings-section {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.setting-row-dashboard {
+  margin-bottom: 16px;
+}
+
+.setting-row-dashboard:last-child {
+  margin-bottom: 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.setting-help {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.sync-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.sync-slider:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#editSyncDebounceValue {
+  min-width: 40px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 13px;
+}
+
+/* Sync Status Display in Collection Cards */
+.sync-status-dashboard {
+  display: flex;
+  gap: 16px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.sync-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sync-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.sync-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.sync-value.has-pending-changes {
+  color: var(--warning-color);
+  font-weight: 700;
+}
