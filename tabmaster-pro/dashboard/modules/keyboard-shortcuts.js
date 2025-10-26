@@ -318,6 +318,7 @@ class KeyboardShortcutsManager {
     // Remove focus from all items
     this.focusableItems.forEach(item => {
       item.classList.remove('keyboard-focused');
+      this.removeTooltip(item);
     });
 
     // Add focus to current item
@@ -325,6 +326,35 @@ class KeyboardShortcutsManager {
       const item = this.focusableItems[this.focusedItemIndex];
       item.classList.add('keyboard-focused');
       item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+      // Add tooltip hint
+      this.addTooltip(item);
+    }
+  }
+
+  /**
+   * Add keyboard tooltip to focused item
+   * @param {Element} item - DOM element to add tooltip to
+   */
+  addTooltip(item) {
+    // Don't add tooltip if one already exists
+    if (item.querySelector('.keyboard-tooltip')) return;
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'keyboard-tooltip';
+    tooltip.textContent = 'Press Enter to open • Space to select';
+    item.style.position = 'relative';
+    item.appendChild(tooltip);
+  }
+
+  /**
+   * Remove keyboard tooltip from item
+   * @param {Element} item - DOM element to remove tooltip from
+   */
+  removeTooltip(item) {
+    const tooltip = item.querySelector('.keyboard-tooltip');
+    if (tooltip) {
+      tooltip.remove();
     }
   }
 
@@ -356,6 +386,37 @@ class KeyboardShortcutsManager {
       item.classList.remove('keyboard-focused');
     });
     this.focusedItemIndex = -1;
+  }
+
+  /**
+   * Show transient toast notification for shortcut use
+   * @param {string} message - Message to display (e.g., "Task created (n)")
+   * @param {number} duration - Duration in ms (default 2000)
+   */
+  showShortcutToast(message, duration = 2000) {
+    // Create toast container if it doesn't exist
+    let container = document.getElementById('keyboard-toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'keyboard-toast-container';
+      container.className = 'keyboard-toast-container';
+      document.body.appendChild(container);
+    }
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'keyboard-toast';
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    // Remove after duration
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
   }
 }
 

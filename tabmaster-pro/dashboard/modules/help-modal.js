@@ -28,11 +28,17 @@ class KeyboardShortcutsHelpModal {
    */
   createModal() {
     const modalHtml = `
-      <div class="modal keyboard-shortcuts-modal" id="keyboardShortcutsModal">
+      <div class="modal keyboard-shortcuts-modal"
+           id="keyboardShortcutsModal"
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="keyboard-shortcuts-title">
         <div class="modal-content modal-lg">
           <div class="modal-header">
-            <h3>Keyboard Shortcuts</h3>
-            <button class="close-btn" id="closeKeyboardShortcutsModal">&times;</button>
+            <h3 id="keyboard-shortcuts-title">Keyboard Shortcuts</h3>
+            <button class="close-btn"
+                    id="closeKeyboardShortcutsModal"
+                    aria-label="Close keyboard shortcuts help">&times;</button>
           </div>
           <div class="modal-body">
             <div class="shortcuts-search">
@@ -41,9 +47,13 @@ class KeyboardShortcutsHelpModal {
                 id="shortcutsSearch"
                 placeholder="Search shortcuts..."
                 class="search-input"
+                aria-label="Search keyboard shortcuts"
               >
             </div>
-            <div class="shortcuts-container" id="shortcutsContainer">
+            <div class="shortcuts-container"
+                 id="shortcutsContainer"
+                 role="region"
+                 aria-label="Keyboard shortcuts list">
               <!-- Shortcuts will be populated here -->
             </div>
           </div>
@@ -58,6 +68,11 @@ class KeyboardShortcutsHelpModal {
     this.modal = document.getElementById('keyboardShortcutsModal');
     this.searchInput = document.getElementById('shortcutsSearch');
     this.shortcutsContainer = document.getElementById('shortcutsContainer');
+
+    // Store focusable elements for focus trap
+    this.focusableElements = null;
+    this.firstFocusableElement = null;
+    this.lastFocusableElement = null;
   }
 
   /**
@@ -86,12 +101,44 @@ class KeyboardShortcutsHelpModal {
         this.hide();
       }
     });
+
+    // Focus trap - Tab key handling
+    this.modal.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab' && this.modal.classList.contains('show')) {
+        this.handleTabKey(e);
+      }
+    });
+  }
+
+  /**
+   * Handle Tab key for focus trap
+   * @param {KeyboardEvent} e - Keyboard event
+   */
+  handleTabKey(e) {
+    if (!this.firstFocusableElement || !this.lastFocusableElement) return;
+
+    if (e.shiftKey) {
+      // Shift + Tab
+      if (document.activeElement === this.firstFocusableElement) {
+        e.preventDefault();
+        this.lastFocusableElement.focus();
+      }
+    } else {
+      // Tab
+      if (document.activeElement === this.lastFocusableElement) {
+        e.preventDefault();
+        this.firstFocusableElement.focus();
+      }
+    }
   }
 
   /**
    * Show the help modal
    */
   show() {
+    // Save currently focused element to restore later
+    this.previouslyFocusedElement = document.activeElement;
+
     // Load shortcuts
     this.loadShortcuts();
 
@@ -101,8 +148,13 @@ class KeyboardShortcutsHelpModal {
     // Show modal
     this.modal.classList.add('show');
 
+    // Setup focus trap
+    this.setupFocusTrap();
+
     // Focus search input
-    setTimeout(() => this.searchInput.focus(), 100);
+    setTimeout(() => {
+      this.searchInput.focus();
+    }, 100);
   }
 
   /**
@@ -111,6 +163,26 @@ class KeyboardShortcutsHelpModal {
   hide() {
     this.modal.classList.remove('show');
     this.searchInput.value = '';
+
+    // Restore focus to previously focused element
+    if (this.previouslyFocusedElement) {
+      this.previouslyFocusedElement.focus();
+      this.previouslyFocusedElement = null;
+    }
+  }
+
+  /**
+   * Setup focus trap for the modal
+   */
+  setupFocusTrap() {
+    // Get all focusable elements in the modal
+    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    this.focusableElements = this.modal.querySelectorAll(focusableSelector);
+
+    if (this.focusableElements.length > 0) {
+      this.firstFocusableElement = this.focusableElements[0];
+      this.lastFocusableElement = this.focusableElements[this.focusableElements.length - 1];
+    }
   }
 
   /**

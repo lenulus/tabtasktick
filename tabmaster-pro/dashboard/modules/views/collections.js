@@ -1503,5 +1503,25 @@ function setupCollectionsKeyboardShortcuts() {
     context: 'collections'
   });
 
+  // Space - Toggle collection selection
+  keyboardShortcuts.register(' ', (e) => {
+    e.preventDefault();
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const collectionId = focusedItem.dataset.collectionId;
+      if (collectionId) {
+        const checkbox = focusedItem.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+          checkbox.checked = !checkbox.checked;
+          checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+    }
+  }, {
+    category: 'collections',
+    description: 'Toggle collection selection',
+    context: 'collections'
+  });
+
   console.log('Collections keyboard shortcuts registered');
 }

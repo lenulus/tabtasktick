@@ -313,7 +313,12 @@ function setupEventListeners() {
   document.getElementById('openSettings')?.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
   });
-  
+
+  // Keyboard Shortcuts button
+  document.getElementById('openKeyboardShortcuts')?.addEventListener('click', () => {
+    helpModal.show();
+  });
+
   // Quick Organize
   document.getElementById('quickOrganize')?.addEventListener('click', openQuickOrganize);
   

@@ -591,6 +591,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
       tabIds: []
     };
     showTaskDetailModal(newTask, collections);
+    keyboardShortcuts.showShortcutToast('Create new task (n)');
   }, {
     category: 'tasks',
     description: 'Create new task',
@@ -751,25 +752,6 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
     context: 'tasks'
   });
 
-  // Arrow keys navigation
-  keyboardShortcuts.register('arrowdown', (e) => {
-    e.preventDefault();
-    keyboardShortcuts.navigateFocusable('down');
-  }, {
-    category: 'tasks',
-    description: 'Navigate down',
-    context: 'tasks'
-  });
-
-  keyboardShortcuts.register('arrowup', (e) => {
-    e.preventDefault();
-    keyboardShortcuts.navigateFocusable('up');
-  }, {
-    category: 'tasks',
-    description: 'Navigate up',
-    context: 'tasks'
-  });
-
   // Enter - Open detail modal
   keyboardShortcuts.register('enter', () => {
     const focusedItem = keyboardShortcuts.getFocusedItem();
@@ -790,5 +772,176 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
     context: 'tasks'
   });
 
+  // Open tabs for selected task (t)
+  keyboardShortcuts.register('t', async () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const taskId = focusedItem.dataset.taskId;
+      if (taskId) {
+        const tasks = state.get('tasks') || [];
+        const task = tasks.find(t => t.id === taskId);
+        if (task && task.tabIds && task.tabIds.length > 0) {
+          try {
+            // Focus the tabs associated with this task
+            for (const tabId of task.tabIds) {
+              try {
+                const tab = await chrome.tabs.get(tabId);
+                if (tab) {
+                  await chrome.tabs.update(tabId, { active: true });
+                  await chrome.windows.update(tab.windowId, { focused: true });
+                  break; // Focus first valid tab
+                }
+              } catch (e) {
+                console.warn(`Tab ${tabId} not found`);
+              }
+            }
+            showNotification(`Opened tabs for task`, 'success');
+          } catch (error) {
+            console.error('Failed to open tabs:', error);
+            showNotification('Failed to open tabs', 'error');
+          }
+        } else {
+          showNotification('No tabs associated with this task', 'info');
+        }
+      }
+    }
+  }, {
+    category: 'tasks',
+    description: 'Open tabs for selected task',
+    context: 'tasks'
+  });
+
+  // Filter by status: Open (o)
+  keyboardShortcuts.register('o', () => {
+    applyTaskStatusFilter('open');
+  }, {
+    category: 'tasks',
+    description: 'Filter by status: Open',
+    context: 'tasks'
+  });
+
+  // Filter by status: Active (a) - only when not conflicting with global navigation
+  // Since 'a' is used in 'g+a', we need to check if we're in a sequence
+  keyboardShortcuts.register('a', () => {
+    applyTaskStatusFilter('active');
+  }, {
+    category: 'tasks',
+    description: 'Filter by status: Active',
+    context: 'tasks'
+  });
+
+  // Filter by status: Fixed (f)
+  keyboardShortcuts.register('f', () => {
+    applyTaskStatusFilter('fixed');
+  }, {
+    category: 'tasks',
+    description: 'Filter by status: Fixed',
+    context: 'tasks'
+  });
+
+  // Space - Toggle task selection
+  keyboardShortcuts.register(' ', (e) => {
+    e.preventDefault();
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const taskId = focusedItem.dataset.taskId;
+      if (taskId) {
+        const checkbox = focusedItem.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+          checkbox.checked = !checkbox.checked;
+          checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+    }
+  }, {
+    category: 'tasks',
+    description: 'Toggle task selection',
+    context: 'tasks'
+  });
+
+  // Shift+ArrowDown - Multi-select down
+  keyboardShortcuts.register('arrowdown', (e) => {
+    if (e.shiftKey) {
+      e.preventDefault();
+      multiSelectTask('down');
+    } else {
+      e.preventDefault();
+      keyboardShortcuts.navigateFocusable('down');
+    }
+  }, {
+    category: 'tasks',
+    description: 'Navigate down (Shift to multi-select)',
+    context: 'tasks',
+    requireShift: false // Handle shift manually
+  });
+
+  // Shift+ArrowUp - Multi-select up
+  keyboardShortcuts.register('arrowup', (e) => {
+    if (e.shiftKey) {
+      e.preventDefault();
+      multiSelectTask('up');
+    } else {
+      e.preventDefault();
+      keyboardShortcuts.navigateFocusable('up');
+    }
+  }, {
+    category: 'tasks',
+    description: 'Navigate up (Shift to multi-select)',
+    context: 'tasks',
+    requireShift: false // Handle shift manually
+  });
+
   console.log('Tasks keyboard shortcuts registered');
+}
+
+// Helper function to apply task status filter
+function applyTaskStatusFilter(status) {
+  const currentView = state.get('tasksViewPreference') || 'kanban';
+
+  // Update filter in state
+  const currentFilters = state.get('taskFilters') || {};
+  currentFilters.status = [status];
+  state.set('taskFilters', currentFilters);
+
+  // Reload view with filter
+  if (currentView === 'kanban') {
+    import('./tasks-kanban.js').then(({ loadKanbanView }) => {
+      loadKanbanView(currentFilters);
+    });
+  } else {
+    import('./tasks-list.js').then(({ loadListView }) => {
+      loadListView(currentFilters);
+    });
+  }
+
+  showNotification(`Filtering by status: ${status}`, 'info');
+}
+
+// Helper function for multi-select
+function multiSelectTask(direction) {
+  const focusedItem = keyboardShortcuts.getFocusedItem();
+
+  if (focusedItem) {
+    // Select current item
+    const currentCheckbox = focusedItem.querySelector('input[type="checkbox"]');
+    if (currentCheckbox && !currentCheckbox.checked) {
+      currentCheckbox.checked = true;
+      currentCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  // Navigate to next/previous
+  keyboardShortcuts.navigateFocusable(direction);
+
+  // Select new focused item
+  setTimeout(() => {
+    const newFocusedItem = keyboardShortcuts.getFocusedItem();
+    if (newFocusedItem) {
+      const newCheckbox = newFocusedItem.querySelector('input[type="checkbox"]');
+      if (newCheckbox && !newCheckbox.checked) {
+        newCheckbox.checked = true;
+        newCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+  }, 50);
 }
