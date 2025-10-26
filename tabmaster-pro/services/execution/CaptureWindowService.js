@@ -65,6 +65,7 @@ import * as CollectionService from './CollectionService.js';
 import * as FolderService from './FolderService.js';
 import * as TabService from './TabService.js';
 import * as WindowService from './WindowService.js';
+import { suggestEmoji } from '../utils/emoji-suggestions.js';
 
 /**
  * System URL prefixes to skip during capture.
@@ -221,10 +222,13 @@ export async function captureWindow(options) {
   }
 
   // Step 5: Create collection
+  // Phase 4.2.7: Suggest emoji based on collection name if not provided
+  const icon = metadata.icon || suggestEmoji(metadata.name);
+
   const collection = await CollectionService.createCollection({
     name: metadata.name,
     description: metadata.description,
-    icon: metadata.icon,
+    icon: icon,
     color: metadata.color,
     tags: metadata.tags || [],
     windowId: keepActive ? windowId : null

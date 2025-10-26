@@ -15,6 +15,7 @@ import { CollectionDetailView } from './collection-detail.js';
 import { TasksView } from './tasks-view.js';
 import { SearchFilter } from './search-filter.js';
 import { PresentationControls } from './presentation-controls.js';
+import { suggestEmoji } from '../services/utils/emoji-suggestions.js';
 
 class SidePanelController {
   constructor() {
@@ -387,7 +388,10 @@ class SidePanelController {
         </div>
 
         <div class="form-group">
-          <label for="collection-icon">Icon</label>
+          <label for="collection-icon">
+            Icon
+            <span id="emoji-suggestion-badge" class="emoji-suggestion-badge" style="display: none;">✨ Suggested</span>
+          </label>
           <input
             type="text"
             id="collection-icon"
@@ -426,6 +430,39 @@ class SidePanelController {
       const form = document.getElementById('save-window-form');
       const cancelBtn = form?.querySelector('[data-modal-cancel]');
       const nameInput = form?.querySelector('#collection-name');
+      const iconInput = form?.querySelector('#collection-icon');
+      const badge = document.getElementById('emoji-suggestion-badge');
+
+      // Phase 4.2.7: Emoji suggestion logic
+      let isEmojiSuggested = false;
+      let debounceTimer = null;
+
+      const updateEmojiSuggestion = () => {
+        const name = nameInput?.value || '';
+        if (name.trim()) {
+          const suggested = suggestEmoji(name);
+          if (!iconInput.value || isEmojiSuggested) {
+            iconInput.value = suggested;
+            isEmojiSuggested = true;
+            badge.style.display = 'inline';
+          }
+        }
+      };
+
+      // Initial suggestion based on suggested name
+      updateEmojiSuggestion();
+
+      // Update suggestion as user types (debounced)
+      nameInput?.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(updateEmojiSuggestion, 300);
+      });
+
+      // Remove badge when user manually changes emoji
+      iconInput?.addEventListener('input', () => {
+        isEmojiSuggested = false;
+        badge.style.display = 'none';
+      });
 
       // Auto-select the name for easy editing
       nameInput?.select();
@@ -968,6 +1005,32 @@ class SidePanelController {
       case 'task.deleted':
         // Reload tasks with scroll position maintenance
         this.reloadWithScrollMaintenance('tasks');
+        break;
+
+      case 'openSidePanelView':
+        // Phase 4: Deep link from popup to specific view
+        if (data?.view) {
+          this.switchView(data.view);
+        }
+        break;
+
+      case 'openSidePanelWithAction':
+        // Phase 4: Deep link from popup with action (e.g., create collection modal)
+        if (data?.panelAction === 'createCollection') {
+          // Switch to collections view first
+          this.switchView('collections');
+          // Then open create collection modal
+          setTimeout(() => {
+            this.handleSaveWindow();
+          }, 100);
+        } else if (data?.panelAction === 'createTask') {
+          // Switch to tasks view first
+          this.switchView('tasks');
+          // Then open create task modal
+          setTimeout(() => {
+            this.handleCreateTask();
+          }, 100);
+        }
         break;
     }
   }
