@@ -1131,6 +1131,14 @@ export async function refreshSettings(collectionId) {
       windowId: collection.windowId
     });
 
+    // Initialize sync metadata if not exists
+    if (!state.syncMetadata.has(collectionId)) {
+      state.syncMetadata.set(collectionId, {
+        lastSyncTime: Date.now(),
+        pendingChanges: 0
+      });
+    }
+
     console.log(`[ProgressiveSyncService] Refreshed settings for collection ${collectionId}`);
   } else {
     // Remove from cache if no longer active
