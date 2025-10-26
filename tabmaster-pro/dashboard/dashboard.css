@@ -3921,3 +3921,246 @@ input:checked + .slider:before {
   color: var(--warning-color);
   font-weight: 700;
 }
+
+/* ============================================================================
+   Phase 10: Keyboard Shortcuts Styles
+   ============================================================================ */
+
+/* Keyboard Focus Ring */
+.keyboard-focused {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  transition: all 0.2s ease;
+}
+
+/* Task and Collection Cards - Keyboard Focus */
+.task-row.keyboard-focused,
+.kanban-task-card.keyboard-focused,
+.collection-card.keyboard-focused {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Keyboard Shortcuts Help Modal */
+.keyboard-shortcuts-modal .modal-content {
+  max-width: 800px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.keyboard-shortcuts-modal .modal-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.shortcuts-search {
+  margin-bottom: 20px;
+}
+
+.shortcuts-search .search-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+}
+
+.shortcuts-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.shortcuts-category {
+  margin-bottom: 30px;
+}
+
+.category-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #667eea;
+}
+
+.shortcuts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shortcut-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.shortcut-item:hover {
+  background: #e9ecef;
+}
+
+.shortcut-keys {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  min-width: 140px;
+}
+
+.keyboard-key {
+  display: inline-block;
+  padding: 4px 8px;
+  min-width: 28px;
+  text-align: center;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.key-separator {
+  font-size: 12px;
+  color: #999;
+  padding: 0 4px;
+}
+
+.shortcut-description {
+  flex: 1;
+  text-align: left;
+  font-size: 14px;
+  color: #555;
+  padding-left: 16px;
+}
+
+.shortcut-context {
+  font-size: 12px;
+  color: #999;
+  font-style: italic;
+  margin-left: 4px;
+}
+
+/* Empty State */
+.shortcuts-container .empty-state {
+  text-align: center;
+  color: #999;
+}
+
+/* Scrollbar Styling */
+.shortcuts-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.shortcuts-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.shortcuts-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.shortcuts-container::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Keyboard Tooltips (optional - can be added later) */
+.keyboard-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 11px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.keyboard-focused .keyboard-tooltip {
+  opacity: 1;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .keyboard-shortcuts-modal .modal-content {
+    max-width: 95%;
+    max-height: 90vh;
+  }
+
+  .shortcut-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .shortcut-keys {
+    min-width: auto;
+  }
+
+  .shortcut-description {
+    padding-left: 0;
+  }
+}
+
+/* Keyboard Toast Notifications */
+.keyboard-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.keyboard-toast {
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.keyboard-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .keyboard-toast-container {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+  }
+
+  .keyboard-toast {
+    font-size: 12px;
+    padding: 10px 14px;
+  }
+}

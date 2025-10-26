@@ -11,8 +11,10 @@ import {
   showTaskDetailModal,
   setupBulkActions,
   handleBulkAction,
-  renderEmptyState
+  renderEmptyState,
+  setupTasksKeyboardShortcuts
 } from './tasks-base.js';
+import keyboardShortcuts from '../keyboard-shortcuts.js';
 
 // ============================================================================
 // Main Load Function
@@ -45,6 +47,15 @@ export async function loadListView(filters = {}, sortConfig = {}) {
     // Setup bulk actions
     const selectedTasks = setupBulkActions('#tasksListContainer');
     state.set('selectedTasks', selectedTasks);
+
+    // Phase 10: Setup keyboard shortcuts
+    setupTasksKeyboardShortcuts(keyboardShortcuts);
+
+    // Set focusable items for arrow key navigation
+    setTimeout(() => {
+      const taskRows = document.querySelectorAll('.task-row');
+      keyboardShortcuts.setFocusableItems(taskRows);
+    }, 100);
 
   } catch (error) {
     console.error('Error loading List view:', error);

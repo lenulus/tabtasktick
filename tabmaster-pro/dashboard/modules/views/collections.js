@@ -26,6 +26,8 @@ import {
   formatExportSuccessMessage
 } from '../../services/utils/collection-import-export-ui.js';
 
+import keyboardShortcuts from '../keyboard-shortcuts.js';
+
 // ============================================================================
 // Main Load Function
 // ============================================================================
@@ -57,6 +59,15 @@ export async function loadCollectionsView() {
 
     // Load sync status for active collections
     loadSyncStatusForActiveCollections(collections);
+
+    // Phase 10: Setup keyboard shortcuts
+    setupCollectionsKeyboardShortcuts();
+
+    // Set focusable items for arrow key navigation
+    setTimeout(() => {
+      const collectionCards = document.querySelectorAll('.collection-card');
+      keyboardShortcuts.setFocusableItems(collectionCards);
+    }, 100);
 
   } catch (error) {
     console.error('Error loading collections:', error);
@@ -1322,4 +1333,175 @@ function formatSyncTimeAgo(timestamp) {
   if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
   return `${Math.floor(diff / 86400000)}d ago`;
+}
+
+// ============================================================================
+// Keyboard Shortcuts (Phase 10)
+// ============================================================================
+
+function setupCollectionsKeyboardShortcuts() {
+  // Create New Collection (n or c)
+  keyboardShortcuts.register('n', async () => {
+    await handleCreateCollection();
+  }, {
+    category: 'collections',
+    description: 'Create new collection',
+    context: 'collections'
+  });
+
+  keyboardShortcuts.register('c', async () => {
+    await handleCreateCollection();
+  }, {
+    category: 'collections',
+    description: 'Create new collection',
+    context: 'collections'
+  });
+
+  // Edit Selected Collection (e)
+  keyboardShortcuts.register('e', () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const collectionId = focusedItem.dataset.collectionId;
+      if (collectionId) {
+        handleEditCollection(collectionId);
+      }
+    }
+  }, {
+    category: 'collections',
+    description: 'Edit selected collection',
+    context: 'collections'
+  });
+
+  // Delete Selected Collection (d)
+  keyboardShortcuts.register('d', () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const collectionId = focusedItem.dataset.collectionId;
+      if (collectionId) {
+        handleDeleteCollection(collectionId);
+      }
+    }
+  }, {
+    category: 'collections',
+    description: 'Delete selected collection',
+    context: 'collections'
+  });
+
+  // Open Selected Collection (o)
+  keyboardShortcuts.register('o', async () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const collectionId = focusedItem.dataset.collectionId;
+      if (collectionId) {
+        try {
+          const result = await chrome.runtime.sendMessage({
+            action: 'restoreCollection',
+            id: collectionId
+          });
+          if (result.success) {
+            showNotification('Collection opened', 'success');
+            await loadCollectionsView();
+          } else {
+            showNotification('Failed to open collection', 'error');
+          }
+        } catch (error) {
+          console.error('Error opening collection:', error);
+          showNotification('Failed to open collection', 'error');
+        }
+      }
+    }
+  }, {
+    category: 'collections',
+    description: 'Open selected collection',
+    context: 'collections'
+  });
+
+  // Focus Window (w) - for active collections
+  keyboardShortcuts.register('w', async () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const collectionId = focusedItem.dataset.collectionId;
+      if (collectionId) {
+        const collections = state.get('collections') || [];
+        const collection = collections.find(c => c.id === collectionId);
+        if (collection && collection.isActive && collection.windowId) {
+          try {
+            await chrome.windows.update(collection.windowId, { focused: true });
+            showNotification('Window focused', 'success');
+          } catch (error) {
+            console.error('Error focusing window:', error);
+            showNotification('Failed to focus window', 'error');
+          }
+        }
+      }
+    }
+  }, {
+    category: 'collections',
+    description: 'Focus window (active collections)',
+    context: 'collections'
+  });
+
+  // Close Window (x) - for active collections
+  keyboardShortcuts.register('x', async () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const collectionId = focusedItem.dataset.collectionId;
+      if (collectionId) {
+        const collections = state.get('collections') || [];
+        const collection = collections.find(c => c.id === collectionId);
+        if (collection && collection.isActive && collection.windowId) {
+          if (confirm(`Close window for collection "${collection.name}"?`)) {
+            try {
+              await chrome.windows.remove(collection.windowId);
+              showNotification('Window closed', 'success');
+              await loadCollectionsView();
+            } catch (error) {
+              console.error('Error closing window:', error);
+              showNotification('Failed to close window', 'error');
+            }
+          }
+        }
+      }
+    }
+  }, {
+    category: 'collections',
+    description: 'Close window (active collections)',
+    context: 'collections'
+  });
+
+  // Arrow keys navigation
+  keyboardShortcuts.register('arrowdown', (e) => {
+    e.preventDefault();
+    keyboardShortcuts.navigateFocusable('down');
+  }, {
+    category: 'collections',
+    description: 'Navigate down',
+    context: 'collections'
+  });
+
+  keyboardShortcuts.register('arrowup', (e) => {
+    e.preventDefault();
+    keyboardShortcuts.navigateFocusable('up');
+  }, {
+    category: 'collections',
+    description: 'Navigate up',
+    context: 'collections'
+  });
+
+  // Enter - View details
+  keyboardShortcuts.register('enter', () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const collectionId = focusedItem.dataset.collectionId;
+      if (collectionId) {
+        handleViewDetails(collectionId);
+      }
+    }
+  }, {
+    category: 'collections',
+    description: 'View collection details',
+    context: 'collections'
+  });
+
+  console.log('Collections keyboard shortcuts registered');
 }

@@ -570,3 +570,225 @@ export function renderEmptyState(type, message = '') {
 
   return html;
 }
+
+// ============================================================================
+// Keyboard Shortcuts (Phase 10)
+// ============================================================================
+
+export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
+  // Create New Task (n or c)
+  keyboardShortcuts.register('n', async () => {
+    const collections = state.get('collections') || [];
+    const newTask = {
+      id: crypto.randomUUID(),
+      summary: '',
+      notes: '',
+      status: 'open',
+      priority: 'medium',
+      dueDate: null,
+      collectionId: null,
+      tags: [],
+      tabIds: []
+    };
+    showTaskDetailModal(newTask, collections);
+  }, {
+    category: 'tasks',
+    description: 'Create new task',
+    context: 'tasks'
+  });
+
+  keyboardShortcuts.register('c', async () => {
+    const collections = state.get('collections') || [];
+    const newTask = {
+      id: crypto.randomUUID(),
+      summary: '',
+      notes: '',
+      status: 'open',
+      priority: 'medium',
+      dueDate: null,
+      collectionId: null,
+      tags: [],
+      tabIds: []
+    };
+    showTaskDetailModal(newTask, collections);
+  }, {
+    category: 'tasks',
+    description: 'Create new task',
+    context: 'tasks'
+  });
+
+  // Edit Selected Task (e)
+  keyboardShortcuts.register('e', () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const taskId = focusedItem.dataset.taskId;
+      if (taskId) {
+        const tasks = state.get('tasks') || [];
+        const collections = state.get('collections') || [];
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          showTaskDetailModal(task, collections);
+        }
+      }
+    }
+  }, {
+    category: 'tasks',
+    description: 'Edit selected task',
+    context: 'tasks'
+  });
+
+  // Delete Selected Task (d)
+  keyboardShortcuts.register('d', async () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const taskId = focusedItem.dataset.taskId;
+      if (taskId) {
+        if (confirm('Are you sure you want to delete this task?')) {
+          try {
+            await chrome.runtime.sendMessage({
+              action: 'deleteTask',
+              taskId
+            });
+            showNotification('Task deleted', 'success');
+            // Reload current view
+            const currentView = state.get('tasksViewPreference') || 'kanban';
+            if (currentView === 'kanban') {
+              const { loadKanbanView } = await import('./tasks-kanban.js');
+              loadKanbanView();
+            } else {
+              const { loadListView } = await import('./tasks-list.js');
+              loadListView();
+            }
+          } catch (error) {
+            console.error('Failed to delete task:', error);
+            showNotification('Failed to delete task', 'error');
+          }
+        }
+      }
+    }
+  }, {
+    category: 'tasks',
+    description: 'Delete selected task',
+    context: 'tasks'
+  });
+
+  // Set Priority (1-4)
+  const priorities = ['low', 'medium', 'high', 'critical'];
+  priorities.forEach((priority, index) => {
+    keyboardShortcuts.register((index + 1).toString(), async () => {
+      const focusedItem = keyboardShortcuts.getFocusedItem();
+      if (focusedItem) {
+        const taskId = focusedItem.dataset.taskId;
+        if (taskId) {
+          try {
+            await chrome.runtime.sendMessage({
+              action: 'updateTask',
+              taskId,
+              updates: { priority }
+            });
+            showNotification(`Priority set to ${priority}`, 'success');
+            // Reload current view
+            const currentView = state.get('tasksViewPreference') || 'kanban';
+            if (currentView === 'kanban') {
+              const { loadKanbanView } = await import('./tasks-kanban.js');
+              loadKanbanView();
+            } else {
+              const { loadListView } = await import('./tasks-list.js');
+              loadListView();
+            }
+          } catch (error) {
+            console.error('Failed to update priority:', error);
+            showNotification('Failed to update priority', 'error');
+          }
+        }
+      }
+    }, {
+      category: 'tasks',
+      description: `Set priority to ${priority}`,
+      context: 'tasks'
+    });
+  });
+
+  // Cycle Status (s)
+  keyboardShortcuts.register('s', async () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const taskId = focusedItem.dataset.taskId;
+      if (taskId) {
+        const tasks = state.get('tasks') || [];
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          const statusCycle = ['open', 'active', 'fixed'];
+          const currentIndex = statusCycle.indexOf(task.status);
+          const nextStatus = statusCycle[(currentIndex + 1) % statusCycle.length];
+
+          try {
+            await chrome.runtime.sendMessage({
+              action: 'updateTask',
+              taskId,
+              updates: { status: nextStatus }
+            });
+            showNotification(`Status changed to ${nextStatus}`, 'success');
+            // Reload current view
+            const currentView = state.get('tasksViewPreference') || 'kanban';
+            if (currentView === 'kanban') {
+              const { loadKanbanView } = await import('./tasks-kanban.js');
+              loadKanbanView();
+            } else {
+              const { loadListView } = await import('./tasks-list.js');
+              loadListView();
+            }
+          } catch (error) {
+            console.error('Failed to update status:', error);
+            showNotification('Failed to update status', 'error');
+          }
+        }
+      }
+    }
+  }, {
+    category: 'tasks',
+    description: 'Cycle status (open → active → fixed)',
+    context: 'tasks'
+  });
+
+  // Arrow keys navigation
+  keyboardShortcuts.register('arrowdown', (e) => {
+    e.preventDefault();
+    keyboardShortcuts.navigateFocusable('down');
+  }, {
+    category: 'tasks',
+    description: 'Navigate down',
+    context: 'tasks'
+  });
+
+  keyboardShortcuts.register('arrowup', (e) => {
+    e.preventDefault();
+    keyboardShortcuts.navigateFocusable('up');
+  }, {
+    category: 'tasks',
+    description: 'Navigate up',
+    context: 'tasks'
+  });
+
+  // Enter - Open detail modal
+  keyboardShortcuts.register('enter', () => {
+    const focusedItem = keyboardShortcuts.getFocusedItem();
+    if (focusedItem) {
+      const taskId = focusedItem.dataset.taskId;
+      if (taskId) {
+        const tasks = state.get('tasks') || [];
+        const collections = state.get('collections') || [];
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          showTaskDetailModal(task, collections);
+        }
+      }
+    }
+  }, {
+    category: 'tasks',
+    description: 'Open task detail',
+    context: 'tasks'
+  });
+
+  console.log('Tasks keyboard shortcuts registered');
+}

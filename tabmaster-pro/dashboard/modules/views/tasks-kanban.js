@@ -11,8 +11,10 @@ import {
   renderPriorityBadge,
   renderStatusBadge,
   renderDueDate,
-  renderEmptyState
+  renderEmptyState,
+  setupTasksKeyboardShortcuts
 } from './tasks-base.js';
+import keyboardShortcuts from '../keyboard-shortcuts.js';
 
 // Kanban columns
 const KANBAN_COLUMNS = [
@@ -43,6 +45,15 @@ export async function loadKanbanView(filters = {}) {
 
     // Setup event listeners
     setupKanbanEventListeners(collections);
+
+    // Phase 10: Setup keyboard shortcuts
+    setupTasksKeyboardShortcuts(keyboardShortcuts);
+
+    // Set focusable items for arrow key navigation
+    setTimeout(() => {
+      const taskCards = document.querySelectorAll('.kanban-task-card');
+      keyboardShortcuts.setFocusableItems(taskCards);
+    }, 100);
 
   } catch (error) {
     console.error('Error loading Kanban view:', error);
