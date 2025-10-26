@@ -82,12 +82,14 @@ import {
  * - color: Hex color code (e.g., '#4285F4')
  * - tags: Array of tag strings (default: [])
  * - windowId: Chrome window ID if binding on creation (makes isActive=true)
+ * - settings: Progressive sync settings (default: tracking enabled, 2s debounce)
  *
  * State initialization:
  * - id: Generated via crypto.randomUUID()
  * - isActive: true if windowId provided, false otherwise
  * - metadata.createdAt: Current timestamp
  * - metadata.lastAccessed: Current timestamp
+ * - settings: Default progressive sync settings
  *
  * @param {Object} params - Collection parameters
  * @param {string} params.name - Collection name (required, non-empty)
@@ -96,6 +98,7 @@ import {
  * @param {string} [params.color] - Hex color code
  * @param {string[]} [params.tags] - Tag array (default: [])
  * @param {number} [params.windowId] - Chrome window ID (optional, makes active)
+ * @param {Object} [params.settings] - Progressive sync settings (optional)
  *
  * @returns {Promise<Object>} Created collection object
  * @returns {string} return.id - Generated UUID
@@ -103,6 +106,7 @@ import {
  * @returns {boolean} return.isActive - Window binding state
  * @returns {number|null} return.windowId - Chrome window ID or null
  * @returns {Object} return.metadata - Timestamp metadata
+ * @returns {Object} return.settings - Progressive sync settings
  *
  * @throws {Error} If name is missing or empty
  * @throws {Error} If storage operation fails
@@ -116,10 +120,15 @@ import {
  * console.log(collection.isActive); // false
  *
  * @example
- * // Create active collection
+ * // Create active collection with custom settings
  * const active = await createCollection({
  *   name: 'Active Work',
- *   windowId: 123
+ *   windowId: 123,
+ *   settings: {
+ *     trackingEnabled: true,
+ *     autoSync: true,
+ *     syncDebounceMs: 5000
+ *   }
  * });
  * console.log(active.isActive); // true
  * console.log(active.windowId); // 123
@@ -133,6 +142,13 @@ export async function createCollection(params) {
   const now = Date.now();
   const id = crypto.randomUUID();
 
+  // Default progressive sync settings
+  const defaultSettings = {
+    trackingEnabled: true,   // Enable real-time tracking by default
+    autoSync: true,          // Auto-sync changes by default
+    syncDebounceMs: 2000     // 2 second debounce by default
+  };
+
   const collection = {
     id,
     name: params.name,
@@ -142,6 +158,7 @@ export async function createCollection(params) {
     tags: params.tags || [],
     windowId: params.windowId || null,
     isActive: !!params.windowId, // Active if windowId provided
+    settings: params.settings ? { ...defaultSettings, ...params.settings } : defaultSettings,
     metadata: {
       createdAt: now,
       lastAccessed: now
@@ -368,6 +385,90 @@ export async function unbindFromWindow(collectionId) {
     ...existing,
     windowId: null,
     isActive: false,
+    metadata: {
+      ...existing.metadata,
+      lastAccessed: Date.now()
+    }
+  };
+
+  // Save updated collection
+  await saveCollection(updated);
+
+  return updated;
+}
+
+/**
+ * Updates collection progressive sync settings.
+ *
+ * Allows fine-grained control over real-time tracking behavior:
+ * - trackingEnabled: Enable/disable Chrome event listeners for this collection
+ * - autoSync: Enable/disable automatic syncing (requires trackingEnabled)
+ * - syncDebounceMs: Delay before flushing queued changes (0-10000ms)
+ *
+ * Validation:
+ * - syncDebounceMs must be 0-10000 (0s to 10s)
+ * - autoSync requires trackingEnabled (disabled if tracking off)
+ *
+ * @param {string} collectionId - Collection ID
+ * @param {Object} settings - Settings to update
+ * @param {boolean} [settings.trackingEnabled] - Enable real-time tracking
+ * @param {boolean} [settings.autoSync] - Enable auto-sync (requires trackingEnabled)
+ * @param {number} [settings.syncDebounceMs] - Sync delay in milliseconds (0-10000)
+ *
+ * @returns {Promise<Object>} Updated collection object
+ *
+ * @throws {Error} If collection not found
+ * @throws {Error} If syncDebounceMs out of range (0-10000)
+ * @throws {Error} If storage operation fails
+ *
+ * @example
+ * // Disable tracking for collection
+ * const updated = await updateCollectionSettings('col_123', {
+ *   trackingEnabled: false
+ * });
+ *
+ * @example
+ * // Increase debounce for high-churn collection
+ * const updated = await updateCollectionSettings('col_123', {
+ *   syncDebounceMs: 5000  // 5 seconds
+ * });
+ *
+ * @example
+ * // Manual sync mode (tracking on, auto-sync off)
+ * const updated = await updateCollectionSettings('col_123', {
+ *   trackingEnabled: true,
+ *   autoSync: false
+ * });
+ */
+export async function updateCollectionSettings(collectionId, settings) {
+  // Get existing collection
+  const existing = await getCollection(collectionId);
+  if (!existing) {
+    throw new Error(`Collection not found: ${collectionId}`);
+  }
+
+  // Validate settings
+  if (settings.syncDebounceMs !== undefined) {
+    if (typeof settings.syncDebounceMs !== 'number' || settings.syncDebounceMs < 0 || settings.syncDebounceMs > 10000) {
+      throw new Error('syncDebounceMs must be between 0 and 10000 (milliseconds)');
+    }
+  }
+
+  // Merge settings with existing
+  const updatedSettings = {
+    ...existing.settings,
+    ...settings
+  };
+
+  // If tracking disabled, also disable autoSync
+  if (updatedSettings.trackingEnabled === false) {
+    updatedSettings.autoSync = false;
+  }
+
+  // Update collection with new settings
+  const updated = {
+    ...existing,
+    settings: updatedSettings,
     metadata: {
       ...existing.metadata,
       lastAccessed: Date.now()
