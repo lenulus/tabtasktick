@@ -1948,7 +1948,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
 
         case 'restoreCollection':
-          const restoreResult = await RestoreCollectionService.restoreCollection({
+          const collectionRestoreResult = await RestoreCollectionService.restoreCollection({
             collectionId: request.collectionId,
             createNewWindow: request.createNewWindow,
             windowId: request.windowId,
@@ -1956,10 +1956,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             windowState: request.windowState
           });
           // Phase 8: Track restored collection (now active)
-          if (restoreResult.collection && restoreResult.collection.isActive) {
-            await ProgressiveSyncService.trackCollection(restoreResult.collection.id);
+          if (collectionRestoreResult.collection && collectionRestoreResult.collection.isActive) {
+            await ProgressiveSyncService.trackCollection(collectionRestoreResult.collection.id);
           }
-          sendResponse({ success: true, ...restoreResult });
+          sendResponse({ success: true, ...collectionRestoreResult });
           break;
 
         case 'openTaskTabs':
@@ -1969,11 +1969,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         // TabTaskTick Phase 9: Collection Import/Export
         case 'exportCollection':
-          const exportResult = await CollectionExportService.exportCollection(
+          const collectionExportResult = await CollectionExportService.exportCollection(
             request.collectionId,
             request.options || {}
           );
-          sendResponse({ success: true, ...exportResult });
+          sendResponse({ success: true, ...collectionExportResult });
           break;
 
         case 'exportCollections':
@@ -1996,11 +1996,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
 
         case 'importCollections':
-          const importResult = await CollectionImportService.importCollections(
+          const collectionImportResult = await CollectionImportService.importCollections(
             request.data,
             request.options || {}
           );
-          sendResponse({ success: true, ...importResult });
+          sendResponse({ success: true, ...collectionImportResult });
           break;
 
         case 'focusWindow':
