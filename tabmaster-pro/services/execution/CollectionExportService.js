@@ -332,19 +332,24 @@ async function buildCollectionExport(collection, options) {
 }
 
 /**
- * Convert tab IDs to folder/tab index references.
+ * Convert tab IDs to folder/tab index references with fallback identifiers.
  *
  * Tasks reference tabs by ID in storage, but export uses indices for portability.
- * This function maps tab IDs to {folderIndex, tabIndex} pairs.
+ * This function maps tab IDs to reference objects with:
+ * - Primary: folderIndex, tabIndex (fast lookup)
+ * - Fallback: url, title (for recovery if indices fail)
  *
  * @private
  * @param {string[]} tabIds - Array of tab IDs
  * @param {Object[]} folders - Folders with tabs (already loaded)
- * @returns {Object[]} Array of {folderIndex, tabIndex} references
+ * @returns {Object[]} Array of {folderIndex, tabIndex, url, title} references
  *
  * @example
  * // Input: ['tab_123', 'tab_456']
- * // Output: [{folderIndex: 0, tabIndex: 2}, {folderIndex: 1, tabIndex: 0}]
+ * // Output: [
+ * //   {folderIndex: 0, tabIndex: 2, url: 'https://a.com', title: 'Page A'},
+ * //   {folderIndex: 1, tabIndex: 0, url: 'https://b.com', title: 'Page B'}
+ * // ]
  */
 function convertTabIdsToReferences(tabIds, folders) {
   const references = [];
@@ -356,7 +361,15 @@ function convertTabIdsToReferences(tabIds, folders) {
       const tabIndex = folder.tabs?.findIndex(t => t.id === tabId);
 
       if (tabIndex !== undefined && tabIndex !== -1) {
-        references.push({ folderIndex, tabIndex });
+        const tab = folder.tabs[tabIndex];
+
+        // Include fallback identifiers for recovery
+        references.push({
+          folderIndex,
+          tabIndex,
+          url: tab.url,
+          title: tab.title
+        });
         break;
       }
     }

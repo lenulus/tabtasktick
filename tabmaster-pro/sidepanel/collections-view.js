@@ -12,6 +12,10 @@
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
 import { EmojiPicker } from './components/emoji-picker.js';
+import {
+  exportCollection as exportCollectionService,
+  formatExportSuccessMessage
+} from '../services/utils/collection-import-export-ui.js';
 
 export class CollectionsView {
   constructor(controller) {
@@ -558,17 +562,10 @@ export class CollectionsView {
     try {
       notifications.info('Exporting collection...');
 
-      const result = await this.controller.sendMessage('exportCollection', {
-        collectionId,
-        options: {
-          includeTasks: true,
-          includeSettings: true,
-          includeMetadata: false
-        }
-      });
+      const result = await exportCollectionService(collectionId);
 
       if (result?.success) {
-        notifications.success(`Exported to ${result.filename}`);
+        notifications.success(formatExportSuccessMessage(result));
       } else {
         notifications.error('Failed to export collection');
       }

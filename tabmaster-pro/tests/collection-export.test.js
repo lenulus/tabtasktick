@@ -2,44 +2,39 @@
  * @file CollectionExportService Tests
  * @description Unit tests for collection export functionality
  */
+import { jest } from '@jest/globals';
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as CollectionExportService from '../services/execution/CollectionExportService.js';
 import * as storageQueries from '../services/utils/storage-queries.js';
 
-// Mock chrome API
-global.chrome = {
-  downloads: {
-    download: vi.fn((options, callback) => {
-      callback(12345); // Mock download ID
-    })
-  },
-  runtime: {
-    lastError: null
-  }
-};
-
-// Mock URL.createObjectURL
-global.URL = {
-  createObjectURL: vi.fn(() => 'blob:mock-url'),
-  revokeObjectURL: vi.fn()
-};
-
-// Mock Blob
-global.Blob = class Blob {
-  constructor(parts, options) {
-    this.parts = parts;
-    this.options = options;
-  }
-};
-
 describe('CollectionExportService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Mock chrome.downloads API (not in default chrome-mock)
+    if (!chrome.downloads) {
+      chrome.downloads = {};
+    }
+    chrome.downloads.download = jest.fn((options, callback) => {
+      callback(12345); // Mock download ID
+    });
+    chrome.runtime.lastError = null;
+
+    // Mock URL.createObjectURL
+    global.URL = {
+      createObjectURL: jest.fn(() => 'blob:mock-url'),
+      revokeObjectURL: jest.fn()
+    };
+
+    // Mock Blob
+    global.Blob = class Blob {
+      constructor(parts, options) {
+        this.parts = parts;
+        this.options = options;
+      }
+    };
   });
 
   describe('exportCollection', () => {
-    it('should export a single collection with all data', async () => {
+    test('should export a single collection with all data', async () => {
       // Mock data
       const mockCollection = {
         id: 'col_123',
@@ -91,15 +86,15 @@ describe('CollectionExportService', () => {
       ];
 
       // Mock storage queries
-      vi.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
-      vi.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue(mockFolders);
-      vi.spyOn(storageQueries, 'getTabsByFolder').mockImplementation(async (folderId) => {
+      jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
+      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue(mockFolders);
+      jest.spyOn(storageQueries, 'getTabsByFolder').mockImplementation(async (folderId) => {
         if (folderId === 'folder_1') {
           return mockTabs;
         }
         return [];
       });
-      vi.spyOn(storageQueries, 'getTasksByCollection').mockResolvedValue(mockTasks);
+      jest.spyOn(storageQueries, 'getTasksByCollection').mockResolvedValue(mockTasks);
 
       // Export
       const result = await CollectionExportService.exportCollection('col_123', {
@@ -131,16 +126,16 @@ describe('CollectionExportService', () => {
       expect(exportedCollection.tasks[0].summary).toBe('Test task');
     });
 
-    it('should export collection without tasks when includeTasks is false', async () => {
+    test('should export collection without tasks when includeTasks is false', async () => {
       const mockCollection = {
         id: 'col_456',
         name: 'No Tasks Collection',
         tags: []
       };
 
-      vi.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
-      vi.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
-      vi.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
+      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
 
       const result = await CollectionExportService.exportCollection('col_456', {
         includeTasks: false
@@ -150,7 +145,7 @@ describe('CollectionExportService', () => {
       expect(exportedCollection.tasks).toBeUndefined();
     });
 
-    it('should export collection without settings when includeSettings is false', async () => {
+    test('should export collection without settings when includeSettings is false', async () => {
       const mockCollection = {
         id: 'col_789',
         name: 'No Settings Collection',
@@ -158,9 +153,9 @@ describe('CollectionExportService', () => {
         settings: { trackingEnabled: true }
       };
 
-      vi.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
-      vi.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
-      vi.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
+      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
 
       const result = await CollectionExportService.exportCollection('col_789', {
         includeSettings: false
@@ -170,7 +165,7 @@ describe('CollectionExportService', () => {
       expect(exportedCollection.settings).toBeUndefined();
     });
 
-    it('should export collection with metadata when includeMetadata is true', async () => {
+    test('should export collection with metadata when includeMetadata is true', async () => {
       const mockCollection = {
         id: 'col_101',
         name: 'With Metadata',
@@ -178,9 +173,9 @@ describe('CollectionExportService', () => {
         metadata: { createdAt: 1000, lastAccessed: 2000 }
       };
 
-      vi.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
-      vi.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
-      vi.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
+      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
 
       const result = await CollectionExportService.exportCollection('col_101', {
         includeMetadata: true
@@ -190,24 +185,24 @@ describe('CollectionExportService', () => {
       expect(exportedCollection.metadata).toEqual({ createdAt: 1000, lastAccessed: 2000 });
     });
 
-    it('should throw error if collection not found', async () => {
-      vi.spyOn(storageQueries, 'getCollection').mockResolvedValue(null);
+    test('should throw error if collection not found', async () => {
+      jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(null);
 
       await expect(CollectionExportService.exportCollection('nonexistent')).rejects.toThrow(
         'Collection not found: nonexistent'
       );
     });
 
-    it('should generate safe filename from collection name', async () => {
+    test('should generate safe filename from collection name', async () => {
       const mockCollection = {
         id: 'col_special',
         name: 'Test! @Collection# $With% Special&* Chars',
         tags: []
       };
 
-      vi.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
-      vi.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
-      vi.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
+      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
 
       const result = await CollectionExportService.exportCollection('col_special');
 
@@ -216,17 +211,17 @@ describe('CollectionExportService', () => {
   });
 
   describe('exportCollections', () => {
-    it('should export multiple collections', async () => {
+    test('should export multiple collections', async () => {
       const mockCollections = [
         { id: 'col_1', name: 'Collection 1', tags: [] },
         { id: 'col_2', name: 'Collection 2', tags: [] }
       ];
 
-      vi.spyOn(storageQueries, 'getCollection').mockImplementation(async (id) => {
+      jest.spyOn(storageQueries, 'getCollection').mockImplementation(async (id) => {
         return mockCollections.find(c => c.id === id) || null;
       });
-      vi.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
-      vi.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
+      jest.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
 
       const result = await CollectionExportService.exportCollections(['col_1', 'col_2']);
 
@@ -237,8 +232,8 @@ describe('CollectionExportService', () => {
       expect(result.data.collections[1].name).toBe('Collection 2');
     });
 
-    it('should throw error if any collection not found', async () => {
-      vi.spyOn(storageQueries, 'getCollection').mockImplementation(async (id) => {
+    test('should throw error if any collection not found', async () => {
+      jest.spyOn(storageQueries, 'getCollection').mockImplementation(async (id) => {
         if (id === 'col_1') return { id: 'col_1', name: 'Collection 1', tags: [] };
         return null;
       });
@@ -250,7 +245,7 @@ describe('CollectionExportService', () => {
   });
 
   describe('tab reference conversion', () => {
-    it('should convert task tab IDs to folder/tab indices', async () => {
+    test('should convert task tab IDs to folder/tab indices with fallback identifiers', async () => {
       const mockCollection = {
         id: 'col_ref',
         name: 'References Test',
@@ -295,14 +290,14 @@ describe('CollectionExportService', () => {
         }
       ];
 
-      vi.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
-      vi.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue(mockFolders);
-      vi.spyOn(storageQueries, 'getTabsByFolder').mockImplementation(async (folderId) => {
+      jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
+      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue(mockFolders);
+      jest.spyOn(storageQueries, 'getTabsByFolder').mockImplementation(async (folderId) => {
         if (folderId === 'folder_1') return mockTabs1;
         if (folderId === 'folder_2') return mockTabs2;
         return [];
       });
-      vi.spyOn(storageQueries, 'getTasksByCollection').mockResolvedValue(mockTasks);
+      jest.spyOn(storageQueries, 'getTasksByCollection').mockResolvedValue(mockTasks);
 
       const result = await CollectionExportService.exportCollection('col_ref', {
         includeTasks: true
@@ -310,9 +305,56 @@ describe('CollectionExportService', () => {
 
       const task = result.data.collections[0].tasks[0];
       expect(task.tabReferences).toEqual([
-        { folderIndex: 0, tabIndex: 1 }, // tab_2 in folder_1
-        { folderIndex: 1, tabIndex: 0 }  // tab_3 in folder_2
+        { folderIndex: 0, tabIndex: 1, url: 'https://b.com', title: 'B' }, // tab_2 in folder_1
+        { folderIndex: 1, tabIndex: 0, url: 'https://c.com', title: 'C' }  // tab_3 in folder_2
       ]);
+    });
+
+    test('should include url and title in tab references for fallback recovery', async () => {
+      const mockCollection = {
+        id: 'col_fallback',
+        name: 'Fallback Test',
+        tags: []
+      };
+
+      const mockFolder = {
+        id: 'folder_1',
+        name: 'Test Folder',
+        color: 'blue',
+        position: 0,
+        tabs: []
+      };
+
+      const mockTab = {
+        id: 'tab_1',
+        url: 'https://example.com/page',
+        title: 'Example Page',
+        position: 0,
+        isPinned: false
+      };
+
+      const mockTask = {
+        id: 'task_1',
+        summary: 'Task',
+        tabIds: ['tab_1'],
+        tags: [],
+        comments: []
+      };
+
+      jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
+      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([mockFolder]);
+      jest.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([mockTab]);
+      jest.spyOn(storageQueries, 'getTasksByCollection').mockResolvedValue([mockTask]);
+
+      const result = await CollectionExportService.exportCollection('col_fallback', {
+        includeTasks: true
+      });
+
+      const ref = result.data.collections[0].tasks[0].tabReferences[0];
+      expect(ref).toHaveProperty('folderIndex', 0);
+      expect(ref).toHaveProperty('tabIndex', 0);
+      expect(ref).toHaveProperty('url', 'https://example.com/page');
+      expect(ref).toHaveProperty('title', 'Example Page');
     });
   });
 });

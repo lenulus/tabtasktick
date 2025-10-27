@@ -16,6 +16,11 @@ import { TasksView } from './tasks-view.js';
 import { SearchFilter } from './search-filter.js';
 import { PresentationControls } from './presentation-controls.js';
 import { suggestEmoji } from '../services/utils/emoji-suggestions.js';
+import {
+  importCollections as importCollectionsService,
+  formatImportSuccessMessage,
+  formatImportErrorMessage
+} from '../services/utils/collection-import-export-ui.js';
 
 class SidePanelController {
   constructor() {
@@ -563,37 +568,19 @@ class SidePanelController {
     try {
       notifications.show('Importing collections...', 'info');
 
-      // Read file as text
-      const text = await file.text();
-
-      // Send to background for import
-      const result = await this.sendMessage('importCollections', {
-        data: text,
-        options: {
-          mode: 'merge',
-          importTasks: true,
-          importSettings: true
-        }
-      });
+      const result = await importCollectionsService(file);
 
       if (result?.success) {
-        const { imported, errors, stats } = result;
+        const { imported, errors } = result;
 
         // Show success message
         if (imported.length > 0) {
-          notifications.show(
-            `Imported ${imported.length} collection${imported.length > 1 ? 's' : ''}: ${imported.map(c => c.name).join(', ')}`,
-            'success'
-          );
+          notifications.show(formatImportSuccessMessage(result), 'success');
         }
 
-        // Show warnings if any collections failed
+        // Show errors if any collections failed
         if (errors.length > 0) {
-          const errorMsg = errors.map(e => `${e.collectionName}: ${e.error}`).join('; ');
-          notifications.show(
-            `${errors.length} collection${errors.length > 1 ? 's' : ''} failed: ${errorMsg}`,
-            'error'
-          );
+          notifications.show(formatImportErrorMessage(result, '; '), 'error');
         }
 
         // Refresh data if any collections were imported

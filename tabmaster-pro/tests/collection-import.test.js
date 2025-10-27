@@ -2,8 +2,9 @@
  * @file CollectionImportService Tests
  * @description Unit tests for collection import functionality
  */
+import { jest } from '@jest/globals';
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import * as CollectionImportService from '../services/execution/CollectionImportService.js';
 import * as CollectionService from '../services/execution/CollectionService.js';
 import * as FolderService from '../services/execution/FolderService.js';
@@ -13,12 +14,12 @@ import * as storageQueries from '../services/utils/storage-queries.js';
 
 describe('CollectionImportService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    vi.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([]);
+    jest.clearAllMocks();
+    jest.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([]);
   });
 
   describe('importCollections', () => {
-    it('should import a valid single collection', async () => {
+    test('should import a valid single collection', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -58,22 +59,22 @@ describe('CollectionImportService', () => {
       };
 
       // Mock service calls
-      vi.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
         id: 'col_new',
         name: 'Imported Collection',
         isActive: false
       });
-      vi.spyOn(FolderService, 'createFolder').mockResolvedValue({
+      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
         id: 'folder_new',
         collectionId: 'col_new',
         name: 'Folder 1'
       });
-      vi.spyOn(TabService, 'createTab').mockResolvedValue({
+      jest.spyOn(TabService, 'createTab').mockResolvedValue({
         id: 'tab_new',
         folderId: 'folder_new',
         url: 'https://example.com'
       });
-      vi.spyOn(TaskService, 'createTask').mockResolvedValue({
+      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
         id: 'task_new',
         collectionId: 'col_new',
         summary: 'Test task'
@@ -99,7 +100,7 @@ describe('CollectionImportService', () => {
       expect(TaskService.createTask).toHaveBeenCalledTimes(1);
     });
 
-    it('should import multiple collections', async () => {
+    test('should import multiple collections', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -117,7 +118,7 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      vi.spyOn(CollectionService, 'createCollection').mockImplementation(async (params) => ({
+      jest.spyOn(CollectionService, 'createCollection').mockImplementation(async (params) => ({
         id: `col_${params.name}`,
         name: params.name,
         isActive: false
@@ -131,7 +132,7 @@ describe('CollectionImportService', () => {
       expect(result.imported[1].name).toBe('Collection 2');
     });
 
-    it('should handle invalid JSON', async () => {
+    test('should handle invalid JSON', async () => {
       const invalidJSON = '{invalid json';
 
       await expect(
@@ -139,7 +140,7 @@ describe('CollectionImportService', () => {
       ).rejects.toThrow(/Invalid JSON/);
     });
 
-    it('should reject unsupported version', async () => {
+    test('should reject unsupported version', async () => {
       const importData = {
         version: '2.0', // Unsupported
         exportedAt: Date.now(),
@@ -151,7 +152,7 @@ describe('CollectionImportService', () => {
       ).rejects.toThrow(/Unsupported import version/);
     });
 
-    it('should reject missing version field', async () => {
+    test('should reject missing version field', async () => {
       const importData = {
         exportedAt: Date.now(),
         collections: []
@@ -162,7 +163,7 @@ describe('CollectionImportService', () => {
       ).rejects.toThrow(/missing version field/);
     });
 
-    it('should reject missing collections array', async () => {
+    test('should reject missing collections array', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now()
@@ -173,7 +174,7 @@ describe('CollectionImportService', () => {
       ).rejects.toThrow(/missing collections array/);
     });
 
-    it('should reject empty collections array', async () => {
+    test('should reject empty collections array', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -185,7 +186,7 @@ describe('CollectionImportService', () => {
       ).rejects.toThrow(/contains no collections/);
     });
 
-    it('should skip collection with missing name', async () => {
+    test('should skip collection with missing name', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -206,9 +207,9 @@ describe('CollectionImportService', () => {
       expect(result.errors[0].error).toMatch(/name is required/);
     });
 
-    it('should resolve name conflicts by appending suffix', async () => {
+    test('should resolve name conflicts by appending suffix', async () => {
       // Simulate existing collection with same name
-      vi.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([
+      jest.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([
         { id: 'existing', name: 'Test Collection' }
       ]);
 
@@ -224,7 +225,7 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      vi.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
         id: 'col_new',
         name: 'Test Collection (imported)',
         isActive: false
@@ -240,8 +241,8 @@ describe('CollectionImportService', () => {
       );
     });
 
-    it('should resolve multiple name conflicts incrementally', async () => {
-      vi.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([
+    test('should resolve multiple name conflicts incrementally', async () => {
+      jest.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([
         { id: 'existing1', name: 'Test' },
         { id: 'existing2', name: 'Test (imported)' }
       ]);
@@ -258,7 +259,7 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      vi.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
         id: 'col_new',
         name: 'Test (imported 2)',
         isActive: false
@@ -273,7 +274,7 @@ describe('CollectionImportService', () => {
       );
     });
 
-    it('should import collections as saved (isActive=false)', async () => {
+    test('should import collections as saved (isActive=false)', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -286,7 +287,7 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      vi.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
         id: 'col_new',
         name: 'Test',
         isActive: false
@@ -299,7 +300,7 @@ describe('CollectionImportService', () => {
       );
     });
 
-    it('should convert tab references from indices to new IDs', async () => {
+    test('should convert tab references from indices to new IDs', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -332,20 +333,20 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      vi.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
         id: 'col_new',
         name: 'Test',
         isActive: false
       });
-      vi.spyOn(FolderService, 'createFolder').mockResolvedValue({
+      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
         id: 'folder_new',
         collectionId: 'col_new'
       });
-      vi.spyOn(TabService, 'createTab').mockImplementation(async (params) => ({
+      jest.spyOn(TabService, 'createTab').mockImplementation(async (params) => ({
         id: `tab_${params.position}`,
         ...params
       }));
-      vi.spyOn(TaskService, 'createTask').mockResolvedValue({
+      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
         id: 'task_new'
       });
 
@@ -358,7 +359,7 @@ describe('CollectionImportService', () => {
       );
     });
 
-    it('should remove invalid tab references and warn', async () => {
+    test('should remove invalid tab references and warn', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -392,18 +393,18 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      vi.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
         id: 'col_new',
         name: 'Test',
         isActive: false
       });
-      vi.spyOn(FolderService, 'createFolder').mockResolvedValue({
+      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
         id: 'folder_new'
       });
-      vi.spyOn(TabService, 'createTab').mockResolvedValue({
+      jest.spyOn(TabService, 'createTab').mockResolvedValue({
         id: 'tab_0'
       });
-      vi.spyOn(TaskService, 'createTask').mockResolvedValue({
+      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
         id: 'task_new'
       });
 
@@ -420,7 +421,7 @@ describe('CollectionImportService', () => {
       expect(result.stats.warnings.length).toBeGreaterThan(0);
     });
 
-    it('should skip folders with missing required fields', async () => {
+    test('should skip folders with missing required fields', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -446,12 +447,12 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      vi.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
         id: 'col_new',
         name: 'Test',
         isActive: false
       });
-      vi.spyOn(FolderService, 'createFolder').mockResolvedValue({
+      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
         id: 'folder_new'
       });
 
@@ -467,7 +468,7 @@ describe('CollectionImportService', () => {
       expect(result.stats.warnings.length).toBeGreaterThan(0);
     });
 
-    it('should use merge mode by default', async () => {
+    test('should use merge mode by default', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -480,15 +481,15 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      vi.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([
+      jest.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([
         { id: 'existing', name: 'Existing Collection' }
       ]);
-      vi.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
         id: 'col_new',
         name: 'Test',
         isActive: false
       });
-      vi.spyOn(CollectionService, 'deleteCollection').mockResolvedValue();
+      jest.spyOn(CollectionService, 'deleteCollection').mockResolvedValue();
 
       await CollectionImportService.importCollections(importData, { mode: 'merge' });
 
@@ -496,7 +497,7 @@ describe('CollectionImportService', () => {
       expect(CollectionService.deleteCollection).not.toHaveBeenCalled();
     });
 
-    it('should not import tasks when importTasks is false', async () => {
+    test('should not import tasks when importTasks is false', async () => {
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -516,18 +517,139 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      vi.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
         id: 'col_new',
         name: 'Test',
         isActive: false
       });
-      vi.spyOn(TaskService, 'createTask').mockResolvedValue({});
+      jest.spyOn(TaskService, 'createTask').mockResolvedValue({});
 
       await CollectionImportService.importCollections(importData, {
         importTasks: false
       });
 
       expect(TaskService.createTask).not.toHaveBeenCalled();
+    });
+
+    test('should use fallback URL matching when indices do not match', async () => {
+      const importData = {
+        version: '1.0',
+        exportedAt: Date.now(),
+        collections: [
+          {
+            name: 'Test',
+            tags: [],
+            folders: [
+              {
+                name: 'Folder 1',
+                color: 'blue',
+                position: 0,
+                tabs: [
+                  { url: 'https://a.com', title: 'A', position: 0, isPinned: false },
+                  { url: 'https://b.com', title: 'B', position: 1, isPinned: false }
+                ]
+              }
+            ],
+            tasks: [
+              {
+                summary: 'Test task',
+                status: 'open',
+                priority: 'medium',
+                tabReferences: [
+                  // Reference by index (wrong index) + URL (correct for fallback)
+                  { folderIndex: 99, tabIndex: 99, url: 'https://b.com', title: 'B' }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+        id: 'col_new',
+        name: 'Test',
+        isActive: false
+      });
+      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
+        id: 'folder_new'
+      });
+      jest.spyOn(TabService, 'createTab').mockImplementation(async (params) => ({
+        id: `tab_${params.position}`,
+        ...params
+      }));
+      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
+        id: 'task_new'
+      });
+
+      const result = await CollectionImportService.importCollections(importData);
+
+      // Should have matched by URL fallback
+      expect(TaskService.createTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tabIds: ['tab_1'] // Should reference tab at position 1 (https://b.com)
+        })
+      );
+
+      // Should have warning about using fallback
+      expect(result.stats.warnings.length).toBeGreaterThan(0);
+      expect(result.stats.warnings.some(w => w.includes('matched by URL instead'))).toBe(true);
+    });
+
+    test('should handle tab references with new format (url and title)', async () => {
+      const importData = {
+        version: '1.0',
+        exportedAt: Date.now(),
+        collections: [
+          {
+            name: 'Test',
+            tags: [],
+            folders: [
+              {
+                name: 'Folder 1',
+                color: 'blue',
+                position: 0,
+                tabs: [
+                  { url: 'https://example.com', title: 'Example', position: 0, isPinned: false }
+                ]
+              }
+            ],
+            tasks: [
+              {
+                summary: 'Task with new format',
+                status: 'open',
+                priority: 'medium',
+                tabReferences: [
+                  { folderIndex: 0, tabIndex: 0, url: 'https://example.com', title: 'Example' }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+
+      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
+        id: 'col_new',
+        name: 'Test',
+        isActive: false
+      });
+      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
+        id: 'folder_new'
+      });
+      jest.spyOn(TabService, 'createTab').mockResolvedValue({
+        id: 'tab_0'
+      });
+      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
+        id: 'task_new'
+      });
+
+      await CollectionImportService.importCollections(importData);
+
+      // Should resolve using index-based lookup (fast path)
+      expect(TaskService.createTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tabIds: ['tab_0']
+        })
+      );
     });
   });
 });

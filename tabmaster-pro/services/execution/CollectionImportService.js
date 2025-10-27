@@ -297,15 +297,19 @@ async function importSingleCollection(collectionData, existingNames, options) {
         continue;
       }
 
-      // Convert tab references from indices to new tab IDs
+      // Convert tab references from indices to new tab IDs (with fallback to URL)
       const tabIds = [];
       if (taskData.tabReferences && Array.isArray(taskData.tabReferences)) {
         for (const ref of taskData.tabReferences) {
-          const key = `${ref.folderIndex}-${ref.tabIndex}`;
-          const tabId = tabIdMap.get(key);
+          const result = resolveTabReference(ref, tabIdMap, folderIdMap, collectionData.folders);
 
-          if (tabId) {
-            tabIds.push(tabId);
+          if (result.tabId) {
+            tabIds.push(result.tabId);
+
+            // Warn if fallback was used
+            if (result.usedFallback) {
+              warnings.push(`Task "${taskData.summary}": Tab reference [${ref.folderIndex}, ${ref.tabIndex}] not found, matched by URL instead`);
+            }
           } else {
             warnings.push(`Task "${taskData.summary}" references missing tab [${ref.folderIndex}, ${ref.tabIndex}], reference removed`);
           }
@@ -405,6 +409,66 @@ function resolveNameConflict(name, existingNames) {
   }
 
   return candidate;
+}
+
+/**
+ * Resolve tab reference with fallback support.
+ *
+ * Attempts to resolve tab reference in this order:
+ * 1. Index-based lookup (folderIndex, tabIndex) - fast path
+ * 2. URL-based lookup (ref.url) - fallback for changed indices
+ *
+ * @private
+ * @param {Object} ref - Tab reference from import file
+ * @param {Map<string, string>} tabIdMap - Map of "folderIndex-tabIndex" to tab IDs
+ * @param {Map<number, string>} folderIdMap - Map of folder indices to folder IDs
+ * @param {Object[]} folders - Original folder data from import (for URL matching)
+ * @returns {Object} Resolution result
+ * @returns {string|null} return.tabId - Resolved tab ID or null
+ * @returns {boolean} return.usedFallback - Whether fallback URL matching was used
+ *
+ * @example
+ * const result = resolveTabReference(
+ *   {folderIndex: 0, tabIndex: 1, url: 'https://example.com'},
+ *   tabIdMap,
+ *   folderIdMap,
+ *   folders
+ * );
+ * if (result.tabId) {
+ *   console.log(`Found tab: ${result.tabId}, used fallback: ${result.usedFallback}`);
+ * }
+ */
+function resolveTabReference(ref, tabIdMap, folderIdMap, folders) {
+  // Try index-based lookup first (fast path)
+  const key = `${ref.folderIndex}-${ref.tabIndex}`;
+  const tabId = tabIdMap.get(key);
+
+  if (tabId) {
+    return { tabId, usedFallback: false };
+  }
+
+  // If index lookup failed but we have URL, try URL-based fallback
+  if (ref.url) {
+    // Search all folders for a tab with matching URL
+    for (const [indexKey, mappedTabId] of tabIdMap.entries()) {
+      // Parse the index key to get folder/tab indices
+      const [folderIdx, tabIdx] = indexKey.split('-').map(Number);
+
+      // Get the original tab data from folders
+      const folder = folders[folderIdx];
+      if (folder && folder.tabs && folder.tabs[tabIdx]) {
+        const tab = folder.tabs[tabIdx];
+
+        // Match by URL
+        if (tab.url === ref.url) {
+          return { tabId: mappedTabId, usedFallback: true };
+        }
+      }
+    }
+  }
+
+  // No match found
+  return { tabId: null, usedFallback: false };
 }
 
 /**

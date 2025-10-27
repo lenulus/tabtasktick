@@ -17,6 +17,15 @@ import modalService from '../core/modal-service.js';
 
 import { EMOJI_CATEGORIES } from '../data/emoji-data.js';
 
+import {
+  exportCollection as exportCollectionService,
+  exportAllCollections as exportAllCollectionsService,
+  importCollections as importCollectionsService,
+  formatImportSuccessMessage,
+  formatImportErrorMessage,
+  formatExportSuccessMessage
+} from '../../services/utils/collection-import-export-ui.js';
+
 // ============================================================================
 // Main Load Function
 // ============================================================================
@@ -1023,18 +1032,10 @@ async function handleExportCollection(collectionId) {
   try {
     showNotification('Exporting collection...', 'info');
 
-    const result = await chrome.runtime.sendMessage({
-      action: 'exportCollection',
-      collectionId,
-      options: {
-        includeTasks: true,
-        includeSettings: true,
-        includeMetadata: false
-      }
-    });
+    const result = await exportCollectionService(collectionId);
 
     if (result.success) {
-      showNotification(`Exported to ${result.filename}`, 'success');
+      showNotification(formatExportSuccessMessage(result), 'success');
     } else {
       showNotification('Failed to export collection', 'error');
     }
@@ -1055,17 +1056,10 @@ async function handleExportAllCollections() {
 
     showNotification(`Exporting ${collections.length} collections...`, 'info');
 
-    const result = await chrome.runtime.sendMessage({
-      action: 'exportAllCollections',
-      options: {
-        includeTasks: true,
-        includeSettings: true,
-        includeMetadata: false
-      }
-    });
+    const result = await exportAllCollectionsService();
 
     if (result.success) {
-      showNotification(`Exported ${result.count} collections to ${result.filename}`, 'success');
+      showNotification(formatExportSuccessMessage(result), 'success');
     } else {
       showNotification('Failed to export collections', 'error');
     }
@@ -1079,38 +1073,19 @@ async function handleImportCollections(file) {
   try {
     showNotification('Importing collections...', 'info');
 
-    // Read file as text
-    const text = await file.text();
-
-    // Send to background for import
-    const result = await chrome.runtime.sendMessage({
-      action: 'importCollections',
-      data: text,
-      options: {
-        mode: 'merge',
-        importTasks: true,
-        importSettings: true
-      }
-    });
+    const result = await importCollectionsService(file);
 
     if (result.success) {
       const { imported, errors, stats } = result;
 
       // Show success message
       if (imported.length > 0) {
-        showNotification(
-          `Imported ${imported.length} collection${imported.length > 1 ? 's' : ''}: ${imported.map(c => c.name).join(', ')}`,
-          'success'
-        );
+        showNotification(formatImportSuccessMessage(result), 'success');
       }
 
-      // Show warnings if any collections failed
+      // Show errors if any collections failed
       if (errors.length > 0) {
-        const errorMsg = errors.map(e => `${e.collectionName}: ${e.error}`).join('\n');
-        showNotification(
-          `${errors.length} collection${errors.length > 1 ? 's' : ''} failed to import:\n${errorMsg}`,
-          'error'
-        );
+        showNotification(formatImportErrorMessage(result, '\n'), 'error');
       }
 
       // Show warnings from import process
