@@ -327,12 +327,19 @@ export async function captureWindow(options) {
     tabs.push(tab);
   }
 
-  // Step 8: Bind collection to window if keepActive=true
+  // Step 8: Update collection metadata with counts
+  collection.metadata.tabCount = tabs.length;
+  collection.metadata.folderCount = folders.length;
+  await CollectionService.updateCollection(collection.id, {
+    metadata: collection.metadata
+  });
+
+  // Step 9: Bind collection to window if keepActive=true
   if (keepActive) {
     await WindowService.bindCollectionToWindow(collection.id, windowId);
   }
 
-  // Step 9: Return result with stats
+  // Step 10: Return result with stats
   return {
     collection,
     folders,
