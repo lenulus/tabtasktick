@@ -24,7 +24,7 @@ import {
   formatImportSuccessMessage,
   formatImportErrorMessage,
   formatExportSuccessMessage
-} from '../../services/utils/collection-import-export-ui.js';
+} from '../../../services/utils/collection-import-export-ui.js';
 
 import keyboardShortcuts from '../keyboard-shortcuts.js';
 
