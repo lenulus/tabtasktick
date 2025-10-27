@@ -526,9 +526,12 @@ class SidePanelController {
 
       // Get current window ID
       const currentWindow = await chrome.windows.getCurrent();
-      params.windowId = currentWindow.id;
 
-      const response = await this.sendMessage('createCollection', { params });
+      const response = await this.sendMessage('captureWindow', {
+        windowId: currentWindow.id,
+        metadata: params,
+        keepActive: true
+      });
 
       if (response.error) {
         throw new Error(response.error);

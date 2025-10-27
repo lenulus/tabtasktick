@@ -786,6 +786,9 @@ async function processTabCreated(collectionId, change) {
 
   await saveTab(tabData);
   console.log(`[ProgressiveSyncService] Created tab ${tabId} in collection ${collectionId}`);
+
+  // Update collection metadata counts
+  await updateMetadataCounts(collectionId);
 }
 
 /**
@@ -809,6 +812,9 @@ async function processTabRemoved(collectionId, change) {
   // Delete tab
   await deleteTab(tab.id);
   console.log(`[ProgressiveSyncService] Deleted tab ${tabId} from collection ${collectionId}`);
+
+  // Update collection metadata counts
+  await updateMetadataCounts(collectionId);
 }
 
 /**
@@ -900,6 +906,9 @@ async function processFolderCreated(collectionId, change) {
 
   await saveFolder(folderData);
   console.log(`[ProgressiveSyncService] Created folder for group ${groupId} in collection ${collectionId}`);
+
+  // Update collection metadata counts
+  await updateMetadataCounts(collectionId);
 }
 
 /**
@@ -963,6 +972,9 @@ async function processFolderRemoved(collectionId, change) {
   // Delete folder
   await deleteFolder(folder.id);
   console.log(`[ProgressiveSyncService] Deleted folder for group ${groupId} from collection ${collectionId}`);
+
+  // Update collection metadata counts
+  await updateMetadataCounts(collectionId);
 }
 
 /**
@@ -991,6 +1003,40 @@ async function processFolderMoved(collectionId, change) {
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
+
+/**
+ * Updates collection metadata with current tab and folder counts.
+ *
+ * Queries IndexedDB for actual counts and updates collection metadata.
+ * Called after tabs/folders are added or removed.
+ *
+ * @param {string} collectionId - Collection ID
+ * @returns {Promise<void>}
+ */
+async function updateMetadataCounts(collectionId) {
+  try {
+    // Get current counts from IndexedDB
+    const collection = await getCollection(collectionId);
+    if (!collection) {
+      console.warn(`[ProgressiveSyncService] Collection ${collectionId} not found for metadata update`);
+      return;
+    }
+
+    const folders = await getFoldersByCollection(collectionId);
+    const tabsPromises = folders.map(f => getTabsByFolder(f.id));
+    const tabsArrays = await Promise.all(tabsPromises);
+    const totalTabs = tabsArrays.reduce((sum, tabs) => sum + tabs.length, 0);
+
+    // Update metadata
+    collection.metadata.tabCount = totalTabs;
+    collection.metadata.folderCount = folders.length;
+
+    await saveCollection(collection);
+    console.log(`[ProgressiveSyncService] Updated metadata counts for ${collectionId}: ${totalTabs} tabs, ${folders.length} folders`);
+  } catch (error) {
+    console.error(`[ProgressiveSyncService] Failed to update metadata counts for ${collectionId}:`, error);
+  }
+}
 
 /**
  * Finds collection ID by window ID.
