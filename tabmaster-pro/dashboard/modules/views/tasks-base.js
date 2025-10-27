@@ -783,12 +783,14 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
         if (task && task.tabIds && task.tabIds.length > 0) {
           try {
             // Focus the tabs associated with this task
+            // THIN - delegate to TabActionsService via message passing
             for (const tabId of task.tabIds) {
               try {
-                const tab = await chrome.tabs.get(tabId);
-                if (tab) {
-                  await chrome.tabs.update(tabId, { active: true });
-                  await chrome.windows.update(tab.windowId, { focused: true });
+                const result = await chrome.runtime.sendMessage({
+                  action: 'focusTab',
+                  tabId: tabId
+                });
+                if (result.success) {
                   break; // Focus first valid tab
                 }
               } catch (e) {

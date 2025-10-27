@@ -762,3 +762,55 @@ export async function rebuildCollectionCache() {
 export function clearCollectionCache() {
   collectionCache.clear();
 }
+
+/**
+ * Focuses a Chrome window (brings it to the front).
+ *
+ * Activates the specified window and brings it to the foreground. Commonly used by
+ * keyboard shortcuts and collection management features to quickly jump to a specific window.
+ *
+ * @param {number} windowId - Chrome window ID to focus
+ * @returns {Promise<object>} Result with success status
+ * @returns {boolean} return.success - True if window was focused
+ * @returns {string} return.error - Error message (if failed)
+ *
+ * @example
+ * const result = await focusWindow(123);
+ * if (result.success) {
+ *   console.log('Window focused successfully');
+ * }
+ */
+export async function focusWindow(windowId) {
+  try {
+    await chrome.windows.update(windowId, { focused: true });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Closes a Chrome window.
+ *
+ * Closes the specified window and all its tabs. Use with caution - this operation
+ * cannot be undone. Consider saving window state before closing if needed.
+ *
+ * @param {number} windowId - Chrome window ID to close
+ * @returns {Promise<object>} Result with success status
+ * @returns {boolean} return.success - True if window was closed
+ * @returns {string} return.error - Error message (if failed)
+ *
+ * @example
+ * const result = await closeWindow(123);
+ * if (result.success) {
+ *   console.log('Window closed successfully');
+ * }
+ */
+export async function closeWindow(windowId) {
+  try {
+    await chrome.windows.remove(windowId);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}

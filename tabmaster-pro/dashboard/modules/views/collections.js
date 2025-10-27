@@ -43,7 +43,9 @@ export async function loadCollectionsView() {
     const tasks = tasksResponse?.tasks || [];
 
     // Get windows for active state display
-    const windows = await chrome.windows.getAll();
+    // THIN - delegate to background for window queries
+    const windowsResponse = await chrome.runtime.sendMessage({ action: 'getAllWindows' });
+    const windows = windowsResponse?.windows || [];
     const windowMap = new Map(windows.map(w => [w.id, w]));
 
     // Store in state
@@ -585,8 +587,17 @@ async function handleFocusWindow(collectionId) {
       return;
     }
 
-    await chrome.windows.update(collection.windowId, { focused: true });
-    showNotification('Window focused', 'success');
+    // THIN - delegate to WindowService via message passing
+    const result = await chrome.runtime.sendMessage({
+      action: 'focusWindow',
+      windowId: collection.windowId
+    });
+
+    if (result.success) {
+      showNotification('Window focused', 'success');
+    } else {
+      showNotification('Failed to focus window', 'error');
+    }
   } catch (error) {
     console.error('Error focusing window:', error);
     showNotification('Failed to focus window', 'error');
@@ -607,11 +618,19 @@ async function handleCloseWindow(collectionId) {
       return;
     }
 
-    await chrome.windows.remove(collection.windowId);
-    showNotification('Window closed, collection saved', 'success');
+    // THIN - delegate to WindowService via message passing
+    const result = await chrome.runtime.sendMessage({
+      action: 'closeWindow',
+      windowId: collection.windowId
+    });
 
-    // Refresh view
-    setTimeout(() => loadCollectionsView(), 500);
+    if (result.success) {
+      showNotification('Window closed, collection saved', 'success');
+      // Refresh view
+      setTimeout(() => loadCollectionsView(), 500);
+    } else {
+      showNotification('Failed to close window', 'error');
+    }
   } catch (error) {
     console.error('Error closing window:', error);
     showNotification('Failed to close window', 'error');
@@ -1114,7 +1133,9 @@ async function handleDeleteCollection(collectionId) {
 
 async function handleCreateCollection() {
   try {
-    const currentWindow = await chrome.windows.getCurrent();
+    // THIN - delegate to background for window queries
+    const windowResponse = await chrome.runtime.sendMessage({ action: 'getCurrentWindow' });
+    const currentWindow = windowResponse.window;
 
     showNotification('Saving current window...', 'info');
 
@@ -1422,17 +1443,8 @@ function setupCollectionsKeyboardShortcuts() {
     if (focusedItem) {
       const collectionId = focusedItem.dataset.collectionId;
       if (collectionId) {
-        const collections = state.get('collections') || [];
-        const collection = collections.find(c => c.id === collectionId);
-        if (collection && collection.isActive && collection.windowId) {
-          try {
-            await chrome.windows.update(collection.windowId, { focused: true });
-            showNotification('Window focused', 'success');
-          } catch (error) {
-            console.error('Error focusing window:', error);
-            showNotification('Failed to focus window', 'error');
-          }
-        }
+        // Reuse shared handler to avoid duplication
+        await handleFocusWindow(collectionId);
       }
     }
   }, {
@@ -1447,20 +1459,8 @@ function setupCollectionsKeyboardShortcuts() {
     if (focusedItem) {
       const collectionId = focusedItem.dataset.collectionId;
       if (collectionId) {
-        const collections = state.get('collections') || [];
-        const collection = collections.find(c => c.id === collectionId);
-        if (collection && collection.isActive && collection.windowId) {
-          if (confirm(`Close window for collection "${collection.name}"?`)) {
-            try {
-              await chrome.windows.remove(collection.windowId);
-              showNotification('Window closed', 'success');
-              await loadCollectionsView();
-            } catch (error) {
-              console.error('Error closing window:', error);
-              showNotification('Failed to close window', 'error');
-            }
-          }
-        }
+        // Reuse shared handler to avoid duplication
+        await handleCloseWindow(collectionId);
       }
     }
   }, {

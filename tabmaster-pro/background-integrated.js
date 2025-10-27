@@ -1297,6 +1297,36 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: true, result: closeResult });
           break;
 
+        case 'focusTab':
+          // THIN - delegate to TabActionsService
+          const focusTabResult = await TabActionsService.focusTab(request.tabId);
+          sendResponse(focusTabResult);
+          break;
+
+        case 'focusWindow':
+          // THIN - delegate to WindowService
+          const focusWindowResult = await WindowService.focusWindow(request.windowId);
+          sendResponse(focusWindowResult);
+          break;
+
+        case 'closeWindow':
+          // THIN - delegate to WindowService
+          const closeWindowResult = await WindowService.closeWindow(request.windowId);
+          sendResponse(closeWindowResult);
+          break;
+
+        case 'getAllWindows':
+          // Get all windows for display purposes (UI needs window metadata)
+          const allWindows = await chrome.windows.getAll();
+          sendResponse({ windows: allWindows });
+          break;
+
+        case 'getCurrentWindow':
+          // Get the current window
+          const currentWindow = await chrome.windows.getCurrent();
+          sendResponse({ window: currentWindow });
+          break;
+
         case 'groupTabs':
           const groupParams = {};
           if (request.groupName) groupParams.name = request.groupName;

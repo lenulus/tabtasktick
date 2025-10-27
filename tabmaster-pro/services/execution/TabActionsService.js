@@ -380,3 +380,37 @@ export async function moveTabsToWindow(tabIds, options = {}) {
 
   return results;
 }
+
+/**
+ * Focuses a tab and brings its window to the front.
+ *
+ * Activates the specified tab and focuses its containing window. This is commonly used by
+ * keyboard shortcuts and task management features to quickly jump to a specific tab.
+ *
+ * @param {number} tabId - Tab ID to focus
+ * @returns {Promise<object>} Result with tab details
+ * @returns {boolean} return.success - True if tab was focused
+ * @returns {object} return.tab - The focused tab object (if successful)
+ * @returns {string} return.error - Error message (if failed)
+ *
+ * @example
+ * const result = await focusTab(123);
+ * if (result.success) {
+ *   console.log(`Focused tab: ${result.tab.title}`);
+ * }
+ */
+export async function focusTab(tabId) {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (!tab) {
+      return { success: false, error: 'Tab not found' };
+    }
+
+    await chrome.tabs.update(tabId, { active: true });
+    await chrome.windows.update(tab.windowId, { focused: true });
+
+    return { success: true, tab };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
