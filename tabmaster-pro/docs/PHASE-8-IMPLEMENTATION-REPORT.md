@@ -439,6 +439,25 @@ loadSyncStatusForActiveCollections(collections); // Added
 
 ## Test Results
 
+### ✅ **UPDATE (2025-10-26): All Tests Now Passing!**
+
+```
+Test Suites: 48 passed, 48 total
+Tests:       1 skipped, 845 passed, 846 total
+```
+
+**Pass Rate**: ✅ **100% (845/846 tests passing, 1 skipped)**
+
+**Changes Made** (commits `9dfbb68` and `f131789`):
+- ✅ ProgressiveSyncService tests rewritten to follow integration testing pattern
+- ✅ Removed `jest.mock()` calls (doesn't work with ES modules)
+- ✅ Now uses real `CollectionService.createCollection()` for test data
+- ✅ Only mocks Chrome APIs (tabs, tabGroups, windows, alarms)
+- ✅ All 26 ProgressiveSyncService tests passing
+- ✅ TabActionsService tests fixed (added `getLastFocused` mock)
+
+### Original Test Results (Before Fix)
+
 ```
 Test Suites: 2 failed, 46 passed, 48 total
 Tests:       24 failed, 1 skipped, 815 passed, 840 total
@@ -446,21 +465,15 @@ Snapshots:   0 total
 Time:        ~45s
 ```
 
-**Pass Rate**: ✅ **96% (815/840 tests passing)**
+**Pass Rate**: 96% (815/840 tests passing)
 
-### Failing Tests Analysis
-
-#### 1. `TabActionsService.test.js` - 4 failures
-**Status**: Pre-existing failures, not related to Phase 8
-**Impact**: None on Phase 8 functionality
-
-#### 2. `ProgressiveSyncService.test.js` - 20 failures
-**Status**: Test infrastructure issue (uses `jest.mock()` which doesn't work with ES modules)
-**Impact**: None on production code - tests need rewriting only
+#### Failing Tests (Now Fixed):
+1. `TabActionsService.test.js` - 4 failures → ✅ **Fixed**
+2. `ProgressiveSyncService.test.js` - 20 failures → ✅ **Fixed**
 
 ---
 
-## Test Infrastructure Issue: ProgressiveSyncService.test.js
+## Test Infrastructure Issue: ProgressiveSyncService.test.js (RESOLVED)
 
 ### Problem
 
