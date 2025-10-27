@@ -31,6 +31,11 @@ import { selectTasks } from './services/selection/selectTasks.js';
 import * as CaptureWindowService from './services/execution/CaptureWindowService.js';
 import * as RestoreCollectionService from './services/execution/RestoreCollectionService.js';
 import * as TaskExecutionService from './services/execution/TaskExecutionService.js';
+
+// TabTaskTick Phase 9: Import collection import/export services
+import * as CollectionExportService from './services/execution/CollectionExportService.js';
+import * as CollectionImportService from './services/execution/CollectionImportService.js';
+
 import { initialize as initializeDB } from './services/utils/db.js';
 import {
   getCollection,
@@ -1930,6 +1935,42 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'openTaskTabs':
           const openResult = await TaskExecutionService.openTaskTabs(request.taskId);
           sendResponse({ success: true, ...openResult });
+          break;
+
+        // TabTaskTick Phase 9: Collection Import/Export
+        case 'exportCollection':
+          const exportResult = await CollectionExportService.exportCollection(
+            request.collectionId,
+            request.options || {}
+          );
+          sendResponse({ success: true, ...exportResult });
+          break;
+
+        case 'exportCollections':
+          const exportMultipleResult = await CollectionExportService.exportCollections(
+            request.collectionIds,
+            request.options || {}
+          );
+          sendResponse({ success: true, ...exportMultipleResult });
+          break;
+
+        case 'exportAllCollections':
+          // Get all collection IDs
+          const allCollections = await selectCollections({});
+          const allCollectionIds = allCollections.map(c => c.id);
+          const exportAllResult = await CollectionExportService.exportCollections(
+            allCollectionIds,
+            request.options || {}
+          );
+          sendResponse({ success: true, ...exportAllResult });
+          break;
+
+        case 'importCollections':
+          const importResult = await CollectionImportService.importCollections(
+            request.data,
+            request.options || {}
+          );
+          sendResponse({ success: true, ...importResult });
           break;
 
         case 'focusWindow':

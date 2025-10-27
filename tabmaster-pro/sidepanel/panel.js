@@ -16,6 +16,11 @@ import { TasksView } from './tasks-view.js';
 import { SearchFilter } from './search-filter.js';
 import { PresentationControls } from './presentation-controls.js';
 import { suggestEmoji } from '../services/utils/emoji-suggestions.js';
+import {
+  importCollections as importCollectionsService,
+  formatImportSuccessMessage,
+  formatImportErrorMessage
+} from '../services/utils/collection-import-export-ui.js';
 
 class SidePanelController {
   constructor() {
@@ -120,6 +125,26 @@ class SidePanelController {
     const saveWindowBtn = document.getElementById('save-window-btn');
     saveWindowBtn?.addEventListener('click', () => {
       this.handleSaveWindow();
+    });
+
+    // Import collections button
+    const importBtn = document.getElementById('import-collections-btn');
+    importBtn?.addEventListener('click', () => {
+      const fileInput = document.getElementById('import-file-input');
+      if (fileInput) {
+        fileInput.click();
+      }
+    });
+
+    // Import file input
+    const importFileInput = document.getElementById('import-file-input');
+    importFileInput?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        await this.handleImportCollections(file);
+        // Reset input so same file can be selected again
+        importFileInput.value = '';
+      }
     });
 
     // Empty state action buttons
@@ -531,6 +556,44 @@ class SidePanelController {
       console.error('Error saving window:', error);
       notifications.show(
         error.message || 'Failed to save window',
+        'error'
+      );
+    }
+  }
+
+  /**
+   * Handle import collections from file
+   */
+  async handleImportCollections(file) {
+    try {
+      notifications.show('Importing collections...', 'info');
+
+      const result = await importCollectionsService(file);
+
+      if (result?.success) {
+        const { imported, errors } = result;
+
+        // Show success message
+        if (imported.length > 0) {
+          notifications.show(formatImportSuccessMessage(result), 'success');
+        }
+
+        // Show errors if any collections failed
+        if (errors.length > 0) {
+          notifications.show(formatImportErrorMessage(result, '; '), 'error');
+        }
+
+        // Refresh data if any collections were imported
+        if (imported.length > 0) {
+          await this.loadData();
+        }
+      } else {
+        notifications.show('Failed to import collections', 'error');
+      }
+    } catch (error) {
+      console.error('Error importing collections:', error);
+      notifications.show(
+        error.message || 'Failed to import collections',
         'error'
       );
     }

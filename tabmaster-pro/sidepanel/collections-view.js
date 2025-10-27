@@ -12,6 +12,10 @@
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
 import { EmojiPicker } from './components/emoji-picker.js';
+import {
+  exportCollection as exportCollectionService,
+  formatExportSuccessMessage
+} from '../services/utils/collection-import-export-ui.js';
 
 export class CollectionsView {
   constructor(controller) {
@@ -190,6 +194,9 @@ export class CollectionsView {
           <button class="btn btn-danger btn-sm action-delete" data-action="delete">
             🗑️ Delete
           </button>
+          <button class="btn btn-secondary btn-sm action-export" data-action="export" title="Export this collection">
+            💾 Export
+          </button>
         </div>
       </div>
     `;
@@ -230,6 +237,9 @@ export class CollectionsView {
           break;
         case 'delete':
           await this.handleDeleteCollection(collectionId);
+          break;
+        case 'export':
+          await this.handleExportCollection(collectionId);
           break;
       }
     });
@@ -542,6 +552,26 @@ export class CollectionsView {
       console.error('Failed to save collection:', error);
       notifications.error('Failed to save changes');
       throw error; // Re-throw to prevent modal close
+    }
+  }
+
+  /**
+   * Handle export collection action
+   */
+  async handleExportCollection(collectionId) {
+    try {
+      notifications.info('Exporting collection...');
+
+      const result = await exportCollectionService(collectionId);
+
+      if (result?.success) {
+        notifications.success(formatExportSuccessMessage(result));
+      } else {
+        notifications.error('Failed to export collection');
+      }
+    } catch (error) {
+      console.error('Failed to export collection:', error);
+      notifications.error(`Export failed: ${error.message}`);
     }
   }
 
