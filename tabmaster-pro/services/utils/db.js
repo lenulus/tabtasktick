@@ -7,12 +7,16 @@
  * - Schema initialization and version upgrades
  * - Quota and error handling
  *
- * Database: TabTaskTickDB v1
+ * Database: TabTaskTickDB v2
  * Stores: collections, folders, tabs, tasks
+ *
+ * Version History:
+ * - v1: Initial schema with all stores and indexes
+ * - v2: Phase 8 migration - ensure isActive index exists on collections store
  */
 
 const DB_NAME = 'TabTaskTickDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped for Phase 8 index migration
 
 // Singleton DB instance
 let dbInstance = null;
@@ -117,8 +121,21 @@ export async function getDB() {
           initializeSchema(db);
         }
 
+        if (oldVersion < 2) {
+          // Phase 8 migration: Add isActive index to collections store
+          // Databases created before Phase 8 have collections store but no isActive index
+          const tx = event.target.transaction;
+          if (db.objectStoreNames.contains('collections')) {
+            const collectionStore = tx.objectStore('collections');
+            // Check if index already exists before creating
+            if (!collectionStore.indexNames.contains('isActive')) {
+              console.log('Adding isActive index to collections store');
+              collectionStore.createIndex('isActive', 'isActive', { unique: false });
+            }
+          }
+        }
+
         // Future version upgrades would go here:
-        // if (oldVersion < 2) { ... }
         // if (oldVersion < 3) { ... }
       } catch (error) {
         console.error('Schema upgrade failed:', error);

@@ -63,12 +63,25 @@ export async function getAllCollections() {
  * Get collections by index
  * Generic query helper for any index
  *
+ * IMPORTANT: IndexedDB does NOT support boolean values as keys.
+ * If querying a boolean index (like isActive), we fall back to
+ * fetching all collections and filtering in memory.
+ *
  * @param {string} indexName - Index name (isActive, tags, lastAccessed)
  * @param {*} value - Value to match
  * @returns {Promise<Array>} Matching collections
  */
 export async function getCollectionsByIndex(indexName, value) {
   try {
+    // IndexedDB valid key types: Number, String, Date, Array, Binary
+    // Booleans are NOT valid keys, so we fall back to full scan + filter
+    if (typeof value === 'boolean') {
+      console.log(`getCollectionsByIndex: Boolean value detected for ${indexName}, using fallback`);
+      const allCollections = await getAllCollections();
+      return allCollections.filter(c => c[indexName] === value);
+    }
+
+    // Use index query for non-boolean values
     return await withTransaction(['collections'], 'readonly', async (tx) => {
       const store = tx.objectStore('collections');
       const index = store.index(indexName);
