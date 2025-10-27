@@ -43,6 +43,10 @@ import {
 // Only formatters are imported here for the modal component to use
 import { formatSnoozeTitle, formatSnoozeDescription } from '../services/utils/snoozeFormatters.js';
 
+// Phase 10: Keyboard shortcuts system
+import keyboardShortcuts from './modules/keyboard-shortcuts.js';
+import helpModal from './modules/help-modal.js';
+
 // Import view modules
 import { 
   loadTabsView, 
@@ -111,6 +115,9 @@ window.addEventListener('load', async () => {
   } else {
     console.error('SnoozeModal class not found after window load');
   }
+
+  // Phase 10: Initialize keyboard shortcuts
+  setupKeyboardShortcuts();
 
   // Refresh data periodically
   setInterval(refreshData, 30000); // Every 30 seconds
@@ -306,7 +313,12 @@ function setupEventListeners() {
   document.getElementById('openSettings')?.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
   });
-  
+
+  // Keyboard Shortcuts button
+  document.getElementById('openKeyboardShortcuts')?.addEventListener('click', () => {
+    helpModal.show();
+  });
+
   // Quick Organize
   document.getElementById('quickOrganize')?.addEventListener('click', openQuickOrganize);
   
@@ -997,6 +1009,114 @@ async function wakeAllSnoozed() {
     console.error("Failed to wake snoozed tabs:", error);
     showNotification("Failed to wake snoozed tabs", "error");
   }
+}
+
+// ============================================================================
+// Keyboard Shortcuts Setup (Phase 10)
+// ============================================================================
+
+function setupKeyboardShortcuts() {
+  // Global Navigation Shortcuts
+  keyboardShortcuts.register('g>c', () => {
+    switchView('collections');
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(nav => {
+      if (nav.dataset.view === 'collections') {
+        navItems.forEach(n => n.classList.remove('active'));
+        nav.classList.add('active');
+      }
+    });
+  }, {
+    category: 'navigation',
+    description: 'Go to Collections view'
+  });
+
+  keyboardShortcuts.register('g>t', () => {
+    switchView('tasks');
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(nav => {
+      if (nav.dataset.view === 'tasks') {
+        navItems.forEach(n => n.classList.remove('active'));
+        nav.classList.add('active');
+      }
+    });
+  }, {
+    category: 'navigation',
+    description: 'Go to Tasks view'
+  });
+
+  keyboardShortcuts.register('g>a', () => {
+    switchView('tabs');
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(nav => {
+      if (nav.dataset.view === 'tabs') {
+        navItems.forEach(n => n.classList.remove('active'));
+        nav.classList.add('active');
+      }
+    });
+  }, {
+    category: 'navigation',
+    description: 'Go to All Tabs view'
+  });
+
+  keyboardShortcuts.register('g>s', () => {
+    chrome.runtime.openOptionsPage();
+  }, {
+    category: 'navigation',
+    description: 'Go to Settings'
+  });
+
+  // Help Modal
+  keyboardShortcuts.register('?', () => {
+    helpModal.show();
+  }, {
+    category: 'general',
+    description: 'Show keyboard shortcuts help',
+    requireShift: true
+  });
+
+  // Search Focus
+  keyboardShortcuts.register('/', () => {
+    const searchInput = document.querySelector('.search-input:not([style*="display: none"])');
+    if (searchInput) {
+      searchInput.focus();
+    }
+  }, {
+    category: 'general',
+    description: 'Focus search box'
+  });
+
+  // Escape - Clear search, deselect items, close modals
+  keyboardShortcuts.register('escape', () => {
+    // Clear search
+    const searchInput = document.querySelector('.search-input:not([style*="display: none"])');
+    if (searchInput && searchInput.value) {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+      return;
+    }
+
+    // Clear selection
+    const selectedTabs = state.get('selectedTabs');
+    if (selectedTabs && selectedTabs.size > 0) {
+      clearSelection();
+      return;
+    }
+
+    // Close modals
+    const modal = document.querySelector('.modal.show');
+    if (modal) {
+      modal.classList.remove('show');
+    }
+
+    // Clear keyboard focus
+    keyboardShortcuts.clearFocus();
+  }, {
+    category: 'general',
+    description: 'Clear search / Deselect / Close modal'
+  });
+
+  console.log('Keyboard shortcuts initialized');
 }
 
 // ============================================================================
