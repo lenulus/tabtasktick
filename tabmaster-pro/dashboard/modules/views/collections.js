@@ -123,6 +123,23 @@ function renderCollectionsView(collections, tasks, windowMap) {
             </svg>
           </button>
         </div>
+        <button class="btn btn-secondary" id="exportAllCollections" title="Export all collections to JSON">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export All
+        </button>
+        <button class="btn btn-primary" id="importCollections" title="Import collections from JSON file">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          Import
+        </button>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
       </div>
     </div>
 
@@ -292,6 +309,14 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
           </svg>
           Delete
         </button>
+        <button class="btn btn-sm btn-secondary" data-action="export" data-collection-id="${collection.id}" title="Export this collection to JSON">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export
+        </button>
       </div>
     </div>
   `;
@@ -418,6 +443,39 @@ function setupCollectionsEventListeners() {
       await handleCreateCollection();
     });
   }
+
+  // Export All Collections button
+  const exportAllBtn = document.getElementById('exportAllCollections');
+  if (exportAllBtn) {
+    exportAllBtn.addEventListener('click', async () => {
+      await handleExportAllCollections();
+    });
+  }
+
+  // Import Collections button
+  const importBtn = document.getElementById('importCollections');
+  if (importBtn) {
+    importBtn.addEventListener('click', () => {
+      // Trigger file input click
+      const fileInput = document.getElementById('importFileInput');
+      if (fileInput) {
+        fileInput.click();
+      }
+    });
+  }
+
+  // Import file input change
+  const fileInput = document.getElementById('importFileInput');
+  if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        await handleImportCollections(file);
+        // Reset input so same file can be selected again
+        fileInput.value = '';
+      }
+    });
+  }
 }
 
 // ============================================================================
@@ -446,6 +504,9 @@ async function handleCollectionAction(action, collectionId) {
         break;
       case 'delete':
         await handleDeleteCollection(collectionId);
+        break;
+      case 'export':
+        await handleExportCollection(collectionId);
         break;
       default:
         console.warn('Unknown action:', action);
@@ -955,6 +1016,118 @@ async function handleCreateCollection() {
   } catch (error) {
     console.error('Error creating collection:', error);
     showNotification('Failed to create collection', 'error');
+  }
+}
+
+async function handleExportCollection(collectionId) {
+  try {
+    showNotification('Exporting collection...', 'info');
+
+    const result = await chrome.runtime.sendMessage({
+      action: 'exportCollection',
+      collectionId,
+      options: {
+        includeTasks: true,
+        includeSettings: true,
+        includeMetadata: false
+      }
+    });
+
+    if (result.success) {
+      showNotification(`Exported to ${result.filename}`, 'success');
+    } else {
+      showNotification('Failed to export collection', 'error');
+    }
+  } catch (error) {
+    console.error('Error exporting collection:', error);
+    showNotification(`Export failed: ${error.message}`, 'error');
+  }
+}
+
+async function handleExportAllCollections() {
+  try {
+    const collections = state.get('collections') || [];
+
+    if (collections.length === 0) {
+      showNotification('No collections to export', 'warning');
+      return;
+    }
+
+    showNotification(`Exporting ${collections.length} collections...`, 'info');
+
+    const result = await chrome.runtime.sendMessage({
+      action: 'exportAllCollections',
+      options: {
+        includeTasks: true,
+        includeSettings: true,
+        includeMetadata: false
+      }
+    });
+
+    if (result.success) {
+      showNotification(`Exported ${result.count} collections to ${result.filename}`, 'success');
+    } else {
+      showNotification('Failed to export collections', 'error');
+    }
+  } catch (error) {
+    console.error('Error exporting all collections:', error);
+    showNotification(`Export failed: ${error.message}`, 'error');
+  }
+}
+
+async function handleImportCollections(file) {
+  try {
+    showNotification('Importing collections...', 'info');
+
+    // Read file as text
+    const text = await file.text();
+
+    // Send to background for import
+    const result = await chrome.runtime.sendMessage({
+      action: 'importCollections',
+      data: text,
+      options: {
+        mode: 'merge',
+        importTasks: true,
+        importSettings: true
+      }
+    });
+
+    if (result.success) {
+      const { imported, errors, stats } = result;
+
+      // Show success message
+      if (imported.length > 0) {
+        showNotification(
+          `Imported ${imported.length} collection${imported.length > 1 ? 's' : ''}: ${imported.map(c => c.name).join(', ')}`,
+          'success'
+        );
+      }
+
+      // Show warnings if any collections failed
+      if (errors.length > 0) {
+        const errorMsg = errors.map(e => `${e.collectionName}: ${e.error}`).join('\n');
+        showNotification(
+          `${errors.length} collection${errors.length > 1 ? 's' : ''} failed to import:\n${errorMsg}`,
+          'error'
+        );
+      }
+
+      // Show warnings from import process
+      if (stats.warnings && stats.warnings.length > 0) {
+        console.warn('Import warnings:', stats.warnings);
+      }
+
+      // Refresh view if any collections were imported
+      if (imported.length > 0) {
+        await loadCollectionsView();
+      }
+    } else {
+      showNotification('Failed to import collections', 'error');
+    }
+  } catch (error) {
+    console.error('Error importing collections:', error);
+    showNotification(`Import failed: ${error.message}`, 'error');
   }
 }
 

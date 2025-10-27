@@ -122,6 +122,26 @@ class SidePanelController {
       this.handleSaveWindow();
     });
 
+    // Import collections button
+    const importBtn = document.getElementById('import-collections-btn');
+    importBtn?.addEventListener('click', () => {
+      const fileInput = document.getElementById('import-file-input');
+      if (fileInput) {
+        fileInput.click();
+      }
+    });
+
+    // Import file input
+    const importFileInput = document.getElementById('import-file-input');
+    importFileInput?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        await this.handleImportCollections(file);
+        // Reset input so same file can be selected again
+        importFileInput.value = '';
+      }
+    });
+
     // Empty state action buttons
     document.addEventListener('click', (e) => {
       if (e.target.classList.contains('empty-action-btn')) {
@@ -531,6 +551,62 @@ class SidePanelController {
       console.error('Error saving window:', error);
       notifications.show(
         error.message || 'Failed to save window',
+        'error'
+      );
+    }
+  }
+
+  /**
+   * Handle import collections from file
+   */
+  async handleImportCollections(file) {
+    try {
+      notifications.show('Importing collections...', 'info');
+
+      // Read file as text
+      const text = await file.text();
+
+      // Send to background for import
+      const result = await this.sendMessage('importCollections', {
+        data: text,
+        options: {
+          mode: 'merge',
+          importTasks: true,
+          importSettings: true
+        }
+      });
+
+      if (result?.success) {
+        const { imported, errors, stats } = result;
+
+        // Show success message
+        if (imported.length > 0) {
+          notifications.show(
+            `Imported ${imported.length} collection${imported.length > 1 ? 's' : ''}: ${imported.map(c => c.name).join(', ')}`,
+            'success'
+          );
+        }
+
+        // Show warnings if any collections failed
+        if (errors.length > 0) {
+          const errorMsg = errors.map(e => `${e.collectionName}: ${e.error}`).join('; ');
+          notifications.show(
+            `${errors.length} collection${errors.length > 1 ? 's' : ''} failed: ${errorMsg}`,
+            'error'
+          );
+        }
+
+        // Refresh data if any collections were imported
+        if (imported.length > 0) {
+          await this.loadData();
+        }
+      } else {
+        notifications.show('Failed to import collections', 'error');
+      }
+    } catch (error) {
+      console.error('Error importing collections:', error);
+      notifications.show(
+        error.message || 'Failed to import collections',
         'error'
       );
     }
