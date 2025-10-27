@@ -42,6 +42,9 @@ import {
   findTabByRuntimeId
 } from './services/utils/storage-queries.js';
 
+// TabTaskTick Phase 8: Import ProgressiveSyncService for real-time collection sync
+import * as ProgressiveSyncService from './services/execution/ProgressiveSyncService.js';
+
 console.log('Background service worker loaded with Rules Engine V2');
 
 // Get the engine's functions (V2 only)
@@ -388,6 +391,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   await ScheduledExportService.initialize(); // Phase 8.4: Initialize automatic backups
   await initializeDB(); // TabTaskTick Phase 2.6: Initialize IndexedDB
   await WindowService.rebuildCollectionCache(); // TabTaskTick Phase 2.6: Rebuild collection cache
+  await ProgressiveSyncService.initialize(); // Phase 8: Initialize progressive collection sync
   await setupContextMenus();
   await loadSettings();
   await loadRules();
@@ -406,6 +410,7 @@ chrome.runtime.onStartup.addListener(async () => {
   await ScheduledExportService.initialize(); // Phase 8.4: Initialize automatic backups
   await initializeDB(); // TabTaskTick Phase 2.6: Initialize IndexedDB
   await WindowService.rebuildCollectionCache(); // TabTaskTick Phase 2.6: Rebuild collection cache
+  await ProgressiveSyncService.initialize(); // Phase 8: Initialize progressive collection sync
   await loadActivityLog();
   await initializeTabTimeTracking();
   await initializeScheduler();
@@ -1762,6 +1767,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: true, collection: completeCollection });
           break;
 
+        // Phase 8: Progressive Sync Operations
+        case 'updateCollectionSettings':
+          const updatedSettingsCollection = await CollectionService.updateCollectionSettings(
+            request.collectionId || request.id,
+            request.settings
+          );
+          // Refresh ProgressiveSyncService settings cache
+          await ProgressiveSyncService.refreshSettings(request.collectionId || request.id);
+          sendResponse({ success: true, collection: updatedSettingsCollection });
+          break;
+
+        case 'getSyncStatus':
+          const syncStatus = ProgressiveSyncService.getSyncStatus(request.collectionId || request.id);
+          sendResponse({ success: true, status: syncStatus });
+          break;
+
+        case 'flushSync':
+          // Manual flush trigger (for testing or user-requested sync)
+          if (request.collectionId) {
+            await ProgressiveSyncService.flush(request.collectionId);
+          } else {
+            await ProgressiveSyncService.flush(); // Flush all
+          }
+          sendResponse({ success: true });
+          break;
+
         // Folder Operations
         case 'createFolder':
           const createdFolder = await FolderService.createFolder({
@@ -1874,6 +1905,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             metadata: request.metadata,
             keepActive: request.keepActive
           });
+          // Phase 8: Track collection if it's now active
+          if (captureResult.collection && captureResult.collection.isActive) {
+            await ProgressiveSyncService.trackCollection(captureResult.collection.id);
+          }
           sendResponse({ success: true, ...captureResult });
           break;
 
@@ -1885,6 +1920,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             focused: request.focused,
             windowState: request.windowState
           });
+          // Phase 8: Track restored collection (now active)
+          if (restoreResult.collection && restoreResult.collection.isActive) {
+            await ProgressiveSyncService.trackCollection(restoreResult.collection.id);
+          }
           sendResponse({ success: true, ...restoreResult });
           break;
 

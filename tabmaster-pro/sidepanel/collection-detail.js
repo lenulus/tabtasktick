@@ -117,6 +117,55 @@ export class CollectionDetailView {
   }
 
   /**
+   * Load and display sync status for collection
+   */
+  async loadSyncStatus(collectionId) {
+    try {
+      const response = await this.controller.sendMessage('getSyncStatus', { collectionId });
+
+      if (!response || !this.container) return;
+
+      const lastSyncElement = this.container.querySelector('[data-status="last-sync"]');
+      const pendingChangesElement = this.container.querySelector('[data-status="pending-changes"]');
+
+      if (lastSyncElement) {
+        if (response.lastSyncTime) {
+          const timeAgo = this.formatTimeAgo(response.lastSyncTime);
+          lastSyncElement.textContent = timeAgo;
+          lastSyncElement.title = new Date(response.lastSyncTime).toLocaleString();
+        } else {
+          lastSyncElement.textContent = 'Never';
+        }
+      }
+
+      if (pendingChangesElement) {
+        const count = response.pendingChanges || 0;
+        pendingChangesElement.textContent = count.toString();
+        if (count > 0) {
+          pendingChangesElement.classList.add('has-pending');
+        } else {
+          pendingChangesElement.classList.remove('has-pending');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load sync status:', error);
+    }
+  }
+
+  /**
+   * Format time ago (e.g., "2 minutes ago")
+   */
+  formatTimeAgo(timestamp) {
+    const now = Date.now();
+    const diff = now - timestamp;
+
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return `${Math.floor(diff / 86400000)}d ago`;
+  }
+
+  /**
    * Render detail view
    */
   render(collection, folders, tabs, tasks) {
@@ -136,6 +185,11 @@ export class CollectionDetailView {
 
     // Attach event listeners
     this.attachEventListeners();
+
+    // Load sync status if collection is active
+    if (collection.isActive) {
+      this.loadSyncStatus(collection.id);
+    }
   }
 
   /**
@@ -152,6 +206,7 @@ export class CollectionDetailView {
       ${this.renderCollectionHeader(collection)}
       ${this.renderTasksSection(tasks, collection, tabs)}
       ${this.renderFoldersSection(folders, tabs)}
+      ${this.renderSettingsSection(collection)}
       ${this.renderCollectionActions(collection)}
     `;
   }
@@ -383,6 +438,127 @@ export class CollectionDetailView {
   /**
    * Render collection actions
    */
+  /**
+   * Render settings section (Phase 8: Progressive Sync settings)
+   */
+  renderSettingsSection(collection) {
+    // Default settings if not present (backwards compatibility)
+    const settings = collection.settings || {
+      trackingEnabled: true,
+      autoSync: true,
+      syncDebounceMs: 2000
+    };
+
+    // Only show settings for active collections
+    if (!collection.isActive) {
+      return '';
+    }
+
+    return `
+      <section class="detail-section settings-section">
+        <details class="settings-details">
+          <summary class="section-header-detail">
+            <h3 class="section-title-detail">⚙️ Progressive Sync Settings</h3>
+          </summary>
+
+          <div class="settings-content">
+            <p class="settings-info">
+              When enabled, changes to tabs and groups sync automatically to preserve your collection's state.
+            </p>
+
+            <div class="setting-row">
+              <label class="setting-label">
+                <input
+                  type="checkbox"
+                  class="setting-checkbox"
+                  data-setting="trackingEnabled"
+                  ${settings.trackingEnabled ? 'checked' : ''}
+                >
+                <span class="setting-text">
+                  <strong>Track changes in real-time</strong>
+                  <span class="setting-description">Monitor tab and group changes as you work</span>
+                </span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <label class="setting-label">
+                <input
+                  type="checkbox"
+                  class="setting-checkbox"
+                  data-setting="autoSync"
+                  ${settings.autoSync ? 'checked' : ''}
+                  ${!settings.trackingEnabled ? 'disabled' : ''}
+                >
+                <span class="setting-text">
+                  <strong>Auto-sync</strong>
+                  <span class="setting-description">Automatically save changes (requires tracking)</span>
+                </span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <label class="setting-label setting-label-slider">
+                <span class="setting-text">
+                  <strong>Sync delay</strong>
+                  <span class="setting-description">Time to wait before saving changes (${this.formatSyncDelay(settings.syncDebounceMs)})</span>
+                </span>
+                <div class="slider-container">
+                  <input
+                    type="range"
+                    class="setting-slider"
+                    data-setting="syncDebounceMs"
+                    min="0"
+                    max="10000"
+                    step="500"
+                    value="${settings.syncDebounceMs}"
+                    ${!settings.trackingEnabled ? 'disabled' : ''}
+                  >
+                  <div class="slider-labels">
+                    <span>0s</span>
+                    <span>5s</span>
+                    <span>10s</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <div class="sync-status" data-collection-id="${collection.id}">
+              <div class="sync-status-header">
+                <strong>Sync Status</strong>
+              </div>
+              <div class="sync-status-info">
+                <div class="sync-status-row">
+                  <span class="sync-status-label">Last synced:</span>
+                  <span class="sync-status-value" data-status="last-sync">Loading...</span>
+                </div>
+                <div class="sync-status-row">
+                  <span class="sync-status-label">Pending changes:</span>
+                  <span class="sync-status-value" data-status="pending-changes">Loading...</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-footer">
+              <button class="btn btn-sm btn-secondary" data-action="save-settings">
+                Save Settings
+              </button>
+            </div>
+          </div>
+        </details>
+      </section>
+    `;
+  }
+
+  /**
+   * Format sync delay for display
+   */
+  formatSyncDelay(ms) {
+    if (ms === 0) return '0s (instant)';
+    if (ms < 1000) return `${ms}ms`;
+    return `${(ms / 1000).toFixed(1)}s`;
+  }
+
   renderCollectionActions(collection) {
     return `
       <div class="collection-actions-detail">
@@ -448,6 +624,9 @@ export class CollectionDetailView {
         case 'edit-collection':
           await this.handleEditCollection();
           break;
+        case 'save-settings':
+          await this.handleSaveSettings();
+          break;
       }
     });
 
@@ -464,6 +643,32 @@ export class CollectionDetailView {
         const charsSpan = e.target.nextElementSibling;
         if (charsSpan) {
           charsSpan.textContent = `${e.target.value.length}/255`;
+        }
+      }
+
+      // Phase 8: Sync delay slider update
+      if (e.target.classList.contains('setting-slider')) {
+        const description = e.target.closest('.setting-label-slider').querySelector('.setting-description');
+        if (description) {
+          const value = parseInt(e.target.value);
+          description.textContent = `Time to wait before saving changes (${this.formatSyncDelay(value)})`;
+        }
+      }
+    });
+
+    // Phase 8: Settings checkbox changes
+    this.container.addEventListener('change', (e) => {
+      if (e.target.dataset.setting === 'trackingEnabled') {
+        const autoSyncCheckbox = this.container.querySelector('[data-setting="autoSync"]');
+        const syncDelaySlider = this.container.querySelector('[data-setting="syncDebounceMs"]');
+
+        if (e.target.checked) {
+          autoSyncCheckbox.disabled = false;
+          syncDelaySlider.disabled = false;
+        } else {
+          autoSyncCheckbox.disabled = true;
+          autoSyncCheckbox.checked = false;
+          syncDelaySlider.disabled = true;
         }
       }
     });
@@ -940,6 +1145,41 @@ export class CollectionDetailView {
       console.error('Failed to save collection:', error);
       notifications.error('Failed to save changes');
       throw error;
+    }
+  }
+
+  /**
+   * Phase 8: Handle save settings
+   */
+  async handleSaveSettings() {
+    try {
+      // Get current values from form
+      const trackingEnabled = this.container.querySelector('[data-setting="trackingEnabled"]').checked;
+      const autoSync = this.container.querySelector('[data-setting="autoSync"]').checked;
+      const syncDebounceMs = parseInt(this.container.querySelector('[data-setting="syncDebounceMs"]').value);
+
+      const settings = {
+        trackingEnabled,
+        autoSync,
+        syncDebounceMs
+      };
+
+      // Send update to background
+      const response = await this.controller.sendMessage('updateCollectionSettings', {
+        collectionId: this.currentCollectionId,
+        settings
+      });
+
+      if (response?.success) {
+        notifications.success('Settings saved');
+        // Refresh view to show updated settings
+        await this.show(this.currentCollectionId);
+      } else {
+        throw new Error(response?.error || 'Update failed');
+      }
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      notifications.error('Failed to save settings');
     }
   }
 

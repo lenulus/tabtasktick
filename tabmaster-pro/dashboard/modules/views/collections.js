@@ -46,6 +46,9 @@ export async function loadCollectionsView() {
     // Setup event listeners
     setupCollectionsEventListeners();
 
+    // Load sync status for active collections
+    loadSyncStatusForActiveCollections(collections);
+
   } catch (error) {
     console.error('Error loading collections:', error);
     showNotification('Failed to load collections', 'error');
@@ -243,6 +246,19 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
           <span class="stat-label">accessed</span>
         </div>
       </div>
+
+      ${isActive ? `
+        <div class="sync-status-dashboard" data-sync-status="${collection.id}">
+          <div class="sync-stat">
+            <span class="sync-label">Last sync:</span>
+            <span class="sync-value" data-sync-last="${collection.id}">Loading...</span>
+          </div>
+          <div class="sync-stat">
+            <span class="sync-label">Pending:</span>
+            <span class="sync-value" data-sync-pending="${collection.id}">...</span>
+          </div>
+        </div>
+      ` : ''}
 
       ${tags || moreTags ? `<div class="collection-tags">${tags}${moreTags}</div>` : ''}
 
@@ -776,6 +792,36 @@ function showEditCollectionModal(collection) {
           <label for="editCollectionTags">Tags (comma-separated)</label>
           <input type="text" id="editCollectionTags" class="form-control" placeholder="work, important, project">
         </div>
+
+        <div class="form-group">
+          <label class="section-label">Progressive Sync Settings</label>
+          <div class="settings-section">
+            <div class="setting-row-dashboard">
+              <label class="checkbox-label">
+                <input type="checkbox" id="editTrackingEnabled">
+                <span>Enable real-time tracking</span>
+              </label>
+              <small class="setting-help">Track tab and group changes automatically</small>
+            </div>
+
+            <div class="setting-row-dashboard">
+              <label class="checkbox-label">
+                <input type="checkbox" id="editAutoSync">
+                <span>Auto-sync changes</span>
+              </label>
+              <small class="setting-help">Save changes automatically (requires tracking)</small>
+            </div>
+
+            <div class="setting-row-dashboard">
+              <label for="editSyncDebounce">Sync delay (seconds)</label>
+              <div class="slider-row">
+                <input type="range" id="editSyncDebounce" min="0" max="10" step="0.5" value="2" class="sync-slider">
+                <span id="editSyncDebounceValue">2.0s</span>
+              </div>
+              <small class="setting-help">Time to wait before saving changes</small>
+            </div>
+          </div>
+        </div>
     `;
 
     const footerHtml = `
@@ -806,6 +852,24 @@ function showEditCollectionModal(collection) {
   document.getElementById('editCollectionIcon').value = collection.icon || '📁';
   document.getElementById('editCollectionColor').value = collection.color || '#667eea';
   document.getElementById('editCollectionTags').value = (collection.tags || []).join(', ');
+
+  // Populate progressive sync settings
+  const settings = collection.settings || {
+    trackingEnabled: true,
+    autoSync: true,
+    syncDebounceMs: 2000
+  };
+  document.getElementById('editTrackingEnabled').checked = settings.trackingEnabled ?? true;
+  document.getElementById('editAutoSync').checked = settings.autoSync ?? true;
+  document.getElementById('editAutoSync').disabled = !settings.trackingEnabled;
+
+  const syncDebounceSeconds = (settings.syncDebounceMs || 2000) / 1000;
+  document.getElementById('editSyncDebounce').value = syncDebounceSeconds;
+  document.getElementById('editSyncDebounceValue').textContent = `${syncDebounceSeconds.toFixed(1)}s`;
+  document.getElementById('editSyncDebounce').disabled = !settings.trackingEnabled;
+
+  // Setup settings event listeners
+  setupEditSettingsHandlers();
 
   // Update emoji picker current emoji
   const currentEmoji = document.getElementById('currentEmoji');
@@ -858,6 +922,31 @@ function setupEmojiPicker() {
   }
 }
 
+function setupEditSettingsHandlers() {
+  const trackingCheckbox = document.getElementById('editTrackingEnabled');
+  const autoSyncCheckbox = document.getElementById('editAutoSync');
+  const syncSlider = document.getElementById('editSyncDebounce');
+  const syncValue = document.getElementById('editSyncDebounceValue');
+
+  if (!trackingCheckbox || !autoSyncCheckbox || !syncSlider || !syncValue) return;
+
+  // Handle tracking enabled toggle
+  trackingCheckbox.addEventListener('change', (e) => {
+    const enabled = e.target.checked;
+    autoSyncCheckbox.disabled = !enabled;
+    syncSlider.disabled = !enabled;
+    if (!enabled) {
+      autoSyncCheckbox.checked = false;
+    }
+  });
+
+  // Handle sync delay slider
+  syncSlider.addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    syncValue.textContent = `${value.toFixed(1)}s`;
+  });
+}
+
 async function handleSaveEditCollection() {
   const collectionId = document.getElementById('editCollectionId').value;
   const name = document.getElementById('editCollectionName').value.trim();
@@ -872,12 +961,23 @@ async function handleSaveEditCollection() {
     .map(t => t.trim())
     .filter(t => t.length > 0);
 
+  // Get progressive sync settings
+  const trackingEnabled = document.getElementById('editTrackingEnabled').checked;
+  const autoSync = document.getElementById('editAutoSync').checked;
+  const syncDebounceSeconds = parseFloat(document.getElementById('editSyncDebounce').value);
+  const syncDebounceMs = Math.round(syncDebounceSeconds * 1000);
+
   const updates = {
     name,
     description: document.getElementById('editCollectionDescription').value.trim(),
     icon: document.getElementById('editCollectionIcon').value.trim() || '📁',
     color: document.getElementById('editCollectionColor').value,
-    tags
+    tags,
+    settings: {
+      trackingEnabled,
+      autoSync,
+      syncDebounceMs
+    }
   };
 
   try {
@@ -1011,4 +1111,67 @@ function filterAndRenderCollections() {
 
   renderCollectionsView(filtered, tasks, windowMap);
   setupCollectionsEventListeners(); // Re-attach listeners
+  loadSyncStatusForActiveCollections(filtered); // Reload sync status
+}
+
+// ============================================================================
+// Sync Status Loading
+// ============================================================================
+
+/**
+ * Load sync status for all active collections
+ */
+async function loadSyncStatusForActiveCollections(collections) {
+  const activeCollections = collections.filter(c => c.isActive);
+
+  for (const collection of activeCollections) {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'getSyncStatus',
+        collectionId: collection.id
+      });
+
+      if (!response) continue;
+
+      // Update last sync display
+      const lastSyncEl = document.querySelector(`[data-sync-last="${collection.id}"]`);
+      if (lastSyncEl) {
+        if (response.lastSyncTime) {
+          const timeAgo = formatSyncTimeAgo(response.lastSyncTime);
+          lastSyncEl.textContent = timeAgo;
+          lastSyncEl.title = new Date(response.lastSyncTime).toLocaleString();
+        } else {
+          lastSyncEl.textContent = 'Never';
+        }
+      }
+
+      // Update pending changes display
+      const pendingEl = document.querySelector(`[data-sync-pending="${collection.id}"]`);
+      if (pendingEl) {
+        const count = response.pendingChanges || 0;
+        pendingEl.textContent = count.toString();
+        if (count > 0) {
+          pendingEl.classList.add('has-pending-changes');
+        } else {
+          pendingEl.classList.remove('has-pending-changes');
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to load sync status for ${collection.id}:`, error);
+    }
+  }
+}
+
+/**
+ * Format sync time ago (compact for dashboard)
+ */
+function formatSyncTimeAgo(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+
+  if (diff < 10000) return 'Just now';
+  if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  return `${Math.floor(diff / 86400000)}d ago`;
 }
