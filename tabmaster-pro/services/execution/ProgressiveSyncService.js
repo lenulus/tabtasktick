@@ -52,6 +52,7 @@ import {
   getCollection,
   saveCollection,
   getCollectionsByIndex,
+  getCompleteCollection,
   getFolder,
   saveFolder,
   deleteFolder,
