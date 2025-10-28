@@ -1015,27 +1015,49 @@ async function processTabUpdated(collectionId, change) {
  */
 async function processTabMoved(collectionId, change) {
   const { tabId, data } = change;
-  const { fromIndex, toIndex } = data;
+  const { fromIndex, toIndex, windowId } = data;
 
-  // Find tab by runtime ID
-  const existingTab = await findTabByRuntimeId(tabId);
-  if (!existingTab) {
-    logAndBuffer('warn', `Tab ${tabId} not found in collection ${collectionId} for move operation`);
-    return;
+  // When a tab moves, Chrome adjusts ALL tabs' positions in the window.
+  // We need to sync ALL tab positions to match Chrome's state.
+
+  try {
+    // Get all tabs from Chrome in this window
+    const chromeTabs = await chrome.tabs.query({ windowId });
+
+    logAndBuffer('info', `Syncing all tab positions after tab ${tabId} moved`, {
+      fromIndex,
+      toIndex,
+      totalTabs: chromeTabs.length,
+      collectionId
+    });
+
+    // Update each tab's position to match Chrome's current state
+    let updatedCount = 0;
+    for (const chromeTab of chromeTabs) {
+      const existingTab = await findTabByRuntimeId(chromeTab.id);
+      if (existingTab) {
+        // Only update if position changed
+        if (existingTab.position !== chromeTab.index) {
+          const updatedTab = {
+            ...existingTab,
+            position: chromeTab.index
+          };
+          await saveTab(updatedTab);
+          updatedCount++;
+
+          logAndBuffer('info', `Updated tab ${chromeTab.id} position`, {
+            storageId: existingTab.id,
+            oldPosition: existingTab.position,
+            newPosition: chromeTab.index
+          });
+        }
+      }
+    }
+
+    logAndBuffer('info', `Synced ${updatedCount} tab positions after move in collection ${collectionId}`);
+  } catch (error) {
+    logAndBuffer('error', `Failed to sync tab positions after move:`, error);
   }
-
-  // Update tab position
-  const updatedTab = {
-    ...existingTab,
-    position: toIndex
-  };
-
-  await saveTab(updatedTab);
-  logAndBuffer('info', `Moved tab ${tabId} in collection ${collectionId}`, {
-    oldPosition: fromIndex,
-    newPosition: toIndex,
-    storageId: existingTab.id
-  });
 }
 
 // ============================================================================
