@@ -347,7 +347,12 @@ async function handleTabMoved(tabId, moveInfo) {
       return;
     }
 
-    console.log(`[ProgressiveSyncService] Tab moved: ${tabId} from ${moveInfo.fromIndex} to ${moveInfo.toIndex}`);
+    logAndBuffer('info', `Tab moved: ${tabId}`, {
+      fromIndex: moveInfo.fromIndex,
+      toIndex: moveInfo.toIndex,
+      windowId: moveInfo.windowId,
+      collectionId
+    });
 
     queueChange(collectionId, {
       type: ChangeType.TAB_MOVED,
@@ -355,7 +360,7 @@ async function handleTabMoved(tabId, moveInfo) {
       data: moveInfo
     });
   } catch (error) {
-    console.error('[ProgressiveSyncService] handleTabMoved failed:', error);
+    logAndBuffer('error', 'handleTabMoved failed:', error);
   }
 }
 
@@ -1010,12 +1015,12 @@ async function processTabUpdated(collectionId, change) {
  */
 async function processTabMoved(collectionId, change) {
   const { tabId, data } = change;
-  const { toIndex } = data;
+  const { fromIndex, toIndex } = data;
 
   // Find tab by runtime ID
   const existingTab = await findTabByRuntimeId(tabId);
   if (!existingTab) {
-    console.warn(`[ProgressiveSyncService] Tab ${tabId} not found in collection ${collectionId}`);
+    logAndBuffer('warn', `Tab ${tabId} not found in collection ${collectionId} for move operation`);
     return;
   }
 
@@ -1026,7 +1031,11 @@ async function processTabMoved(collectionId, change) {
   };
 
   await saveTab(updatedTab);
-  console.log(`[ProgressiveSyncService] Moved tab ${tabId} to position ${toIndex} in collection ${collectionId}`);
+  logAndBuffer('info', `Moved tab ${tabId} in collection ${collectionId}`, {
+    oldPosition: fromIndex,
+    newPosition: toIndex,
+    storageId: existingTab.id
+  });
 }
 
 // ============================================================================
