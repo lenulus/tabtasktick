@@ -457,24 +457,24 @@ async function downloadJSON(data, filename) {
   // Convert to JSON with pretty-printing
   const jsonString = JSON.stringify(data, null, 2);
 
-  // Create blob
-  const blob = new Blob([jsonString], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
+  // Create data URL (service workers don't support URL.createObjectURL)
+  // Base64 encode to ensure proper encoding of special characters
+  const base64 = btoa(unescape(encodeURIComponent(jsonString)));
+  const dataUrl = `data:application/json;base64,${base64}`;
 
   // Initiate download
   return new Promise((resolve, reject) => {
     chrome.downloads.download(
       {
-        url,
+        url: dataUrl,
         filename,
         saveAs: true // Prompt user for location
       },
       (downloadId) => {
         if (chrome.runtime.lastError) {
-          URL.revokeObjectURL(url);
           reject(new Error(`Download failed: ${chrome.runtime.lastError.message}`));
         } else {
-          resolve({ url, downloadId });
+          resolve({ url: dataUrl, downloadId });
         }
       }
     );

@@ -368,6 +368,14 @@ async function importSingleCollection(collectionData, existingNames, options) {
     }
   }
 
+  // Update collection metadata with counts
+  collection.metadata = collection.metadata || {};
+  collection.metadata.tabCount = tabsCreated;
+  collection.metadata.folderCount = foldersCreated;
+  await CollectionService.updateCollection(collection.id, {
+    metadata: collection.metadata
+  });
+
   return {
     collection,
     foldersCreated,
