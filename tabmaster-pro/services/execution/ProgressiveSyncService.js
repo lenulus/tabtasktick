@@ -900,7 +900,8 @@ async function processTabCreated(collectionId, change) {
   // Create tab in IndexedDB
   const tabData = {
     id: crypto.randomUUID(),
-    folderId,
+    collectionId, // Link tab to collection (required for ungrouped tabs)
+    folderId, // Can be null for ungrouped tabs
     url: tab.url,
     title: tab.title,
     favicon: tab.favIconUrl,
@@ -912,6 +913,7 @@ async function processTabCreated(collectionId, change) {
 
   logAndBuffer('info', `Saving tab to IndexedDB:`, {
     storageId: tabData.id,
+    collectionId: tabData.collectionId,
     folderId: tabData.folderId,
     runtimeTabId: tabData.tabId,
     position: tabData.position

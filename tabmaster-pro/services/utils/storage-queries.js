@@ -568,10 +568,12 @@ export async function getCompleteCollection(collectionId) {
         folder.tabs.sort((a, b) => a.position - b.position);
       }
 
-      // Get ungrouped tabs (folderId === null)
+      // Get ungrouped tabs (folderId === null) for this collection
       // Note: Can't use index query for null, so we filter all tabs
       const allTabs = await getAllFromStore(tabStore);
-      const ungroupedTabs = allTabs.filter(tab => tab.folderId === null);
+      const ungroupedTabs = allTabs.filter(tab =>
+        tab.folderId === null && tab.collectionId === collectionId
+      );
       // Sort ungrouped tabs by position (window-level ordering)
       ungroupedTabs.sort((a, b) => a.position - b.position);
 

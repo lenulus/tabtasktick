@@ -147,6 +147,10 @@ const MAX_NOTE_LENGTH = 255;
  */
 export async function createTab(params) {
   // Validation
+  if (!params.collectionId || params.collectionId.trim() === '') {
+    throw new Error('Collection ID is required');
+  }
+
   if (!params.url || params.url.trim() === '') {
     throw new Error('Tab URL is required');
   }
@@ -169,7 +173,8 @@ export async function createTab(params) {
 
   const tab = {
     id,
-    folderId: params.folderId,
+    collectionId: params.collectionId, // Link tab to collection (required for ungrouped tabs)
+    folderId: params.folderId, // Can be null for ungrouped tabs
     url: params.url,
     title: params.title,
     position: params.position,

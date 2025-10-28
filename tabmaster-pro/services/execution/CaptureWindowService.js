@@ -283,7 +283,8 @@ export async function captureWindow(options) {
 
     // Create tab entity
     const tab = await TabService.createTab({
-      folderId,
+      collectionId: collection.id, // Link tab to collection
+      folderId, // Can be null for ungrouped tabs
       url: chromeTab.url,
       title: chromeTab.title || chromeTab.url,
       favicon: chromeTab.favIconUrl,
