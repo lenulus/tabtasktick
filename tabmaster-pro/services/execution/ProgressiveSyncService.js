@@ -389,8 +389,8 @@ async function handleTabUpdated(tabId, changeInfo, tab) {
       return;
     }
 
-    // Only track meaningful changes
-    if (!changeInfo.url && !changeInfo.title && !changeInfo.favIconUrl && changeInfo.pinned === undefined) {
+    // Only track meaningful changes (including groupId for tab group assignment)
+    if (!changeInfo.url && !changeInfo.title && !changeInfo.favIconUrl && changeInfo.pinned === undefined && changeInfo.groupId === undefined) {
       return;
     }
 
@@ -534,7 +534,7 @@ async function handleTabGroupUpdated(group) {
  * When a tab group is ungrouped in a tracked window:
  * 1. Find collection for window
  * 2. Queue folder removal change
- * 3. Flush immediately (critical change)
+ * 3. Let debounce handle flush (discarded if window closes)
  *
  * @param {chrome.tabGroups.TabGroup} group - Removed tab group
  */
@@ -553,8 +553,9 @@ async function handleTabGroupRemoved(group) {
       data: group
     });
 
-    // Flush immediately for critical changes
-    await flush(collectionId);
+    // Don't flush immediately - let debounce handle it
+    // If window is closing, handleWindowRemoved will discard these changes
+    // If window stays open, normal flush after debounce will persist the removal
   } catch (error) {
     console.error('[ProgressiveSyncService] handleTabGroupRemoved failed:', error);
   }
@@ -960,7 +961,7 @@ async function processTabRemoved(collectionId, change) {
 /**
  * Processes tab updated change.
  *
- * Updates tab properties (URL, title, favicon, pinned).
+ * Updates tab properties (URL, title, favicon, pinned, groupId/folderId).
  *
  * @param {string} collectionId - Collection ID
  * @param {Object} change - Change object
@@ -973,7 +974,8 @@ async function processTabUpdated(collectionId, change) {
     changeInfo,
     hasUrl: changeInfo.url !== undefined,
     hasTitle: changeInfo.title !== undefined,
-    hasFavIcon: changeInfo.favIconUrl !== undefined
+    hasFavIcon: changeInfo.favIconUrl !== undefined,
+    hasGroupId: changeInfo.groupId !== undefined
   });
 
   // Find tab by runtime ID
@@ -986,8 +988,25 @@ async function processTabUpdated(collectionId, change) {
   logAndBuffer('info', `Found existing tab in IndexedDB`, {
     storageId: existingTab.id,
     currentUrl: existingTab.url,
-    newUrl: changeInfo.url
+    newUrl: changeInfo.url,
+    currentFolderId: existingTab.folderId,
+    newGroupId: changeInfo.groupId
   });
+
+  // Handle groupId change (tab added to/removed from group)
+  let folderId = existingTab.folderId; // Default: keep existing
+  if (changeInfo.groupId !== undefined) {
+    if (changeInfo.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE || changeInfo.groupId === -1) {
+      // Tab ungrouped
+      folderId = null;
+      logAndBuffer('info', `Tab ${tabId} ungrouped, setting folderId to null`);
+    } else {
+      // Tab assigned to group - find or create folder
+      const folder = await findOrCreateFolder(collectionId, changeInfo.groupId);
+      folderId = folder.id;
+      logAndBuffer('info', `Tab ${tabId} assigned to group ${changeInfo.groupId}, setting folderId to ${folderId}`);
+    }
+  }
 
   // Update tab properties
   const updatedTab = {
@@ -995,14 +1014,22 @@ async function processTabUpdated(collectionId, change) {
     url: changeInfo.url !== undefined ? changeInfo.url : existingTab.url,
     title: changeInfo.title !== undefined ? changeInfo.title : existingTab.title,
     favicon: changeInfo.favIconUrl !== undefined ? changeInfo.favIconUrl : existingTab.favicon,
-    isPinned: changeInfo.pinned !== undefined ? changeInfo.pinned : existingTab.isPinned
+    isPinned: changeInfo.pinned !== undefined ? changeInfo.pinned : existingTab.isPinned,
+    folderId // Update folderId if groupId changed
   };
 
   await saveTab(updatedTab);
   logAndBuffer('info', `Updated tab ${tabId} in collection ${collectionId}`, {
     oldUrl: existingTab.url,
-    newUrl: updatedTab.url
+    newUrl: updatedTab.url,
+    oldFolderId: existingTab.folderId,
+    newFolderId: updatedTab.folderId
   });
+
+  // Update metadata counts if folderId changed (grouped/ungrouped status changed)
+  if (existingTab.folderId !== updatedTab.folderId) {
+    await updateMetadataCounts(collectionId);
+  }
 }
 
 /**
@@ -1091,6 +1118,13 @@ async function processTabMoved(collectionId, change) {
 async function processFolderCreated(collectionId, change) {
   const { groupId, data: group } = change;
 
+  logAndBuffer('info', `Processing folder created for group ${groupId}`, {
+    collectionId,
+    groupTitle: group.title,
+    groupColor: group.color,
+    collapsed: group.collapsed
+  });
+
   // Create folder in IndexedDB
   const folderData = {
     id: crypto.randomUUID(),
@@ -1103,7 +1137,10 @@ async function processFolderCreated(collectionId, change) {
   };
 
   await saveFolder(folderData);
-  console.log(`[ProgressiveSyncService] Created folder for group ${groupId} in collection ${collectionId}`);
+  logAndBuffer('info', `Created folder ${folderData.id} for group ${groupId} in collection ${collectionId}`, {
+    folderId: folderData.id,
+    folderName: folderData.name
+  });
 
   // Update collection metadata counts
   await updateMetadataCounts(collectionId);
@@ -1120,10 +1157,17 @@ async function processFolderCreated(collectionId, change) {
 async function processFolderUpdated(collectionId, change) {
   const { groupId, data: group } = change;
 
+  logAndBuffer('info', `Processing folder updated for group ${groupId}`, {
+    collectionId,
+    groupTitle: group.title,
+    groupColor: group.color,
+    collapsed: group.collapsed
+  });
+
   // Find folder by group ID
   const folder = await findFolderByGroupId(collectionId, groupId);
   if (!folder) {
-    console.warn(`[ProgressiveSyncService] Folder for group ${groupId} not found in collection ${collectionId}`);
+    logAndBuffer('warn', `Folder for group ${groupId} not found in collection ${collectionId}`);
     return;
   }
 
@@ -1136,7 +1180,13 @@ async function processFolderUpdated(collectionId, change) {
   };
 
   await saveFolder(updatedFolder);
-  console.log(`[ProgressiveSyncService] Updated folder for group ${groupId} in collection ${collectionId}`);
+  logAndBuffer('info', `Updated folder ${folder.id} for group ${groupId} in collection ${collectionId}`, {
+    folderId: folder.id,
+    oldName: folder.name,
+    newName: updatedFolder.name,
+    oldColor: folder.color,
+    newColor: updatedFolder.color
+  });
 }
 
 /**
@@ -1150,15 +1200,21 @@ async function processFolderUpdated(collectionId, change) {
 async function processFolderRemoved(collectionId, change) {
   const { groupId } = change;
 
+  logAndBuffer('info', `Processing folder removed for group ${groupId}`, {
+    collectionId
+  });
+
   // Find folder by group ID
   const folder = await findFolderByGroupId(collectionId, groupId);
   if (!folder) {
-    console.warn(`[ProgressiveSyncService] Folder for group ${groupId} not found in collection ${collectionId}`);
+    logAndBuffer('warn', `Folder for group ${groupId} not found in collection ${collectionId}`);
     return;
   }
 
   // Move all tabs in folder to ungrouped (folderId = null)
   const tabs = await getTabsByFolder(folder.id);
+  logAndBuffer('info', `Moving ${tabs.length} tabs from folder ${folder.id} to ungrouped`);
+
   for (const tab of tabs) {
     const updatedTab = {
       ...tab,
@@ -1169,7 +1225,11 @@ async function processFolderRemoved(collectionId, change) {
 
   // Delete folder
   await deleteFolder(folder.id);
-  console.log(`[ProgressiveSyncService] Deleted folder for group ${groupId} from collection ${collectionId}`);
+  logAndBuffer('info', `Deleted folder ${folder.id} for group ${groupId} from collection ${collectionId}`, {
+    folderId: folder.id,
+    folderName: folder.name,
+    tabsUngrouped: tabs.length
+  });
 
   // Update collection metadata counts
   await updateMetadataCounts(collectionId);
@@ -1186,16 +1246,23 @@ async function processFolderRemoved(collectionId, change) {
 async function processFolderMoved(collectionId, change) {
   const { groupId, data: group } = change;
 
+  logAndBuffer('info', `Processing folder moved for group ${groupId}`, {
+    collectionId
+  });
+
   // Find folder by group ID
   const folder = await findFolderByGroupId(collectionId, groupId);
   if (!folder) {
-    console.warn(`[ProgressiveSyncService] Folder for group ${groupId} not found in collection ${collectionId}`);
+    logAndBuffer('warn', `Folder for group ${groupId} not found in collection ${collectionId}`);
     return;
   }
 
   // Update folder position (derived from first tab in group)
   // Position calculation is complex, defer to next full sync
-  console.log(`[ProgressiveSyncService] Folder moved for group ${groupId} in collection ${collectionId} (position update deferred)`);
+  logAndBuffer('info', `Folder moved for group ${groupId} in collection ${collectionId} (position update deferred)`, {
+    folderId: folder.id,
+    folderName: folder.name
+  });
 }
 
 // ============================================================================
