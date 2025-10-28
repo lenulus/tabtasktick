@@ -7,16 +7,17 @@
  * - Schema initialization and version upgrades
  * - Quota and error handling
  *
- * Database: TabTaskTickDB v2
+ * Database: TabTaskTickDB v3
  * Stores: collections, folders, tabs, tasks
  *
  * Version History:
  * - v1: Initial schema with all stores and indexes
  * - v2: Phase 8 migration - ensure isActive index exists on collections store
+ * - v3: Progressive Sync migration - add collectionId index to tabs store
  */
 
 const DB_NAME = 'TabTaskTickDB';
-const DB_VERSION = 2; // Bumped for Phase 8 index migration
+const DB_VERSION = 3; // Bumped for Progressive Sync collectionId index
 
 // Singleton DB instance
 let dbInstance = null;
@@ -48,6 +49,7 @@ function initializeSchema(db) {
   if (!db.objectStoreNames.contains('tabs')) {
     const tabStore = db.createObjectStore('tabs', { keyPath: 'id' });
     tabStore.createIndex('folderId', 'folderId', { unique: false });
+    tabStore.createIndex('collectionId', 'collectionId', { unique: false });
   }
 
   // Object Store: tasks
@@ -135,8 +137,22 @@ export async function getDB() {
           }
         }
 
+        if (oldVersion < 3) {
+          // Progressive Sync migration: Add collectionId index to tabs store
+          // Required for efficient ungrouped tab queries
+          const tx = event.target.transaction;
+          if (db.objectStoreNames.contains('tabs')) {
+            const tabStore = tx.objectStore('tabs');
+            // Check if index already exists before creating
+            if (!tabStore.indexNames.contains('collectionId')) {
+              console.log('Adding collectionId index to tabs store');
+              tabStore.createIndex('collectionId', 'collectionId', { unique: false });
+            }
+          }
+        }
+
         // Future version upgrades would go here:
-        // if (oldVersion < 3) { ... }
+        // if (oldVersion < 4) { ... }
       } catch (error) {
         console.error('Schema upgrade failed:', error);
         reject(new Error(`Schema upgrade failed: ${error.message}`));

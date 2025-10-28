@@ -1017,23 +1017,39 @@ async function processTabMoved(collectionId, change) {
   const { tabId, data } = change;
   const { fromIndex, toIndex, windowId } = data;
 
-  // When a tab moves, Chrome adjusts ALL tabs' positions in the window.
-  // We need to sync ALL tab positions to match Chrome's state.
+  // When a tab moves, Chrome adjusts positions of tabs in the affected range.
+  // We only need to sync tabs between min(fromIndex, toIndex) and max(fromIndex, toIndex).
+  //
+  // Example: Moving tab from position 5 → 2
+  // - Tabs at positions 2, 3, 4 shift right by 1
+  // - Tab at position 5 moves to position 2
+  // - Tabs at positions 0, 1, 6+ are unaffected
 
   try {
+    // Calculate affected range
+    const minIndex = Math.min(fromIndex, toIndex);
+    const maxIndex = Math.max(fromIndex, toIndex);
+
     // Get all tabs from Chrome in this window
     const chromeTabs = await chrome.tabs.query({ windowId });
 
-    logAndBuffer('info', `Syncing all tab positions after tab ${tabId} moved`, {
+    // Filter to only tabs in the affected range
+    const affectedChromeTabs = chromeTabs.filter(tab =>
+      tab.index >= minIndex && tab.index <= maxIndex
+    );
+
+    logAndBuffer('info', `Syncing tab positions in affected range after tab ${tabId} moved`, {
       fromIndex,
       toIndex,
+      affectedRange: `${minIndex}-${maxIndex}`,
+      affectedTabCount: affectedChromeTabs.length,
       totalTabs: chromeTabs.length,
       collectionId
     });
 
-    // Update each tab's position to match Chrome's current state
+    // Update each affected tab's position to match Chrome's current state
     let updatedCount = 0;
-    for (const chromeTab of chromeTabs) {
+    for (const chromeTab of affectedChromeTabs) {
       const existingTab = await findTabByRuntimeId(chromeTab.id);
       if (existingTab) {
         // Only update if position changed
@@ -1054,7 +1070,7 @@ async function processTabMoved(collectionId, change) {
       }
     }
 
-    logAndBuffer('info', `Synced ${updatedCount} tab positions after move in collection ${collectionId}`);
+    logAndBuffer('info', `Synced ${updatedCount} tab positions (${affectedChromeTabs.length} tabs checked) in collection ${collectionId}`);
   } catch (error) {
     logAndBuffer('error', `Failed to sync tab positions after move:`, error);
   }

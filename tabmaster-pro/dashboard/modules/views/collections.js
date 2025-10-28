@@ -405,45 +405,50 @@ function renderEmptyState(type, message = '') {
 // Event Listeners
 // ============================================================================
 
-// Track if persistent listeners are already set up
-let listenersInitialized = false;
+// AbortController for persistent event listeners
+// Allows clean removal of listeners when view re-renders
+let listenerController = null;
 
 function setupCollectionsEventListeners() {
   const container = document.getElementById('collectionsContainer');
   if (!container) return;
 
-  // Only set up persistent delegated listeners once
-  if (!listenersInitialized) {
-    // Delegate all collection action buttons
-    container.addEventListener('click', async (e) => {
-      const button = e.target.closest('button[data-action]');
-      if (!button) return;
-
-      const action = button.dataset.action;
-      const collectionId = button.dataset.collectionId;
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      await handleCollectionAction(action, collectionId);
-    });
-
-    // Section collapse/expand
-    container.addEventListener('click', (e) => {
-      const header = e.target.closest('.collection-section-header');
-      if (!header) return;
-
-      const section = header.dataset.section;
-      const content = document.getElementById(`${section}-content`);
-
-      if (content) {
-        header.classList.toggle('collapsed');
-        content.classList.toggle('hidden');
-      }
-    });
-
-    listenersInitialized = true;
+  // Clean up old listeners if they exist
+  if (listenerController) {
+    listenerController.abort();
   }
+
+  // Create new controller for this set of listeners
+  listenerController = new AbortController();
+  const signal = listenerController.signal;
+
+  // Delegate all collection action buttons
+  container.addEventListener('click', async (e) => {
+    const button = e.target.closest('button[data-action]');
+    if (!button) return;
+
+    const action = button.dataset.action;
+    const collectionId = button.dataset.collectionId;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    await handleCollectionAction(action, collectionId);
+  }, { signal });
+
+  // Section collapse/expand
+  container.addEventListener('click', (e) => {
+    const header = e.target.closest('.collection-section-header');
+    if (!header) return;
+
+    const section = header.dataset.section;
+    const content = document.getElementById(`${section}-content`);
+
+    if (content) {
+      header.classList.toggle('collapsed');
+      content.classList.toggle('hidden');
+    }
+  }, { signal });
 
   // Search, filter, sort
   const searchInput = document.getElementById('searchCollections');
