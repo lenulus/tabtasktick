@@ -1999,19 +1999,55 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         // TabTaskTick Phase 6: Orchestration service message handlers
         case 'captureWindow':
+          console.log('[background] captureWindow requested:', {
+            windowId: request.windowId,
+            keepActive: request.keepActive,
+            keepActiveType: typeof request.keepActive
+          });
+
           const captureResult = await CaptureWindowService.captureWindow({
             windowId: request.windowId,
             metadata: request.metadata,
             keepActive: request.keepActive
           });
+
+          console.log('[background] captureWindow complete - result:', {
+            success: !!captureResult.collection,
+            collectionId: captureResult.collection?.id,
+            collectionName: captureResult.collection?.name,
+            windowId: captureResult.collection?.windowId,
+            isActive: captureResult.collection?.isActive,
+            hasSettings: !!captureResult.collection?.settings,
+            trackingEnabled: captureResult.collection?.settings?.trackingEnabled
+          });
+
           // Phase 8: Track collection if it's now active
           if (captureResult.collection && captureResult.collection.isActive) {
-            await ProgressiveSyncService.trackCollection(captureResult.collection.id);
+            console.log('[background] ✓ Collection is active, calling trackCollection for', captureResult.collection.id);
+            try {
+              await ProgressiveSyncService.trackCollection(captureResult.collection.id);
+              console.log('[background] ✓ trackCollection completed successfully');
+            } catch (error) {
+              console.error('[background] ✗ trackCollection failed:', error);
+            }
+          } else {
+            console.warn('[background] ✗ NOT tracking collection:', {
+              hasCollection: !!captureResult.collection,
+              isActive: captureResult.collection?.isActive,
+              windowId: captureResult.collection?.windowId
+            });
           }
+
           sendResponse({ success: true, ...captureResult });
           break;
 
         case 'restoreCollection':
+          console.log('[background] restoreCollection requested:', {
+            collectionId: request.collectionId,
+            createNewWindow: request.createNewWindow,
+            windowId: request.windowId
+          });
+
           const collectionRestoreResult = await RestoreCollectionService.restoreCollection({
             collectionId: request.collectionId,
             createNewWindow: request.createNewWindow,
@@ -2019,10 +2055,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             focused: request.focused,
             windowState: request.windowState
           });
+
+          console.log('[background] restoreCollection complete - result:', {
+            success: !!collectionRestoreResult.collection,
+            collectionId: collectionRestoreResult.collection?.id,
+            collectionName: collectionRestoreResult.collection?.name,
+            windowId: collectionRestoreResult.collection?.windowId,
+            isActive: collectionRestoreResult.collection?.isActive,
+            hasSettings: !!collectionRestoreResult.collection?.settings,
+            trackingEnabled: collectionRestoreResult.collection?.settings?.trackingEnabled
+          });
+
           // Phase 8: Track restored collection (now active)
           if (collectionRestoreResult.collection && collectionRestoreResult.collection.isActive) {
-            await ProgressiveSyncService.trackCollection(collectionRestoreResult.collection.id);
+            console.log('[background] ✓ Collection is active, calling trackCollection for', collectionRestoreResult.collection.id);
+            try {
+              await ProgressiveSyncService.trackCollection(collectionRestoreResult.collection.id);
+              console.log('[background] ✓ trackCollection completed successfully');
+            } catch (error) {
+              console.error('[background] ✗ trackCollection failed:', error);
+            }
+          } else {
+            console.warn('[background] ✗ NOT tracking collection:', {
+              hasCollection: !!collectionRestoreResult.collection,
+              isActive: collectionRestoreResult.collection?.isActive,
+              windowId: collectionRestoreResult.collection?.windowId
+            });
           }
+
           sendResponse({ success: true, ...collectionRestoreResult });
           break;
 

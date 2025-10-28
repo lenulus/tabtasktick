@@ -196,18 +196,23 @@ async function loadSettingsCache() {
   try {
     const activeCollections = await getCollectionsByIndex('isActive', true);
 
+    logAndBuffer('info', `Loading settings cache for ${activeCollections.length} active collections`);
+
     for (const collection of activeCollections) {
       // Ensure default settings exist (backwards compatibility)
       const settings = collection.settings || {
         trackingEnabled: true,
-        autoSync: true,
         syncDebounceMs: 2000
       };
 
-      state.settingsCache.set(collection.id, {
+      const cacheEntry = {
         ...settings,
         windowId: collection.windowId
-      });
+      };
+
+      state.settingsCache.set(collection.id, cacheEntry);
+
+      logAndBuffer('info', `Cached settings for collection ${collection.id}:`, cacheEntry);
 
       // Initialize sync metadata
       state.syncMetadata.set(collection.id, {
@@ -216,9 +221,9 @@ async function loadSettingsCache() {
       });
     }
 
-    console.log(`[ProgressiveSyncService] Loaded settings for ${activeCollections.length} active collections`);
+    logAndBuffer('info', `Loaded settings for ${activeCollections.length} active collections`);
   } catch (error) {
-    console.error('[ProgressiveSyncService] Failed to load settings cache:', error);
+    logAndBuffer('error', 'Failed to load settings cache:', error);
     throw error;
   }
 }
@@ -268,23 +273,16 @@ async function handleTabCreated(tab) {
     logAndBuffer('info', `Tab created event fired: ${tab.id} in window ${tab.windowId}`);
 
     const collectionId = await findCollectionByWindowId(tab.windowId);
-    logAndBuffer('info', `Found collection for window ${tab.windowId}: ${collectionId}`);
 
     if (!collectionId) {
-      logAndBuffer('info', `No collection found for window ${tab.windowId}, skipping`);
       return;
     }
 
-    const shouldTrackResult = shouldTrack(collectionId);
-    logAndBuffer('info', `shouldTrack(${collectionId}): ${shouldTrackResult}`);
-
-    if (!shouldTrackResult) {
-      const settings = state.settingsCache.get(collectionId);
-      logAndBuffer('warn', `Not tracking - settings:`, settings);
+    if (!shouldTrack(collectionId)) {
       return;
     }
 
-    logAndBuffer('info', `Tab created: ${tab.id} in window ${tab.windowId}, queueing change`);
+    logAndBuffer('info', `Queueing TAB_CREATED for tab ${tab.id}`);
 
     queueChange(collectionId, {
       type: ChangeType.TAB_CREATED,
@@ -373,8 +371,15 @@ async function handleTabMoved(tabId, moveInfo) {
  */
 async function handleTabUpdated(tabId, changeInfo, tab) {
   try {
+    logAndBuffer('info', `Tab updated event fired: ${tabId}`, changeInfo);
+
     const collectionId = await findCollectionByWindowId(tab.windowId);
-    if (!collectionId || !shouldTrack(collectionId)) {
+
+    if (!collectionId) {
+      return;
+    }
+
+    if (!shouldTrack(collectionId)) {
       return;
     }
 
@@ -383,7 +388,7 @@ async function handleTabUpdated(tabId, changeInfo, tab) {
       return;
     }
 
-    console.log(`[ProgressiveSyncService] Tab updated: ${tabId}`, changeInfo);
+    logAndBuffer('info', `Queueing TAB_UPDATED for tab ${tabId}`, changeInfo);
 
     queueChange(collectionId, {
       type: ChangeType.TAB_UPDATED,
@@ -391,7 +396,7 @@ async function handleTabUpdated(tabId, changeInfo, tab) {
       data: { tabId, changeInfo, tab }
     });
   } catch (error) {
-    console.error('[ProgressiveSyncService] handleTabUpdated failed:', error);
+    logAndBuffer('error', 'handleTabUpdated failed:', error);
   }
 }
 
@@ -599,18 +604,36 @@ async function handleWindowRemoved(windowId) {
       return;
     }
 
-    console.log(`[ProgressiveSyncService] Window removed: ${windowId}, flushing collection ${collectionId}`);
+    logAndBuffer('info', `Window removed: ${windowId}, discarding pending changes for collection ${collectionId}`);
 
-    // Flush all pending changes immediately
-    await flush(collectionId);
+    // IMPORTANT: Discard pending changes, don't flush them!
+    // When a window closes naturally, we want to preserve the collection's
+    // last saved state (from the previous flush), not process tab removals
+    // that occurred during the window close sequence.
+    //
+    // This ensures "close window" = "save collection with current state"
+    // rather than "save all the deletions that just happened"
+    const pendingCount = state.changeQueue.get(collectionId)?.length || 0;
+    if (pendingCount > 0) {
+      logAndBuffer('info', `Discarding ${pendingCount} pending changes for ${collectionId}`);
+    }
+
+    // Clear the change queue
+    state.changeQueue.delete(collectionId);
+
+    // Cancel any pending flush timer
+    if (state.flushTimers.has(collectionId)) {
+      clearTimeout(state.flushTimers.get(collectionId));
+      state.flushTimers.delete(collectionId);
+    }
 
     // Clear settings cache (collection no longer active)
     state.settingsCache.delete(collectionId);
     state.syncMetadata.delete(collectionId);
 
-    console.log(`[ProgressiveSyncService] Collection ${collectionId} untracked (window closed)`);
+    logAndBuffer('info', `Collection ${collectionId} untracked (window closed)`);
   } catch (error) {
-    console.error('[ProgressiveSyncService] handleWindowRemoved failed:', error);
+    logAndBuffer('error', 'handleWindowRemoved failed:', error);
   }
 }
 
@@ -647,12 +670,34 @@ function queueChange(collectionId, change) {
 
   if (existingIndex >= 0) {
     // Replace existing change (keep latest)
-    queue[existingIndex] = change;
-    logAndBuffer('info', `Replaced change in queue for ${collectionId}:`, {
-      type: change.type,
-      key,
-      queueLength: queue.length
-    });
+    // For TAB_UPDATED, merge changeInfo to preserve all fields (url, title, favicon, etc.)
+    if (change.type === ChangeType.TAB_UPDATED && queue[existingIndex].type === ChangeType.TAB_UPDATED) {
+      const existing = queue[existingIndex];
+      queue[existingIndex] = {
+        ...change,
+        data: {
+          ...change.data,
+          changeInfo: {
+            ...existing.data.changeInfo, // Preserve previous changes
+            ...change.data.changeInfo    // Apply new changes
+          }
+        }
+      };
+      logAndBuffer('info', `Merged TAB_UPDATED change in queue for ${collectionId}:`, {
+        type: change.type,
+        key,
+        queueLength: queue.length,
+        mergedChangeInfo: queue[existingIndex].data.changeInfo
+      });
+    } else {
+      // For other change types, just replace
+      queue[existingIndex] = change;
+      logAndBuffer('info', `Replaced change in queue for ${collectionId}:`, {
+        type: change.type,
+        key,
+        queueLength: queue.length
+      });
+    }
   } else {
     // Add new change
     queue.push(change);
@@ -916,12 +961,25 @@ async function processTabUpdated(collectionId, change) {
   const { tabId, data } = change;
   const { changeInfo, tab } = data;
 
+  logAndBuffer('info', `Processing tab update for tab ${tabId}`, {
+    changeInfo,
+    hasUrl: changeInfo.url !== undefined,
+    hasTitle: changeInfo.title !== undefined,
+    hasFavIcon: changeInfo.favIconUrl !== undefined
+  });
+
   // Find tab by runtime ID
   const existingTab = await findTabByRuntimeId(tabId);
   if (!existingTab) {
-    console.warn(`[ProgressiveSyncService] Tab ${tabId} not found in collection ${collectionId}`);
+    logAndBuffer('warn', `Tab ${tabId} not found in IndexedDB, cannot update`);
     return;
   }
+
+  logAndBuffer('info', `Found existing tab in IndexedDB`, {
+    storageId: existingTab.id,
+    currentUrl: existingTab.url,
+    newUrl: changeInfo.url
+  });
 
   // Update tab properties
   const updatedTab = {
@@ -933,7 +991,10 @@ async function processTabUpdated(collectionId, change) {
   };
 
   await saveTab(updatedTab);
-  console.log(`[ProgressiveSyncService] Updated tab ${tabId} in collection ${collectionId}`);
+  logAndBuffer('info', `Updated tab ${tabId} in collection ${collectionId}`, {
+    oldUrl: existingTab.url,
+    newUrl: updatedTab.url
+  });
 }
 
 /**
@@ -1159,11 +1220,23 @@ async function findCollectionByWindowId(windowId) {
  */
 function shouldTrack(collectionId) {
   const settings = state.settingsCache.get(collectionId);
+
+  // Log the actual settings value for debugging
   if (!settings) {
+    logAndBuffer('warn', `shouldTrack(${collectionId}): No settings in cache`, {
+      cacheSize: state.settingsCache.size,
+      cacheKeys: Array.from(state.settingsCache.keys())
+    });
     return false;
   }
 
-  return settings.trackingEnabled === true;
+  const result = settings.trackingEnabled === true;
+  logAndBuffer('info', `shouldTrack(${collectionId}): ${result}`, {
+    trackingEnabled: settings.trackingEnabled,
+    windowId: settings.windowId
+  });
+
+  return result;
 }
 
 /**
@@ -1248,22 +1321,36 @@ export function getSyncStatus(collectionId) {
  * @returns {Promise<void>}
  */
 export async function refreshSettings(collectionId) {
+  logAndBuffer('info', `refreshSettings called for collection ${collectionId}`);
+
   const collection = await getCollection(collectionId);
   if (!collection) {
+    logAndBuffer('error', `Collection not found: ${collectionId}`);
     throw new Error(`Collection not found: ${collectionId}`);
   }
+
+  logAndBuffer('info', `Collection found:`, {
+    id: collection.id,
+    name: collection.name,
+    isActive: collection.isActive,
+    windowId: collection.windowId,
+    settings: collection.settings
+  });
 
   if (collection.isActive) {
     const settings = collection.settings || {
       trackingEnabled: true,
-      autoSync: true,
       syncDebounceMs: 2000
     };
 
-    state.settingsCache.set(collectionId, {
+    const cacheEntry = {
       ...settings,
       windowId: collection.windowId
-    });
+    };
+
+    state.settingsCache.set(collectionId, cacheEntry);
+
+    logAndBuffer('info', `Settings cache updated for ${collectionId}:`, cacheEntry);
 
     // Initialize sync metadata if not exists
     if (!state.syncMetadata.has(collectionId)) {
@@ -1273,11 +1360,12 @@ export async function refreshSettings(collectionId) {
       });
     }
 
-    console.log(`[ProgressiveSyncService] Refreshed settings for collection ${collectionId}`);
+    logAndBuffer('info', `Refreshed settings for collection ${collectionId}`);
   } else {
     // Remove from cache if no longer active
     state.settingsCache.delete(collectionId);
     state.syncMetadata.delete(collectionId);
+    logAndBuffer('info', `Removed ${collectionId} from cache (not active)`);
   }
 }
 
@@ -1290,8 +1378,9 @@ export async function refreshSettings(collectionId) {
  * @returns {Promise<void>}
  */
 export async function trackCollection(collectionId) {
+  logAndBuffer('info', `trackCollection called for ${collectionId}`);
   await refreshSettings(collectionId);
-  console.log(`[ProgressiveSyncService] Now tracking collection ${collectionId}`);
+  logAndBuffer('info', `Now tracking collection ${collectionId}`);
 }
 
 /**

@@ -260,7 +260,10 @@ export async function restoreCollection(options) {
   await CollectionService.bindToWindow(collectionId, result.windowId);
   await WindowService.bindCollectionToWindow(collectionId, result.windowId);
 
-  // Step 5: Transform result to match expected format
+  // Step 5: Fetch updated collection (now has windowId and isActive)
+  const updatedCollection = await getCollection(collectionId);
+
+  // Step 6: Transform result to match expected format
   const restoredTabs = result.tabs.map(tab => ({
     storageId: tab.metadata.id,
     chromeTabId: tab.chromeTabId,
@@ -268,6 +271,7 @@ export async function restoreCollection(options) {
   }));
 
   return {
+    collection: updatedCollection, // Include collection for Progressive Sync tracking
     collectionId,
     windowId: result.windowId,
     tabs: restoredTabs,
