@@ -405,37 +405,45 @@ function renderEmptyState(type, message = '') {
 // Event Listeners
 // ============================================================================
 
+// Track if persistent listeners are already set up
+let listenersInitialized = false;
+
 function setupCollectionsEventListeners() {
   const container = document.getElementById('collectionsContainer');
   if (!container) return;
 
-  // Delegate all collection action buttons
-  container.addEventListener('click', async (e) => {
-    const button = e.target.closest('button[data-action]');
-    if (!button) return;
+  // Only set up persistent delegated listeners once
+  if (!listenersInitialized) {
+    // Delegate all collection action buttons
+    container.addEventListener('click', async (e) => {
+      const button = e.target.closest('button[data-action]');
+      if (!button) return;
 
-    const action = button.dataset.action;
-    const collectionId = button.dataset.collectionId;
+      const action = button.dataset.action;
+      const collectionId = button.dataset.collectionId;
 
-    e.preventDefault();
-    e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
 
-    await handleCollectionAction(action, collectionId);
-  });
+      await handleCollectionAction(action, collectionId);
+    });
 
-  // Section collapse/expand
-  container.addEventListener('click', (e) => {
-    const header = e.target.closest('.collection-section-header');
-    if (!header) return;
+    // Section collapse/expand
+    container.addEventListener('click', (e) => {
+      const header = e.target.closest('.collection-section-header');
+      if (!header) return;
 
-    const section = header.dataset.section;
-    const content = document.getElementById(`${section}-content`);
+      const section = header.dataset.section;
+      const content = document.getElementById(`${section}-content`);
 
-    if (content) {
-      header.classList.toggle('collapsed');
-      content.classList.toggle('hidden');
-    }
-  });
+      if (content) {
+        header.classList.toggle('collapsed');
+        content.classList.toggle('hidden');
+      }
+    });
+
+    listenersInitialized = true;
+  }
 
   // Search, filter, sort
   const searchInput = document.getElementById('searchCollections');

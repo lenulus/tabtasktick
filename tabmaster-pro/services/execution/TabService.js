@@ -155,9 +155,7 @@ export async function createTab(params) {
     throw new Error('Tab title is required');
   }
 
-  if (!params.folderId) {
-    throw new Error('Folder ID is required');
-  }
+  // Note: folderId can be null for ungrouped tabs, so we don't validate it here
 
   if (params.position === undefined || params.position === null) {
     throw new Error('Tab position is required');

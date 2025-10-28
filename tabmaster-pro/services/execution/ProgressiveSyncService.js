@@ -1163,26 +1163,33 @@ async function processFolderMoved(collectionId, change) {
  */
 async function updateMetadataCounts(collectionId) {
   try {
-    // Get current counts from IndexedDB
-    const collection = await getCollection(collectionId);
-    if (!collection) {
+    // Get complete collection with all tabs (both grouped and ungrouped)
+    const completeCollection = await getCompleteCollection(collectionId);
+    if (!completeCollection) {
       console.warn(`[ProgressiveSyncService] Collection ${collectionId} not found for metadata update`);
       return;
     }
 
-    const folders = await getFoldersByCollection(collectionId);
-    const tabsPromises = folders.map(f => getTabsByFolder(f.id));
-    const tabsArrays = await Promise.all(tabsPromises);
-    const totalTabs = tabsArrays.reduce((sum, tabs) => sum + tabs.length, 0);
+    // Count tabs in folders (grouped tabs)
+    const groupedTabCount = completeCollection.folders.reduce((sum, folder) => {
+      return sum + (folder.tabs?.length || 0);
+    }, 0);
+
+    // Count ungrouped tabs
+    const ungroupedTabCount = completeCollection.ungroupedTabs?.length || 0;
+
+    // Total tabs = grouped + ungrouped
+    const totalTabs = groupedTabCount + ungroupedTabCount;
 
     // Update metadata
+    const collection = await getCollection(collectionId);
     collection.metadata.tabCount = totalTabs;
-    collection.metadata.folderCount = folders.length;
+    collection.metadata.folderCount = completeCollection.folders.length;
 
     await saveCollection(collection);
-    console.log(`[ProgressiveSyncService] Updated metadata counts for ${collectionId}: ${totalTabs} tabs, ${folders.length} folders`);
+    logAndBuffer('info', `Updated metadata counts for ${collectionId}: ${totalTabs} tabs (${groupedTabCount} grouped + ${ungroupedTabCount} ungrouped), ${completeCollection.folders.length} folders`);
   } catch (error) {
-    console.error(`[ProgressiveSyncService] Failed to update metadata counts for ${collectionId}:`, error);
+    logAndBuffer('error', `Failed to update metadata counts for ${collectionId}:`, error);
   }
 }
 
