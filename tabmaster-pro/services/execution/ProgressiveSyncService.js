@@ -887,11 +887,15 @@ async function processTabCreated(collectionId, change) {
     title: tab.title
   });
 
+  // Use Chrome's tab index as position (preserves window-level ordering)
+  const position = tab.index;
+
   // Determine folder for tab
   let folderId = null;
   if (groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE) {
     logAndBuffer('info', `Tab is in group ${groupId}, finding/creating folder`);
-    const folder = await findOrCreateFolder(collectionId, groupId);
+    // Pass tab position when creating folder to preserve group position in window
+    const folder = await findOrCreateFolder(collectionId, groupId, position);
     folderId = folder.id;
     logAndBuffer('info', `Using folder ${folderId}`);
   } else {
@@ -899,9 +903,6 @@ async function processTabCreated(collectionId, change) {
     // Ungrouped tabs are saved with folderId: null to preserve window-level ordering
     folderId = null;
   }
-
-  // Use Chrome's tab index as position (preserves window-level ordering)
-  const position = tab.index;
 
   // Create tab in IndexedDB
   const tabData = {
@@ -1002,7 +1003,8 @@ async function processTabUpdated(collectionId, change) {
       logAndBuffer('info', `Tab ${tabId} ungrouped, setting folderId to null`);
     } else {
       // Tab assigned to group - find or create folder
-      const folder = await findOrCreateFolder(collectionId, changeInfo.groupId);
+      // Pass tab's current position for folder positioning
+      const folder = await findOrCreateFolder(collectionId, changeInfo.groupId, tab.index);
       folderId = folder.id;
       logAndBuffer('info', `Tab ${tabId} assigned to group ${changeInfo.groupId}, setting folderId to ${folderId}`);
     }
@@ -1125,6 +1127,18 @@ async function processFolderCreated(collectionId, change) {
     collapsed: group.collapsed
   });
 
+  // Determine folder position from tabs in the group
+  let position = 0;
+  try {
+    const tabsInGroup = await chrome.tabs.query({ groupId });
+    if (tabsInGroup.length > 0) {
+      position = Math.min(...tabsInGroup.map(t => t.index));
+      logAndBuffer('info', `Calculated folder position ${position} from ${tabsInGroup.length} tabs in group`);
+    }
+  } catch (error) {
+    logAndBuffer('warn', `Failed to query tabs for group ${groupId}, using position 0:`, error);
+  }
+
   // Create folder in IndexedDB
   const folderData = {
     id: crypto.randomUUID(),
@@ -1132,12 +1146,12 @@ async function processFolderCreated(collectionId, change) {
     name: group.title || 'Untitled Group',
     color: group.color,
     collapsed: group.collapsed,
-    position: 0, // Will be updated when tabs are added
+    position, // Use calculated position from group's tabs
     groupId: group.id // Runtime ID for lookups
   };
 
   await saveFolder(folderData);
-  logAndBuffer('info', `Created folder ${folderData.id} for group ${groupId} in collection ${collectionId}`, {
+  logAndBuffer('info', `Created folder ${folderData.id} for group ${groupId} at position ${position} in collection ${collectionId}`, {
     folderId: folderData.id,
     folderName: folderData.name
   });
@@ -1368,9 +1382,10 @@ function shouldTrack(collectionId) {
  *
  * @param {string} collectionId - Collection ID
  * @param {number} groupId - Chrome tab group ID
+ * @param {number} [initialPosition] - Initial position hint from first tab (optional)
  * @returns {Promise<Object>} Folder object
  */
-async function findOrCreateFolder(collectionId, groupId) {
+async function findOrCreateFolder(collectionId, groupId, initialPosition) {
   // Try to find existing folder
   const folder = await findFolderByGroupId(collectionId, groupId);
   if (folder) {
@@ -1379,18 +1394,33 @@ async function findOrCreateFolder(collectionId, groupId) {
 
   // Create new folder
   const group = await chrome.tabGroups.get(groupId);
+
+  // Determine folder position:
+  // - Use initialPosition if provided (from the tab being grouped)
+  // - Otherwise query all tabs in the group and use minimum index
+  let position = 0;
+  if (initialPosition !== undefined) {
+    position = initialPosition;
+  } else {
+    // Fallback: query tabs in this group to find minimum position
+    const tabsInGroup = await chrome.tabs.query({ groupId });
+    if (tabsInGroup.length > 0) {
+      position = Math.min(...tabsInGroup.map(t => t.index));
+    }
+  }
+
   const folderData = {
     id: crypto.randomUUID(),
     collectionId,
     name: group.title || 'Untitled Group',
     color: group.color,
     collapsed: group.collapsed,
-    position: 0,
+    position, // Use calculated position instead of hardcoded 0
     groupId: group.id
   };
 
   await saveFolder(folderData);
-  logAndBuffer('info', `Created folder for group ${groupId}: ${folderData.name}`);
+  logAndBuffer('info', `Created folder for group ${groupId} at position ${position}: ${folderData.name}`);
   return folderData;
 }
 
