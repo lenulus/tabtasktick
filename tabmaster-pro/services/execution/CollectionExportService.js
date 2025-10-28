@@ -48,6 +48,7 @@
 
 import {
   getCollection,
+  getCompleteCollection,
   getFoldersByCollection,
   getTabsByFolder,
   getTasksByCollection
@@ -56,9 +57,13 @@ import {
 /**
  * Export format version (semver)
  * Increment on schema changes
+ *
+ * Version History:
+ * - 1.0: Initial format (folders with tabs, tasks)
+ * - 1.1: Added ungroupedTabs field for tabs without folders
  * @constant
  */
-const EXPORT_VERSION = '1.0';
+const EXPORT_VERSION = '1.1';
 
 /**
  * Maximum filename length (characters)
@@ -258,16 +263,12 @@ async function buildCollectionExport(collection, options) {
     };
   }
 
-  // Get folders with tabs
-  const folders = await getFoldersByCollection(collection.id);
-  folders.sort((a, b) => a.position - b.position);
+  // Get complete collection (includes folders, grouped tabs, and ungrouped tabs)
+  const completeCollection = await getCompleteCollection(collection.id);
+  const folders = completeCollection.folders || [];
+  const ungroupedTabs = completeCollection.ungroupedTabs || [];
 
-  // Load tabs for each folder (needed for task tab reference conversion)
-  for (const folder of folders) {
-    const tabs = await getTabsByFolder(folder.id);
-    tabs.sort((a, b) => a.position - b.position);
-    folder.tabs = tabs; // Attach tabs to folder for reference lookup
-  }
+  folders.sort((a, b) => a.position - b.position);
 
   // Build folders array with nested tabs for export
   exportData.folders = [];
@@ -290,6 +291,19 @@ async function buildCollectionExport(collection, options) {
       position: folder.position,
       tabs: tabsExport
     });
+  }
+
+  // Export ungrouped tabs (folderId === null)
+  if (ungroupedTabs.length > 0) {
+    ungroupedTabs.sort((a, b) => a.position - b.position);
+    exportData.ungroupedTabs = ungroupedTabs.map(tab => ({
+      url: tab.url,
+      title: tab.title,
+      favicon: tab.favicon,
+      note: tab.note,
+      position: tab.position,
+      isPinned: tab.isPinned || false
+    }));
   }
 
   // Include tasks if requested

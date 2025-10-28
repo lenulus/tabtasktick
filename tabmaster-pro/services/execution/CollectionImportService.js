@@ -55,9 +55,13 @@ import { getAllCollections } from '../utils/storage-queries.js';
 
 /**
  * Supported export format versions
+ *
+ * Version History:
+ * - 1.0: Initial format (folders with tabs, tasks)
+ * - 1.1: Added ungroupedTabs field for tabs without folders
  * @constant
  */
-const SUPPORTED_VERSIONS = ['1.0'];
+const SUPPORTED_VERSIONS = ['1.0', '1.1'];
 
 /**
  * Import collections from JSON data.
@@ -270,6 +274,7 @@ async function importSingleCollection(collectionData, existingNames, options) {
 
       // Create tab
       const tab = await TabService.createTab({
+        collectionId: collection.id, // Required for ungrouped tab queries
         folderId: folder.id,
         url: tabData.url,
         title: tabData.title,
@@ -285,6 +290,36 @@ async function importSingleCollection(collectionData, existingNames, options) {
       const key = `${folderIndex}-${tabIndex}`;
       tabIdMap.set(key, tab.id);
     }
+  }
+
+  // Import ungrouped tabs (folderId === null)
+  const ungroupedTabs = collectionData.ungroupedTabs || [];
+  for (let tabIndex = 0; tabIndex < ungroupedTabs.length; tabIndex++) {
+    const tabData = ungroupedTabs[tabIndex];
+
+    // Validate tab
+    if (!tabData.url || !tabData.title) {
+      warnings.push(`Ungrouped tab ${tabIndex} missing required fields, skipped`);
+      continue;
+    }
+
+    // Create ungrouped tab (folderId = null)
+    const tab = await TabService.createTab({
+      collectionId: collection.id, // Required for ungrouped tab queries
+      folderId: null, // Ungrouped
+      url: tabData.url,
+      title: tabData.title,
+      favicon: tabData.favicon,
+      note: tabData.note,
+      position: tabData.position !== undefined ? tabData.position : tabIndex,
+      isPinned: tabData.isPinned || false
+    });
+
+    tabsCreated++;
+
+    // Store tab ID mapping (use special "ungrouped" prefix)
+    const key = `ungrouped-${tabIndex}`;
+    tabIdMap.set(key, tab.id);
   }
 
   // Import tasks if requested
