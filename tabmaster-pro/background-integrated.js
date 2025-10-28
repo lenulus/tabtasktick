@@ -43,6 +43,7 @@ import {
   getFoldersByCollection,
   getTab,
   getTabsByFolder,
+  getAllTabs,
   getTask,
   findTabByRuntimeId
 } from './services/utils/storage-queries.js';
@@ -1828,6 +1829,57 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: true });
           break;
 
+        // Progressive Sync Diagnostic Handlers
+        case 'checkProgressiveSyncInit':
+          sendResponse({
+            success: true,
+            initialized: ProgressiveSyncService.isInitialized()
+          });
+          break;
+
+        case 'getProgressiveSyncCache':
+          sendResponse({
+            success: true,
+            cache: ProgressiveSyncService.getSettingsCache()
+          });
+          break;
+
+        case 'checkCollectionSync':
+          const collectionSyncInfo = await ProgressiveSyncService.getCollectionSyncInfo(request.collectionId);
+          sendResponse({ success: true, ...collectionSyncInfo });
+          break;
+
+        case 'refreshProgressiveSyncCache':
+          await ProgressiveSyncService.refreshAllSettings();
+          const cacheAfterRefresh = ProgressiveSyncService.getSettingsCache();
+          sendResponse({
+            success: true,
+            activeCollectionCount: Object.keys(cacheAfterRefresh).length,
+            cache: cacheAfterRefresh
+          });
+          break;
+
+        case 'getProgressiveSyncPending':
+          sendResponse({
+            success: true,
+            pending: ProgressiveSyncService.getPendingChanges()
+          });
+          break;
+
+        case 'getProgressiveSyncLogs':
+          const logs = ProgressiveSyncService.getRecentLogs(request.limit || 500);
+          sendResponse({
+            success: true,
+            logs,
+            count: logs.length
+          });
+          break;
+
+        case 'clearProgressiveSyncLogs':
+          ProgressiveSyncService.clearLogs();
+          sendResponse({ success: true });
+          break;
+
         // Folder Operations
         case 'createFolder':
           const createdFolder = await FolderService.createFolder({
@@ -1900,6 +1952,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'getTabsByFolder':
           const folderTabs = await getTabsByFolder(request.folderId);
           sendResponse({ success: true, tabs: folderTabs });
+          break;
+
+        case 'getUngroupedTabs':
+          // Get tabs with folderId === null for a collection
+          // Note: Can't use index for null, so we filter all tabs
+          const allTabsForUngrouped = await getAllTabs();
+          const ungroupedTabsForCollection = allTabsForUngrouped.filter(tab =>
+            tab.folderId === null
+          );
+          // Sort by position (window-level ordering)
+          ungroupedTabsForCollection.sort((a, b) => a.position - b.position);
+          sendResponse({ success: true, tabs: ungroupedTabsForCollection });
           break;
 
         // Task Operations

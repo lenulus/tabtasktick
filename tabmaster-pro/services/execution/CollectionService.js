@@ -145,7 +145,6 @@ export async function createCollection(params) {
   // Default progressive sync settings
   const defaultSettings = {
     trackingEnabled: true,   // Enable real-time tracking by default
-    autoSync: true,          // Auto-sync changes by default
     syncDebounceMs: 2000     // 2 second debounce by default
   };
 

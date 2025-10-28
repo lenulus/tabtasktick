@@ -67,8 +67,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-          autoSync: true,
-          syncDebounceMs: 2000
+                    syncDebounceMs: 2000
         }
       });
 
@@ -96,8 +95,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-          autoSync: true,
-          syncDebounceMs: 2000
+                    syncDebounceMs: 2000
         }
       });
 
@@ -107,8 +105,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: false,
-          autoSync: false,
-          syncDebounceMs: 5000
+                    syncDebounceMs: 5000
         }
       });
 
@@ -158,8 +155,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-          autoSync: true,
-          syncDebounceMs: 2000
+                    syncDebounceMs: 2000
         }
       });
 
@@ -192,8 +188,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-          autoSync: true,
-          syncDebounceMs: 3000
+                    syncDebounceMs: 3000
         }
       });
 
@@ -242,8 +237,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-          autoSync: true,
-          syncDebounceMs: 2000
+                    syncDebounceMs: 2000
         }
       });
 
@@ -267,8 +261,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-          autoSync: true,
-          syncDebounceMs: 2000
+                    syncDebounceMs: 2000
         }
       });
 
@@ -316,8 +309,7 @@ describe('ProgressiveSyncService', () => {
         name: 'Test Collection',
         settings: {
           trackingEnabled: true,
-          autoSync: true,
-          syncDebounceMs: 2000
+                    syncDebounceMs: 2000
         }
       });
 
@@ -343,23 +335,6 @@ describe('ProgressiveSyncService', () => {
       ).rejects.toThrow('syncDebounceMs must be between 0 and 10000');
     });
 
-    it('should auto-disable autoSync when trackingEnabled is false', async () => {
-      const collection = await CollectionService.createCollection({
-        name: 'Test Collection',
-        settings: {
-          trackingEnabled: true,
-          autoSync: true,
-          syncDebounceMs: 2000
-        }
-      });
-
-      const updated = await CollectionService.updateCollectionSettings(collection.id, {
-        trackingEnabled: false
-      });
-
-      expect(updated.settings.trackingEnabled).toBe(false);
-      expect(updated.settings.autoSync).toBe(false);
-    });
   });
 
   describe('Default Settings', () => {
@@ -370,8 +345,7 @@ describe('ProgressiveSyncService', () => {
 
       expect(collection.settings).toEqual({
         trackingEnabled: true,
-        autoSync: true,
-        syncDebounceMs: 2000
+                syncDebounceMs: 2000
       });
     });
 
@@ -385,8 +359,7 @@ describe('ProgressiveSyncService', () => {
 
       expect(collection.settings).toEqual({
         trackingEnabled: true,
-        autoSync: true,
-        syncDebounceMs: 5000
+                syncDebounceMs: 5000
       });
     });
 
@@ -395,15 +368,13 @@ describe('ProgressiveSyncService', () => {
         name: 'Test Collection',
         settings: {
           trackingEnabled: false,
-          autoSync: false,
-          syncDebounceMs: 8000
+                    syncDebounceMs: 8000
         }
       });
 
       expect(collection.settings).toEqual({
         trackingEnabled: false,
-        autoSync: false,
-        syncDebounceMs: 8000
+                syncDebounceMs: 8000
       });
     });
   });
@@ -426,8 +397,7 @@ describe('ProgressiveSyncService', () => {
         isActive: false,
         settings: {
           trackingEnabled: true,
-          autoSync: true,
-          syncDebounceMs: 2000
+                    syncDebounceMs: 2000
         }
       });
 

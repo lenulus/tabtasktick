@@ -94,15 +94,23 @@ export class CollectionDetailView {
   }
 
   /**
-   * Load tabs for folders
+   * Load tabs for folders and ungrouped tabs
    */
   async loadTabs(folders) {
     const allTabs = [];
+
+    // Load tabs from folders
     for (const folder of folders) {
       const response = await this.controller.sendMessage('getTabsByFolder', { folderId: folder.id });
       const tabs = response?.tabs || [];
       allTabs.push(...tabs.map(tab => ({ ...tab, folderId: folder.id })));
     }
+
+    // Load ungrouped tabs (folderId === null)
+    const ungroupedResponse = await this.controller.sendMessage('getUngroupedTabs', {});
+    const ungroupedTabs = ungroupedResponse?.tabs || [];
+    allTabs.push(...ungroupedTabs.map(tab => ({ ...tab, folderId: null })));
+
     return allTabs;
   }
 
@@ -364,6 +372,8 @@ export class CollectionDetailView {
    * Render folders section
    */
   renderFoldersSection(folders, tabs) {
+    const ungroupedTabs = tabs.filter(t => t.folderId === null);
+
     return `
       <section class="detail-section folders-section">
         <div class="section-header-detail">
@@ -374,11 +384,15 @@ export class CollectionDetailView {
         </div>
 
         <div class="folders-container">
-          ${folders.length === 0 ? `
+          ${folders.length === 0 && ungroupedTabs.length === 0 ? `
             <div class="empty-state-inline">
-              <p>No folders yet.</p>
+              <p>No folders or tabs yet.</p>
             </div>
-          ` : folders.map(folder => this.renderFolder(folder, tabs)).join('')}
+          ` : ''}
+
+          ${folders.map(folder => this.renderFolder(folder, tabs)).join('')}
+
+          ${ungroupedTabs.length > 0 ? this.renderUngroupedTabs(ungroupedTabs) : ''}
         </div>
       </section>
     `;
@@ -401,6 +415,27 @@ export class CollectionDetailView {
 
         <div class="folder-tabs ${isExpanded ? 'expanded' : 'collapsed'}">
           ${folderTabs.map(tab => this.renderTab(tab)).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render ungrouped tabs section
+   */
+  renderUngroupedTabs(ungroupedTabs) {
+    const isExpanded = this.expandedFolders.has('ungrouped');
+
+    return `
+      <div class="folder-card" data-folder-id="ungrouped">
+        <div class="folder-header" data-action="toggle-folder" data-folder-id="ungrouped">
+          <span class="folder-toggle">${isExpanded ? '▼' : '▶'}</span>
+          <span class="folder-name">Ungrouped Tabs</span>
+          <span class="folder-count">${ungroupedTabs.length} tabs</span>
+        </div>
+
+        <div class="folder-tabs ${isExpanded ? 'expanded' : 'collapsed'}">
+          ${ungroupedTabs.map(tab => this.renderTab(tab)).join('')}
         </div>
       </div>
     `;
@@ -445,7 +480,6 @@ export class CollectionDetailView {
     // Default settings if not present (backwards compatibility)
     const settings = collection.settings || {
       trackingEnabled: true,
-      autoSync: true,
       syncDebounceMs: 2000
     };
 
@@ -475,24 +509,8 @@ export class CollectionDetailView {
                   ${settings.trackingEnabled ? 'checked' : ''}
                 >
                 <span class="setting-text">
-                  <strong>Track changes in real-time</strong>
-                  <span class="setting-description">Monitor tab and group changes as you work</span>
-                </span>
-              </label>
-            </div>
-
-            <div class="setting-row">
-              <label class="setting-label">
-                <input
-                  type="checkbox"
-                  class="setting-checkbox"
-                  data-setting="autoSync"
-                  ${settings.autoSync ? 'checked' : ''}
-                  ${!settings.trackingEnabled ? 'disabled' : ''}
-                >
-                <span class="setting-text">
-                  <strong>Auto-sync</strong>
-                  <span class="setting-description">Automatically save changes (requires tracking)</span>
+                  <strong>Enable real-time tracking</strong>
+                  <span class="setting-description">Automatically track and save tab/group changes</span>
                 </span>
               </label>
             </div>
@@ -659,15 +677,11 @@ export class CollectionDetailView {
     // Phase 8: Settings checkbox changes
     this.container.addEventListener('change', (e) => {
       if (e.target.dataset.setting === 'trackingEnabled') {
-        const autoSyncCheckbox = this.container.querySelector('[data-setting="autoSync"]');
         const syncDelaySlider = this.container.querySelector('[data-setting="syncDebounceMs"]');
 
         if (e.target.checked) {
-          autoSyncCheckbox.disabled = false;
           syncDelaySlider.disabled = false;
         } else {
-          autoSyncCheckbox.disabled = true;
-          autoSyncCheckbox.checked = false;
           syncDelaySlider.disabled = true;
         }
       }
@@ -1155,12 +1169,10 @@ export class CollectionDetailView {
     try {
       // Get current values from form
       const trackingEnabled = this.container.querySelector('[data-setting="trackingEnabled"]').checked;
-      const autoSync = this.container.querySelector('[data-setting="autoSync"]').checked;
       const syncDebounceMs = parseInt(this.container.querySelector('[data-setting="syncDebounceMs"]').value);
 
       const settings = {
         trackingEnabled,
-        autoSync,
         syncDebounceMs
       };
 

@@ -298,6 +298,23 @@ export async function getTabsByFolder(folderId) {
 }
 
 /**
+ * Get all tabs
+ *
+ * @returns {Promise<Array>} All tabs
+ */
+export async function getAllTabs() {
+  try {
+    return await withTransaction(['tabs'], 'readonly', async (tx) => {
+      const store = tx.objectStore('tabs');
+      return await getAllFromStore(store);
+    });
+  } catch (error) {
+    console.error('getAllTabs failed:', error);
+    throw error;
+  }
+}
+
+/**
  * Save tab (create or update)
  *
  * @param {Object} tab - Tab object
@@ -551,12 +568,20 @@ export async function getCompleteCollection(collectionId) {
         folder.tabs.sort((a, b) => a.position - b.position);
       }
 
+      // Get ungrouped tabs (folderId === null)
+      // Note: Can't use index query for null, so we filter all tabs
+      const allTabs = await getAllFromStore(tabStore);
+      const ungroupedTabs = allTabs.filter(tab => tab.folderId === null);
+      // Sort ungrouped tabs by position (window-level ordering)
+      ungroupedTabs.sort((a, b) => a.position - b.position);
+
       // Sort folders by position
       folders.sort((a, b) => a.position - b.position);
 
       return {
         ...collection,
-        folders
+        folders,
+        ungroupedTabs
       };
     });
   } catch (error) {

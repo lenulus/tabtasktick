@@ -261,56 +261,25 @@ export async function captureWindow(options) {
     groupIdToFolderId.set(group.id, folder.id);
   }
 
-  // Create "Ungrouped" folder for tabs not in any group
-  const ungroupedTabs = capturableTabs.filter(t => t.groupId === -1);
-  let ungroupedFolder = null;
-
-  if (ungroupedTabs.length > 0) {
-    ungroupedFolder = await FolderService.createFolder({
-      collectionId: collection.id,
-      name: UNGROUPED_FOLDER_NAME,
-      color: UNGROUPED_FOLDER_COLOR,
-      collapsed: false,
-      position: folders.length
-    });
-
-    folders.push(ungroupedFolder);
-  }
-
   // Step 7: Create tabs (map Chrome tabs → tab entities)
+  // Note: Ungrouped tabs are saved with folderId: null to preserve window-level ordering
   const tabs = [];
-  const tabPositionCounters = new Map(); // Track position within each folder
 
   for (const chromeTab of capturableTabs) {
     // Determine folder for this tab
-    let folderId;
-    if (chromeTab.groupId === -1) {
-      folderId = ungroupedFolder.id;
-    } else {
+    let folderId = null;
+    if (chromeTab.groupId !== -1) {
+      // Tab is in a group
       folderId = groupIdToFolderId.get(chromeTab.groupId);
       if (!folderId) {
-        // Tab belongs to group we skipped (empty group), assign to ungrouped
-        if (!ungroupedFolder) {
-          // Create ungrouped folder if we didn't already
-          ungroupedFolder = await FolderService.createFolder({
-            collectionId: collection.id,
-            name: UNGROUPED_FOLDER_NAME,
-            color: UNGROUPED_FOLDER_COLOR,
-            collapsed: false,
-            position: folders.length
-          });
-          folders.push(ungroupedFolder);
-        }
-        folderId = ungroupedFolder.id;
+        // Tab belongs to group we skipped (empty group), save as ungrouped
+        folderId = null;
       }
     }
+    // else: Tab is ungrouped (groupId === -1), folderId remains null
 
-    // Get position within folder
-    if (!tabPositionCounters.has(folderId)) {
-      tabPositionCounters.set(folderId, 0);
-    }
-    const position = tabPositionCounters.get(folderId);
-    tabPositionCounters.set(folderId, position + 1);
+    // Use Chrome's tab index as position (preserves window-level ordering)
+    const position = chromeTab.index;
 
     // Create tab entity
     const tab = await TabService.createTab({

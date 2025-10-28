@@ -74,14 +74,52 @@ import {
  * - changeQueue: Map of collectionId → pending changes
  * - flushTimers: Map of collectionId → debounce timer
  * - syncMetadata: Map of collectionId → sync metadata (lastSyncTime, pendingCount)
+ * - logBuffer: Ring buffer for recent logs (for debugging)
  */
 const state = {
   initialized: false,
   settingsCache: new Map(),
   changeQueue: new Map(),
   flushTimers: new Map(),
-  syncMetadata: new Map()
+  syncMetadata: new Map(),
+  logBuffer: []
 };
+
+/**
+ * Maximum number of log entries to keep in buffer
+ */
+const MAX_LOG_BUFFER_SIZE = 1000;
+
+/**
+ * Logs a message and adds it to the buffer for retrieval
+ */
+function logAndBuffer(level, message, data) {
+  const timestamp = new Date().toISOString();
+  const logEntry = {
+    timestamp,
+    level,
+    message,
+    data: data || null
+  };
+
+  // Add to buffer
+  state.logBuffer.push(logEntry);
+
+  // Trim buffer if too large
+  if (state.logBuffer.length > MAX_LOG_BUFFER_SIZE) {
+    state.logBuffer.shift();
+  }
+
+  // Also log to console
+  const fullMessage = `[ProgressiveSyncService] ${message}`;
+  if (level === 'error') {
+    console.error(fullMessage, data || '');
+  } else if (level === 'warn') {
+    console.warn(fullMessage, data || '');
+  } else {
+    console.log(fullMessage, data || '');
+  }
+}
 
 /**
  * Change types for queue
@@ -227,12 +265,26 @@ function registerEventListeners() {
  */
 async function handleTabCreated(tab) {
   try {
+    logAndBuffer('info', `Tab created event fired: ${tab.id} in window ${tab.windowId}`);
+
     const collectionId = await findCollectionByWindowId(tab.windowId);
-    if (!collectionId || !shouldTrack(collectionId)) {
+    logAndBuffer('info', `Found collection for window ${tab.windowId}: ${collectionId}`);
+
+    if (!collectionId) {
+      logAndBuffer('info', `No collection found for window ${tab.windowId}, skipping`);
       return;
     }
 
-    console.log(`[ProgressiveSyncService] Tab created: ${tab.id} in window ${tab.windowId}`);
+    const shouldTrackResult = shouldTrack(collectionId);
+    logAndBuffer('info', `shouldTrack(${collectionId}): ${shouldTrackResult}`);
+
+    if (!shouldTrackResult) {
+      const settings = state.settingsCache.get(collectionId);
+      logAndBuffer('warn', `Not tracking - settings:`, settings);
+      return;
+    }
+
+    logAndBuffer('info', `Tab created: ${tab.id} in window ${tab.windowId}, queueing change`);
 
     queueChange(collectionId, {
       type: ChangeType.TAB_CREATED,
@@ -241,7 +293,7 @@ async function handleTabCreated(tab) {
       data: tab
     });
   } catch (error) {
-    console.error('[ProgressiveSyncService] handleTabCreated failed:', error);
+    logAndBuffer('error', 'handleTabCreated failed:', error);
   }
 }
 
@@ -596,9 +648,19 @@ function queueChange(collectionId, change) {
   if (existingIndex >= 0) {
     // Replace existing change (keep latest)
     queue[existingIndex] = change;
+    logAndBuffer('info', `Replaced change in queue for ${collectionId}:`, {
+      type: change.type,
+      key,
+      queueLength: queue.length
+    });
   } else {
     // Add new change
     queue.push(change);
+    logAndBuffer('info', `Added change to queue for ${collectionId}:`, {
+      type: change.type,
+      key,
+      queueLength: queue.length
+    });
   }
 
   // Update sync metadata
@@ -622,15 +684,19 @@ function scheduleFlush(collectionId) {
   const settings = state.settingsCache.get(collectionId);
   const debounceMs = settings?.syncDebounceMs || 2000;
 
+  logAndBuffer('info', `Scheduling flush for ${collectionId} in ${debounceMs}ms`);
+
   // Cancel existing timer
   if (state.flushTimers.has(collectionId)) {
     clearTimeout(state.flushTimers.get(collectionId));
+    logAndBuffer('info', `Cancelled existing timer for ${collectionId}`);
   }
 
   // Schedule new flush
   const timer = setTimeout(() => {
+    logAndBuffer('info', `Flush timer fired for ${collectionId}`);
     flush(collectionId).catch(error => {
-      console.error(`[ProgressiveSyncService] Scheduled flush failed for ${collectionId}:`, error);
+      logAndBuffer('error', `Scheduled flush failed for ${collectionId}:`, error);
     });
   }, debounceMs);
 
@@ -664,7 +730,7 @@ export async function flush(collectionId) {
       return;
     }
 
-    console.log(`[ProgressiveSyncService] Flushing ${queue.length} changes for collection ${collectionId}`);
+    logAndBuffer('info', `Flushing ${queue.length} changes for collection ${collectionId}`);
 
     // Cancel flush timer
     if (state.flushTimers.has(collectionId)) {
@@ -684,9 +750,9 @@ export async function flush(collectionId) {
     metadata.pendingChanges = 0;
     state.syncMetadata.set(collectionId, metadata);
 
-    console.log(`[ProgressiveSyncService] Flushed collection ${collectionId} successfully`);
+    logAndBuffer('info', `Flushed collection ${collectionId} successfully`);
   } catch (error) {
-    console.error(`[ProgressiveSyncService] Flush failed for ${collectionId}:`, error);
+    logAndBuffer('error', `Flush failed for ${collectionId}:`, error);
     throw error;
   }
 }
@@ -761,14 +827,28 @@ async function processChanges(collectionId, changes) {
 async function processTabCreated(collectionId, change) {
   const { tabId, groupId, data: tab } = change;
 
-  // Find or create folder for tab
+  logAndBuffer('info', `Processing tab created:`, {
+    collectionId,
+    tabId,
+    groupId,
+    url: tab.url,
+    title: tab.title
+  });
+
+  // Determine folder for tab
   let folderId = null;
   if (groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE) {
+    logAndBuffer('info', `Tab is in group ${groupId}, finding/creating folder`);
     const folder = await findOrCreateFolder(collectionId, groupId);
     folderId = folder.id;
+    logAndBuffer('info', `Using folder ${folderId}`);
+  } else {
+    logAndBuffer('info', `Tab is ungrouped (groupId: ${groupId}), saving with folderId: null`);
+    // Ungrouped tabs are saved with folderId: null to preserve window-level ordering
+    folderId = null;
   }
 
-  // Get tab position
+  // Use Chrome's tab index as position (preserves window-level ordering)
   const position = tab.index;
 
   // Create tab in IndexedDB
@@ -784,8 +864,15 @@ async function processTabCreated(collectionId, change) {
     tabId: tab.id // Runtime ID for lookups
   };
 
+  logAndBuffer('info', `Saving tab to IndexedDB:`, {
+    storageId: tabData.id,
+    folderId: tabData.folderId,
+    runtimeTabId: tabData.tabId,
+    position: tabData.position
+  });
+
   await saveTab(tabData);
-  console.log(`[ProgressiveSyncService] Created tab ${tabId} in collection ${collectionId}`);
+  logAndBuffer('info', `Created tab ${tabId} in collection ${collectionId}`);
 
   // Update collection metadata counts
   await updateMetadataCounts(collectionId);
@@ -1066,7 +1153,6 @@ async function findCollectionByWindowId(windowId) {
  * Returns true if:
  * - Collection exists in settings cache
  * - trackingEnabled is true
- * - autoSync is true
  *
  * @param {string} collectionId - Collection ID
  * @returns {boolean} Whether to track this collection
@@ -1077,7 +1163,7 @@ function shouldTrack(collectionId) {
     return false;
   }
 
-  return settings.trackingEnabled && settings.autoSync;
+  return settings.trackingEnabled === true;
 }
 
 /**
@@ -1107,8 +1193,10 @@ async function findOrCreateFolder(collectionId, groupId) {
   };
 
   await saveFolder(folderData);
+  logAndBuffer('info', `Created folder for group ${groupId}: ${folderData.name}`);
   return folderData;
 }
+
 
 /**
  * Finds folder by Chrome tab group ID.
@@ -1223,4 +1311,117 @@ export async function untrackCollection(collectionId) {
   state.syncMetadata.delete(collectionId);
 
   console.log(`[ProgressiveSyncService] Stopped tracking collection ${collectionId}`);
+}
+
+// ============================================================================
+// DIAGNOSTIC/DEBUG METHODS
+// ============================================================================
+
+/**
+ * Check if service is initialized.
+ * @returns {boolean} Whether service is initialized
+ */
+export function isInitialized() {
+  return state.initialized;
+}
+
+/**
+ * Get current settings cache (for diagnostics).
+ * @returns {Object} Settings cache as plain object
+ */
+export function getSettingsCache() {
+  const cache = {};
+  for (const [collectionId, settings] of state.settingsCache.entries()) {
+    cache[collectionId] = settings;
+  }
+  return cache;
+}
+
+/**
+ * Get pending changes queue (for diagnostics).
+ * @returns {Object} Pending changes as plain object
+ */
+export function getPendingChanges() {
+  const pending = {};
+  for (const [collectionId, changes] of state.changeQueue.entries()) {
+    pending[collectionId] = changes;
+  }
+  return pending;
+}
+
+/**
+ * Get recent logs from buffer (for diagnostics).
+ * @param {number} limit - Maximum number of logs to return (default: all)
+ * @returns {Array} Array of log entries
+ */
+export function getRecentLogs(limit) {
+  if (limit && limit > 0) {
+    return state.logBuffer.slice(-limit);
+  }
+  return [...state.logBuffer];
+}
+
+/**
+ * Clear the log buffer.
+ */
+export function clearLogs() {
+  state.logBuffer = [];
+}
+
+/**
+ * Refresh settings cache for all active collections.
+ * @returns {Promise<void>}
+ */
+export async function refreshAllSettings() {
+  await loadSettingsCache();
+}
+
+/**
+ * Get comprehensive sync info for a collection (for diagnostics).
+ * @param {string} collectionId - Collection ID
+ * @returns {Promise<Object>} Diagnostic information
+ */
+export async function getCollectionSyncInfo(collectionId) {
+  const collection = await getCollection(collectionId);
+  if (!collection) {
+    return {
+      error: 'Collection not found',
+      collectionId
+    };
+  }
+
+  // Debug: log what we see
+  console.log('[ProgressiveSyncService] getCollectionSyncInfo debug:', {
+    collectionId,
+    cacheSize: state.settingsCache.size,
+    cacheKeys: Array.from(state.settingsCache.keys()),
+    hasKey: state.settingsCache.has(collectionId)
+  });
+
+  const cachedSettings = state.settingsCache.get(collectionId);
+  const syncStatus = getSyncStatus(collectionId);
+  const pendingForCollection = state.changeQueue.get(collectionId) || [];
+
+  return {
+    collection: {
+      id: collection.id,
+      name: collection.name,
+      windowId: collection.windowId,
+      isActive: collection.isActive,
+      settings: collection.settings
+    },
+    cached: cachedSettings || null,
+    shouldTrack: shouldTrack(collectionId),
+    syncStatus,
+    pendingChanges: pendingForCollection,
+    hasFlushTimer: state.flushTimers.has(collectionId),
+    // Debug info
+    debug: {
+      cacheSize: state.settingsCache.size,
+      cacheKeys: Array.from(state.settingsCache.keys()),
+      hasKey: state.settingsCache.has(collectionId),
+      idType: typeof collectionId,
+      idLength: collectionId.length
+    }
+  };
 }

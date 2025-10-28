@@ -155,31 +155,29 @@ export async function restoreCollection(options) {
     throw new Error(`Collection not found: ${collectionId}`);
   }
 
-  // Extract collection and folders
-  // getCompleteCollection returns { ...collection, folders: [{ ...folder, tabs: [...] }] }
-  const { folders, ...collection } = collectionData;
+  // Extract collection, folders, and ungroupedTabs
+  // getCompleteCollection returns { ...collection, folders: [...], ungroupedTabs: [...] }
+  const { folders, ungroupedTabs, ...collection } = collectionData;
 
   // Step 2: Transform collection data into windowCreation format
   // Build tab array with group metadata embedded
   const tabsForCreation = [];
 
+  // Add tabs from folders (grouped tabs)
   for (const folder of folders) {
     if (!folder.tabs || folder.tabs.length === 0) continue;
 
     for (const tab of folder.tabs) {
-      // Skip "Ungrouped" folder (grey color by convention)
-      const shouldGroup = folder.name !== 'Ungrouped' && folder.color !== 'grey';
-
       tabsForCreation.push({
         url: tab.url,
         pinned: tab.isPinned || false,
-        groupKey: shouldGroup ? folder.id : null,
-        groupInfo: shouldGroup ? {
+        groupKey: folder.id,
+        groupInfo: {
           name: folder.name,
           color: folder.color,
           collapsed: folder.collapsed || false,
           position: folder.position
-        } : null,
+        },
         metadata: {
           id: tab.id, // Storage tab ID for callback
           position: tab.position
@@ -187,6 +185,25 @@ export async function restoreCollection(options) {
       });
     }
   }
+
+  // Add ungrouped tabs (folderId === null)
+  if (ungroupedTabs && ungroupedTabs.length > 0) {
+    for (const tab of ungroupedTabs) {
+      tabsForCreation.push({
+        url: tab.url,
+        pinned: tab.isPinned || false,
+        groupKey: null, // No group
+        groupInfo: null,
+        metadata: {
+          id: tab.id, // Storage tab ID for callback
+          position: tab.position
+        }
+      });
+    }
+  }
+
+  // Sort all tabs by position to preserve window-level ordering
+  tabsForCreation.sort((a, b) => a.metadata.position - b.metadata.position);
 
   // Handle empty collections - create window with default "New Tab"
   let result;

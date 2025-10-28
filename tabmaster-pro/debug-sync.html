@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Progressive Sync Debug</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    pre {
+      background: #2d2d2d;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    button {
+      margin: 10px 5px;
+      padding: 10px 20px;
+      font-size: 14px;
+    }
+    .section {
+      margin: 20px 0;
+      border: 1px solid #404040;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    h2 {
+      color: #4ec9b0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Progressive Sync Diagnostic</h1>
+
+  <div class="section">
+    <h2>1. Check Service Initialization</h2>
+    <button id="checkInit">Check If Initialized</button>
+    <pre id="initResult">Click button to check</pre>
+  </div>
+
+  <div class="section">
+    <h2>2. List Active Collections</h2>
+    <button id="listActive">List Active Collections</button>
+    <pre id="activeResult">Click button to check</pre>
+  </div>
+
+  <div class="section">
+    <h2>3. Check Settings Cache</h2>
+    <button id="checkCache">Check Settings Cache</button>
+    <pre id="cacheResult">Click button to check</pre>
+  </div>
+
+  <div class="section">
+    <h2>4. Check Collection Details</h2>
+    <input type="text" id="collectionId" placeholder="Enter collection ID" style="width: 300px;">
+    <button id="checkCollection">Check Collection</button>
+    <pre id="collectionResult">Enter collection ID and click button</pre>
+  </div>
+
+  <div class="section">
+    <h2>5. Manual Sync Test</h2>
+    <p>1. Note the current tab count in your collection</p>
+    <p>2. Click "Refresh Settings Cache" below</p>
+    <p>3. Open a new tab in the collection's window</p>
+    <p>4. Wait 5 seconds</p>
+    <p>5. Click "Check Pending Changes"</p>
+    <button id="refreshCache">Refresh Settings Cache</button>
+    <button id="checkPending">Check Pending Changes</button>
+    <pre id="syncTestResult">Results will appear here</pre>
+  </div>
+
+  <div class="section">
+    <h2>6. View Logs</h2>
+    <p>Open a new tab in your collection's window, then click "Fetch Logs"</p>
+    <button id="fetchLogs">Fetch Logs</button>
+    <button id="clearLogs">Clear Logs</button>
+    <button id="copyLogs">Copy Logs to Clipboard</button>
+    <pre id="logsResult" style="max-height: 400px; overflow-y: auto;">Click "Fetch Logs" to view recent activity</pre>
+  </div>
+
+  <script type="module" src="./debug-sync.js"></script>
+</body>
+</html>

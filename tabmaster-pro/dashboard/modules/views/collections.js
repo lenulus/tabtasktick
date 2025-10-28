@@ -901,15 +901,7 @@ function showEditCollectionModal(collection) {
                 <input type="checkbox" id="editTrackingEnabled">
                 <span>Enable real-time tracking</span>
               </label>
-              <small class="setting-help">Track tab and group changes automatically</small>
-            </div>
-
-            <div class="setting-row-dashboard">
-              <label class="checkbox-label">
-                <input type="checkbox" id="editAutoSync">
-                <span>Auto-sync changes</span>
-              </label>
-              <small class="setting-help">Save changes automatically (requires tracking)</small>
+              <small class="setting-help">Automatically track and save tab/group changes</small>
             </div>
 
             <div class="setting-row-dashboard">
@@ -956,12 +948,9 @@ function showEditCollectionModal(collection) {
   // Populate progressive sync settings
   const settings = collection.settings || {
     trackingEnabled: true,
-    autoSync: true,
     syncDebounceMs: 2000
   };
   document.getElementById('editTrackingEnabled').checked = settings.trackingEnabled ?? true;
-  document.getElementById('editAutoSync').checked = settings.autoSync ?? true;
-  document.getElementById('editAutoSync').disabled = !settings.trackingEnabled;
 
   const syncDebounceSeconds = (settings.syncDebounceMs || 2000) / 1000;
   document.getElementById('editSyncDebounce').value = syncDebounceSeconds;
@@ -1024,20 +1013,15 @@ function setupEmojiPicker() {
 
 function setupEditSettingsHandlers() {
   const trackingCheckbox = document.getElementById('editTrackingEnabled');
-  const autoSyncCheckbox = document.getElementById('editAutoSync');
   const syncSlider = document.getElementById('editSyncDebounce');
   const syncValue = document.getElementById('editSyncDebounceValue');
 
-  if (!trackingCheckbox || !autoSyncCheckbox || !syncSlider || !syncValue) return;
+  if (!trackingCheckbox || !syncSlider || !syncValue) return;
 
   // Handle tracking enabled toggle
   trackingCheckbox.addEventListener('change', (e) => {
     const enabled = e.target.checked;
-    autoSyncCheckbox.disabled = !enabled;
     syncSlider.disabled = !enabled;
-    if (!enabled) {
-      autoSyncCheckbox.checked = false;
-    }
   });
 
   // Handle sync delay slider
@@ -1063,7 +1047,6 @@ async function handleSaveEditCollection() {
 
   // Get progressive sync settings
   const trackingEnabled = document.getElementById('editTrackingEnabled').checked;
-  const autoSync = document.getElementById('editAutoSync').checked;
   const syncDebounceSeconds = parseFloat(document.getElementById('editSyncDebounce').value);
   const syncDebounceMs = Math.round(syncDebounceSeconds * 1000);
 
@@ -1075,7 +1058,6 @@ async function handleSaveEditCollection() {
     tags,
     settings: {
       trackingEnabled,
-      autoSync,
       syncDebounceMs
     }
   };
