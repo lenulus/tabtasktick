@@ -243,6 +243,7 @@ export async function updateCollection(id, updates) {
     windowId: existing.windowId, // Use bindToWindow/unbindFromWindow
     metadata: {
       ...existing.metadata,
+      ...(updates.metadata || {}), // Merge metadata updates (tabCount, folderCount, etc.)
       createdAt: existing.metadata.createdAt, // Immutable
       lastAccessed: Date.now() // Always update
     }

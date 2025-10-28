@@ -257,10 +257,25 @@ export async function restoreCollection(options) {
   }
 
   // Step 4: Bind collection to window and mark active
-  await CollectionService.bindToWindow(collectionId, result.windowId);
+  // Note: WindowService.bindCollectionToWindow internally calls CollectionService.bindToWindow
+  // and also manages the cache, so we only need to call it once
   await WindowService.bindCollectionToWindow(collectionId, result.windowId);
 
-  // Step 5: Fetch updated collection (now has windowId and isActive)
+  // Step 5: Update metadata counts (tabs may have been updated, not created, so counts need refresh)
+  const completeCollectionData = await getCompleteCollection(collectionId);
+  const groupedTabCount = completeCollectionData.folders.reduce((sum, folder) => sum + (folder.tabs?.length || 0), 0);
+  const ungroupedTabCount = completeCollectionData.ungroupedTabs?.length || 0;
+  const totalTabs = groupedTabCount + ungroupedTabCount;
+
+  await CollectionService.updateCollection(collectionId, {
+    metadata: {
+      ...completeCollectionData.metadata,
+      tabCount: totalTabs,
+      folderCount: completeCollectionData.folders.length
+    }
+  });
+
+  // Step 6: Fetch updated collection (now has windowId, isActive, and correct counts)
   const updatedCollection = await getCollection(collectionId);
 
   // Step 6: Transform result to match expected format
