@@ -186,6 +186,34 @@ export async function initialize() {
 }
 
 /**
+ * Ensures the service is initialized (lazy initialization).
+ *
+ * Service workers can restart at any time, losing in-memory state.
+ * This function detects if the settings cache is empty and reinitializes if needed.
+ *
+ * This is safe because:
+ * - Chrome event listeners are idempotent (no duplicate registrations)
+ * - Settings cache reload is fast (only active collections)
+ * - Prevents event handlers from silently failing after service worker restart
+ *
+ * @returns {Promise<void>}
+ */
+async function ensureInitialized() {
+  // Check if cache is empty (indicates service worker restart)
+  if (state.initialized && state.settingsCache.size > 0) {
+    return; // Already initialized and cache is populated
+  }
+
+  logAndBuffer('warn', 'Settings cache is empty, reinitializing (service worker likely restarted)');
+
+  // Reset initialization flag to allow reinitialization
+  state.initialized = false;
+
+  // Reinitialize
+  await initialize();
+}
+
+/**
  * Loads settings cache for all active collections.
  *
  * Queries IndexedDB for active collections and caches their settings in memory.
@@ -271,6 +299,8 @@ function registerEventListeners() {
  */
 async function handleTabCreated(tab) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     logAndBuffer('info', `Tab created event fired: ${tab.id} in window ${tab.windowId}`);
 
     const collectionId = await findCollectionByWindowId(tab.windowId);
@@ -308,6 +338,8 @@ async function handleTabCreated(tab) {
  */
 async function handleTabRemoved(tabId, removeInfo) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     // Skip if entire window is closing (handled by window close)
     if (removeInfo.isWindowClosing) {
       return;
@@ -342,6 +374,8 @@ async function handleTabRemoved(tabId, removeInfo) {
  */
 async function handleTabMoved(tabId, moveInfo) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     const collectionId = await findCollectionByWindowId(moveInfo.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -377,6 +411,8 @@ async function handleTabMoved(tabId, moveInfo) {
  */
 async function handleTabUpdated(tabId, changeInfo, tab) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     logAndBuffer('info', `Tab updated event fired: ${tabId}`, changeInfo);
 
     const collectionId = await findCollectionByWindowId(tab.windowId);
@@ -418,6 +454,8 @@ async function handleTabUpdated(tabId, changeInfo, tab) {
  */
 async function handleTabAttached(tabId, attachInfo) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     const collectionId = await findCollectionByWindowId(attachInfo.newWindowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -451,6 +489,8 @@ async function handleTabAttached(tabId, attachInfo) {
  */
 async function handleTabDetached(tabId, detachInfo) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     const collectionId = await findCollectionByWindowId(detachInfo.oldWindowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -483,6 +523,8 @@ async function handleTabDetached(tabId, detachInfo) {
  */
 async function handleTabGroupCreated(group) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     const collectionId = await findCollectionByWindowId(group.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -511,6 +553,8 @@ async function handleTabGroupCreated(group) {
  */
 async function handleTabGroupUpdated(group) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     const collectionId = await findCollectionByWindowId(group.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -540,6 +584,8 @@ async function handleTabGroupUpdated(group) {
  */
 async function handleTabGroupRemoved(group) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     const collectionId = await findCollectionByWindowId(group.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -572,6 +618,8 @@ async function handleTabGroupRemoved(group) {
  */
 async function handleTabGroupMoved(group) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     const collectionId = await findCollectionByWindowId(group.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -606,6 +654,8 @@ async function handleTabGroupMoved(group) {
  */
 async function handleWindowRemoved(windowId) {
   try {
+    await ensureInitialized(); // Lazy initialization for service worker restarts
+
     const collectionId = await findCollectionByWindowId(windowId);
     if (!collectionId) {
       return;
