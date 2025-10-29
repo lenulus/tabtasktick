@@ -181,9 +181,11 @@ zip -r "$OUTPUT_FILE" \
     manifest.json \
     background-integrated.js \
     popup/ \
+    sidepanel/ \
     dashboard/ \
     options/ \
     icons/ \
+    services/ \
     lib/*.js \
     lib/*.css \
     lib/test-mode/ \
@@ -193,6 +195,8 @@ zip -r "$OUTPUT_FILE" \
     test-panel/ \
     -x "*.DS_Store" \
     -x "*/.DS_Store" \
+    -x "*/tests/*" \
+    -x "*/test-*" \
     -x "dashboard/tests/*" \
     -x "dashboard/test-*.html" \
     -x "dashboard/verify-*.html" \
