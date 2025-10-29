@@ -1017,7 +1017,8 @@ async function processTabUpdated(collectionId, change) {
     title: changeInfo.title !== undefined ? changeInfo.title : existingTab.title,
     favicon: changeInfo.favIconUrl !== undefined ? changeInfo.favIconUrl : existingTab.favicon,
     isPinned: changeInfo.pinned !== undefined ? changeInfo.pinned : existingTab.isPinned,
-    folderId // Update folderId if groupId changed
+    folderId, // Update folderId if groupId changed
+    position: tab.index // Always sync current Chrome position
   };
 
   await saveTab(updatedTab);
@@ -1025,7 +1026,9 @@ async function processTabUpdated(collectionId, change) {
     oldUrl: existingTab.url,
     newUrl: updatedTab.url,
     oldFolderId: existingTab.folderId,
-    newFolderId: updatedTab.folderId
+    newFolderId: updatedTab.folderId,
+    oldPosition: existingTab.position,
+    newPosition: updatedTab.position
   });
 
   // Update metadata counts if folderId changed (grouped/ungrouped status changed)

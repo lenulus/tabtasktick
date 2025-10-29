@@ -212,65 +212,38 @@ export async function createWindowWithTabsAndGroups(options) {
   const groupKeyToGroupId = new Map();
   const createdGroups = new Set();
 
-  // Step 4: Group tabs by groupKey for efficient batch processing
-  const tabsByGroup = new Map();
-  const ungroupedTabs = [];
-
-  for (const tab of restorableTabs) {
-    if (tab.groupKey) {
-      if (!tabsByGroup.has(tab.groupKey)) {
-        tabsByGroup.set(tab.groupKey, []);
-      }
-      tabsByGroup.get(tab.groupKey).push(tab);
-    } else {
-      ungroupedTabs.push(tab);
-    }
-  }
-
-  // Sort groups by position if available
-  const sortedGroups = Array.from(tabsByGroup.keys()).sort((a, b) => {
-    const tabsA = tabsByGroup.get(a);
-    const tabsB = tabsByGroup.get(b);
-    const posA = tabsA[0]?.groupInfo?.position ?? 999;
-    const posB = tabsB[0]?.groupInfo?.position ?? 999;
+  // Step 4: Sort all tabs by position (preserves window order regardless of grouping)
+  const sortedTabs = restorableTabs.slice().sort((a, b) => {
+    const posA = a.metadata?.position ?? 999;
+    const posB = b.metadata?.position ?? 999;
     return posA - posB;
   });
 
-  // Step 5: Create tabs in batches with proper grouping
+  // Step 5: Create tabs in position order with proper grouping
   const createdTabs = [];
   let tabsCreated = 0;
 
-  // Process grouped tabs first
-  for (const groupKey of sortedGroups) {
-    const groupTabs = tabsByGroup.get(groupKey);
-    const groupInfo = groupTabs[0].groupInfo;
+  // Process tabs in batches while maintaining position order
+  for (let i = 0; i < sortedTabs.length; i += TAB_CREATION_BATCH_SIZE) {
+    const batch = sortedTabs.slice(i, i + TAB_CREATION_BATCH_SIZE);
 
-    // Sort tabs by position if available
-    groupTabs.sort((a, b) => {
-      const posA = a.metadata?.position ?? 999;
-      const posB = b.metadata?.position ?? 999;
-      return posA - posB;
-    });
+    // Create tabs in parallel within batch
+    await Promise.all(batch.map(async (tabData) => {
+      try {
+        // Create Chrome tab
+        const chromeTab = await chrome.tabs.create({
+          windowId: targetWindowId,
+          url: tabData.url || 'about:blank',
+          pinned: tabData.pinned || false,
+          active: false
+        });
 
-    // Process tabs in batches
-    for (let i = 0; i < groupTabs.length; i += TAB_CREATION_BATCH_SIZE) {
-      const batch = groupTabs.slice(i, i + TAB_CREATION_BATCH_SIZE);
+        tabsCreated++;
 
-      // Create tabs in parallel within batch
-      await Promise.all(batch.map(async (tabData) => {
-        try {
-          // Create Chrome tab
-          const chromeTab = await chrome.tabs.create({
-            windowId: targetWindowId,
-            url: tabData.url || 'about:blank',
-            pinned: tabData.pinned || false,
-            active: false
-          });
-
-          tabsCreated++;
-
-          // Assign to tab group
-          let groupId = groupKeyToGroupId.get(groupKey);
+        // Handle grouping if tab belongs to a group
+        let groupId = null;
+        if (tabData.groupKey && tabData.groupInfo) {
+          groupId = groupKeyToGroupId.get(tabData.groupKey);
 
           if (!groupId) {
             // Create new group
@@ -281,17 +254,17 @@ export async function createWindowWithTabsAndGroups(options) {
 
             // Update group properties
             await chrome.tabGroups.update(groupId, {
-              title: groupInfo.name || '',
-              color: groupInfo.color || 'grey',
-              collapsed: groupInfo.collapsed || false
+              title: tabData.groupInfo.name || '',
+              color: tabData.groupInfo.color || 'grey',
+              collapsed: tabData.groupInfo.collapsed || false
             });
 
-            groupKeyToGroupId.set(groupKey, groupId);
+            groupKeyToGroupId.set(tabData.groupKey, groupId);
             createdGroups.add(groupId);
 
             // Call onGroupCreated callback
             if (onGroupCreated) {
-              await onGroupCreated(groupId, groupInfo);
+              await onGroupCreated(groupId, tabData.groupInfo);
             }
           } else {
             // Add to existing group
@@ -300,75 +273,28 @@ export async function createWindowWithTabsAndGroups(options) {
               groupId
             });
           }
-
-          // Call onTabCreated callback
-          if (onTabCreated) {
-            await onTabCreated(chromeTab, tabData);
-          }
-
-          createdTabs.push({
-            chromeTabId: chromeTab.id,
-            url: tabData.url,
-            groupId,
-            metadata: tabData.metadata
-          });
-
-        } catch (error) {
-          warnings.push(`Failed to create tab ${tabData.url}: ${error.message}`);
         }
-      }));
 
-      // Rate limiting: delay between batches
-      if (i + TAB_CREATION_BATCH_SIZE < groupTabs.length) {
-        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
-      }
-    }
-  }
-
-  // Process ungrouped tabs
-  if (ungroupedTabs.length > 0) {
-    // Sort by position if available
-    ungroupedTabs.sort((a, b) => {
-      const posA = a.metadata?.position ?? 999;
-      const posB = b.metadata?.position ?? 999;
-      return posA - posB;
-    });
-
-    for (let i = 0; i < ungroupedTabs.length; i += TAB_CREATION_BATCH_SIZE) {
-      const batch = ungroupedTabs.slice(i, i + TAB_CREATION_BATCH_SIZE);
-
-      await Promise.all(batch.map(async (tabData) => {
-        try {
-          const chromeTab = await chrome.tabs.create({
-            windowId: targetWindowId,
-            url: tabData.url || 'about:blank',
-            pinned: tabData.pinned || false,
-            active: false
-          });
-
-          tabsCreated++;
-
-          // Call onTabCreated callback
-          if (onTabCreated) {
-            await onTabCreated(chromeTab, tabData);
-          }
-
-          createdTabs.push({
-            chromeTabId: chromeTab.id,
-            url: tabData.url,
-            groupId: null,
-            metadata: tabData.metadata
-          });
-
-        } catch (error) {
-          warnings.push(`Failed to create tab ${tabData.url}: ${error.message}`);
+        // Call onTabCreated callback
+        if (onTabCreated) {
+          await onTabCreated(chromeTab, tabData);
         }
-      }));
 
-      // Rate limiting
-      if (i + TAB_CREATION_BATCH_SIZE < ungroupedTabs.length) {
-        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
+        createdTabs.push({
+          chromeTabId: chromeTab.id,
+          url: tabData.url,
+          groupId,
+          metadata: tabData.metadata
+        });
+
+      } catch (error) {
+        warnings.push(`Failed to create tab ${tabData.url}: ${error.message}`);
       }
+    }));
+
+    // Rate limiting: delay between batches
+    if (i + TAB_CREATION_BATCH_SIZE < sortedTabs.length) {
+      await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
     }
   }
 
