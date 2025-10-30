@@ -610,9 +610,9 @@ function buildRuleContext(tabs, windows) {
       tab.age = Date.now() - tab.lastAccessed;
     }
 
-    // Calculate time since last access
-    if (tab.last_access) {
-      tab.last_access = Date.now() - tab.last_access;
+    // Calculate time since last access from Chrome's lastAccessed property
+    if (tab.lastAccessed) {
+      tab.last_access = Date.now() - tab.lastAccessed;
     }
 
     // Add to indices
@@ -872,7 +872,7 @@ function evaluateSingleCondition(tab, condition, context) {
 
   // Normalize expected value for certain subjects (e.g., age comparisons)
   let expectedValue = value;
-  if (subject === 'age' && typeof value === 'string') {
+  if ((subject === 'age' || subject === 'last_access') && typeof value === 'string') {
     expectedValue = normalizeDurationValue(value);
   }
 
@@ -895,38 +895,46 @@ function evaluateOperator(actual, operator, expected) {
     case '!=':
     case 'neq':
     case 'not_equals':
+    case 'notEquals':
       return actual != expected;
 
     case '>':
     case 'gt':
     case 'greater_than':
+    case 'greaterThan':
       return actual > expected;
 
     case '>=':
     case 'gte':
     case 'greater_than_or_equal':
+    case 'greaterThanOrEqual':
       return actual >= expected;
 
     case '<':
     case 'lt':
     case 'less_than':
+    case 'lessThan':
       return actual < expected;
 
     case '<=':
     case 'lte':
     case 'less_than_or_equal':
+    case 'lessThanOrEqual':
       return actual <= expected;
 
     case 'contains':
       return String(actual).toLowerCase().includes(String(expected).toLowerCase());
 
     case 'not_contains':
+    case 'notContains':
       return !String(actual).toLowerCase().includes(String(expected).toLowerCase());
 
     case 'starts_with':
+    case 'startsWith':
       return String(actual).toLowerCase().startsWith(String(expected).toLowerCase());
 
     case 'ends_with':
+    case 'endsWith':
       return String(actual).toLowerCase().endsWith(String(expected).toLowerCase());
 
     case 'matches':
@@ -942,12 +950,14 @@ function evaluateOperator(actual, operator, expected) {
       return Array.isArray(expected) ? expected.includes(actual) : expected == actual;
 
     case 'not_in':
+    case 'notIn':
       return Array.isArray(expected) ? !expected.includes(actual) : expected != actual;
 
     case 'is':
       return Boolean(actual) === Boolean(expected);
 
     case 'is_not':
+    case 'isNot':
       return Boolean(actual) !== Boolean(expected);
 
     default:
