@@ -22,6 +22,7 @@ export class CollectionsView {
     this.controller = controller;
     this.activeContainer = null;
     this.savedContainer = null;
+    this.eventListenersAttached = false; // Track if event listeners are already attached
   }
 
   /**
@@ -34,6 +35,9 @@ export class CollectionsView {
     if (!this.activeContainer || !this.savedContainer) {
       console.error('Collections view containers not found');
     }
+
+    // Attach event listeners once during initialization
+    this.attachEventListeners();
   }
 
   /**
@@ -106,8 +110,7 @@ export class CollectionsView {
     // Respect the controller's sort order - DO NOT re-sort here
     container.innerHTML = collections.map(c => this.renderCollectionCard(c)).join('');
 
-    // Attach event listeners
-    this.attachEventListeners(container);
+    // Event listeners are attached once in init() - no need to re-attach here
   }
 
   /**
@@ -209,43 +212,57 @@ export class CollectionsView {
    * Attach event listeners to collection cards
    */
   attachEventListeners(container) {
-    container.addEventListener('click', async (e) => {
-      const button = e.target.closest('button[data-action]');
-      if (!button) return;
+    // Only attach listeners once to prevent duplicate handlers
+    if (this.eventListenersAttached) {
+      return;
+    }
+    this.eventListenersAttached = true;
 
-      const card = button.closest('.collection-card');
-      if (!card) return;
+    // Use event delegation on the parent containers instead of each render
+    const attachToContainer = (cnt) => {
+      if (!cnt) return;
+      cnt.addEventListener('click', async (e) => {
+        const button = e.target.closest('button[data-action]');
+        if (!button) return;
 
-      const collectionId = card.dataset.collectionId;
-      const action = button.dataset.action;
+        const card = button.closest('.collection-card');
+        if (!card) return;
 
-      switch (action) {
-        case 'view-details':
-          await this.handleViewDetails(collectionId);
-          break;
-        case 'focus':
-          await this.handleFocusWindow(collectionId);
-          break;
-        case 'open':
-          await this.handleOpenCollection(collectionId);
-          break;
-        case 'tasks':
-          await this.handleViewTasks(collectionId);
-          break;
-        case 'edit':
-          await this.handleEditCollection(collectionId);
-          break;
-        case 'close':
-          await this.handleCloseCollection(collectionId);
-          break;
-        case 'delete':
-          await this.handleDeleteCollection(collectionId);
-          break;
-        case 'export':
-          await this.handleExportCollection(collectionId);
-          break;
-      }
-    });
+        const collectionId = card.dataset.collectionId;
+        const action = button.dataset.action;
+
+        switch (action) {
+          case 'view-details':
+            await this.handleViewDetails(collectionId);
+            break;
+          case 'focus':
+            await this.handleFocusWindow(collectionId);
+            break;
+          case 'open':
+            await this.handleOpenCollection(collectionId);
+            break;
+          case 'tasks':
+            await this.handleViewTasks(collectionId);
+            break;
+          case 'edit':
+            await this.handleEditCollection(collectionId);
+            break;
+          case 'close':
+            await this.handleCloseCollection(collectionId);
+            break;
+          case 'delete':
+            await this.handleDeleteCollection(collectionId);
+            break;
+          case 'export':
+            await this.handleExportCollection(collectionId);
+            break;
+        }
+      });
+    };
+
+    // Attach to both containers once
+    attachToContainer(this.activeContainer);
+    attachToContainer(this.savedContainer);
   }
 
   /**
