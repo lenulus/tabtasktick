@@ -185,6 +185,12 @@ export class CollectionDetailView {
       collectionsView.style.display = 'none';
     }
 
+    // Remove existing container if present
+    if (this.container) {
+      this.container.remove();
+      this.container = null;
+    }
+
     // Create detail container
     const viewContainer = document.getElementById('collections-view');
     this.container = document.createElement('div');
