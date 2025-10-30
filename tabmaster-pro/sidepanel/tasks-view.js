@@ -664,6 +664,15 @@ export class TasksView {
    * Show edit task modal
    */
   showEditTaskModal(task) {
+    // Build collection options
+    const collectionOptions = this.collections
+      ? this.collections.map(c => `
+          <option value="${c.id}" ${task.collectionId === c.id ? 'selected' : ''}>
+            ${this.escapeHtml(c.name)}
+          </option>
+        `).join('')
+      : '';
+
     const formHtml = `
       <form id="edit-task-form" class="modal-form">
         <div class="form-group">
@@ -687,6 +696,14 @@ export class TasksView {
             class="form-control"
             rows="4"
           >${this.escapeHtml(task.notes || '')}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="task-collection">Collection</label>
+          <select id="task-collection" name="collectionId" class="form-control">
+            <option value="" ${!task.collectionId ? 'selected' : ''}>Uncategorized</option>
+            ${collectionOptions}
+          </select>
         </div>
 
         <div class="form-row">
@@ -772,9 +789,12 @@ export class TasksView {
         return;
       }
 
+      const collectionId = formData.get('collectionId') || null;
+
       const updates = {
         summary,
         notes: formData.get('notes')?.trim() || '',
+        collectionId: collectionId === '' ? null : collectionId,
         priority: formData.get('priority'),
         status: formData.get('status'),
         tags: formData.get('tags')
