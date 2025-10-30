@@ -21,6 +21,8 @@ import {
   formatImportSuccessMessage,
   formatImportErrorMessage
 } from '../services/utils/collection-import-export-ui.js';
+import { getCurrentTabSnapshot } from '../services/utils/tab-snapshot.js';
+import { TabChipRenderer } from './components/tab-chip-renderer.js';
 
 class SidePanelController {
   constructor() {
@@ -127,6 +129,12 @@ class SidePanelController {
       this.handleSaveWindow();
     });
 
+    // Create task button (Phase 11)
+    const createTaskBtn = document.getElementById('create-task-btn');
+    createTaskBtn?.addEventListener('click', () => {
+      this.handleCreateTask();
+    });
+
     // Import collections button
     const importBtn = document.getElementById('import-collections-btn');
     importBtn?.addEventListener('click', () => {
@@ -187,6 +195,10 @@ class SidePanelController {
     const collectionsFilters = document.getElementById('collections-filters');
     const tasksFilters = document.getElementById('tasks-filters');
 
+    // Toggle header action buttons based on view
+    const saveWindowBtn = document.getElementById('save-window-btn');
+    const createTaskBtn = document.getElementById('create-task-btn');
+
     if (viewName === 'collections') {
       collectionsView?.classList.add('active');
       tasksView?.classList.remove('active');
@@ -196,6 +208,10 @@ class SidePanelController {
       tasksBtn?.classList.remove('active');
       collectionsBtn?.setAttribute('aria-selected', 'true');
       tasksBtn?.setAttribute('aria-selected', 'false');
+
+      // Show Create Collection button, hide Create Task button
+      saveWindowBtn?.classList.remove('hidden');
+      createTaskBtn?.classList.add('hidden');
 
       // Show collections filters, hide tasks filters
       collectionsFilters?.classList.remove('hidden');
@@ -215,6 +231,10 @@ class SidePanelController {
       collectionsBtn?.classList.remove('active');
       tasksBtn?.setAttribute('aria-selected', 'true');
       collectionsBtn?.setAttribute('aria-selected', 'false');
+
+      // Show Create Task button, hide Create Collection button
+      saveWindowBtn?.classList.add('hidden');
+      createTaskBtn?.classList.remove('hidden');
 
       // Show tasks filters, hide collections filters
       tasksFilters?.classList.remove('hidden');
@@ -618,7 +638,10 @@ class SidePanelController {
   /**
    * Show create task modal
    */
-  showCreateTaskModal() {
+  async showCreateTaskModal() {
+    // Capture current tab snapshot before opening modal
+    const currentTabSnapshot = await getCurrentTabSnapshot();
+
     const formHtml = `
       <form id="create-task-form" class="modal-form">
         <div class="form-group">
@@ -632,6 +655,15 @@ class SidePanelController {
             maxlength="255"
             placeholder="What do you need to do?"
           >
+        </div>
+
+        <!-- Phase 11: Tab Association Section -->
+        <div class="tab-association-section" id="tab-association-section">
+          <label class="section-label">Context</label>
+          <div class="tab-chip-container" id="tab-chip-container">
+            ${currentTabSnapshot ? TabChipRenderer.renderTabChip(currentTabSnapshot, this.escapeHtml.bind(this)) : TabChipRenderer.renderEmptyTabState()}
+          </div>
+          <p class="helper-text">Quick access to this tab</p>
         </div>
 
         <div class="form-group">
@@ -700,7 +732,7 @@ class SidePanelController {
       content: formHtml
     });
 
-    // Attach form handler after modal is created
+    // Attach form handler and tab chip handlers after modal is created
     requestAnimationFrame(() => {
       const form = document.getElementById('create-task-form');
       const cancelBtn = form?.querySelector('[data-modal-cancel]');
@@ -713,6 +745,14 @@ class SidePanelController {
       cancelBtn?.addEventListener('click', () => {
         modal.close();
       });
+
+      // Setup tab chip interaction handlers
+      TabChipRenderer.setupTabChipHandlers(
+        '#tab-chip-container',
+        currentTabSnapshot ? [currentTabSnapshot] : [],
+        this.escapeHtml.bind(this),
+        { multipleMode: false } // Single tab for create modal
+      );
     });
   }
 
@@ -745,6 +785,19 @@ class SidePanelController {
       const dueDateStr = formData.get('dueDate');
       if (dueDateStr) {
         params.dueDate = new Date(dueDateStr).getTime();
+      }
+
+      // Phase 11: Include tab references if present
+      const container = document.getElementById('tab-chip-container');
+      if (container?.dataset.tabReferences) {
+        try {
+          params.tabReferences = JSON.parse(container.dataset.tabReferences);
+        } catch (error) {
+          console.warn('[Phase 11] Failed to parse tab references:', error);
+          params.tabReferences = [];
+        }
+      } else {
+        params.tabReferences = [];
       }
 
       const response = await this.sendMessage('createTask', { params });
@@ -1270,6 +1323,9 @@ class SidePanelController {
       console.error('Failed to save view preference:', error);
     }
   }
+
+  // Phase 11: Tab chip rendering moved to TabChipRenderer component
+  // See: /sidepanel/components/tab-chip-renderer.js
 }
 
 // Initialize on DOMContentLoaded

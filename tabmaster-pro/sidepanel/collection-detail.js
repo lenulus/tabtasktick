@@ -12,6 +12,8 @@
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
 import { EmojiPicker } from './components/emoji-picker.js';
+import { getCurrentTabSnapshot } from '../services/utils/tab-snapshot.js';
+import { TabChipRenderer } from './components/tab-chip-renderer.js';
 
 export class CollectionDetailView {
   constructor(controller) {
@@ -777,11 +779,26 @@ export class CollectionDetailView {
   }
 
   /**
-   * Create task form
+   * Create task form (async for Phase 11 tab snapshot)
    */
-  createTaskForm(task = null) {
+  async createTaskForm(task = null) {
     const form = document.createElement('form');
     form.className = 'task-edit-form';
+
+    // Phase 11: Render tab references or get current tab
+    let tabReferencesHtml = '';
+    if (task) {
+      tabReferencesHtml = await TabChipRenderer.renderTabReferences(
+        task.tabReferences || [],
+        this.escapeHtml.bind(this)
+      );
+    } else {
+      const currentTab = await getCurrentTabSnapshot();
+      tabReferencesHtml = currentTab
+        ? TabChipRenderer.renderTabChip(currentTab, this.escapeHtml.bind(this))
+        : TabChipRenderer.renderEmptyTabState();
+    }
+
     form.innerHTML = `
       <div class="form-group">
         <label for="task-summary">Summary *</label>
@@ -793,6 +810,15 @@ export class CollectionDetailView {
           required
           class="form-input"
         >
+      </div>
+
+      <!-- Phase 11: Tab Association Section -->
+      <div class="tab-association-section" id="tab-association-section">
+        <label class="section-label">Context</label>
+        <div class="tab-chip-container" id="tab-chip-container">
+          ${tabReferencesHtml}
+        </div>
+        <p class="helper-text">Quick access to tabs</p>
       </div>
 
       <div class="form-group">
@@ -850,6 +876,17 @@ export class CollectionDetailView {
         >
       </div>
     `;
+
+    // Phase 11: Setup tab chip handlers after form is created
+    setTimeout(() => {
+      TabChipRenderer.setupTabChipHandlers(
+        '#tab-chip-container',
+        task ? task.tabReferences || [] : [],
+        this.escapeHtml.bind(this),
+        { multipleMode: true } // Multiple tabs allowed
+      );
+    }, 0);
+
     return form;
   }
 
@@ -870,6 +907,19 @@ export class CollectionDetailView {
           : [],
         collectionId: this.currentCollectionId
       };
+
+      // Phase 11: Include tab references
+      const container = form.querySelector('#tab-chip-container');
+      if (container?.dataset.tabReferences) {
+        try {
+          params.tabReferences = JSON.parse(container.dataset.tabReferences);
+        } catch (error) {
+          console.warn('[Phase 11] Failed to parse tab references:', error);
+          params.tabReferences = [];
+        }
+      } else {
+        params.tabReferences = [];
+      }
 
       const action = taskId ? 'updateTask' : 'createTask';
       const response = await this.controller.sendMessage(action, taskId ? { id: taskId, updates: params } : { params });
@@ -1219,4 +1269,7 @@ export class CollectionDetailView {
     div.textContent = text;
     return div.innerHTML;
   }
+
+  // Phase 11: Tab chip rendering moved to TabChipRenderer component
+  // See: /sidepanel/components/tab-chip-renderer.js
 }

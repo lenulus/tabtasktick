@@ -13,12 +13,14 @@
 
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
+import { TabChipRenderer } from './components/tab-chip-renderer.js';
 
 export class TasksView {
   constructor(controller) {
     this.controller = controller;
     this.contentContainer = null;
     this.collections = null; // Cache for collection lookups
+    this.eventListenersAttached = false; // Track if event listeners are already attached
   }
 
   /**
@@ -316,7 +318,9 @@ export class TasksView {
     const statusBadge = this.getStatusBadge(task.status);
     const dueDateHtml = this.renderDueDate(task.dueDate);
     const collectionBadge = isUncategorized ? '' : this.renderCollectionBadge(task.collectionId);
-    const tabReferences = this.renderTabReferences(task.tabIds, task.collectionId);
+    // Phase 11: Use new tabReferences field, fallback to old tabIds
+    const tabRefs = task.tabReferences || [];
+    const tabReferenceBadge = TabChipRenderer.renderTabReferenceBadge(tabRefs, task.id, this.escapeHtml.bind(this));
 
     const actionButtons = isCompleted
       ? `
@@ -343,7 +347,7 @@ export class TasksView {
         </div>
         <div class="task-body">
           <h3 class="task-summary">${this.escapeHtml(task.summary)}</h3>
-          ${tabReferences}
+          ${tabReferenceBadge}
         </div>
         <div class="task-actions">
           ${actionButtons}
@@ -432,20 +436,25 @@ export class TasksView {
   /**
    * Render tab references
    */
-  renderTabReferences(tabIds, collectionId) {
-    if (!tabIds || tabIds.length === 0) {
+  /**
+   * Render tab reference badge for task cards (Phase 11)
+   * Clickable badge that opens associated tabs
+   */
+  renderTabReferenceBadge(tabReferences, taskId) {
+    if (!tabReferences || tabReferences.length === 0) {
       return '';
     }
 
-    // For now, just show count
-    // In Phase 6, we'll fetch actual tab data and show names
-    const tabCount = tabIds.length;
+    const tabCount = tabReferences.length;
     const tabWord = tabCount === 1 ? 'tab' : 'tabs';
+    const firstRef = tabReferences[0];
+    const favicon = firstRef.favIconUrl || getFallbackFavicon(firstRef.url);
 
     return `
-      <div class="task-tab-refs">
-        → ${tabCount} ${tabWord}
-      </div>
+      <button class="tab-reference-badge" data-action="open-tabs" data-task-id="${taskId}" title="Open ${tabCount} associated ${tabWord}">
+        <img class="favicon" src="${this.escapeHtml(favicon)}" width="12" height="12" alt="" onerror="this.src='chrome://favicon/'">
+        <span class="tab-count">${tabCount} ${tabWord}</span>
+      </button>
     `;
   }
 
@@ -453,10 +462,20 @@ export class TasksView {
    * Attach event listeners
    */
   attachEventListeners() {
+    // Only attach listeners once to prevent duplicate handlers
+    if (this.eventListenersAttached) {
+      return;
+    }
+
+    this.eventListenersAttached = true;
+
     // Task action buttons
     this.contentContainer?.addEventListener('click', async (e) => {
       const actionBtn = e.target.closest('.task-action');
       if (actionBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+
         const action = actionBtn.dataset.action;
         const taskId = actionBtn.dataset.taskId;
         const collectionId = actionBtn.dataset.collectionId;
@@ -478,6 +497,7 @@ export class TasksView {
             await this.handleDeleteTask(taskId);
             break;
         }
+        return; // Prevent further event processing
       }
 
       // Toggle completed section
@@ -509,7 +529,9 @@ export class TasksView {
         throw new Error(response.error);
       }
 
-      notifications.show(`Opened ${response.opened || 0} tabs`, 'success');
+      // Phase 11: response.tabsOpened (not response.opened)
+      const tabsOpened = response.tabsOpened || 0;
+      notifications.show(`Opened ${tabsOpened} tab${tabsOpened === 1 ? '' : 's'}`, 'success');
 
       // Refresh data
       await this.controller.loadData();
@@ -663,7 +685,7 @@ export class TasksView {
   /**
    * Show edit task modal
    */
-  showEditTaskModal(task) {
+  async showEditTaskModal(task) {
     // Build collection options
     const collectionOptions = this.collections
       ? this.collections.map(c => `
@@ -672,6 +694,12 @@ export class TasksView {
           </option>
         `).join('')
       : '';
+
+    // Phase 11: Render existing tab references or empty state
+    const tabReferencesHtml = await TabChipRenderer.renderTabReferences(
+      task.tabReferences || [],
+      this.escapeHtml.bind(this)
+    );
 
     const formHtml = `
       <form id="edit-task-form" class="modal-form">
@@ -686,6 +714,15 @@ export class TasksView {
             required
             maxlength="255"
           >
+        </div>
+
+        <!-- Phase 11: Tab Association Section -->
+        <div class="tab-association-section" id="tab-association-section">
+          <label class="section-label">Context</label>
+          <div class="tab-chip-container" id="tab-chip-container">
+            ${tabReferencesHtml}
+          </div>
+          <p class="helper-text">Quick access to tabs</p>
         </div>
 
         <div class="form-group">
@@ -762,7 +799,7 @@ export class TasksView {
       content: formHtml
     });
 
-    // Attach form handler after modal is created
+    // Attach form handler and tab chip handlers after modal is created
     requestAnimationFrame(() => {
       const form = document.getElementById('edit-task-form');
       const cancelBtn = form?.querySelector('[data-modal-cancel]');
@@ -775,6 +812,14 @@ export class TasksView {
       cancelBtn?.addEventListener('click', () => {
         modal.close();
       });
+
+      // Setup tab chip interaction handlers
+      TabChipRenderer.setupTabChipHandlers(
+        '#tab-chip-container',
+        task.tabReferences || [],
+        this.escapeHtml.bind(this),
+        { multipleMode: true } // Multiple tabs allowed in edit modal
+      );
     });
   }
 
@@ -808,6 +853,19 @@ export class TasksView {
         updates.dueDate = new Date(dueDateStr).getTime();
       } else {
         updates.dueDate = null;
+      }
+
+      // Phase 11: Include updated tab references
+      const container = document.getElementById('tab-chip-container');
+      if (container?.dataset.tabReferences) {
+        try {
+          updates.tabReferences = JSON.parse(container.dataset.tabReferences);
+        } catch (error) {
+          console.warn('[Phase 11] Failed to parse tab references:', error);
+          updates.tabReferences = [];
+        }
+      } else {
+        updates.tabReferences = [];
       }
 
       const response = await chrome.runtime.sendMessage({
@@ -857,5 +915,127 @@ export class TasksView {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  // Phase 11: Tab chip rendering moved to TabChipRenderer component
+  // See: /sidepanel/components/tab-chip-renderer.js
+  // The following methods are DEPRECATED and should be removed:
+  // - renderTabReferences()
+  // - renderTabChip()
+  // - renderEmptyTabState()
+  // - setupTabChipHandlers()
+  // - renderTabReferenceBadge()
+
+  /**
+   * @deprecated Use TabChipRenderer.renderTabReferences() instead
+   * Render tab references HTML (for edit modal)
+   * Phase 11: Tab-Task Association
+   */
+  async renderTabReferences(tabReferences) {
+    if (!tabReferences || tabReferences.length === 0) {
+      return this.renderEmptyTabState();
+    }
+
+    // Check which tabs are still open
+    const referencesWithStatus = await Promise.all(
+      tabReferences.map(async (ref) => ({
+        ...ref,
+        isOpen: await isTabOpen(ref.chromeTabId)
+      }))
+    );
+
+    return referencesWithStatus.map(ref => this.renderTabChip(ref)).join('');
+  }
+
+  /**
+   * Render single tab chip
+   * Phase 11: Tab-Task Association
+   */
+  renderTabChip(tabRef) {
+    const favicon = tabRef.favIconUrl || getFallbackFavicon(tabRef.url);
+    const title = formatTabTitle(tabRef.title || tabRef.url, 35);
+    const isActive = tabRef.isOpen !== false; // Assume open if not checked
+
+    return `
+      <div class="tab-chip ${isActive ? 'active' : 'inactive'}" data-tab-ref='${JSON.stringify(tabRef).replace(/'/g, "&#39;")}'>
+        <img class="favicon" src="${this.escapeHtml(favicon)}" width="16" height="16" alt="" onerror="this.src='chrome://favicon/'">
+        <span class="tab-title">${this.escapeHtml(title)}</span>
+        ${!isActive ? '<span class="status-badge">Closed</span>' : ''}
+        <button class="remove-btn" aria-label="Remove tab reference" title="Remove tab reference">×</button>
+      </div>
+    `;
+  }
+
+  /**
+   * Render empty tab state (unlinked)
+   * Phase 11: Tab-Task Association
+   */
+  renderEmptyTabState() {
+    return `
+      <button class="add-current-tab-btn subtle" id="add-current-tab-btn">
+        <span class="icon">🔗</span>
+        <span>Link to current tab</span>
+      </button>
+    `;
+  }
+
+  /**
+   * Setup tab chip interaction handlers (for edit modal)
+   * Phase 11: Tab-Task Association
+   */
+  setupTabChipHandlers(existingReferences) {
+    const container = document.getElementById('tab-chip-container');
+    if (!container) return;
+
+    let currentReferences = [...existingReferences];
+
+    // Store references in container for access during form submission
+    container.dataset.tabReferences = JSON.stringify(currentReferences);
+
+    // Handle clicks on container (event delegation)
+    container.addEventListener('click', async (e) => {
+      // Handle remove button click
+      const removeBtn = e.target.closest('.remove-btn');
+      if (removeBtn) {
+        const chip = removeBtn.closest('.tab-chip');
+        if (chip) {
+          try {
+            const tabRef = JSON.parse(chip.dataset.tabRef);
+            // Remove this reference from array
+            currentReferences = currentReferences.filter(
+              ref => ref.chromeTabId !== tabRef.chromeTabId
+            );
+            container.dataset.tabReferences = JSON.stringify(currentReferences);
+
+            // Re-render
+            container.innerHTML = currentReferences.length > 0
+              ? currentReferences.map(ref => this.renderTabChip(ref)).join('')
+              : this.renderEmptyTabState();
+          } catch (error) {
+            console.warn('[Phase 11] Failed to parse tab ref:', error);
+          }
+        }
+        return;
+      }
+
+      // Handle add current tab button click
+      const addBtn = e.target.closest('.add-current-tab-btn');
+      if (addBtn) {
+        const snapshot = await getCurrentTabSnapshot();
+        if (snapshot) {
+          // Add to references (avoid duplicates by chromeTabId)
+          const exists = currentReferences.some(ref => ref.chromeTabId === snapshot.chromeTabId);
+          if (!exists) {
+            currentReferences.push(snapshot);
+            container.dataset.tabReferences = JSON.stringify(currentReferences);
+            container.innerHTML = currentReferences.map(ref => this.renderTabChip(ref)).join('');
+          } else {
+            notifications.show('This tab is already linked', 'info');
+          }
+        } else {
+          notifications.show('No active tab found', 'warning');
+        }
+      }
+    });
   }
 }

@@ -16,7 +16,8 @@
  * Business Rules:
  * - summary: Required, non-empty string
  * - collectionId: Optional FK (null for uncategorized tasks)
- * - tabIds: Array of tab storage IDs (many-to-many references)
+ * - tabIds: Array of tab storage IDs (DEPRECATED - use tabReferences)
+ * - tabReferences: Array of tab snapshots with metadata (Phase 11)
  * - status: 'open' | 'active' | 'fixed' | 'abandoned' (default: 'open')
  * - priority: 'low' | 'medium' | 'high' | 'critical' (default: 'medium')
  * - completedAt: Set automatically when status becomes 'fixed' or 'abandoned'
@@ -104,7 +105,8 @@ const VALID_PRIORITIES = ['low', 'medium', 'high', 'critical'];
  * - dueDate: Due date timestamp
  * - tags: Array of tag strings (default: [])
  * - collectionId: Parent collection ID (FK, null for uncategorized)
- * - tabIds: Array of tab storage IDs (default: [])
+ * - tabIds: Array of tab storage IDs (DEPRECATED - default: [])
+ * - tabReferences: Array of tab snapshots (Phase 11 - default: [])
  *
  * @param {Object} params - Task parameters
  * @param {string} params.summary - Task summary (required, non-empty)
@@ -114,7 +116,8 @@ const VALID_PRIORITIES = ['low', 'medium', 'high', 'critical'];
  * @param {number} [params.dueDate] - Due date timestamp
  * @param {string[]} [params.tags] - Tag array (default: [])
  * @param {string|null} [params.collectionId] - Parent collection ID (default: null)
- * @param {string[]} [params.tabIds] - Tab storage IDs (default: [])
+ * @param {string[]} [params.tabIds] - Tab storage IDs (DEPRECATED - default: [])
+ * @param {Array<Object>} [params.tabReferences] - Tab snapshots with metadata (Phase 11 - default: [])
  *
  * @returns {Promise<Object>} Created task object
  * @returns {string} return.id - Generated UUID
@@ -122,7 +125,8 @@ const VALID_PRIORITIES = ['low', 'medium', 'high', 'critical'];
  * @returns {string} return.status - Task status
  * @returns {string} return.priority - Task priority
  * @returns {string|null} return.collectionId - Parent collection ID or null
- * @returns {string[]} return.tabIds - Tab storage IDs
+ * @returns {string[]} return.tabIds - Tab storage IDs (DEPRECATED)
+ * @returns {Array<Object>} return.tabReferences - Tab snapshots with metadata
  * @returns {string[]} return.tags - Tags
  * @returns {Array} return.comments - Comments array (empty on creation)
  * @returns {number} return.createdAt - Creation timestamp
@@ -177,7 +181,8 @@ export async function createTask(params) {
     priority,
     tags: params.tags || [],
     collectionId: params.collectionId !== undefined ? params.collectionId : null,
-    tabIds: params.tabIds || [],
+    tabIds: params.tabIds || [], // DEPRECATED: backward compatibility
+    tabReferences: params.tabReferences || [], // Phase 11: tab snapshots with metadata
     comments: [],
     createdAt: now,
     // Optional fields (only include if provided)
@@ -219,7 +224,8 @@ export async function createTask(params) {
  * @param {string} [updates.priority] - New priority
  * @param {number} [updates.dueDate] - New due date
  * @param {string[]} [updates.tags] - New tags array
- * @param {string[]} [updates.tabIds] - New tab IDs array
+ * @param {string[]} [updates.tabIds] - New tab IDs array (DEPRECATED)
+ * @param {Array<Object>} [updates.tabReferences] - New tab references array (Phase 11)
  *
  * @returns {Promise<Object>} Updated task object
  *

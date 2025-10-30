@@ -1922,3 +1922,180 @@ textarea.form-control {
   color: var(--warning-color);
   font-weight: 600;
 }
+
+/* =====================================================
+   Phase 11: Tab-Task Association Styles
+   ===================================================== */
+
+/* Tab Association Section */
+.tab-association-section {
+  margin: 16px 0;
+}
+
+.section-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.tab-chip-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Tab Chip (Linked State) */
+.tab-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #E3F2FD;
+  border: 1px solid #90CAF9;
+  border-radius: 6px;
+  max-width: 100%;
+  transition: background 0.2s ease;
+  cursor: default;
+}
+
+.tab-chip:hover {
+  background: #BBDEFB;
+}
+
+.tab-chip.inactive {
+  background: #F5F5F5;
+  border-color: #E0E0E0;
+}
+
+.tab-chip .favicon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  /* Fallback for broken images - hide broken icon */
+  object-fit: contain;
+}
+
+/* Hide broken image icon */
+.tab-chip .favicon[src=""],
+.tab-chip .favicon:not([src]) {
+  display: none;
+}
+
+.tab-chip .tab-title {
+  flex: 1;
+  font-size: 13px;
+  color: #1565C0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-chip.inactive .tab-title {
+  color: #757575;
+}
+
+.tab-chip .remove-btn {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #1565C0;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-chip .remove-btn:hover {
+  opacity: 1;
+  background: rgba(21, 101, 192, 0.1);
+  border-radius: 3px;
+}
+
+/* Add Current Tab Button (Unlinked State) */
+.add-current-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px dashed #BDBDBD;
+  border-radius: 6px;
+  color: #757575;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.add-current-tab-btn:hover {
+  background: #F5F5F5;
+  border-color: #90CAF9;
+  color: #1565C0;
+}
+
+.add-current-tab-btn .icon {
+  font-size: 14px;
+}
+
+/* Helper Text */
+.helper-text {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin: 4px 0 0 0;
+}
+
+/* Status Badge (for closed tabs) */
+.status-badge {
+  padding: 2px 6px;
+  background: #FFF3E0;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #E65100;
+}
+
+/* Tab Reference Badge (for task lists) */
+.tab-reference-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: #E3F2FD;
+  border: 1px solid #90CAF9;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #1565C0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.tab-reference-badge:hover {
+  background: #BBDEFB;
+  border-color: #1565C0;
+}
+
+.tab-reference-badge .favicon {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+}
+
+/* Hide broken image icon */
+.tab-reference-badge .favicon[src=""],
+.tab-reference-badge .favicon:not([src]) {
+  display: none;
+}
+
+.tab-reference-badge .tab-count {
+  font-weight: 500;
+}

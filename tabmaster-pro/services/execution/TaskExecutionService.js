@@ -49,6 +49,7 @@
 
 import * as RestoreCollectionService from './RestoreCollectionService.js';
 import { getTask, getTab, getCollection, getCompleteCollection } from '../utils/storage-queries.js';
+import { openTabsFromSnapshots } from '../utils/tab-snapshot.js';
 
 /**
  * Opens tabs referenced by a task.
@@ -117,7 +118,11 @@ export async function openTaskTabs(taskId) {
   }
 
   // Step 2: Check if task has tabs to open
-  if (!task.tabIds || task.tabIds.length === 0) {
+  // Phase 11: Use new tabReferences field, fallback to old tabIds
+  const tabReferences = task.tabReferences || [];
+  const hasTabsToOpen = tabReferences.length > 0 || (task.tabIds && task.tabIds.length > 0);
+
+  if (!hasTabsToOpen) {
     warnings.push('Task has no tabs to open');
     return {
       tabsOpened: 0,
@@ -127,7 +132,12 @@ export async function openTaskTabs(taskId) {
     };
   }
 
-  // Step 3: Handle uncategorized tasks (no collection)
+  // Phase 11: If using new tabReferences, open tabs directly from snapshots
+  if (tabReferences.length > 0) {
+    return await openTabsFromTabReferences(task, tabReferences, warnings);
+  }
+
+  // Step 3: Handle uncategorized tasks (no collection) - legacy path
   if (!task.collectionId) {
     return await openUncategorizedTaskTabs(task, warnings);
   }
@@ -262,5 +272,28 @@ async function openUncategorizedTaskTabs(task, warnings) {
     collectionRestored: false,
     windowId,
     warnings
+  };
+}
+
+/**
+ * Open tabs from Phase 11 tab references (snapshots)
+ * Uses tab-snapshot utility to open/focus tabs
+ *
+ * @param {Object} task - Task object
+ * @param {Array} tabReferences - Array of tab snapshots
+ * @param {Array} warnings - Warnings array to append to
+ * @returns {Promise<Object>} Result object
+ */
+async function openTabsFromTabReferences(task, tabReferences, warnings) {
+  const result = await openTabsFromSnapshots(tabReferences);
+
+  return {
+    tabsOpened: result.opened,
+    tabsMissing: result.failed,
+    collectionRestored: false,
+    warnings: [
+      ...warnings,
+      ...(result.failed > 0 ? [`${result.failed} tabs could not be opened`] : [])
+    ]
   };
 }
