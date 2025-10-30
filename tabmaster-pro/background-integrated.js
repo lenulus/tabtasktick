@@ -1955,11 +1955,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
 
         case 'getUngroupedTabs':
-          // Get tabs with folderId === null for a collection
+          // Get tabs with folderId === null for a specific collection
           // Note: Can't use index for null, so we filter all tabs
           const allTabsForUngrouped = await getAllTabs();
           const ungroupedTabsForCollection = allTabsForUngrouped.filter(tab =>
-            tab.folderId === null
+            tab.folderId === null && tab.collectionId === request.collectionId
           );
           // Sort by position (window-level ordering)
           ungroupedTabsForCollection.sort((a, b) => a.position - b.position);

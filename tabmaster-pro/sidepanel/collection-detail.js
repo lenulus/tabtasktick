@@ -106,8 +106,10 @@ export class CollectionDetailView {
       allTabs.push(...tabs.map(tab => ({ ...tab, folderId: folder.id })));
     }
 
-    // Load ungrouped tabs (folderId === null)
-    const ungroupedResponse = await this.controller.sendMessage('getUngroupedTabs', {});
+    // Load ungrouped tabs (folderId === null) for this collection only
+    const ungroupedResponse = await this.controller.sendMessage('getUngroupedTabs', {
+      collectionId: this.currentCollectionId
+    });
     const ungroupedTabs = ungroupedResponse?.tabs || [];
     allTabs.push(...ungroupedTabs.map(tab => ({ ...tab, folderId: null })));
 
