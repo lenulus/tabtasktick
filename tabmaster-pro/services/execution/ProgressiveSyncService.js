@@ -87,6 +87,14 @@ const state = {
 };
 
 /**
+ * Tracks ongoing initialization to prevent race conditions.
+ * When multiple event handlers fire during service worker restart,
+ * they all need initialization but should not trigger duplicate init.
+ * This promise ensures only one initialization runs at a time.
+ */
+let initializationPromise = null;
+
+/**
  * Maximum number of log entries to keep in buffer
  */
 const MAX_LOG_BUFFER_SIZE = 1000;
@@ -186,6 +194,59 @@ export async function initialize() {
 }
 
 /**
+ * Ensures the service is initialized (lazy initialization with race condition protection).
+ *
+ * SERVICE WORKER RESTART PROBLEM:
+ * Service workers can restart at any time, losing all in-memory state (cache, queues, flags).
+ * When this happens, multiple Chrome events may fire simultaneously, all needing initialization.
+ *
+ * RACE CONDITION WITHOUT SYNCHRONIZATION:
+ * 1. Event A fires → sees empty cache → starts initialize()
+ * 2. Event B fires (while A is initializing) → ALSO sees empty cache → starts ANOTHER initialize()
+ * 3. Result: Duplicate initialization, wasted work, potential data corruption
+ *
+ * SOLUTION:
+ * Use a shared Promise (initializationPromise) to coordinate multiple callers.
+ * - First caller starts initialization and stores the Promise
+ * - Subsequent callers wait for the same Promise (no duplicate work)
+ * - After completion, Promise is cleared for next restart cycle
+ *
+ * This pattern is necessary because:
+ * - JavaScript is single-threaded but async (events interleave)
+ * - We can't use locks/mutexes (not available in JavaScript)
+ * - Promise coordination is the idiomatic way to prevent async race conditions
+ *
+ * @returns {Promise<void>}
+ */
+async function ensureInitialized() {
+  // Fast path: Already initialized with populated cache
+  if (state.initialized && state.settingsCache.size > 0) {
+    return;
+  }
+
+  // If initialization is already in progress, wait for it
+  if (initializationPromise) {
+    logAndBuffer('info', 'Initialization already in progress, waiting...');
+    return initializationPromise;
+  }
+
+  // Start initialization (this is the first caller)
+  logAndBuffer('warn', 'Settings cache is empty, reinitializing (service worker likely restarted)');
+
+  state.initialized = false;
+
+  // Store the promise so other callers can wait
+  initializationPromise = initialize();
+
+  try {
+    await initializationPromise;
+  } finally {
+    // Clear the promise after completion (success or failure)
+    initializationPromise = null;
+  }
+}
+
+/**
  * Loads settings cache for all active collections.
  *
  * Queries IndexedDB for active collections and caches their settings in memory.
@@ -203,6 +264,7 @@ async function loadSettingsCache() {
       // Ensure default settings exist (backwards compatibility)
       const settings = collection.settings || {
         trackingEnabled: true,
+        autoSync: true,
         syncDebounceMs: 2000
       };
 
@@ -230,27 +292,79 @@ async function loadSettingsCache() {
 }
 
 /**
+ * Wraps an event handler to ensure initialization before execution.
+ *
+ * THE FRAGILITY PROBLEM:
+ * Without this wrapper, every event handler must manually call ensureInitialized().
+ * This is fragile because:
+ * - Developers must remember to add it to every handler (easy to forget)
+ * - Code reviewers must catch missing calls (manual, error-prone)
+ * - Forgetting causes silent failures (handler runs with empty cache)
+ * - Adding new handlers requires remembering this pattern (perpetual cognitive load)
+ *
+ * THE WRAPPER SOLUTION:
+ * This function wraps any event handler to automatically ensure initialization.
+ * - Centralized: Initialization check happens in ONE place
+ * - Automatic: Impossible to forget (it's in the registration, not the handler)
+ * - Maintainable: New handlers just need to be wrapped, no other changes
+ * - Obvious: The wrapper name makes the pattern explicit
+ *
+ * HOW IT WORKS:
+ * 1. Takes a handler function as input
+ * 2. Returns a new function that:
+ *    a. First ensures initialization
+ *    b. Then calls the original handler
+ * 3. The wrapper preserves all arguments and context
+ *
+ * USAGE EXAMPLE:
+ * Instead of:
+ *   chrome.tabs.onCreated.addListener(handleTabCreated);
+ *   // And handleTabCreated must remember to call ensureInitialized()
+ *
+ * We do:
+ *   chrome.tabs.onCreated.addListener(withInitialization(handleTabCreated));
+ *   // And handleTabCreated can focus only on its business logic
+ *
+ * This is the idiomatic JavaScript pattern for cross-cutting concerns (like logging,
+ * authentication, initialization). It's similar to decorators in other languages.
+ *
+ * @param {Function} handler - The event handler function to wrap
+ * @returns {Function} A new function that ensures initialization before calling handler
+ */
+function withInitialization(handler) {
+  return async function(...args) {
+    await ensureInitialized();
+    return handler(...args);
+  };
+}
+
+/**
  * Registers Chrome event listeners for tabs and tab groups.
+ *
+ * ALL HANDLERS ARE WRAPPED WITH withInitialization():
+ * This ensures every handler automatically checks initialization before running.
+ * Without this wrapper, we'd need to add ensureInitialized() to every handler,
+ * which is fragile and easy to forget. See withInitialization() docs for details.
  *
  * Listeners are idempotent - safe to call multiple times.
  */
 function registerEventListeners() {
-  // Tab events
-  chrome.tabs.onCreated.addListener(handleTabCreated);
-  chrome.tabs.onRemoved.addListener(handleTabRemoved);
-  chrome.tabs.onMoved.addListener(handleTabMoved);
-  chrome.tabs.onUpdated.addListener(handleTabUpdated);
-  chrome.tabs.onAttached.addListener(handleTabAttached);
-  chrome.tabs.onDetached.addListener(handleTabDetached);
+  // Tab events (all wrapped for automatic initialization)
+  chrome.tabs.onCreated.addListener(withInitialization(handleTabCreated));
+  chrome.tabs.onRemoved.addListener(withInitialization(handleTabRemoved));
+  chrome.tabs.onMoved.addListener(withInitialization(handleTabMoved));
+  chrome.tabs.onUpdated.addListener(withInitialization(handleTabUpdated));
+  chrome.tabs.onAttached.addListener(withInitialization(handleTabAttached));
+  chrome.tabs.onDetached.addListener(withInitialization(handleTabDetached));
 
-  // Tab group events
-  chrome.tabGroups.onCreated.addListener(handleTabGroupCreated);
-  chrome.tabGroups.onUpdated.addListener(handleTabGroupUpdated);
-  chrome.tabGroups.onRemoved.addListener(handleTabGroupRemoved);
-  chrome.tabGroups.onMoved.addListener(handleTabGroupMoved);
+  // Tab group events (all wrapped for automatic initialization)
+  chrome.tabGroups.onCreated.addListener(withInitialization(handleTabGroupCreated));
+  chrome.tabGroups.onUpdated.addListener(withInitialization(handleTabGroupUpdated));
+  chrome.tabGroups.onRemoved.addListener(withInitialization(handleTabGroupRemoved));
+  chrome.tabGroups.onMoved.addListener(withInitialization(handleTabGroupMoved));
 
-  // Window events (for cleanup)
-  chrome.windows.onRemoved.addListener(handleWindowRemoved);
+  // Window events (wrapped for automatic initialization)
+  chrome.windows.onRemoved.addListener(withInitialization(handleWindowRemoved));
 
   console.log('[ProgressiveSyncService] Event listeners registered');
 }
@@ -271,6 +385,7 @@ function registerEventListeners() {
  */
 async function handleTabCreated(tab) {
   try {
+
     logAndBuffer('info', `Tab created event fired: ${tab.id} in window ${tab.windowId}`);
 
     const collectionId = await findCollectionByWindowId(tab.windowId);
@@ -308,6 +423,7 @@ async function handleTabCreated(tab) {
  */
 async function handleTabRemoved(tabId, removeInfo) {
   try {
+
     // Skip if entire window is closing (handled by window close)
     if (removeInfo.isWindowClosing) {
       return;
@@ -342,6 +458,7 @@ async function handleTabRemoved(tabId, removeInfo) {
  */
 async function handleTabMoved(tabId, moveInfo) {
   try {
+
     const collectionId = await findCollectionByWindowId(moveInfo.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -377,6 +494,7 @@ async function handleTabMoved(tabId, moveInfo) {
  */
 async function handleTabUpdated(tabId, changeInfo, tab) {
   try {
+
     logAndBuffer('info', `Tab updated event fired: ${tabId}`, changeInfo);
 
     const collectionId = await findCollectionByWindowId(tab.windowId);
@@ -418,6 +536,7 @@ async function handleTabUpdated(tabId, changeInfo, tab) {
  */
 async function handleTabAttached(tabId, attachInfo) {
   try {
+
     const collectionId = await findCollectionByWindowId(attachInfo.newWindowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -451,6 +570,7 @@ async function handleTabAttached(tabId, attachInfo) {
  */
 async function handleTabDetached(tabId, detachInfo) {
   try {
+
     const collectionId = await findCollectionByWindowId(detachInfo.oldWindowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -483,6 +603,7 @@ async function handleTabDetached(tabId, detachInfo) {
  */
 async function handleTabGroupCreated(group) {
   try {
+
     const collectionId = await findCollectionByWindowId(group.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -511,6 +632,7 @@ async function handleTabGroupCreated(group) {
  */
 async function handleTabGroupUpdated(group) {
   try {
+
     const collectionId = await findCollectionByWindowId(group.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -540,6 +662,7 @@ async function handleTabGroupUpdated(group) {
  */
 async function handleTabGroupRemoved(group) {
   try {
+
     const collectionId = await findCollectionByWindowId(group.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -572,6 +695,7 @@ async function handleTabGroupRemoved(group) {
  */
 async function handleTabGroupMoved(group) {
   try {
+
     const collectionId = await findCollectionByWindowId(group.windowId);
     if (!collectionId || !shouldTrack(collectionId)) {
       return;
@@ -606,6 +730,7 @@ async function handleTabGroupMoved(group) {
  */
 async function handleWindowRemoved(windowId) {
   try {
+
     const collectionId = await findCollectionByWindowId(windowId);
     if (!collectionId) {
       return;
@@ -1497,6 +1622,7 @@ export async function refreshSettings(collectionId) {
   if (collection.isActive) {
     const settings = collection.settings || {
       trackingEnabled: true,
+      autoSync: true,
       syncDebounceMs: 2000
     };
 
