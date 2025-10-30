@@ -684,7 +684,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
           try {
             await chrome.runtime.sendMessage({
               action: 'updateTask',
-              taskId,
+              id: taskId,
               updates: { priority }
             });
             showNotification(`Priority set to ${priority}`, 'success');
@@ -726,7 +726,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
           try {
             await chrome.runtime.sendMessage({
               action: 'updateTask',
-              taskId,
+              id: taskId,
               updates: { status: nextStatus }
             });
             showNotification(`Status changed to ${nextStatus}`, 'success');

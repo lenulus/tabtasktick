@@ -529,7 +529,7 @@ export class TasksView {
     try {
       const response = await chrome.runtime.sendMessage({
         action: 'updateTask',
-        taskId,
+        id: taskId,
         updates: {
           status: 'fixed'
         }
@@ -812,7 +812,7 @@ export class TasksView {
 
       const response = await chrome.runtime.sendMessage({
         action: 'updateTask',
-        taskId,
+        id: taskId,
         updates
       });
 
