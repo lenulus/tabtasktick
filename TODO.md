@@ -1261,7 +1261,24 @@ Following architecture-guardian review, key improvements from initial plan:
    - Collection shortcuts
    - `?` help modal with searchable shortcuts
 
-4. **Testing & Polish**: Final integration testing and release prep
+4. **Phase 11**: Tab-Task Association (UX Enhancement)
+   - **Design Doc**: `/tabmaster-pro/docs/tab-task-association-ux.md`
+   - **Pattern**: Smart default with explicit override (current tab only)
+   - **Components**:
+     - Tab snapshot utilities (`services/utils/tab-snapshot.js`)
+     - Tab chip UI component (reusable)
+     - Current tab auto-detection on task creation
+     - Tab reference display in task lists (clickable badges)
+     - Graceful handling of closed tabs (ghost references)
+   - **Data Model**: Extend `tabReferences` field with snapshots (title, URL, favicon)
+   - **Files to Modify**:
+     - `sidepanel/panel.js` (new task modal)
+     - `sidepanel/tasks-view.js` (edit task modal)
+     - `sidepanel/collection-detail.js` (collection task creation)
+     - `services/execution/TaskService.js` (data model)
+   - **Estimated Time**: 6-8 hours
+
+5. **Testing & Polish**: Final integration testing and release prep
 
 ---
 
@@ -1270,10 +1287,11 @@ Following architecture-guardian review, key improvements from initial plan:
 - **Proposal**: `/plans/TABTASKTICK-PRODUCT-PROPOSAL-V2.md`
 - **Architecture**: `/docs/service-dependencies.md`
 - **Patterns**: `/docs/service-usage-examples.md`
+- **Tab-Task Association UX**: `/tabmaster-pro/docs/tab-task-association-ux.md`
 - **TabMaster Services**: Reference for patterns
 
 ---
 
-**Last Updated**: 2025-10-25
-**Status**: Phase 7 complete, Phases 8-10 added (Progressive Sync + Import/Export + Keyboard Controls)
-**Next Review**: After Phase 10 complete (ready for v1.3.0 release)
+**Last Updated**: 2025-10-29
+**Status**: Phase 8 (Progressive Sync) complete, Phase 11 (Tab-Task Association) documented
+**Next Review**: After Phase 11 complete (ready for v1.3.0 release)
