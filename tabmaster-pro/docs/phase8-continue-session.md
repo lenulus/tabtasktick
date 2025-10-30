@@ -214,10 +214,10 @@ npm run test:coverage
 
 # Build for testing
 cd /Users/anthonylaforge/dev/bmpro
-./build-extension.sh
+./package-ext.sh
 
 # Release build
-./build-extension.sh --release
+./package-ext.sh --release
 ```
 
 ## Key Decisions Made

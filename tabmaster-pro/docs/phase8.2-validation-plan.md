@@ -316,7 +316,7 @@ Caller imports WindowService
 ## Manual Testing Checklist
 
 ### Prerequisites
-- [ ] Build extension: `./build-extension.sh`
+- [ ] Build extension: `./package-ext.sh`
 - [ ] Load unpacked in Chrome
 - [ ] Open DevTools console for background page
 - [ ] Prepare test windows with duplicate tabs

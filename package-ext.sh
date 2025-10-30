@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build script for TabMaster Pro Chrome Extension
+# Package script for TabMaster Pro Chrome Extension
 # Creates a clean zip file for Chrome Web Store submission
 # Supports automatic version incrementing
 
