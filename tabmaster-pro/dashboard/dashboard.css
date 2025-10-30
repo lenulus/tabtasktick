@@ -2755,6 +2755,95 @@ input:checked + .slider:before {
   margin-top: 16px;
 }
 
+/* List view - single column, more compact */
+.collections-content[data-view="list"] .collections-grid {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.collections-content[data-view="list"] .collection-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.collections-content[data-view="list"] .collection-card:hover {
+  transform: translateY(0);
+}
+
+.collections-content[data-view="list"] .collection-card-header {
+  flex: 1 1 250px;
+  margin-bottom: 0;
+  min-width: 250px;
+}
+
+.collections-content[data-view="list"] .collection-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+}
+
+.collections-content[data-view="list"] .collection-stats {
+  flex: 0 1 auto;
+  border: none;
+  padding: 0;
+  margin: 0;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.collections-content[data-view="list"] .collection-stats .stat {
+  flex-direction: row;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.collections-content[data-view="list"] .collection-stats .stat-value {
+  font-size: 14px;
+}
+
+.collections-content[data-view="list"] .collection-stats .stat-label {
+  font-size: 11px;
+}
+
+.collections-content[data-view="list"] .collection-tags {
+  flex: 0 1 auto;
+  margin: 0;
+  max-width: 200px;
+}
+
+.collections-content[data-view="list"] .collection-actions {
+  flex: 0 1 auto;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.collections-content[data-view="list"] .sync-status-dashboard {
+  flex: 0 1 auto;
+  margin: 0;
+  display: flex;
+  gap: 12px;
+}
+
+/* Hide less critical info in list view to prevent overflow */
+.collections-content[data-view="list"] .collection-description {
+  display: none;
+}
+
+/* Make action buttons more compact in list view */
+.collections-content[data-view="list"] .collection-actions .btn-sm {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.collections-content[data-view="list"] .collection-actions .btn-sm svg {
+  width: 14px;
+  height: 14px;
+}
+
 .collection-card {
   background: white;
   border: 1px solid var(--border-color);

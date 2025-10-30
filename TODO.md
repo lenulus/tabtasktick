@@ -1261,24 +1261,188 @@ Following architecture-guardian review, key improvements from initial plan:
    - Collection shortcuts
    - `?` help modal with searchable shortcuts
 
-4. **Phase 11**: Tab-Task Association (UX Enhancement)
-   - **Design Doc**: `/tabmaster-pro/docs/tab-task-association-ux.md`
-   - **Pattern**: Smart default with explicit override (current tab only)
-   - **Components**:
-     - Tab snapshot utilities (`services/utils/tab-snapshot.js`)
-     - Tab chip UI component (reusable)
-     - Current tab auto-detection on task creation
-     - Tab reference display in task lists (clickable badges)
-     - Graceful handling of closed tabs (ghost references)
-   - **Data Model**: Extend `tabReferences` field with snapshots (title, URL, favicon)
-   - **Files to Modify**:
-     - `sidepanel/panel.js` (new task modal)
-     - `sidepanel/tasks-view.js` (edit task modal)
-     - `sidepanel/collection-detail.js` (collection task creation)
-     - `services/execution/TaskService.js` (data model)
-   - **Estimated Time**: 6-8 hours
+---
 
-5. **Testing & Polish**: Final integration testing and release prep
+### Phase 11: Tab-Task Association ✅
+**Time Estimate**: 6-8 hours (Actual: ~10 hours including debugging)
+**Priority**: HIGH
+**Dependencies**: Phase 2 complete
+**Status**: ✅ **COMPLETE** (2025-10-30)
+**Commit**: 79c4526 - "feat: Implement Phase 11 - Tab-Task Association with snapshot utilities"
+**Design Doc**: `/tabmaster-pro/docs/tab-task-association-ux.md`
+
+**Context**: Tasks should reference specific tabs with metadata snapshots that persist even after tabs close. Smart default pattern: auto-link current tab on creation with explicit override capability.
+
+#### 11.1 Tab Snapshot Utilities (2-3h) ✅ **COMPLETED**
+- [x] Create `/services/utils/tab-snapshot.js` (~258 lines):
+  - [x] `getCurrentTabSnapshot()` - capture current active tab metadata
+  - [x] `getTabSnapshot(chromeTabId)` - capture specific tab metadata
+  - [x] `createTabSnapshot(chromeTab)` - create snapshot from Chrome tab object
+  - [x] `openTabFromSnapshot(tabRef, options)` - smart tab opening:
+    - Focus existing tab if still open (by chromeTabId)
+    - Check for existing tab by URL before creating new one (prevent duplicates)
+    - Create new tab if closed
+  - [x] `openTabsFromSnapshots(tabRefs, options)` - batch tab opening
+  - [x] `isValidTabReference(tabRef)` - validate snapshot structure
+  - [x] `isTabOpen(chromeTabId)` - check if tab exists
+  - [x] Utility functions: `formatTabTitle()`, `getDomainFromUrl()`, `getFallbackFavicon()`
+  - [x] Protocol filtering for special URLs (chrome://, about:, file:)
+
+**Data Model** (Tab Snapshot):
+```javascript
+{
+  tabId: null,                    // Storage ID (deferred Phase 2)
+  chromeTabId: number,            // Chrome runtime tab ID
+  title: string,                  // Tab title at association time
+  url: string,                    // Tab URL
+  favIconUrl: string,             // Favicon URL (Google service fallback)
+  associatedAt: number            // Timestamp of association
+}
+```
+
+#### 11.2 Tab Chip UI Component (2-3h) ✅ **COMPLETED**
+- [x] Create `/sidepanel/components/tab-chip-renderer.js` (~186 lines):
+  - [x] `renderTabChip(tabSnapshot, escapeHtml)` - render linked tab chip
+    - Active/inactive states (green for open, gray for closed)
+    - Favicon with fallback
+    - Formatted title (truncated to 35 chars)
+    - Remove button (×)
+  - [x] `renderEmptyTabState()` - render "Link to current tab" button
+  - [x] `renderTabReferences(tabReferences, escapeHtml)` - async batch render with status checking
+  - [x] `setupTabChipHandlers(container, initialReferences, escapeHtml, options)`:
+    - Click handler for "Link to current tab" button
+    - Click handler for remove button (×)
+    - Multi-tab mode support (edit modal)
+    - Single-tab mode support (create modal)
+    - Dataset storage for form submission
+  - [x] `renderTabReferenceBadge(tabReferences, taskId, escapeHtml)` - task card badge
+    - Shows tab count ("1 tab" or "N tabs")
+    - Clickable to open tabs
+    - Favicon from first tab
+
+#### 11.3 Data Model Updates (1h) ✅ **COMPLETED**
+- [x] Update `/services/execution/TaskService.js`:
+  - [x] Add `tabReferences` field to task data model
+  - [x] Backward compatibility with deprecated `tabIds` field
+  - [x] Default to empty array `[]` if not provided
+
+#### 11.4 Task Execution Updates (1h) ✅ **COMPLETED**
+- [x] Update `/services/execution/TaskExecutionService.js`:
+  - [x] Import `openTabsFromSnapshots` from tab-snapshot utils
+  - [x] Add `openTabsFromTabReferences(task, tabReferences, warnings)`:
+    - Delegates to `openTabsFromSnapshots`
+    - Returns standardized result: `{ tabsOpened, tabsMissing, collectionRestored, warnings }`
+  - [x] Update `openTaskTabs()` to check `task.tabReferences` first (Phase 11 path)
+  - [x] Fallback to legacy `task.tabIds` path if no tab references
+
+#### 11.5 Side Panel Integration (2-3h) ✅ **COMPLETED**
+- [x] Update `/sidepanel/panel.js`:
+  - [x] Import TabChipRenderer component
+  - [x] Update `showCreateTaskModal()` to async
+  - [x] Capture current tab snapshot on modal open
+  - [x] Setup tab chip handlers for create modal
+  - [x] Extract tab references from dataset on form submit
+  - [x] Add Create Task button to header (context-aware, hidden in Collections view)
+  - [x] Toggle button visibility based on current view
+
+- [x] Update `/sidepanel/tasks-view.js`:
+  - [x] Import TabChipRenderer component
+  - [x] Update `showEditTaskModal()` to async
+  - [x] Render existing tab references or empty state
+  - [x] Setup tab chip handlers for edit modal (multi-tab mode)
+  - [x] Extract tab references from dataset on save
+  - [x] Update task card rendering to show tab badge
+  - [x] Fix duplicate event listener attachment (n^2 bug):
+    - Add `eventListenersAttached` flag to constructor
+    - Check flag in `attachEventListeners()` to prevent re-attachment
+  - [x] Add `preventDefault()` and `stopPropagation()` to action button handler
+
+- [x] Update `/sidepanel/collection-detail.js`:
+  - [x] Import TabChipRenderer component
+  - [x] Update `createTaskForm()` to async
+  - [x] Render tab references in create task form
+  - [x] Setup tab chip handlers
+  - [x] Extract tab references on save
+
+- [x] Update `/sidepanel/panel.html`:
+  - [x] Add Create Task button to header
+  - [x] Fix CSP violations: remove inline `style="display: none;"` attributes
+
+- [x] Update `/sidepanel/panel.css`:
+  - [x] Add tab chip styles (~170 lines):
+    - Active chip (green border)
+    - Inactive chip (gray, "Closed" badge)
+    - Empty state button
+    - Tab reference badge
+    - Remove button (×)
+    - Favicon styles with broken image handling
+
+#### 11.6 Critical Bug Fixes (2h) ✅ **COMPLETED**
+- [x] **Form submission bug**: Added `type="button"` to prevent accidental form submit
+  - Fixed in `renderTabChip()` - remove button
+  - Fixed in `renderEmptyTabState()` - "Link to current tab" button
+  - Fixed in `renderTabReferenceBadge()` - tab count badge
+- [x] **n^2 event listener duplication**: Fixed duplicate event attachment
+  - Added `eventListenersAttached` flag to TasksView class
+  - Check flag before attaching listeners
+  - Prevents exponential event firing on repeated renders
+- [x] **Multiple tab creation**: Fixed duplicate tabs on repeated clicks
+  - Added URL-based deduplication in `openTabFromSnapshot()`
+  - Check for existing tab with same URL before creating new
+  - Focus existing tab instead of creating duplicate
+- [x] **CSP violations**: Removed all inline styles and event handlers
+  - Replaced `style="display: none;"` with `.hidden` CSS class
+  - Removed `onerror` handlers from `<img>` tags
+  - Added CSS fallback for broken images
+- [x] **Chrome favicon URL**: Switched from `chrome://favicon/` to Google service
+  - Changed `getFallbackFavicon()` to use `https://www.google.com/s2/favicons?domain=...`
+  - Added protocol filtering to skip special URLs (chrome://, about:, file:, data:)
+
+#### 11.7 Testing (1h) ✅ **COMPLETED**
+- [x] Manual testing:
+  - [x] Create task with current tab linked
+  - [x] Edit task and link/unlink tabs
+  - [x] Verify tab badge shows on task cards
+  - [x] Click badge to open tabs (existing tab)
+  - [x] Close tab and click badge (creates new tab)
+  - [x] Click badge 3x after tab closed (only creates 1 tab, focuses on subsequent clicks)
+  - [x] Verify no n^2 event duplication
+  - [x] Verify no CSP violations
+
+**Success Criteria**: ✅ **MET**
+- [x] Tasks can reference tabs via snapshots (title, URL, favicon)
+- [x] Current tab auto-linked on task creation (smart default)
+- [x] Tab chips render with active/inactive states
+- [x] Tab badges show on task cards ("1 tab" or "N tabs")
+- [x] Clicking badge opens/focuses tabs correctly
+- [x] Closed tabs create exactly 1 new tab, subsequent clicks focus it
+- [x] No n^2 event listener duplication
+- [x] No CSP violations (no inline styles/handlers)
+- [x] No chrome:// protocol issues (Google favicon service works)
+
+**Deliverables**: ✅ **DELIVERED**
+- `/services/utils/tab-snapshot.js` (~258 lines) ✅
+- `/sidepanel/components/tab-chip-renderer.js` (~186 lines) ✅
+- Updated `/services/execution/TaskService.js` (+15 lines) ✅
+- Updated `/services/execution/TaskExecutionService.js` (+32 lines) ✅
+- Updated `/sidepanel/panel.js` (+130 lines, -70 duplicate) ✅
+- Updated `/sidepanel/tasks-view.js` (+165 lines, -110 deprecated) ✅
+- Updated `/sidepanel/collection-detail.js` (+140 lines, -100 deprecated) ✅
+- Updated `/sidepanel/panel.html` (+8 lines) ✅
+- Updated `/sidepanel/panel.css` (+170 lines) ✅
+
+**Total**: 9 files changed, ~1,000 insertions(+), ~26 deletions(-)
+
+**Architecture Compliance**: ✅ **VERIFIED**
+- Services-first architecture maintained
+- No circular dependencies
+- Pure utility functions (tab-snapshot.js)
+- Single source of truth (TabChipRenderer component)
+- Thin UI layers with business logic in services
+
+---
+
+4. **Testing & Polish**: Final integration testing and release prep
 
 ---
 
@@ -1292,6 +1456,6 @@ Following architecture-guardian review, key improvements from initial plan:
 
 ---
 
-**Last Updated**: 2025-10-29
-**Status**: Phase 8 (Progressive Sync) complete, Phase 11 (Tab-Task Association) documented
-**Next Review**: After Phase 11 complete (ready for v1.3.0 release)
+**Last Updated**: 2025-10-30
+**Status**: Phase 11 (Tab-Task Association) complete ✅ - All core phases finished, ready for v1.3.0 release
+**Next Review**: Release preparation and final testing
