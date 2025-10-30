@@ -54,7 +54,7 @@ export class CollectionsView {
     // This maintains sort order from panel.js without active/saved separation
     if (stateFilter === 'all') {
       this.updateCounts(collections.length, 0);
-      this.renderCollectionGroup(this.activeContainer, collections, false);
+      this.renderCollectionGroup(this.activeContainer, collections);
       this.savedContainer.innerHTML = '';
       return;
     }
@@ -67,8 +67,8 @@ export class CollectionsView {
     this.updateCounts(active.length, saved.length);
 
     // Render cards
-    this.renderCollectionGroup(this.activeContainer, active, true);
-    this.renderCollectionGroup(this.savedContainer, saved, false);
+    this.renderCollectionGroup(this.activeContainer, active);
+    this.renderCollectionGroup(this.savedContainer, saved);
   }
 
   /**
@@ -94,7 +94,7 @@ export class CollectionsView {
   /**
    * Render a group of collections
    */
-  renderCollectionGroup(container, collections, isActive) {
+  renderCollectionGroup(container, collections) {
     if (!container) return;
 
     if (collections.length === 0) {
@@ -104,7 +104,7 @@ export class CollectionsView {
 
     // Collections are already sorted by panel.js (via sortCollections method)
     // Respect the controller's sort order - DO NOT re-sort here
-    container.innerHTML = collections.map(c => this.renderCollectionCard(c, isActive)).join('');
+    container.innerHTML = collections.map(c => this.renderCollectionCard(c)).join('');
 
     // Attach event listeners
     this.attachEventListeners(container);
@@ -113,12 +113,15 @@ export class CollectionsView {
   /**
    * Render a single collection card
    */
-  renderCollectionCard(collection, isActive) {
+  renderCollectionCard(collection) {
     const icon = collection.icon || '📁';
     const name = this.escapeHtml(collection.name || 'Untitled Collection');
     const description = collection.description
       ? this.escapeHtml(collection.description)
       : '';
+
+    // Check individual collection's active status
+    const isActive = collection.isActive;
 
     // Get metadata counts (will be implemented in Phase 6 with proper counting)
     const tabCount = collection.metadata?.tabCount || 0;
