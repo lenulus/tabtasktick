@@ -186,18 +186,12 @@ zip -r "$OUTPUT_FILE" \
     options/ \
     icons/ \
     services/ \
-    lib/*.js \
-    lib/*.css \
-    lib/test-mode/ \
-    lib/domain-categories.json \
-    components/*.js \
-    components/*.css \
+    lib/ \
+    components/ \
     test-panel/ \
     -x "*.DS_Store" \
     -x "*/.DS_Store" \
     -x "*/tests/*" \
-    -x "*/test-*" \
-    -x "dashboard/tests/*" \
     -x "dashboard/test-*.html" \
     -x "dashboard/verify-*.html" \
     -x "dashboard/package.json" \
