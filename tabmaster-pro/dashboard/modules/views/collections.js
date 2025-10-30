@@ -763,40 +763,59 @@ function renderCollectionDetails(collection) {
         </div>
       ` : ''}
 
-      <!-- Tabs Section -->
-      ${tabs.length > 0 ? `
+      <!-- Folders & Tabs Section (Hierarchical) -->
+      ${folders.length > 0 || collection.ungroupedTabs?.length > 0 ? `
         <div class="details-section">
-          <h4>Tabs (${tabs.length})</h4>
-          <div class="details-list">
-            ${tabs.map(tab => `
-              <div class="detail-list-item">
-                <img src="${tab.favIconUrl || 'chrome://favicon/size/16@1x/' + tab.url}"
-                     width="16" height="16"
-                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ctext y=%2212%22 font-size=%2212%22%3E🌐%3C/text%3E%3C/svg%3E'">
-                <div class="detail-list-info">
-                  <div class="detail-list-title">${escapeHtml(tab.title || 'Untitled')}</div>
-                  <div class="detail-list-url">${escapeHtml(tab.url || '')}</div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Folders Section -->
-      ${folders.length > 0 ? `
-        <div class="details-section">
-          <h4>Folders (${folders.length})</h4>
+          <h4>Folders & Tabs</h4>
           <div class="details-list">
             ${folders.map(folder => `
-              <div class="detail-list-item">
-                <span class="folder-icon">📁</span>
-                <div class="detail-list-info">
-                  <div class="detail-list-title">${escapeHtml(folder.name || 'Untitled Folder')}</div>
-                  ${folder.children ? `<div class="detail-list-url">${folder.children.length} items</div>` : ''}
+              <div class="folder-section">
+                <div class="folder-header">
+                  <span class="folder-icon">📁</span>
+                  <strong>${escapeHtml(folder.name || 'Untitled Folder')}</strong>
+                  <span class="folder-count">(${folder.tabs?.length || 0} tabs)</span>
                 </div>
+                ${folder.tabs && folder.tabs.length > 0 ? `
+                  <div class="folder-tabs">
+                    ${folder.tabs.map(tab => `
+                      <div class="detail-list-item nested">
+                        <img src="${tab.favIconUrl || 'chrome://favicon/size/16@1x/' + tab.url}"
+                             width="16" height="16"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ctext y=%2212%22 font-size=%2212%22%3E🌐%3C/text%3E%3C/svg%3E'">
+                        <div class="detail-list-info">
+                          <div class="detail-list-title">${escapeHtml(tab.title || 'Untitled')}</div>
+                          <div class="detail-list-url">${escapeHtml(tab.url || '')}</div>
+                          ${tab.note ? `<div class="detail-list-note">📝 ${escapeHtml(tab.note)}</div>` : ''}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : ''}
               </div>
             `).join('')}
+            ${collection.ungroupedTabs && collection.ungroupedTabs.length > 0 ? `
+              <div class="folder-section">
+                <div class="folder-header">
+                  <span class="folder-icon">📄</span>
+                  <strong>Ungrouped</strong>
+                  <span class="folder-count">(${collection.ungroupedTabs.length} tabs)</span>
+                </div>
+                <div class="folder-tabs">
+                  ${collection.ungroupedTabs.map(tab => `
+                    <div class="detail-list-item nested">
+                      <img src="${tab.favIconUrl || 'chrome://favicon/size/16@1x/' + tab.url}"
+                           width="16" height="16"
+                           onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ctext y=%2212%22 font-size=%2212%22%3E🌐%3C/text%3E%3C/svg%3E'">
+                      <div class="detail-list-info">
+                        <div class="detail-list-title">${escapeHtml(tab.title || 'Untitled')}</div>
+                        <div class="detail-list-url">${escapeHtml(tab.url || '')}</div>
+                        ${tab.note ? `<div class="detail-list-note">📝 ${escapeHtml(tab.note)}</div>` : ''}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
           </div>
         </div>
       ` : ''}

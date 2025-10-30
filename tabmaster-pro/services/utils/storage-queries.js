@@ -545,7 +545,7 @@ export async function saveFolders(folders) {
  */
 export async function getCompleteCollection(collectionId) {
   try {
-    return await withTransaction(['collections', 'folders', 'tabs'], 'readonly', async (tx) => {
+    return await withTransaction(['collections', 'folders', 'tabs', 'tasks'], 'readonly', async (tx) => {
       // Get collection
       const collectionStore = tx.objectStore('collections');
       const collection = await getFromStore(collectionStore, collectionId);
@@ -559,13 +559,17 @@ export async function getCompleteCollection(collectionId) {
       const folderIndex = folderStore.index('collectionId');
       const folders = await getAllFromIndex(folderIndex, collectionId);
 
-      // Get tabs for each folder
+      // Get tabs for each folder and collect all tabs
       const tabStore = tx.objectStore('tabs');
+      const allCollectionTabs = [];
+
       for (const folder of folders) {
         const tabIndex = tabStore.index('folderId');
         folder.tabs = await getAllFromIndex(tabIndex, folder.id);
         // Sort tabs by position
         folder.tabs.sort((a, b) => a.position - b.position);
+        // Collect for flat array
+        allCollectionTabs.push(...folder.tabs);
       }
 
       // Get ungrouped tabs (folderId === null) for this collection
@@ -576,6 +580,13 @@ export async function getCompleteCollection(collectionId) {
       );
       // Sort ungrouped tabs by position (window-level ordering)
       ungroupedTabs.sort((a, b) => a.position - b.position);
+      // Add to flat array
+      allCollectionTabs.push(...ungroupedTabs);
+
+      // Get tasks for this collection
+      const taskStore = tx.objectStore('tasks');
+      const taskIndex = taskStore.index('collectionId');
+      const tasks = await getAllFromIndex(taskIndex, collectionId);
 
       // Sort folders by position
       folders.sort((a, b) => a.position - b.position);
@@ -583,7 +594,9 @@ export async function getCompleteCollection(collectionId) {
       return {
         ...collection,
         folders,
-        ungroupedTabs
+        ungroupedTabs,
+        tabs: allCollectionTabs, // Flat array of ALL tabs for dashboard compatibility
+        tasks // Tasks array for dashboard compatibility
       };
     });
   } catch (error) {

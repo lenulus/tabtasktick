@@ -3609,6 +3609,47 @@ input:checked + .slider:before {
   text-overflow: ellipsis;
 }
 
+.detail-list-note {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Folder hierarchy styles */
+.folder-section {
+  margin-bottom: 16px;
+}
+
+.folder-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.folder-count {
+  font-weight: normal;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.folder-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 24px;
+}
+
+.detail-list-item.nested {
+  border-left: 2px solid var(--bg-tertiary);
+  padding-left: 16px;
+}
+
 .detail-list-meta {
   display: flex;
   align-items: center;
