@@ -71,6 +71,7 @@ import {
 /**
  * Service state
  * - initialized: Whether service has been initialized
+ * - listenersRegistered: Whether Chrome event listeners have been registered (prevents duplicates)
  * - settingsCache: Map of collectionId → settings (avoid repeated DB lookups)
  * - changeQueue: Map of collectionId → pending changes
  * - flushTimers: Map of collectionId → debounce timer
@@ -79,6 +80,7 @@ import {
  */
 const state = {
   initialized: false,
+  listenersRegistered: false,
   settingsCache: new Map(),
   changeQueue: new Map(),
   flushTimers: new Map(),
@@ -182,7 +184,10 @@ export async function initialize() {
     // Load settings cache for active collections
     await loadSettingsCache();
 
-    // Register Chrome event listeners
+    // Register Chrome event listeners (idempotent - safe to call multiple times)
+    // NOTE: In Manifest V3, listeners should be registered at module top level
+    // for automatic re-registration on service worker restart. However, we keep
+    // this call here for backwards compatibility and explicit initialization.
     registerEventListeners();
 
     state.initialized = true;
@@ -346,9 +351,20 @@ function withInitialization(handler) {
  * Without this wrapper, we'd need to add ensureInitialized() to every handler,
  * which is fragile and easy to forget. See withInitialization() docs for details.
  *
- * Listeners are idempotent - safe to call multiple times.
+ * IDEMPOTENT: Safe to call multiple times - uses listenersRegistered flag to prevent duplicates.
+ *
+ * MANIFEST V3 PATTERN:
+ * For service worker persistence, this should be called at module top level.
+ * Event listeners registered at top level are automatically re-registered by Chrome
+ * when the service worker wakes up from suspension.
  */
 function registerEventListeners() {
+  // Check if already registered (prevent duplicate listeners)
+  if (state.listenersRegistered) {
+    console.log('[ProgressiveSyncService] Event listeners already registered, skipping');
+    return;
+  }
+
   // Tab events (all wrapped for automatic initialization)
   chrome.tabs.onCreated.addListener(withInitialization(handleTabCreated));
   chrome.tabs.onRemoved.addListener(withInitialization(handleTabRemoved));
@@ -366,6 +382,7 @@ function registerEventListeners() {
   // Window events (wrapped for automatic initialization)
   chrome.windows.onRemoved.addListener(withInitialization(handleWindowRemoved));
 
+  state.listenersRegistered = true;
   console.log('[ProgressiveSyncService] Event listeners registered');
 }
 
@@ -1797,3 +1814,26 @@ export async function getCollectionSyncInfo(collectionId) {
     }
   };
 }
+
+// ============================================================================
+// MODULE INITIALIZATION - MANIFEST V3 PATTERN
+// ============================================================================
+
+/**
+ * Register event listeners at module top level.
+ *
+ * CRITICAL FOR MANIFEST V3:
+ * In Manifest V3, service workers can be suspended after inactivity and restarted
+ * when events fire. When the service worker restarts:
+ * - The module script is re-executed from the top
+ * - chrome.runtime.onInstalled does NOT fire (extension already installed)
+ * - chrome.runtime.onStartup does NOT fire (Chrome already running)
+ *
+ * By calling registerEventListeners() at the top level (not inside onInstalled/onStartup),
+ * we ensure event listeners are registered every time the service worker loads, including
+ * after suspension/wake-up cycles.
+ *
+ * The withInitialization() wrapper ensures each handler lazily loads the settings cache
+ * on first use, so we don't need to call initialize() here.
+ */
+registerEventListeners();

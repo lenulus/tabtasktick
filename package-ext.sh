@@ -180,6 +180,8 @@ echo "Creating extension package..."
 zip -r "$OUTPUT_FILE" \
     manifest.json \
     background-integrated.js \
+    debug-sync.html \
+    debug-sync.js \
     popup/ \
     sidepanel/ \
     dashboard/ \
