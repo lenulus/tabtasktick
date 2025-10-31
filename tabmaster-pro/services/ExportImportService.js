@@ -5,8 +5,8 @@
  * The ExportImportService handles all data export and import operations for TabMaster Pro,
  * supporting three output formats (JSON, CSV, Markdown) and providing complete session
  * restoration capabilities. It exports full snapshots including tabs, windows, groups, rules,
- * settings, snoozed tabs, and statistics, and can restore complete browser sessions from
- * these snapshots.
+ * settings, snoozed tabs, statistics, collections, and tasks, and can restore complete browser
+ * sessions from these snapshots.
  *
  * Key features include scope control (all windows vs current window), format selection
  * (structured JSON for backups, CSV for analysis, Markdown for readability), comprehensive
@@ -64,6 +64,8 @@
 // Service for handling all export and import functionality.
 import * as SnoozeService from './execution/SnoozeService.js';
 import { createWindowWithTabsAndGroups } from './utils/windowCreation.js';
+import { getAllCollections, getCompleteCollection } from './utils/storage-queries.js';
+import * as CollectionImportService from './execution/CollectionImportService.js';
 
 // Helper functions for human-readable formatting
 function getTimeAgo(timestamp, now) {
@@ -258,7 +260,145 @@ async function buildJSONExport(tabs, windows, groups, options, state, tabTimeDat
     exportData.extensionData.statistics = state.statistics;
   }
 
+  // Include collections and tasks (from IndexedDB)
+  if (options.includeCollections !== false) {
+    try {
+      const allCollections = await getAllCollections();
+      const collectionsWithData = [];
+
+      for (const collection of allCollections) {
+        // Get complete collection with folders, tabs, and tasks
+        const completeCollection = await getCompleteCollection(collection.id);
+
+        if (completeCollection) {
+          // Build export format similar to CollectionExportService
+          const collectionExport = {
+            name: completeCollection.name,
+            description: completeCollection.description,
+            icon: completeCollection.icon,
+            color: completeCollection.color,
+            tags: completeCollection.tags || [],
+            settings: completeCollection.settings,
+            metadata: {
+              createdAt: completeCollection.metadata?.createdAt,
+              lastAccessed: completeCollection.metadata?.lastAccessed
+            }
+          };
+
+          // Export folders with tabs
+          const folders = completeCollection.folders || [];
+          folders.sort((a, b) => a.position - b.position);
+
+          collectionExport.folders = folders.map(folder => ({
+            name: folder.name,
+            color: folder.color,
+            collapsed: folder.collapsed || false,
+            position: folder.position,
+            tabs: (folder.tabs || []).map(tab => ({
+              url: tab.url,
+              title: tab.title,
+              favicon: tab.favicon,
+              note: tab.note,
+              position: tab.position,
+              isPinned: tab.isPinned || false
+            }))
+          }));
+
+          // Export ungrouped tabs
+          const ungroupedTabs = completeCollection.ungroupedTabs || [];
+          if (ungroupedTabs.length > 0) {
+            ungroupedTabs.sort((a, b) => a.position - b.position);
+            collectionExport.ungroupedTabs = ungroupedTabs.map(tab => ({
+              url: tab.url,
+              title: tab.title,
+              favicon: tab.favicon,
+              note: tab.note,
+              position: tab.position,
+              isPinned: tab.isPinned || false
+            }));
+          }
+
+          // Export tasks with tab references
+          const tasks = completeCollection.tasks || [];
+          if (tasks.length > 0) {
+            collectionExport.tasks = tasks.map(task => {
+              const taskExport = {
+                summary: task.summary,
+                notes: task.notes,
+                status: task.status,
+                priority: task.priority,
+                dueDate: task.dueDate,
+                tags: task.tags || [],
+                comments: task.comments || [],
+                createdAt: task.createdAt,
+                completedAt: task.completedAt
+              };
+
+              // Convert tab IDs to folder/tab indices for portability
+              if (task.tabIds && task.tabIds.length > 0) {
+                taskExport.tabReferences = convertTabIdsToReferences(
+                  task.tabIds,
+                  folders
+                );
+              } else {
+                taskExport.tabReferences = [];
+              }
+
+              return taskExport;
+            });
+          }
+
+          collectionsWithData.push(collectionExport);
+        }
+      }
+
+      exportData.extensionData.collections = collectionsWithData;
+    } catch (error) {
+      console.error('Failed to export collections:', error);
+      // Don't fail entire export if collections fail
+      exportData.extensionData.collections = [];
+    }
+  }
+
   return exportData;
+}
+
+/**
+ * Convert tab IDs to folder/tab index references with fallback identifiers.
+ *
+ * Helper function for exporting tasks - converts internal tab IDs to
+ * portable folder/tab indices with URL fallbacks.
+ *
+ * @private
+ * @param {string[]} tabIds - Array of tab IDs
+ * @param {Object[]} folders - Folders with tabs (already loaded)
+ * @returns {Object[]} Array of {folderIndex, tabIndex, url, title} references
+ */
+function convertTabIdsToReferences(tabIds, folders) {
+  const references = [];
+
+  for (const tabId of tabIds) {
+    // Find folder and tab index
+    for (let folderIndex = 0; folderIndex < folders.length; folderIndex++) {
+      const folder = folders[folderIndex];
+      const tabIndex = folder.tabs?.findIndex(t => t.id === tabId);
+
+      if (tabIndex !== undefined && tabIndex !== -1) {
+        const tab = folder.tabs[tabIndex];
+
+        // Include fallback identifiers for recovery
+        references.push({
+          folderIndex,
+          tabIndex,
+          url: tab.url,
+          title: tab.title
+        });
+        break;
+      }
+    }
+  }
+
+  return references;
 }
 
 function buildCSVExport(tabs, groups, tabTimeData) {
@@ -400,6 +540,7 @@ async function buildMarkdownExport(tabs, windows, groups, options, state) {
  * @param {boolean} [options.includeSnoozed=false] - Include snoozed tabs in export
  * @param {boolean} [options.includeSettings=false] - Include extension settings in export
  * @param {boolean} [options.includeStatistics=false] - Include usage statistics in export
+ * @param {boolean} [options.includeCollections=false] - Include collections and tasks from IndexedDB in export
  * @param {Object} state - Background state object (rules, settings)
  * @param {Map} tabTimeData - Tab time tracking data (created/lastAccessed times)
  *
@@ -412,6 +553,7 @@ async function buildMarkdownExport(tabs, windows, groups, options, state) {
  * @returns {Array} [return.snoozedTabs] - Snoozed tabs (if includeSnoozed=true)
  * @returns {Object} [return.settings] - Extension settings (if includeSettings=true)
  * @returns {Object} [return.statistics] - Usage stats (if includeStatistics=true)
+ * @returns {Array} [return.collections] - Collections with folders, tabs, and tasks (if includeCollections=true)
  * @returns {Object} return.meta - Export metadata (date, version, counts)
  * @returns {string} [return.format] - Format identifier (for CSV/Markdown)
  *
@@ -722,6 +864,7 @@ async function importSnoozedTabs(snoozedTabs) {
  * @param {boolean} [options.shouldImportRules=true] - Whether to import automation rules
  * @param {boolean} [options.shouldImportSnoozed=true] - Whether to restore snoozed tabs
  * @param {boolean} [options.importSettings=false] - Whether to import extension settings
+ * @param {boolean} [options.shouldImportCollections=true] - Whether to import collections and tasks from IndexedDB
  * @param {Object} state - Background state object (for rules/settings)
  * @param {Function} loadRules - Function to reload rules from storage
  * @param {Object} scheduler - Scheduler object (for rule setup)
@@ -734,6 +877,8 @@ async function importSnoozedTabs(snoozedTabs) {
  * @returns {number} return.imported.groups - Number of groups recreated
  * @returns {number} return.imported.rules - Number of rules imported
  * @returns {number} return.imported.snoozed - Number of snoozed tabs restored
+ * @returns {number} [return.imported.collections] - Number of collections imported (if shouldImportCollections=true)
+ * @returns {number} [return.imported.collectionTasks] - Number of collection tasks imported (if shouldImportCollections=true)
  * @returns {Array<string>} return.errors - Error messages (empty if no errors)
  * @returns {Array<string>} return.warnings - Warning messages (non-fatal issues)
  *
@@ -786,7 +931,8 @@ export async function importData(data, options = {}, state, loadRules, scheduler
     importGroups = true,
     shouldImportRules = true,
     shouldImportSnoozed = true,
-    importSettings = false
+    importSettings = false,
+    shouldImportCollections = true
   } = options;
 
   const result = {
@@ -838,6 +984,43 @@ export async function importData(data, options = {}, state, loadRules, scheduler
         await chrome.storage.local.set({ settings: state.settings });
       } catch (e) {
         result.errors.push('Failed to import settings: ' + e.message);
+      }
+    }
+
+    // Import collections and tasks if present in export data
+    if (options.shouldImportCollections !== false && data.extensionData && data.extensionData.collections && data.extensionData.collections.length > 0) {
+      try {
+        // Build import doc in CollectionImportService format
+        const collectionsImportDoc = {
+          version: '1.1',
+          exportedAt: Date.now(),
+          collections: data.extensionData.collections
+        };
+
+        // Use CollectionImportService to import collections
+        const collectionsResult = await CollectionImportService.importCollections(collectionsImportDoc, {
+          mode: 'merge', // Always merge - don't replace existing collections
+          importTasks: true,
+          importSettings: true
+        });
+
+        result.imported.collections = collectionsResult.stats.collectionsImported;
+        result.imported.collectionTasks = collectionsResult.stats.tasksImported;
+
+        // Add any errors from collection import
+        if (collectionsResult.errors.length > 0) {
+          result.errors.push(...collectionsResult.errors.map(e =>
+            `Collection "${e.collectionName}": ${e.error}`
+          ));
+        }
+
+        // Add any warnings from collection import
+        if (collectionsResult.stats.warnings.length > 0) {
+          result.warnings.push(...collectionsResult.stats.warnings);
+        }
+      } catch (e) {
+        console.error('Failed to import collections:', e);
+        result.errors.push('Failed to import collections: ' + e.message);
       }
     }
 

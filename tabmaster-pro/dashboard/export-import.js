@@ -100,7 +100,8 @@ async function handleExport() {
       includeRules: document.getElementById('includeRules')?.checked ?? true,
       includeSnoozed: document.getElementById('includeSnoozed')?.checked ?? true,
       includeSettings: document.getElementById('includeSettings')?.checked ?? true,
-      includeStatistics: document.getElementById('includeStatistics')?.checked ?? true
+      includeStatistics: document.getElementById('includeStatistics')?.checked ?? true,
+      includeCollections: document.getElementById('includeCollections')?.checked ?? true
     };
 
     showNotification(`Exporting as ${format.toUpperCase()}...`, 'info');
@@ -298,7 +299,8 @@ async function handleImport() {
       importGroups: document.getElementById('importGroups')?.checked ?? true,
       shouldImportRules: document.getElementById('importRules')?.checked ?? true,
       shouldImportSnoozed: document.getElementById('importSnoozed')?.checked ?? true,
-      importSettings: document.getElementById('importSettings')?.checked ?? false
+      importSettings: document.getElementById('importSettings')?.checked ?? false,
+      shouldImportCollections: document.getElementById('importCollections')?.checked ?? true
     };
 
     showNotification('Importing data...', 'info');
