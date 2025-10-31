@@ -6,6 +6,7 @@ import { jest } from '@jest/globals';
 
 import * as CollectionExportService from '../services/execution/CollectionExportService.js';
 import * as storageQueries from '../services/utils/storage-queries.js';
+import * as collectionExportBuilder from '../services/utils/collectionExportBuilder.js';
 
 describe('CollectionExportService', () => {
   beforeEach(() => {
@@ -85,16 +86,49 @@ describe('CollectionExportService', () => {
         }
       ];
 
-      // Mock storage queries
+      // Mock storage queries for getCollection (still used for validation)
       jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
-      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue(mockFolders);
-      jest.spyOn(storageQueries, 'getTabsByFolder').mockImplementation(async (folderId) => {
-        if (folderId === 'folder_1') {
-          return mockTabs;
-        }
-        return [];
-      });
-      jest.spyOn(storageQueries, 'getTasksByCollection').mockResolvedValue(mockTasks);
+
+      // Mock the shared builder
+      const mockExportData = {
+        name: mockCollection.name,
+        description: mockCollection.description,
+        icon: mockCollection.icon,
+        color: mockCollection.color,
+        tags: mockCollection.tags,
+        settings: mockCollection.settings,
+        metadata: {
+          createdAt: mockCollection.metadata.createdAt,
+          lastAccessed: mockCollection.metadata.lastAccessed
+        },
+        folders: [{
+          name: 'Folder 1',
+          color: 'blue',
+          collapsed: false,
+          position: 0,
+          tabs: [{
+            url: 'https://example.com',
+            title: 'Example',
+            favicon: 'https://example.com/favicon.ico',
+            note: 'Test note',
+            position: 0,
+            isPinned: false
+          }]
+        }],
+        tasks: [{
+          summary: 'Test task',
+          status: 'open',
+          priority: 'high',
+          tabReferences: [{
+            folderIndex: 0,
+            tabIndex: 0,
+            url: 'https://example.com',
+            title: 'Example'
+          }]
+        }]
+      };
+
+      jest.spyOn(collectionExportBuilder, 'buildCollectionExport').mockResolvedValue(mockExportData);
 
       // Export
       const result = await CollectionExportService.exportCollection('col_123', {
@@ -134,8 +168,14 @@ describe('CollectionExportService', () => {
       };
 
       jest.spyOn(storageQueries, 'getCollection').mockResolvedValue(mockCollection);
-      jest.spyOn(storageQueries, 'getFoldersByCollection').mockResolvedValue([]);
-      jest.spyOn(storageQueries, 'getTabsByFolder').mockResolvedValue([]);
+
+      // Mock the shared builder to return data without tasks
+      jest.spyOn(collectionExportBuilder, 'buildCollectionExport').mockResolvedValue({
+        name: 'No Tasks Collection',
+        tags: [],
+        folders: []
+        // No tasks property
+      });
 
       const result = await CollectionExportService.exportCollection('col_456', {
         includeTasks: false

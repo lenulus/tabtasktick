@@ -64,8 +64,9 @@
 // Service for handling all export and import functionality.
 import * as SnoozeService from './execution/SnoozeService.js';
 import { createWindowWithTabsAndGroups } from './utils/windowCreation.js';
-import { getAllCollections, getCompleteCollection } from './utils/storage-queries.js';
+import { getAllCollections } from './utils/storage-queries.js';
 import * as CollectionImportService from './execution/CollectionImportService.js';
+import { buildCollectionExport } from './utils/collectionExportBuilder.js';
 
 // Helper functions for human-readable formatting
 function getTimeAgo(timestamp, now) {
@@ -267,88 +268,18 @@ async function buildJSONExport(tabs, windows, groups, options, state, tabTimeDat
       const collectionsWithData = [];
 
       for (const collection of allCollections) {
-        // Get complete collection with folders, tabs, and tasks
-        const completeCollection = await getCompleteCollection(collection.id);
-
-        if (completeCollection) {
-          // Build export format similar to CollectionExportService
-          const collectionExport = {
-            name: completeCollection.name,
-            description: completeCollection.description,
-            icon: completeCollection.icon,
-            color: completeCollection.color,
-            tags: completeCollection.tags || [],
-            settings: completeCollection.settings,
-            metadata: {
-              createdAt: completeCollection.metadata?.createdAt,
-              lastAccessed: completeCollection.metadata?.lastAccessed
-            }
-          };
-
-          // Export folders with tabs
-          const folders = completeCollection.folders || [];
-          folders.sort((a, b) => a.position - b.position);
-
-          collectionExport.folders = folders.map(folder => ({
-            name: folder.name,
-            color: folder.color,
-            collapsed: folder.collapsed || false,
-            position: folder.position,
-            tabs: (folder.tabs || []).map(tab => ({
-              url: tab.url,
-              title: tab.title,
-              favicon: tab.favicon,
-              note: tab.note,
-              position: tab.position,
-              isPinned: tab.isPinned || false
-            }))
-          }));
-
-          // Export ungrouped tabs
-          const ungroupedTabs = completeCollection.ungroupedTabs || [];
-          if (ungroupedTabs.length > 0) {
-            ungroupedTabs.sort((a, b) => a.position - b.position);
-            collectionExport.ungroupedTabs = ungroupedTabs.map(tab => ({
-              url: tab.url,
-              title: tab.title,
-              favicon: tab.favicon,
-              note: tab.note,
-              position: tab.position,
-              isPinned: tab.isPinned || false
-            }));
-          }
-
-          // Export tasks with tab references
-          const tasks = completeCollection.tasks || [];
-          if (tasks.length > 0) {
-            collectionExport.tasks = tasks.map(task => {
-              const taskExport = {
-                summary: task.summary,
-                notes: task.notes,
-                status: task.status,
-                priority: task.priority,
-                dueDate: task.dueDate,
-                tags: task.tags || [],
-                comments: task.comments || [],
-                createdAt: task.createdAt,
-                completedAt: task.completedAt
-              };
-
-              // Convert tab IDs to folder/tab indices for portability
-              if (task.tabIds && task.tabIds.length > 0) {
-                taskExport.tabReferences = convertTabIdsToReferences(
-                  task.tabIds,
-                  folders
-                );
-              } else {
-                taskExport.tabReferences = [];
-              }
-
-              return taskExport;
-            });
-          }
+        try {
+          // Use shared builder for consistent export format
+          const collectionExport = await buildCollectionExport(collection.id, {
+            includeTasks: true,
+            includeSettings: true,
+            includeMetadata: true // Include timestamps in full backups
+          });
 
           collectionsWithData.push(collectionExport);
+        } catch (error) {
+          console.warn(`Failed to export collection ${collection.id}:`, error);
+          // Continue with other collections
         }
       }
 
@@ -363,43 +294,7 @@ async function buildJSONExport(tabs, windows, groups, options, state, tabTimeDat
   return exportData;
 }
 
-/**
- * Convert tab IDs to folder/tab index references with fallback identifiers.
- *
- * Helper function for exporting tasks - converts internal tab IDs to
- * portable folder/tab indices with URL fallbacks.
- *
- * @private
- * @param {string[]} tabIds - Array of tab IDs
- * @param {Object[]} folders - Folders with tabs (already loaded)
- * @returns {Object[]} Array of {folderIndex, tabIndex, url, title} references
- */
-function convertTabIdsToReferences(tabIds, folders) {
-  const references = [];
-
-  for (const tabId of tabIds) {
-    // Find folder and tab index
-    for (let folderIndex = 0; folderIndex < folders.length; folderIndex++) {
-      const folder = folders[folderIndex];
-      const tabIndex = folder.tabs?.findIndex(t => t.id === tabId);
-
-      if (tabIndex !== undefined && tabIndex !== -1) {
-        const tab = folder.tabs[tabIndex];
-
-        // Include fallback identifiers for recovery
-        references.push({
-          folderIndex,
-          tabIndex,
-          url: tab.url,
-          title: tab.title
-        });
-        break;
-      }
-    }
-  }
-
-  return references;
-}
+// Removed convertTabIdsToReferences - now using shared implementation from collectionExportBuilder.js
 
 function buildCSVExport(tabs, groups, tabTimeData) {
   const headers = ['Window', 'Group', 'Position', 'Title', 'URL', 'Domain', 'Pinned', 'Active', 'Created', 'Last Accessed'];
