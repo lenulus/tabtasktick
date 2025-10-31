@@ -711,7 +711,7 @@ export class CollectionDetailView {
    */
   async handleCreateTask() {
     try {
-      const form = this.createTaskForm();
+      const form = await this.createTaskForm();
 
       modal.open({
         title: 'Create Task',
@@ -751,7 +751,7 @@ export class CollectionDetailView {
         return;
       }
 
-      const form = this.createTaskForm(task);
+      const form = await this.createTaskForm(task);
 
       modal.open({
         title: 'Edit Task',
