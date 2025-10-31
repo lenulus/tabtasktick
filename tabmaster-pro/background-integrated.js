@@ -1819,6 +1819,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ success: true, status: syncStatus });
           break;
 
+        case 'syncCollectionFromWindow':
+          const syncResult = await ProgressiveSyncService.syncCollectionFromWindow(request.collectionId);
+          sendResponse(syncResult);
+          break;
+
         case 'flushSync':
           // Manual flush trigger (for testing or user-requested sync)
           if (request.collectionId) {
