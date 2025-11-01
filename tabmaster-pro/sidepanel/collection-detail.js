@@ -591,6 +591,9 @@ export class CollectionDetailView {
     return `
       <div class="collection-actions-detail">
         ${collection.isActive ? `
+          <button class="btn btn-secondary" data-action="sync-collection">
+            🔄 Refresh
+          </button>
           <button class="btn btn-secondary" data-action="focus-window">
             👁️ Focus Window
           </button>
@@ -639,6 +642,9 @@ export class CollectionDetailView {
           break;
         case 'toggle-folder':
           this.handleToggleFolder(button.dataset.folderId);
+          break;
+        case 'sync-collection':
+          await this.handleSyncCollection();
           break;
         case 'focus-window':
           await this.handleFocusWindow();
@@ -1030,6 +1036,39 @@ export class CollectionDetailView {
   /**
    * Handle focus window
    */
+  /**
+   * Sync collection from Chrome window and refresh view
+   */
+  async handleSyncCollection() {
+    try {
+      // Show loading state
+      notifications.info('Syncing collection...');
+
+      // Call background to sync
+      const response = await this.controller.sendMessage('syncCollectionFromWindow', {
+        collectionId: this.currentCollectionId
+      });
+
+      if (response && response.success) {
+        const changes = response.tabsAdded + response.tabsRemoved + response.tabsUpdated;
+
+        if (changes === 0) {
+          notifications.success('Collection is up to date');
+        } else {
+          notifications.success(`Refreshed: ${response.tabsAdded} added, ${response.tabsUpdated} updated, ${response.tabsRemoved} removed`);
+        }
+
+        // Refresh the view to show updated data
+        await this.show(this.currentCollectionId);
+      } else {
+        notifications.error(response?.reason || 'Sync failed');
+      }
+    } catch (error) {
+      console.error('Failed to sync collection:', error);
+      notifications.error('Failed to sync collection');
+    }
+  }
+
   async handleFocusWindow() {
     try {
       const collection = await this.loadCollection(this.currentCollectionId);

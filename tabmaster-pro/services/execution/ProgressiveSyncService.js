@@ -71,6 +71,7 @@ import {
 /**
  * Service state
  * - initialized: Whether service has been initialized
+ * - listenersRegistered: Whether Chrome event listeners have been registered (prevents duplicates)
  * - settingsCache: Map of collectionId → settings (avoid repeated DB lookups)
  * - changeQueue: Map of collectionId → pending changes
  * - flushTimers: Map of collectionId → debounce timer
@@ -79,6 +80,7 @@ import {
  */
 const state = {
   initialized: false,
+  listenersRegistered: false,
   settingsCache: new Map(),
   changeQueue: new Map(),
   flushTimers: new Map(),
@@ -182,7 +184,10 @@ export async function initialize() {
     // Load settings cache for active collections
     await loadSettingsCache();
 
-    // Register Chrome event listeners
+    // Register Chrome event listeners (idempotent - safe to call multiple times)
+    // NOTE: In Manifest V3, listeners should be registered at module top level
+    // for automatic re-registration on service worker restart. However, we keep
+    // this call here for backwards compatibility and explicit initialization.
     registerEventListeners();
 
     state.initialized = true;
@@ -240,9 +245,53 @@ async function ensureInitialized() {
 
   try {
     await initializationPromise;
+
+    // After service worker resume, sync all active collections from their windows
+    // This recovers from any missed events during suspension
+    logAndBuffer('info', 'Service worker resumed - syncing active collections from Chrome state');
+    await syncAllCollectionsFromWindows();
   } finally {
     // Clear the promise after completion (success or failure)
     initializationPromise = null;
+  }
+}
+
+/**
+ * Syncs all active collections from their Chrome windows.
+ * Called after service worker resume to recover from missed events.
+ *
+ * @returns {Promise<void>}
+ */
+async function syncAllCollectionsFromWindows() {
+  try {
+    const activeCollectionIds = Array.from(state.settingsCache.keys());
+
+    if (activeCollectionIds.length === 0) {
+      logAndBuffer('info', 'No active collections to sync');
+      return;
+    }
+
+    logAndBuffer('info', `Syncing ${activeCollectionIds.length} active collections after resume`);
+
+    // Sync each collection (don't fail all if one fails)
+    for (const collectionId of activeCollectionIds) {
+      try {
+        const result = await syncCollectionFromWindow(collectionId);
+        if (result.success) {
+          const changes = result.tabsAdded + result.tabsRemoved + result.tabsUpdated;
+          if (changes > 0) {
+            logAndBuffer('info', `Recovered ${changes} changes for collection ${collectionId}`);
+          }
+        }
+      } catch (error) {
+        logAndBuffer('error', `Failed to sync collection ${collectionId} on resume:`, error);
+        // Continue with other collections
+      }
+    }
+
+    logAndBuffer('info', 'Finished syncing all active collections after resume');
+  } catch (error) {
+    logAndBuffer('error', 'Failed to sync collections on resume:', error);
   }
 }
 
@@ -346,9 +395,20 @@ function withInitialization(handler) {
  * Without this wrapper, we'd need to add ensureInitialized() to every handler,
  * which is fragile and easy to forget. See withInitialization() docs for details.
  *
- * Listeners are idempotent - safe to call multiple times.
+ * IDEMPOTENT: Safe to call multiple times - uses listenersRegistered flag to prevent duplicates.
+ *
+ * MANIFEST V3 PATTERN:
+ * For service worker persistence, this should be called at module top level.
+ * Event listeners registered at top level are automatically re-registered by Chrome
+ * when the service worker wakes up from suspension.
  */
 function registerEventListeners() {
+  // Check if already registered (prevent duplicate listeners)
+  if (state.listenersRegistered) {
+    console.log('[ProgressiveSyncService] Event listeners already registered, skipping');
+    return;
+  }
+
   // Tab events (all wrapped for automatic initialization)
   chrome.tabs.onCreated.addListener(withInitialization(handleTabCreated));
   chrome.tabs.onRemoved.addListener(withInitialization(handleTabRemoved));
@@ -366,6 +426,7 @@ function registerEventListeners() {
   // Window events (wrapped for automatic initialization)
   chrome.windows.onRemoved.addListener(withInitialization(handleWindowRemoved));
 
+  state.listenersRegistered = true;
   console.log('[ProgressiveSyncService] Event listeners registered');
 }
 
@@ -930,6 +991,208 @@ export async function flush(collectionId) {
     logAndBuffer('info', `Flushed collection ${collectionId} successfully`);
   } catch (error) {
     logAndBuffer('error', `Flush failed for ${collectionId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Syncs a collection from the actual Chrome window state.
+ *
+ * This performs a full reconciliation between Chrome's current state
+ * and what's stored in IndexedDB. Use this to:
+ * - Recover from missed events during service worker suspension
+ * - Manually refresh collection data
+ * - Ensure consistency after errors
+ *
+ * Process:
+ * 1. Get current Chrome tabs for the window
+ * 2. Get stored tabs from IndexedDB
+ * 3. Reconcile differences:
+ *    - Add tabs that exist in Chrome but not in DB
+ *    - Remove tabs from DB that don't exist in Chrome
+ *    - Update tabs with changed properties
+ * 4. Sync tab groups/folders
+ * 5. Update collection metadata
+ *
+ * @param {string} collectionId - Collection ID to sync
+ * @returns {Promise<Object>} Sync result with counts
+ */
+export async function syncCollectionFromWindow(collectionId) {
+  try {
+    logAndBuffer('info', `Starting full sync for collection ${collectionId}`);
+
+    // Get collection
+    const collection = await getCompleteCollection(collectionId);
+    if (!collection) {
+      throw new Error(`Collection ${collectionId} not found`);
+    }
+
+    if (!collection.isActive || !collection.windowId) {
+      logAndBuffer('warn', `Collection ${collectionId} is not active or has no window`);
+      return {
+        success: false,
+        reason: 'Collection is not active or has no associated window',
+        tabsAdded: 0,
+        tabsRemoved: 0,
+        tabsUpdated: 0,
+        foldersAdded: 0,
+        foldersRemoved: 0
+      };
+    }
+
+    // Get current Chrome tabs
+    const chromeTabs = await chrome.tabs.query({ windowId: collection.windowId });
+    const chromeTabsMap = new Map(chromeTabs.map(t => [t.id, t]));
+
+    // Get current Chrome tab groups
+    const chromeGroups = await chrome.tabGroups.query({ windowId: collection.windowId });
+    const chromeGroupsMap = new Map(chromeGroups.map(g => [g.id, g]));
+
+    // Get stored tabs
+    const storedTabs = collection.tabs || [];
+    const storedTabsMap = new Map();
+    for (const tab of storedTabs) {
+      if (tab.runtimeId) {
+        storedTabsMap.set(tab.runtimeId, tab);
+      }
+    }
+
+    // Get stored folders
+    const storedFolders = collection.folders || [];
+    const storedFoldersMap = new Map(storedFolders.map(f => [f.groupId, f]));
+
+    let tabsAdded = 0;
+    let tabsRemoved = 0;
+    let tabsUpdated = 0;
+    let foldersAdded = 0;
+    let foldersRemoved = 0;
+
+    // STEP 1: Add or update tabs from Chrome
+    for (const [runtimeId, chromeTab] of chromeTabsMap) {
+      const storedTab = storedTabsMap.get(runtimeId);
+
+      if (!storedTab) {
+        // Tab exists in Chrome but not in DB - add it
+        let folderId = null;
+        if (chromeTab.groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE && chromeTab.groupId !== -1) {
+          const folder = await findOrCreateFolder(collectionId, chromeTab.groupId, chromeTab.index);
+          folderId = folder.id;
+          if (!storedFoldersMap.has(chromeTab.groupId)) {
+            foldersAdded++;
+          }
+        }
+
+        const newTab = {
+          id: crypto.randomUUID(),
+          collectionId,
+          folderId,
+          runtimeId: chromeTab.id,
+          url: chromeTab.url,
+          title: chromeTab.title,
+          favicon: chromeTab.favIconUrl,
+          isPinned: chromeTab.pinned,
+          position: chromeTab.index
+        };
+
+        await saveTab(newTab);
+        tabsAdded++;
+        logAndBuffer('info', `Added missing tab: ${chromeTab.title}`);
+      } else {
+        // Tab exists in both - check if update needed
+        let needsUpdate = false;
+        const updates = { ...storedTab };
+
+        if (storedTab.url !== chromeTab.url) {
+          updates.url = chromeTab.url;
+          needsUpdate = true;
+        }
+        if (storedTab.title !== chromeTab.title) {
+          updates.title = chromeTab.title;
+          needsUpdate = true;
+        }
+        if (storedTab.favicon !== chromeTab.favIconUrl) {
+          updates.favicon = chromeTab.favIconUrl;
+          needsUpdate = true;
+        }
+        if (storedTab.isPinned !== chromeTab.pinned) {
+          updates.isPinned = chromeTab.pinned;
+          needsUpdate = true;
+        }
+        if (storedTab.position !== chromeTab.index) {
+          updates.position = chromeTab.index;
+          needsUpdate = true;
+        }
+
+        // Check group/folder assignment
+        const currentGroupId = chromeTab.groupId === -1 ? null : chromeTab.groupId;
+        const shouldHaveFolder = currentGroupId !== null && currentGroupId !== chrome.tabGroups.TAB_GROUP_ID_NONE;
+
+        if (shouldHaveFolder) {
+          const folder = await findOrCreateFolder(collectionId, currentGroupId, chromeTab.index);
+          if (storedTab.folderId !== folder.id) {
+            updates.folderId = folder.id;
+            needsUpdate = true;
+            if (!storedFoldersMap.has(currentGroupId)) {
+              foldersAdded++;
+            }
+          }
+        } else if (storedTab.folderId !== null) {
+          updates.folderId = null;
+          needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+          await saveTab(updates);
+          tabsUpdated++;
+          logAndBuffer('info', `Updated tab: ${chromeTab.title}`);
+        }
+      }
+    }
+
+    // STEP 2: Remove tabs from DB that don't exist in Chrome
+    for (const [runtimeId, storedTab] of storedTabsMap) {
+      if (!chromeTabsMap.has(runtimeId)) {
+        await deleteTab(storedTab.id);
+        tabsRemoved++;
+        logAndBuffer('info', `Removed orphaned tab: ${storedTab.title}`);
+      }
+    }
+
+    // STEP 3: Remove folders/groups that don't exist in Chrome
+    for (const [groupId, storedFolder] of storedFoldersMap) {
+      if (groupId && !chromeGroupsMap.has(groupId)) {
+        await deleteFolder(storedFolder.id);
+        foldersRemoved++;
+        logAndBuffer('info', `Removed orphaned folder: ${storedFolder.name}`);
+      }
+    }
+
+    // STEP 4: Update collection metadata counts
+    await updateMetadataCounts(collectionId);
+
+    // STEP 5: Update sync metadata
+    const metadata = state.syncMetadata.get(collectionId) || { lastSyncTime: 0, pendingChanges: 0 };
+    metadata.lastSyncTime = Date.now();
+    state.syncMetadata.set(collectionId, metadata);
+
+    logAndBuffer('info', `Full sync completed for collection ${collectionId}`, {
+      tabsAdded,
+      tabsRemoved,
+      tabsUpdated,
+      foldersAdded,
+      foldersRemoved
+    });
+
+    return {
+      success: true,
+      tabsAdded,
+      tabsRemoved,
+      tabsUpdated,
+      foldersAdded,
+      foldersRemoved
+    };
+  } catch (error) {
+    logAndBuffer('error', `Full sync failed for ${collectionId}:`, error);
     throw error;
   }
 }
@@ -1797,3 +2060,26 @@ export async function getCollectionSyncInfo(collectionId) {
     }
   };
 }
+
+// ============================================================================
+// MODULE INITIALIZATION - MANIFEST V3 PATTERN
+// ============================================================================
+
+/**
+ * Register event listeners at module top level.
+ *
+ * CRITICAL FOR MANIFEST V3:
+ * In Manifest V3, service workers can be suspended after inactivity and restarted
+ * when events fire. When the service worker restarts:
+ * - The module script is re-executed from the top
+ * - chrome.runtime.onInstalled does NOT fire (extension already installed)
+ * - chrome.runtime.onStartup does NOT fire (Chrome already running)
+ *
+ * By calling registerEventListeners() at the top level (not inside onInstalled/onStartup),
+ * we ensure event listeners are registered every time the service worker loads, including
+ * after suspension/wake-up cycles.
+ *
+ * The withInitialization() wrapper ensures each handler lazily loads the settings cache
+ * on first use, so we don't need to call initialize() here.
+ */
+registerEventListeners();
