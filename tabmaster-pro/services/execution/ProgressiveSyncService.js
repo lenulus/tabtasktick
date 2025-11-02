@@ -1384,6 +1384,8 @@ async function processTabUpdated(collectionId, change) {
 
   // Handle groupId change (tab added to/removed from group)
   let folderId = existingTab.folderId; // Default: keep existing
+  let oldFolderId = existingTab.folderId; // Track original folder for cleanup
+
   if (changeInfo.groupId !== undefined) {
     if (changeInfo.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE || changeInfo.groupId === -1) {
       // Tab ungrouped
@@ -1422,6 +1424,17 @@ async function processTabUpdated(collectionId, change) {
   // Update metadata counts if folderId changed (grouped/ungrouped status changed)
   if (existingTab.folderId !== updatedTab.folderId) {
     await updateMetadataCounts(collectionId);
+
+    // If tab was ungrouped (moved from a folder to null), check if old folder is now empty
+    if (oldFolderId && folderId === null) {
+      const remainingTabs = await getTabsByFolder(oldFolderId);
+      if (remainingTabs.length === 0) {
+        logAndBuffer('info', `Folder ${oldFolderId} is now empty after ungrouping tab ${tabId}, deleting folder`);
+        await deleteFolder(oldFolderId);
+        // Update metadata counts again after folder deletion
+        await updateMetadataCounts(collectionId);
+      }
+    }
   }
 }
 
