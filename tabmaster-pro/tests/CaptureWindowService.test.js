@@ -94,19 +94,13 @@ describe('CaptureWindowService', () => {
         windowId: 123
       });
 
-      // Verify folders created (1 group + 1 ungrouped)
-      expect(result.folders).toHaveLength(2);
+      // Verify folders created (only 1 for the tab group, ungrouped tabs have folderId: null)
+      expect(result.folders).toHaveLength(1);
       expect(result.folders[0]).toMatchObject({
         name: 'GitHub Repos',
         color: 'blue',
         collapsed: false,
         position: 0
-      });
-      expect(result.folders[1]).toMatchObject({
-        name: 'Ungrouped',
-        color: 'grey',
-        collapsed: false,
-        position: 1
       });
 
       // Verify tabs created
@@ -114,19 +108,19 @@ describe('CaptureWindowService', () => {
       expect(result.tabs[0]).toMatchObject({
         url: 'https://github.com/user/repo1',
         title: 'Repo 1',
-        position: 0,
+        position: 0, // Preserves window index
         isPinned: false
       });
       expect(result.tabs[1]).toMatchObject({
         url: 'https://github.com/user/repo2',
         title: 'Repo 2',
-        position: 1,
+        position: 1, // Preserves window index
         isPinned: false
       });
       expect(result.tabs[2]).toMatchObject({
         url: 'https://stackoverflow.com/questions/123',
         title: 'Stack Overflow Question',
-        position: 0, // First in ungrouped folder
+        position: 2, // Preserves window index (not folder-relative)
         isPinned: true
       });
 
@@ -134,7 +128,7 @@ describe('CaptureWindowService', () => {
       expect(result.stats).toMatchObject({
         tabsCaptured: 3,
         tabsSkipped: 0,
-        foldersCaptured: 2
+        foldersCaptured: 1 // Only the tab group folder
       });
       expect(result.stats.warnings).toHaveLength(0);
     });
@@ -228,10 +222,8 @@ describe('CaptureWindowService', () => {
         metadata: { name: 'Test' }
       });
 
-      // Only ungrouped folder should exist
-      expect(result.folders).toHaveLength(1);
-      expect(result.folders[0].name).toBe('Ungrouped');
-      expect(result.folders[0].color).toBe('grey');
+      // No folders should exist (ungrouped tabs have folderId: null)
+      expect(result.folders).toHaveLength(0);
     });
 
     test('skips empty tab groups', async () => {
@@ -260,9 +252,8 @@ describe('CaptureWindowService', () => {
         metadata: { name: 'Test' }
       });
 
-      // Empty group should be skipped
-      expect(result.folders).toHaveLength(1);
-      expect(result.folders[0].name).toBe('Ungrouped');
+      // Empty group should be skipped, no folders created
+      expect(result.folders).toHaveLength(0);
       expect(result.stats.warnings).toContain('Skipped empty tab group: Empty Group');
     });
 
@@ -321,11 +312,12 @@ describe('CaptureWindowService', () => {
       expect(group1Tabs[1].position).toBe(1);
       expect(group1Tabs[2].position).toBe(2);
 
-      // Check positions within Ungrouped folder
-      const ungroupedTabs = result.tabs.filter(t => t.folderId === result.folders[1].id);
+      // Check positions for ungrouped tabs (folderId: null)
+      const ungroupedTabs = result.tabs.filter(t => t.folderId === null);
       expect(ungroupedTabs).toHaveLength(2);
-      expect(ungroupedTabs[0].position).toBe(0);
-      expect(ungroupedTabs[1].position).toBe(1);
+      // Ungrouped tabs preserve their window-level positions
+      expect(ungroupedTabs[0].position).toBe(3); // index 3 from chrome tab
+      expect(ungroupedTabs[1].position).toBe(4); // index 4 from chrome tab
     });
 
     test('handles tabs without favicons', async () => {
@@ -429,7 +421,7 @@ describe('CaptureWindowService', () => {
 
       // Should continue without groups
       expect(result.tabs).toHaveLength(1);
-      expect(result.folders).toHaveLength(1);
+      expect(result.folders).toHaveLength(0); // No folders created since no groups
       expect(result.stats.warnings).toContain('Failed to fetch tab groups, continuing without groups');
     });
   });

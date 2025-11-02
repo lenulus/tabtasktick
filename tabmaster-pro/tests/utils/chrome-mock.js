@@ -12,14 +12,56 @@ export const chromeMock = {
     update: jest.fn(() => Promise.resolve()),
     get: jest.fn(() => Promise.resolve()),
     move: jest.fn(() => Promise.resolve()),
-    create: jest.fn(() => Promise.resolve({ id: 1 }))
+    create: jest.fn(() => Promise.resolve({ id: 1 })),
+    // Event listeners for ProgressiveSyncService
+    onCreated: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    },
+    onRemoved: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    },
+    onMoved: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    },
+    onUpdated: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    },
+    onAttached: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    },
+    onDetached: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    }
   },
-  
+
   tabGroups: {
     get: jest.fn(() => Promise.resolve()),
     update: jest.fn(() => Promise.resolve()),
     query: jest.fn(() => Promise.resolve([])),
-    TAB_GROUP_ID_NONE: -1
+    TAB_GROUP_ID_NONE: -1,
+    // Event listeners for ProgressiveSyncService
+    onCreated: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    },
+    onUpdated: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    },
+    onRemoved: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    },
+    onMoved: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    }
   },
   
   windows: {
@@ -28,7 +70,12 @@ export const chromeMock = {
     getLastFocused: jest.fn(() => Promise.resolve({ id: 1 })),
     getAll: jest.fn(() => Promise.resolve([])),
     create: jest.fn(() => Promise.resolve({ id: 1 })),
-    update: jest.fn(() => Promise.resolve())
+    update: jest.fn(() => Promise.resolve()),
+    // Event listener for ProgressiveSyncService
+    onRemoved: {
+      addListener: jest.fn(),
+      removeListener: jest.fn()
+    }
   },
   
   storage: {

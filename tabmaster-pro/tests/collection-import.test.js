@@ -1,10 +1,15 @@
 /**
  * @file CollectionImportService Tests
- * @description Unit tests for collection import functionality
+ * @description Integration tests for collection import functionality
+ *
+ * Uses fake-indexeddb for testing the full import flow without mocking ES modules.
+ * This approach follows the pattern from collection-export.test.js which successfully
+ * tests services that use IndexedDB storage.
  */
+
+import 'fake-indexeddb/auto';
 import { jest } from '@jest/globals';
-
-
+import { closeDB } from '../services/utils/db.js';
 import * as CollectionImportService from '../services/execution/CollectionImportService.js';
 import * as CollectionService from '../services/execution/CollectionService.js';
 import * as FolderService from '../services/execution/FolderService.js';
@@ -13,9 +18,20 @@ import * as TaskService from '../services/execution/TaskService.js';
 import * as storageQueries from '../services/utils/storage-queries.js';
 
 describe('CollectionImportService', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Close any existing connection and clear all databases
+    closeDB();
+    const databases = await indexedDB.databases();
+    for (const db of databases) {
+      indexedDB.deleteDatabase(db.name);
+    }
+
+    // Clear all mocks
     jest.clearAllMocks();
-    jest.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    closeDB();
   });
 
   describe('importCollections', () => {
@@ -58,46 +74,21 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      // Mock service calls
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Imported Collection',
-        isActive: false
-      });
-      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
-        id: 'folder_new',
-        collectionId: 'col_new',
-        name: 'Folder 1'
-      });
-      jest.spyOn(TabService, 'createTab').mockResolvedValue({
-        id: 'tab_new',
-        folderId: 'folder_new',
-        url: 'https://example.com'
-      });
-      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
-        id: 'task_new',
-        collectionId: 'col_new',
-        summary: 'Test task'
-      });
-
       const result = await CollectionImportService.importCollections(importData);
 
       expect(result.stats.collectionsImported).toBe(1);
       expect(result.imported).toHaveLength(1);
       expect(result.imported[0].name).toBe('Imported Collection');
       expect(result.errors).toHaveLength(0);
-      expect(CollectionService.createCollection).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Imported Collection',
-          description: 'Test description',
-          icon: '📁',
-          color: '#667eea',
-          tags: ['test']
-        })
-      );
-      expect(FolderService.createFolder).toHaveBeenCalledTimes(1);
-      expect(TabService.createTab).toHaveBeenCalledTimes(1);
-      expect(TaskService.createTask).toHaveBeenCalledTimes(1);
+
+      // Verify the collection was actually created
+      const collections = await storageQueries.getAllCollections();
+      expect(collections).toHaveLength(1);
+      expect(collections[0].name).toBe('Imported Collection');
+      expect(collections[0].description).toBe('Test description');
+      expect(collections[0].icon).toBe('📁');
+      expect(collections[0].color).toBe('#667eea');
+      expect(collections[0].tags).toEqual(['test']);
     });
 
     test('should import multiple collections', async () => {
@@ -118,18 +109,18 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockImplementation(async (params) => ({
-        id: `col_${params.name}`,
-        name: params.name,
-        isActive: false
-      }));
-
       const result = await CollectionImportService.importCollections(importData);
 
       expect(result.stats.collectionsImported).toBe(2);
       expect(result.imported).toHaveLength(2);
       expect(result.imported[0].name).toBe('Collection 1');
       expect(result.imported[1].name).toBe('Collection 2');
+
+      // Verify both collections were created
+      const collections = await storageQueries.getAllCollections();
+      expect(collections).toHaveLength(2);
+      const names = collections.map(c => c.name).sort();
+      expect(names).toEqual(['Collection 1', 'Collection 2']);
     });
 
     test('should handle invalid JSON', async () => {
@@ -205,13 +196,18 @@ describe('CollectionImportService', () => {
       expect(result.imported).toHaveLength(0);
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0].error).toMatch(/name is required/);
+
+      // Verify no collection was created
+      const collections = await storageQueries.getAllCollections();
+      expect(collections).toHaveLength(0);
     });
 
     test('should resolve name conflicts by appending suffix', async () => {
-      // Simulate existing collection with same name
-      jest.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([
-        { id: 'existing', name: 'Test Collection' }
-      ]);
+      // Create existing collection with same name
+      await CollectionService.createCollection({
+        name: 'Test Collection',
+        tags: []
+      });
 
       const importData = {
         version: '1.0',
@@ -225,27 +221,28 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test Collection (imported)',
-        isActive: false
-      });
-
       const result = await CollectionImportService.importCollections(importData);
 
       expect(result.imported).toHaveLength(1);
-      expect(CollectionService.createCollection).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Test Collection (imported)'
-        })
-      );
+      expect(result.imported[0].name).toBe('Test Collection (imported)');
+
+      // Verify both collections exist
+      const collections = await storageQueries.getAllCollections();
+      expect(collections).toHaveLength(2);
+      const names = collections.map(c => c.name).sort();
+      expect(names).toEqual(['Test Collection', 'Test Collection (imported)']);
     });
 
     test('should resolve multiple name conflicts incrementally', async () => {
-      jest.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([
-        { id: 'existing1', name: 'Test' },
-        { id: 'existing2', name: 'Test (imported)' }
-      ]);
+      // Create existing collections
+      await CollectionService.createCollection({
+        name: 'Test',
+        tags: []
+      });
+      await CollectionService.createCollection({
+        name: 'Test (imported)',
+        tags: []
+      });
 
       const importData = {
         version: '1.0',
@@ -259,19 +256,16 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test (imported 2)',
-        isActive: false
-      });
-
       const result = await CollectionImportService.importCollections(importData);
 
-      expect(CollectionService.createCollection).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Test (imported 2)'
-        })
-      );
+      expect(result.imported).toHaveLength(1);
+      expect(result.imported[0].name).toBe('Test (imported 2)');
+
+      // Verify all three collections exist
+      const collections = await storageQueries.getAllCollections();
+      expect(collections).toHaveLength(3);
+      const names = new Set(collections.map(c => c.name));
+      expect(names).toEqual(new Set(['Test', 'Test (imported)', 'Test (imported 2)']));
     });
 
     test('should import collections as saved (isActive=false)', async () => {
@@ -287,17 +281,13 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test',
-        isActive: false
-      });
+      const result = await CollectionImportService.importCollections(importData);
 
-      await CollectionImportService.importCollections(importData);
-
-      expect(CollectionService.createCollection).toHaveBeenCalledWith(
-        expect.not.objectContaining({ windowId: expect.anything() })
-      );
+      // Verify collection is not active
+      const collections = await storageQueries.getAllCollections();
+      expect(collections).toHaveLength(1);
+      expect(collections[0].isActive).toBe(false);
+      expect(collections[0].windowId).toBeNull(); // windowId is null when not active
     });
 
     test('should convert tab references from indices to new IDs', async () => {
@@ -333,30 +323,18 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test',
-        isActive: false
-      });
-      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
-        id: 'folder_new',
-        collectionId: 'col_new'
-      });
-      jest.spyOn(TabService, 'createTab').mockImplementation(async (params) => ({
-        id: `tab_${params.position}`,
-        ...params
-      }));
-      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
-        id: 'task_new'
-      });
+      const result = await CollectionImportService.importCollections(importData);
 
-      await CollectionImportService.importCollections(importData);
+      // Get the created task and verify it has correct tab references
+      const collections = await storageQueries.getAllCollections();
+      const tasks = await TaskService.getTasksByCollection(collections[0].id);
+      expect(tasks).toHaveLength(1);
+      expect(tasks[0].tabIds).toHaveLength(1);
 
-      expect(TaskService.createTask).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tabIds: ['tab_1'] // Should reference tab at position 1
-        })
-      );
+      // The tab ID should reference the second tab (index 1)
+      const completeCollection = await storageQueries.getCompleteCollection(collections[0].id);
+      const secondTab = completeCollection.tabs.find(t => t.url === 'https://b.com');
+      expect(tasks[0].tabIds[0]).toBe(secondTab.id);
     });
 
     test('should remove invalid tab references and warn', async () => {
@@ -393,32 +371,16 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test',
-        isActive: false
-      });
-      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
-        id: 'folder_new'
-      });
-      jest.spyOn(TabService, 'createTab').mockResolvedValue({
-        id: 'tab_0'
-      });
-      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
-        id: 'task_new'
-      });
-
       const result = await CollectionImportService.importCollections(importData);
-
-      // Should only include valid reference
-      expect(TaskService.createTask).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tabIds: ['tab_0']
-        })
-      );
 
       // Should have warnings
       expect(result.stats.warnings.length).toBeGreaterThan(0);
+
+      // Verify task only has valid reference
+      const collections = await storageQueries.getAllCollections();
+      const tasks = await TaskService.getTasksByCollection(collections[0].id);
+      expect(tasks).toHaveLength(1);
+      expect(tasks[0].tabIds).toHaveLength(1); // Only one valid reference
     });
 
     test('should skip folders with missing required fields', async () => {
@@ -447,28 +409,25 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test',
-        isActive: false
-      });
-      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
-        id: 'folder_new'
-      });
-
       const result = await CollectionImportService.importCollections(importData);
-
-      // Should only create the valid folder
-      expect(FolderService.createFolder).toHaveBeenCalledTimes(1);
-      expect(FolderService.createFolder).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Valid Folder' })
-      );
 
       // Should have warnings
       expect(result.stats.warnings.length).toBeGreaterThan(0);
+
+      // Verify only valid folder was created
+      const collections = await storageQueries.getAllCollections();
+      const folders = await FolderService.getFoldersByCollection(collections[0].id);
+      expect(folders).toHaveLength(1);
+      expect(folders[0].name).toBe('Valid Folder');
     });
 
     test('should use merge mode by default', async () => {
+      // Create existing collection
+      await CollectionService.createCollection({
+        name: 'Existing Collection',
+        tags: []
+      });
+
       const importData = {
         version: '1.0',
         exportedAt: Date.now(),
@@ -481,20 +440,13 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(storageQueries, 'getAllCollections').mockResolvedValue([
-        { id: 'existing', name: 'Existing Collection' }
-      ]);
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test',
-        isActive: false
-      });
-      jest.spyOn(CollectionService, 'deleteCollection').mockResolvedValue();
-
       await CollectionImportService.importCollections(importData, { mode: 'merge' });
 
-      // Should NOT delete existing collections
-      expect(CollectionService.deleteCollection).not.toHaveBeenCalled();
+      // Should NOT delete existing collection
+      const collections = await storageQueries.getAllCollections();
+      expect(collections).toHaveLength(2);
+      const names = collections.map(c => c.name).sort();
+      expect(names).toEqual(['Existing Collection', 'Test']);
     });
 
     test('should not import tasks when importTasks is false', async () => {
@@ -517,18 +469,14 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test',
-        isActive: false
-      });
-      jest.spyOn(TaskService, 'createTask').mockResolvedValue({});
-
       await CollectionImportService.importCollections(importData, {
         importTasks: false
       });
 
-      expect(TaskService.createTask).not.toHaveBeenCalled();
+      // Verify no tasks were created
+      const collections = await storageQueries.getAllCollections();
+      const tasks = await TaskService.getTasksByCollection(collections[0].id);
+      expect(tasks).toHaveLength(0);
     });
 
     test('should use fallback URL matching when indices do not match', async () => {
@@ -565,34 +513,18 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test',
-        isActive: false
-      });
-      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
-        id: 'folder_new'
-      });
-      jest.spyOn(TabService, 'createTab').mockImplementation(async (params) => ({
-        id: `tab_${params.position}`,
-        ...params
-      }));
-      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
-        id: 'task_new'
-      });
-
       const result = await CollectionImportService.importCollections(importData);
-
-      // Should have matched by URL fallback
-      expect(TaskService.createTask).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tabIds: ['tab_1'] // Should reference tab at position 1 (https://b.com)
-        })
-      );
 
       // Should have warning about using fallback
       expect(result.stats.warnings.length).toBeGreaterThan(0);
       expect(result.stats.warnings.some(w => w.includes('matched by URL instead'))).toBe(true);
+
+      // Verify task has correct tab reference (matched by URL)
+      const collections = await storageQueries.getAllCollections();
+      const tasks = await TaskService.getTasksByCollection(collections[0].id);
+      const completeCollection = await storageQueries.getCompleteCollection(collections[0].id);
+      const matchedTab = completeCollection.tabs.find(t => t.url === 'https://b.com');
+      expect(tasks[0].tabIds[0]).toBe(matchedTab.id);
     });
 
     test('should handle tab references with new format (url and title)', async () => {
@@ -627,29 +559,15 @@ describe('CollectionImportService', () => {
         ]
       };
 
-      jest.spyOn(CollectionService, 'createCollection').mockResolvedValue({
-        id: 'col_new',
-        name: 'Test',
-        isActive: false
-      });
-      jest.spyOn(FolderService, 'createFolder').mockResolvedValue({
-        id: 'folder_new'
-      });
-      jest.spyOn(TabService, 'createTab').mockResolvedValue({
-        id: 'tab_0'
-      });
-      jest.spyOn(TaskService, 'createTask').mockResolvedValue({
-        id: 'task_new'
-      });
+      const result = await CollectionImportService.importCollections(importData);
 
-      await CollectionImportService.importCollections(importData);
-
-      // Should resolve using index-based lookup (fast path)
-      expect(TaskService.createTask).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tabIds: ['tab_0']
-        })
-      );
+      // Verify task has correct tab reference
+      const collections = await storageQueries.getAllCollections();
+      const tasks = await TaskService.getTasksByCollection(collections[0].id);
+      const completeCollection = await storageQueries.getCompleteCollection(collections[0].id);
+      expect(tasks).toHaveLength(1);
+      expect(tasks[0].tabIds).toHaveLength(1);
+      expect(tasks[0].tabIds[0]).toBe(completeCollection.tabs[0].id);
     });
   });
 });

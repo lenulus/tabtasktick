@@ -100,6 +100,7 @@ describe('TaskService', () => {
       });
 
       const tab1 = await TabService.createTab({
+        collectionId: collection.id,
         folderId: folder.id,
         url: 'https://example.com/1',
         title: 'Tab 1',
@@ -107,6 +108,7 @@ describe('TaskService', () => {
       });
 
       const tab2 = await TabService.createTab({
+        collectionId: collection.id,
         folderId: folder.id,
         url: 'https://example.com/2',
         title: 'Tab 2',
@@ -277,6 +279,7 @@ describe('TaskService', () => {
       });
 
       const tab = await TabService.createTab({
+        collectionId: collection.id,
         folderId: folder.id,
         url: 'https://example.com',
         title: 'Tab',

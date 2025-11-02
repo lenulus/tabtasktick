@@ -164,15 +164,9 @@ export async function openTaskTabs(taskId) {
 
   // Step 6: Get complete collection with tabs
   const completeCollection = await getCompleteCollection(collection.id);
-  const { folders } = completeCollection;
 
-  // Flatten tabs from folders
-  const allTabs = [];
-  for (const folder of folders) {
-    if (folder.tabs) {
-      allTabs.push(...folder.tabs);
-    }
-  }
+  // Use the flat tabs array that includes ALL tabs (both grouped and ungrouped)
+  const allTabs = completeCollection.tabs || [];
 
   // Step 7: Map task tab IDs to Chrome tab IDs
   const chromeTabIds = [];

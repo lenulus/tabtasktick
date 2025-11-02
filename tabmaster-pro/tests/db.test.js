@@ -43,7 +43,7 @@ describe('db.js - IndexedDB Utilities', () => {
       const db = await getDB();
       expect(db).toBeDefined();
       expect(db.name).toBe('TabTaskTickDB');
-      expect(db.version).toBe(1);
+      expect(db.version).toBe(3); // Current version with Progressive Sync migration
     });
 
     test('creates all 4 object stores', async () => {
@@ -82,7 +82,8 @@ describe('db.js - IndexedDB Utilities', () => {
       const store = tx.objectStore('tabs');
 
       expect(store.indexNames.contains('folderId')).toBe(true);
-      expect(store.indexNames.length).toBe(1);
+      expect(store.indexNames.contains('collectionId')).toBe(true); // Added in v3 for Progressive Sync
+      expect(store.indexNames.length).toBe(2);
     });
 
     test('creates indexes for tasks store', async () => {

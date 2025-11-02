@@ -45,6 +45,7 @@ describe('TabService', () => {
   describe('createTab', () => {
     test('creates tab with required fields', async () => {
       const params = {
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example Site',
@@ -65,6 +66,7 @@ describe('TabService', () => {
 
     test('includes optional fields', async () => {
       const params = {
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -85,6 +87,7 @@ describe('TabService', () => {
 
     test('defaults isPinned to false', async () => {
       const params = {
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -97,6 +100,7 @@ describe('TabService', () => {
 
     test('throws error if url is missing', async () => {
       await expect(TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         title: 'Example',
         position: 0
@@ -105,6 +109,7 @@ describe('TabService', () => {
 
     test('throws error if url is empty', async () => {
       await expect(TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: '',
         title: 'Example',
@@ -114,6 +119,7 @@ describe('TabService', () => {
 
     test('throws error if title is missing', async () => {
       await expect(TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         position: 0
@@ -122,6 +128,7 @@ describe('TabService', () => {
 
     test('throws error if title is empty', async () => {
       await expect(TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: '',
@@ -129,16 +136,23 @@ describe('TabService', () => {
       })).rejects.toThrow('Tab title is required');
     });
 
-    test('throws error if folderId is missing', async () => {
-      await expect(TabService.createTab({
+    test('accepts tabs without folderId (ungrouped tabs)', async () => {
+      // Note: folderId can be null for ungrouped tabs
+      const result = await TabService.createTab({
+        collectionId: testCollectionId,
+        folderId: null, // Explicitly null for ungrouped tabs
         url: 'https://example.com',
         title: 'Example',
         position: 0
-      })).rejects.toThrow('Folder ID is required');
+      });
+
+      expect(result.folderId).toBeNull();
+      expect(result.collectionId).toBe(testCollectionId);
     });
 
     test('throws error if position is missing', async () => {
       await expect(TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example'
@@ -149,6 +163,7 @@ describe('TabService', () => {
       const longNote = 'a'.repeat(256);
 
       await expect(TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -161,6 +176,7 @@ describe('TabService', () => {
       const maxNote = 'a'.repeat(255);
 
       const result = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -175,6 +191,7 @@ describe('TabService', () => {
   describe('updateTab', () => {
     test('updates tab with merged fields', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://old.com',
         title: 'Old Title',
@@ -195,6 +212,7 @@ describe('TabService', () => {
 
     test('allows updating position', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -210,6 +228,7 @@ describe('TabService', () => {
 
     test('allows updating isPinned', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -225,6 +244,7 @@ describe('TabService', () => {
 
     test('allows updating tabId (Chrome runtime ID)', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -240,6 +260,7 @@ describe('TabService', () => {
 
     test('allows clearing tabId (set to null)', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -256,6 +277,7 @@ describe('TabService', () => {
 
     test('does not allow updating id field', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -273,6 +295,7 @@ describe('TabService', () => {
 
     test('does not allow updating folderId', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -295,6 +318,7 @@ describe('TabService', () => {
 
     test('throws error if title is empty string', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -307,6 +331,7 @@ describe('TabService', () => {
 
     test('throws error if url is empty string', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -319,6 +344,7 @@ describe('TabService', () => {
 
     test('validates note length on update', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -335,6 +361,7 @@ describe('TabService', () => {
   describe('deleteTab', () => {
     test('deletes tab from storage', async () => {
       const created = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example.com',
         title: 'Example',
@@ -353,6 +380,7 @@ describe('TabService', () => {
     test('returns all tabs for a folder sorted by position', async () => {
       // Create tabs in non-sequential order
       const tab2 = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example2.com',
         title: 'Tab 2',
@@ -360,6 +388,7 @@ describe('TabService', () => {
       });
 
       const tab0 = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example0.com',
         title: 'Tab 0',
@@ -367,6 +396,7 @@ describe('TabService', () => {
       });
 
       const tab1 = await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example1.com',
         title: 'Tab 1',
@@ -397,6 +427,7 @@ describe('TabService', () => {
 
       // Create tabs in different folders
       await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: testFolderId,
         url: 'https://example1.com',
         title: 'Tab 1',
@@ -404,6 +435,7 @@ describe('TabService', () => {
       });
 
       await TabService.createTab({
+        collectionId: testCollectionId,
         folderId: otherFolder.id,
         url: 'https://example2.com',
         title: 'Other Tab',
