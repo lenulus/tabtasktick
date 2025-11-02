@@ -88,6 +88,14 @@ export const chromeMock = {
         availableCapacity: 4 * 1024 * 1024 * 1024 // 4GB
       }))
     }
+  },
+
+  downloads: {
+    download: jest.fn(() => Promise.resolve(12345)),
+    search: jest.fn(() => Promise.resolve([])),
+    removeFile: jest.fn(() => Promise.resolve()),
+    erase: jest.fn(() => Promise.resolve()),
+    getFileIcon: jest.fn(() => Promise.resolve(''))
   }
 };
 
