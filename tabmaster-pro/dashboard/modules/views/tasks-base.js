@@ -574,9 +574,17 @@ export function renderEmptyState(type, message = '') {
         </svg>
         <h3>Failed to Load Tasks</h3>
         <p>${escapeHtml(message || 'An error occurred while loading tasks.')}</p>
-        <button class="btn btn-primary" onclick="window.location.reload()">Retry</button>
+        <button class="btn btn-primary" id="retryLoadTasks">Retry</button>
       </div>
     `;
+
+    // Add event listener after setting innerHTML (CSP-compliant)
+    setTimeout(() => {
+      const retryBtn = document.getElementById('retryLoadTasks');
+      if (retryBtn) {
+        retryBtn.addEventListener('click', () => window.location.reload());
+      }
+    }, 0);
   } else if (type === 'no-results') {
     html = `
       <div class="empty-state">

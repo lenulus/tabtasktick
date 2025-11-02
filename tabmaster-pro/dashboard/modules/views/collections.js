@@ -393,12 +393,18 @@ function renderEmptyState(type, message = '') {
         </svg>
         <h3>Failed to Load Collections</h3>
         <p>${escapeHtml(message || 'An error occurred while loading collections.')}</p>
-        <button class="btn btn-primary" onclick="window.location.reload()">Retry</button>
+        <button class="btn btn-primary" id="retryLoadCollections">Retry</button>
       </div>
     `;
   }
 
   container.innerHTML = html;
+
+  // Add event listener for retry button (CSP-compliant)
+  const retryBtn = document.getElementById('retryLoadCollections');
+  if (retryBtn) {
+    retryBtn.addEventListener('click', () => window.location.reload());
+  }
 }
 
 // ============================================================================
@@ -421,6 +427,13 @@ function setupCollectionsEventListeners() {
   // Create new controller for this set of listeners
   listenerController = new AbortController();
   const signal = listenerController.signal;
+
+  // Delegate favicon error handling (CSP-compliant)
+  container.addEventListener('error', (e) => {
+    if (e.target.tagName === 'IMG' && e.target.classList.contains('favicon-img')) {
+      e.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ctext y=%2212%22 font-size=%2212%22%3E🌐%3C/text%3E%3C/svg%3E';
+    }
+  }, { signal, capture: true });
 
   // Delegate all collection action buttons
   container.addEventListener('click', async (e) => {
@@ -781,7 +794,7 @@ function renderCollectionDetails(collection) {
                       <div class="detail-list-item nested">
                         <img src="${tab.favIconUrl || 'chrome://favicon/size/16@1x/' + tab.url}"
                              width="16" height="16"
-                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ctext y=%2212%22 font-size=%2212%22%3E🌐%3C/text%3E%3C/svg%3E'">
+                             class="favicon-img">
                         <div class="detail-list-info">
                           <div class="detail-list-title">${escapeHtml(tab.title || 'Untitled')}</div>
                           <div class="detail-list-url">${escapeHtml(tab.url || '')}</div>
@@ -805,7 +818,7 @@ function renderCollectionDetails(collection) {
                     <div class="detail-list-item nested">
                       <img src="${tab.favIconUrl || 'chrome://favicon/size/16@1x/' + tab.url}"
                            width="16" height="16"
-                           onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ctext y=%2212%22 font-size=%2212%22%3E🌐%3C/text%3E%3C/svg%3E'">
+                           class="favicon-img">
                       <div class="detail-list-info">
                         <div class="detail-list-title">${escapeHtml(tab.title || 'Untitled')}</div>
                         <div class="detail-list-url">${escapeHtml(tab.url || '')}</div>

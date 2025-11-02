@@ -1902,9 +1902,9 @@ function showTestResultsModal(tabs, rule) {
     const iconUrl = tab.favIconUrl || defaultIcon;
     return `
       <div style="padding: 10px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
-        <img src="${iconUrl}" 
+        <img src="${iconUrl}"
              style="width: 16px; height: 16px; flex-shrink: 0;"
-             onerror="this.style.display='none'">
+             class="rule-preview-favicon">
         <div style="flex: 1; min-width: 0;">
           <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(tab.title || 'Untitled')}</div>
           <div style="font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(tab.url)}</div>
@@ -1936,7 +1936,14 @@ function showTestResultsModal(tabs, rule) {
   `;
   
   document.body.appendChild(modal);
-  
+
+  // Add favicon error handler (CSP-compliant)
+  modal.addEventListener('error', (e) => {
+    if (e.target.tagName === 'IMG' && e.target.classList.contains('rule-preview-favicon')) {
+      e.target.style.display = 'none';
+    }
+  }, { capture: true });
+
   // Add event listeners properly
   document.getElementById('testResultsCloseBtn').addEventListener('click', () => {
     modal.remove();
