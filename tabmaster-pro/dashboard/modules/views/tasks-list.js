@@ -15,10 +15,7 @@ import {
   setupTasksKeyboardShortcuts
 } from './tasks-base.js';
 import keyboardShortcuts from '../keyboard-shortcuts.js';
-import { TasksFilters } from './tasks-filters.js';
-
-// Module-level filters instance
-let filtersInstance = null;
+import { getSharedFiltersInstance } from './tasks-filters-shared.js';
 
 // ============================================================================
 // Main Load Function
@@ -30,27 +27,26 @@ export async function loadListView(filters = {}, sortConfig = {}) {
   try {
     const { tasks, collections } = await loadTasksData();
 
+    // Get shared filters instance (creates on first call)
+    const filtersInstance = getSharedFiltersInstance();
+
     // Initialize filters UI if not already done
-    if (!filtersInstance) {
-      filtersInstance = new TasksFilters();
+    if (!filtersInstance.initialized) {
       await filtersInstance.init();
+    }
 
-      // Populate collection dropdown
-      filtersInstance.populateCollections(collections);
+    // Populate collection dropdown (always update in case collections changed)
+    filtersInstance.populateCollections(collections);
 
-      // Setup callback for filter changes
-      filtersInstance.onFiltersChange = (appliedFilters) => {
-        const sortConfig = state.get('taskSortConfig') || {};
-        loadListView(appliedFilters, sortConfig);
-      };
+    // Setup callback for filter changes (update each time to ensure correct view)
+    filtersInstance.onFiltersChange = (appliedFilters) => {
+      const sortConfig = state.get('taskSortConfig') || {};
+      loadListView(appliedFilters, sortConfig);
+    };
 
-      // Use saved filters if no filters passed in
-      if (Object.keys(filters).length === 0) {
-        filters = filtersInstance.getFilters();
-      }
-    } else {
-      // Update collection dropdown in case collections changed
-      filtersInstance.populateCollections(collections);
+    // Use saved filters if no filters passed in
+    if (Object.keys(filters).length === 0) {
+      filters = filtersInstance.getFilters();
     }
 
     // Apply filters
