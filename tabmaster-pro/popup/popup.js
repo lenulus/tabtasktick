@@ -561,14 +561,14 @@ function setupStatCardLinks() {
 }
 
 function setupCollectionsLinks() {
-  // Collections card deep link to dashboard
+  // Collections card deep link to side panel
   elements.collectionsCard?.addEventListener('click', () => {
-    openDashboard('collections');
+    openSidePanel('collections');
   });
 
-  // Tasks card deep link to dashboard
+  // Tasks card deep link to side panel
   elements.tasksCard?.addEventListener('click', () => {
-    openDashboard('tasks');
+    openSidePanel('tasks');
   });
 }
 
@@ -1224,6 +1224,28 @@ function openDashboard(view = 'overview', filter = null) {
   }
 
   chrome.tabs.create({ url });
+}
+
+async function openSidePanel(view = 'collections') {
+  try {
+    // Open side panel directly (popup has user gesture)
+    const currentWindow = await chrome.windows.getCurrent();
+    await chrome.sidePanel.open({ windowId: currentWindow.id });
+
+    // Send message to side panel to switch to the specified view
+    chrome.runtime.sendMessage({
+      action: 'openSidePanelView',
+      data: {
+        view: view
+      }
+    });
+
+    // Close popup after opening side panel
+    window.close();
+  } catch (error) {
+    console.error('Failed to open side panel:', error);
+    showNotification('Failed to open side panel', 'error');
+  }
 }
 
 function openRulesManager() {
