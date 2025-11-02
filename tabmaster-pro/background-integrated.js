@@ -2649,7 +2649,8 @@ async function exportFromContextMenu(scope, windowId = null) {
       format: 'json',
       includeGroups: true,
       includeRules: true,
-      includeSnoozed: true
+      includeSnoozed: true,
+      includeCollections: true // Include collections and tasks from IndexedDB
     };
 
     const exportData = await ExportImportService.exportData(

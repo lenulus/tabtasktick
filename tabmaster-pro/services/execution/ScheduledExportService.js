@@ -511,7 +511,8 @@ async function createFullSnapshot(state = null, tabTimeData = null) {
       includeRules: true,
       includeSnoozed: true,
       includeSettings: true,
-      includeStatistics: true
+      includeStatistics: true,
+      includeCollections: true // Include collections and tasks from IndexedDB
     },
     state,
     tabTimeData

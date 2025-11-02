@@ -46,13 +46,8 @@
  * );
  */
 
-import {
-  getCollection,
-  getCompleteCollection,
-  getFoldersByCollection,
-  getTabsByFolder,
-  getTasksByCollection
-} from '../utils/storage-queries.js';
+import { getCollection } from '../utils/storage-queries.js';
+import { buildCollectionExport, buildMultipleCollectionExports } from '../utils/collectionExportBuilder.js';
 
 /**
  * Export format version (semver)
@@ -124,21 +119,14 @@ const MAX_FILENAME_LENGTH = 200;
  * });
  */
 export async function exportCollection(collectionId, options = {}) {
-  // Default options
-  const opts = {
-    includeTasks: options.includeTasks !== false, // default true
-    includeSettings: options.includeSettings !== false, // default true
-    includeMetadata: options.includeMetadata === true // default false
-  };
-
-  // Get collection
+  // Validate collection exists
   const collection = await getCollection(collectionId);
   if (!collection) {
     throw new Error(`Collection not found: ${collectionId}`);
   }
 
-  // Build export data
-  const exportData = await buildCollectionExport(collection, opts);
+  // Use shared builder for export data
+  const exportData = await buildCollectionExport(collectionId, options);
 
   // Wrap in export format
   const exportDoc = {
@@ -186,24 +174,16 @@ export async function exportCollection(collectionId, options = {}) {
  * console.log(`Exported ${result.count} collections`);
  */
 export async function exportCollections(collectionIds, options = {}) {
-  // Default options
-  const opts = {
-    includeTasks: options.includeTasks !== false,
-    includeSettings: options.includeSettings !== false,
-    includeMetadata: options.includeMetadata === true
-  };
-
-  // Build export data for each collection
-  const collections = [];
+  // Validate all collections exist first
   for (const id of collectionIds) {
     const collection = await getCollection(id);
     if (!collection) {
       throw new Error(`Collection not found: ${id}`);
     }
-
-    const exportData = await buildCollectionExport(collection, opts);
-    collections.push(exportData);
   }
+
+  // Use shared builder for all collections
+  const collections = await buildMultipleCollectionExports(collectionIds, options);
 
   // Wrap in export format
   const exportDoc = {
@@ -227,170 +207,7 @@ export async function exportCollections(collectionIds, options = {}) {
   };
 }
 
-/**
- * Build export data for a single collection.
- *
- * Internal helper that constructs the nested export structure:
- * - Collection metadata
- * - Folders array with tabs nested inside
- * - Tasks array with tab references converted to indices
- *
- * @private
- * @param {Object} collection - Collection object from storage
- * @param {Object} options - Export options
- * @returns {Promise<Object>} Export data structure
- */
-async function buildCollectionExport(collection, options) {
-  // Start with collection metadata
-  const exportData = {
-    name: collection.name,
-    description: collection.description,
-    icon: collection.icon,
-    color: collection.color,
-    tags: collection.tags || []
-  };
-
-  // Include settings if requested
-  if (options.includeSettings && collection.settings) {
-    exportData.settings = collection.settings;
-  }
-
-  // Include metadata timestamps if requested
-  if (options.includeMetadata && collection.metadata) {
-    exportData.metadata = {
-      createdAt: collection.metadata.createdAt,
-      lastAccessed: collection.metadata.lastAccessed
-    };
-  }
-
-  // Get complete collection (includes folders, grouped tabs, and ungrouped tabs)
-  const completeCollection = await getCompleteCollection(collection.id);
-  const folders = completeCollection.folders || [];
-  const ungroupedTabs = completeCollection.ungroupedTabs || [];
-
-  folders.sort((a, b) => a.position - b.position);
-
-  // Build folders array with nested tabs for export
-  exportData.folders = [];
-  for (const folder of folders) {
-    // Build tab array (strip internal fields)
-    const tabsExport = folder.tabs.map(tab => ({
-      url: tab.url,
-      title: tab.title,
-      favicon: tab.favicon,
-      note: tab.note,
-      position: tab.position,
-      isPinned: tab.isPinned || false
-    }));
-
-    // Build folder object
-    exportData.folders.push({
-      name: folder.name,
-      color: folder.color,
-      collapsed: folder.collapsed || false,
-      position: folder.position,
-      tabs: tabsExport
-    });
-  }
-
-  // Export ungrouped tabs (folderId === null)
-  if (ungroupedTabs.length > 0) {
-    ungroupedTabs.sort((a, b) => a.position - b.position);
-    exportData.ungroupedTabs = ungroupedTabs.map(tab => ({
-      url: tab.url,
-      title: tab.title,
-      favicon: tab.favicon,
-      note: tab.note,
-      position: tab.position,
-      isPinned: tab.isPinned || false
-    }));
-  }
-
-  // Include tasks if requested
-  if (options.includeTasks) {
-    const tasks = await getTasksByCollection(collection.id);
-
-    // Build task array with tab references converted to indices
-    exportData.tasks = tasks.map(task => {
-      const taskExport = {
-        summary: task.summary,
-        notes: task.notes,
-        status: task.status,
-        priority: task.priority,
-        dueDate: task.dueDate,
-        tags: task.tags || [],
-        comments: task.comments || []
-      };
-
-      // Convert tab IDs to folder/tab indices
-      if (task.tabIds && task.tabIds.length > 0) {
-        taskExport.tabReferences = convertTabIdsToReferences(
-          task.tabIds,
-          folders
-        );
-      } else {
-        taskExport.tabReferences = [];
-      }
-
-      // Include metadata if requested
-      if (options.includeMetadata) {
-        taskExport.createdAt = task.createdAt;
-        taskExport.completedAt = task.completedAt;
-      }
-
-      return taskExport;
-    });
-  }
-
-  return exportData;
-}
-
-/**
- * Convert tab IDs to folder/tab index references with fallback identifiers.
- *
- * Tasks reference tabs by ID in storage, but export uses indices for portability.
- * This function maps tab IDs to reference objects with:
- * - Primary: folderIndex, tabIndex (fast lookup)
- * - Fallback: url, title (for recovery if indices fail)
- *
- * @private
- * @param {string[]} tabIds - Array of tab IDs
- * @param {Object[]} folders - Folders with tabs (already loaded)
- * @returns {Object[]} Array of {folderIndex, tabIndex, url, title} references
- *
- * @example
- * // Input: ['tab_123', 'tab_456']
- * // Output: [
- * //   {folderIndex: 0, tabIndex: 2, url: 'https://a.com', title: 'Page A'},
- * //   {folderIndex: 1, tabIndex: 0, url: 'https://b.com', title: 'Page B'}
- * // ]
- */
-function convertTabIdsToReferences(tabIds, folders) {
-  const references = [];
-
-  for (const tabId of tabIds) {
-    // Find folder and tab index
-    for (let folderIndex = 0; folderIndex < folders.length; folderIndex++) {
-      const folder = folders[folderIndex];
-      const tabIndex = folder.tabs?.findIndex(t => t.id === tabId);
-
-      if (tabIndex !== undefined && tabIndex !== -1) {
-        const tab = folder.tabs[tabIndex];
-
-        // Include fallback identifiers for recovery
-        references.push({
-          folderIndex,
-          tabIndex,
-          url: tab.url,
-          title: tab.title
-        });
-        break;
-      }
-    }
-  }
-
-  return references;
-}
+// Removed buildCollectionExport and convertTabIdsToReferences - now using shared implementations from collectionExportBuilder.js
 
 /**
  * Generate safe filename for single collection export.
