@@ -592,21 +592,14 @@ async function handleBannerDismiss() {
 
 async function handleSaveWindow() {
   try {
-    // Open side panel directly (popup has user gesture)
+    // Get current window ID for the action data
     const currentWindow = await chrome.windows.getCurrent();
-    await chrome.sidePanel.open({ windowId: currentWindow.id });
 
-    // Send message to side panel to open create collection modal
-    chrome.runtime.sendMessage({
-      action: 'openSidePanelWithAction',
-      data: {
-        panelAction: 'createCollection',
-        windowId: currentWindow.id
-      }
+    // Open side panel with create collection action
+    await openSidePanel({
+      action: 'createCollection',
+      actionData: { windowId: currentWindow.id }
     });
-
-    // Close popup after opening side panel
-    window.close();
   } catch (error) {
     console.error('Failed to open save window modal:', error);
     showNotification('Failed to open side panel', 'error');
@@ -1226,22 +1219,51 @@ function openDashboard(view = 'overview', filter = null) {
   chrome.tabs.create({ url });
 }
 
-async function openSidePanel(view = 'collections') {
+/**
+ * Open side panel with optional view or action
+ * Centralized helper to avoid duplicate side panel opening logic
+ *
+ * @param {Object} options - Options for opening side panel
+ * @param {string} [options.view] - View to open ('collections', 'tasks', etc.)
+ * @param {string} [options.action] - Action for panel to execute ('createCollection', etc.)
+ * @param {Object} [options.actionData] - Additional data for the action
+ * @param {boolean} [options.closePopup=true] - Whether to close popup after opening
+ */
+async function openSidePanel(options = {}) {
+  // Support legacy call with just a string view parameter
+  if (typeof options === 'string') {
+    options = { view: options };
+  }
+
+  const { view, action, actionData, closePopup = true } = options;
+
   try {
     // Open side panel directly (popup has user gesture)
     const currentWindow = await chrome.windows.getCurrent();
     await chrome.sidePanel.open({ windowId: currentWindow.id });
 
-    // Send message to side panel to switch to the specified view
-    chrome.runtime.sendMessage({
-      action: 'openSidePanelView',
-      data: {
-        view: view
-      }
-    });
+    // Send appropriate message based on options
+    if (action) {
+      // Send action-based message
+      chrome.runtime.sendMessage({
+        action: 'openSidePanelWithAction',
+        data: {
+          panelAction: action,
+          ...actionData
+        }
+      });
+    } else if (view) {
+      // Send view-based message
+      chrome.runtime.sendMessage({
+        action: 'openSidePanelView',
+        data: { view }
+      });
+    }
 
-    // Close popup after opening side panel
-    window.close();
+    // Close popup after opening side panel (unless disabled)
+    if (closePopup) {
+      window.close();
+    }
   } catch (error) {
     console.error('Failed to open side panel:', error);
     showNotification('Failed to open side panel', 'error');
@@ -1516,12 +1538,8 @@ async function openTestPanel() {
       throw new Error(response?.error || 'Failed to switch to test panel');
     }
 
-    // Open the panel from popup (has user gesture)
-    const currentWindow = await chrome.windows.getCurrent();
-    await chrome.sidePanel.open({ windowId: currentWindow.id });
-
-    // Close popup after opening side panel
-    window.close();
+    // Open the side panel (has user gesture in popup)
+    await openSidePanel({});
   } catch (error) {
     console.error('Failed to open test panel:', error);
     showNotification('Failed to open test panel: ' + error.message, 'error');
