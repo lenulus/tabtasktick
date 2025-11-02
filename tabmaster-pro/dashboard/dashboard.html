@@ -773,6 +773,78 @@
           </div>
         </div>
 
+        <!-- Tasks Filter Bar -->
+        <div class="tasks-filter-bar" id="tasksFilterBar">
+          <div class="filter-row">
+            <input type="text" class="search-input" id="searchTasks" placeholder="Search tasks...">
+            <button class="btn btn-secondary btn-icon" id="toggleTasksFilters" title="Toggle Filters">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 6h18M7 12h10M11 18h2"></path>
+              </svg>
+              Filters
+              <span class="filter-count-badge" id="tasksFilterCount" style="display: none;"></span>
+            </button>
+            <button class="btn btn-secondary btn-icon" id="clearTasksFilters" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Clear
+            </button>
+          </div>
+          <div class="filter-panel" id="tasksFilterPanel" style="display: none;">
+            <div class="filter-group">
+              <label class="filter-label">Status</label>
+              <div class="filter-checkboxes">
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" class="filter-checkbox" data-filter="status" value="open">
+                  <span>Open</span>
+                </label>
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" class="filter-checkbox" data-filter="status" value="active">
+                  <span>Active</span>
+                </label>
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" class="filter-checkbox" data-filter="status" value="fixed">
+                  <span>Fixed</span>
+                </label>
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" class="filter-checkbox" data-filter="status" value="abandoned">
+                  <span>Abandoned</span>
+                </label>
+              </div>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Priority</label>
+              <div class="filter-checkboxes">
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" class="filter-checkbox" data-filter="priority" value="low">
+                  <span>Low</span>
+                </label>
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" class="filter-checkbox" data-filter="priority" value="medium">
+                  <span>Medium</span>
+                </label>
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" class="filter-checkbox" data-filter="priority" value="high">
+                  <span>High</span>
+                </label>
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" class="filter-checkbox" data-filter="priority" value="critical">
+                  <span>Critical</span>
+                </label>
+              </div>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Collection</label>
+              <select class="filter-select" id="tasksCollectionFilter" multiple size="6">
+                <option value="">Uncategorized</option>
+                <!-- Collection options will be populated dynamically -->
+              </select>
+            </div>
+          </div>
+        </div>
+
         <!-- Bulk Actions Bar -->
         <div class="bulk-toolbar" id="tasksBulkBar" style="display: none;">
           <div class="bulk-info">

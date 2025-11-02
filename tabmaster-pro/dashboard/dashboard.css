@@ -1711,6 +1711,115 @@ body {
   height: 16px;
 }
 
+/* Tasks Filter Bar */
+.tasks-filter-bar {
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 12px 20px;
+}
+
+.tasks-filter-bar .filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tasks-filter-bar .search-input {
+  flex: 1;
+  max-width: 400px;
+}
+
+.tasks-filter-bar .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.filter-count-badge {
+  background: #667eea;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+.filter-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  animation: slideDown 0.2s ease;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6c757d;
+  letter-spacing: 0.5px;
+}
+
+.filter-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #495057;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.filter-checkbox-label:hover {
+  background: #f8f9fa;
+}
+
+.filter-checkbox {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.filter-select[multiple] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.filter-select[multiple] option {
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.filter-select[multiple] option:checked {
+  background: #667eea;
+  color: white;
+}
+
 /* Confirmation modal compact */
 .modal-content.compact {
   max-width: 400px;

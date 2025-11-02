@@ -72,12 +72,30 @@ export function filterTasks(tasks, filters) {
       }
     }
 
-    // Collection filter
+    // Collection filter (supports both array and single value)
     if (filters.collection) {
-      if (filters.collection === 'uncategorized') {
-        if (task.collectionId) return false;
-      } else {
-        if (task.collectionId !== filters.collection) return false;
+      const collections = Array.isArray(filters.collection) ? filters.collection : [filters.collection];
+
+      if (collections.length > 0) {
+        let matched = false;
+
+        for (const collection of collections) {
+          if (collection === 'uncategorized' || collection === '') {
+            // Match uncategorized tasks
+            if (!task.collectionId) {
+              matched = true;
+              break;
+            }
+          } else {
+            // Match specific collection
+            if (task.collectionId === collection) {
+              matched = true;
+              break;
+            }
+          }
+        }
+
+        if (!matched) return false;
       }
     }
 
