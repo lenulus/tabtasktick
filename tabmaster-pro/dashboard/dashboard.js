@@ -47,6 +47,9 @@ import { formatSnoozeTitle, formatSnoozeDescription } from '../services/utils/sn
 import keyboardShortcuts from './modules/keyboard-shortcuts.js';
 import helpModal from './modules/help-modal.js';
 
+// Tasks view modules
+import { showTaskDetailModal, handleBulkAction } from './modules/views/tasks-base.js';
+
 // Import view modules
 import { 
   loadTabsView, 
@@ -430,7 +433,6 @@ function setupEventListeners() {
   // Tasks view - Create New Task button
   document.getElementById('createNewTask')?.addEventListener('click', async () => {
     // This will be handled by the task detail modal from tasks-base.js
-    const { showTaskDetailModal } = await import('./modules/views/tasks-base.js');
     const collections = state.get('collections') || [];
     const newTask = {
       id: crypto.randomUUID(),
@@ -449,7 +451,6 @@ function setupEventListeners() {
   // Tasks view - Bulk action buttons
   document.querySelectorAll('#tasksBulkBar .bulk-action-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const { handleBulkAction } = await import('./modules/views/tasks-base.js');
       const selectedTasks = state.get('selectedTasks') || new Set();
       await handleBulkAction(btn.dataset.action, selectedTasks);
     });

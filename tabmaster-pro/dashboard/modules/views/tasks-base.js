@@ -15,6 +15,10 @@ import {
 
 import modalService from '../core/modal-service.js';
 
+// Import view modules statically (no dynamic imports in Chrome extensions)
+import { loadKanbanView } from './tasks-kanban.js';
+import { loadListView } from './tasks-list.js';
+
 // ============================================================================
 // Data Loading
 // ============================================================================
@@ -672,10 +676,8 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
             // Reload current view
             const currentView = state.get('tasksViewPreference') || 'kanban';
             if (currentView === 'kanban') {
-              const { loadKanbanView } = await import('./tasks-kanban.js');
               loadKanbanView();
             } else {
-              const { loadListView } = await import('./tasks-list.js');
               loadListView();
             }
           } catch (error) {
@@ -709,10 +711,8 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
             // Reload current view
             const currentView = state.get('tasksViewPreference') || 'kanban';
             if (currentView === 'kanban') {
-              const { loadKanbanView } = await import('./tasks-kanban.js');
               loadKanbanView();
             } else {
-              const { loadListView } = await import('./tasks-list.js');
               loadListView();
             }
           } catch (error) {
@@ -751,10 +751,8 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
             // Reload current view
             const currentView = state.get('tasksViewPreference') || 'kanban';
             if (currentView === 'kanban') {
-              const { loadKanbanView } = await import('./tasks-kanban.js');
               loadKanbanView();
             } else {
-              const { loadListView } = await import('./tasks-list.js');
               loadListView();
             }
           } catch (error) {
@@ -925,13 +923,9 @@ function applyTaskStatusFilter(status) {
 
   // Reload view with filter
   if (currentView === 'kanban') {
-    import('./tasks-kanban.js').then(({ loadKanbanView }) => {
-      loadKanbanView(currentFilters);
-    });
+    loadKanbanView(currentFilters);
   } else {
-    import('./tasks-list.js').then(({ loadListView }) => {
-      loadListView(currentFilters);
-    });
+    loadListView(currentFilters);
   }
 
   showNotification(`Filtering by status: ${status}`, 'info');
