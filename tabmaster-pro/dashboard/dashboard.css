@@ -170,6 +170,12 @@ body {
   color: #2c3e50;
 }
 
+.view-content {
+  display: block;
+  flex: 1;
+  min-height: 0;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
