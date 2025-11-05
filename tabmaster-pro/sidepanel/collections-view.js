@@ -52,18 +52,9 @@ export class CollectionsView {
       return;
     }
 
-    const stateFilter = options.stateFilter || 'all';
-
-    // When state filter is 'all', render as unified list in active container
-    // This maintains sort order from panel.js without active/saved separation
-    if (stateFilter === 'all') {
-      this.updateCounts(collections.length, 0);
-      this.renderCollectionGroup(this.activeContainer, collections);
-      this.savedContainer.innerHTML = '';
-      return;
-    }
-
-    // Otherwise, separate active and saved collections
+    // Always separate active and saved collections for proper section rendering
+    // The stateFilter is applied earlier in panel.js filterCollections()
+    // So collections array here is already filtered - we just need to group them
     const active = collections.filter(c => c.isActive);
     const saved = collections.filter(c => !c.isActive);
 
@@ -316,6 +307,18 @@ export class CollectionsView {
 
       if (result?.success) {
         notifications.success('Collection opened in new window');
+
+        // If filter was set to "Saved", switch to "All" to show the newly opened collection
+        // Otherwise users won't see the collection they just opened (it's now Active)
+        if (this.controller.searchFilter) {
+          const filters = this.controller.searchFilter.getCollectionsFilters();
+          if (filters.state === 'saved') {
+            // Update filter to show all collections
+            this.controller.searchFilter.collectionsFilters.state = 'all';
+            await this.controller.searchFilter.saveFilterState();
+          }
+        }
+
         // Refresh to show updated active state
         await this.controller.loadData();
       } else {
@@ -396,6 +399,17 @@ export class CollectionsView {
       // Close the window
       await chrome.windows.remove(collection.windowId);
       notifications.success('Window closed - collection saved');
+
+      // If filter was set to "Active", switch to "All" to show the newly saved collection
+      // Otherwise users won't see the collection they just closed (it's now Saved)
+      if (this.controller.searchFilter) {
+        const filters = this.controller.searchFilter.getCollectionsFilters();
+        if (filters.state === 'active') {
+          // Update filter to show all collections
+          this.controller.searchFilter.collectionsFilters.state = 'all';
+          await this.controller.searchFilter.saveFilterState();
+        }
+      }
 
       // Reload data (window close event will update collection)
       await this.controller.loadData();

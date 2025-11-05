@@ -63,6 +63,7 @@ import {
   getTabsByFolder,
   findTabByRuntimeId
 } from '../utils/storage-queries.js';
+import * as WindowService from './WindowService.js';
 
 // ============================================================================
 // STATE MANAGEMENT
@@ -783,9 +784,12 @@ async function handleTabGroupMoved(group) {
  *
  * When a window is closed:
  * 1. Find collection for window
- * 2. Flush all pending changes immediately
- * 3. Unbind collection from window (handled by WindowService via background)
- * 4. Clear settings cache
+ * 2. Discard pending changes (preserve last saved state)
+ * 3. Unbind collection from window in IndexedDB (delegates to WindowService)
+ * 4. Clear in-memory cache
+ *
+ * Note: This listener fires reliably because it's registered at module top level.
+ * The background-integrated.js listener may not fire if service worker restarts.
  *
  * @param {number} windowId - Removed window ID
  */
@@ -818,6 +822,23 @@ async function handleWindowRemoved(windowId) {
     if (state.flushTimers.has(collectionId)) {
       clearTimeout(state.flushTimers.get(collectionId));
       state.flushTimers.delete(collectionId);
+    }
+
+    // Unbind collection from window in IndexedDB
+    // Delegates to WindowService which is the single source of truth for window binding
+    await WindowService.unbindCollectionFromWindow(collectionId);
+    logAndBuffer('info', `Collection ${collectionId} unbound from window ${windowId} in IndexedDB`);
+
+    // Notify UI surfaces that collection state changed
+    // This ensures side panel, dashboard, etc. refresh to show updated state
+    try {
+      chrome.runtime.sendMessage({
+        action: 'collection.updated',
+        data: { collectionId }
+      });
+    } catch (error) {
+      // Ignore errors if no listeners (e.g., side panel not open)
+      logAndBuffer('debug', 'No listeners for collection.updated message');
     }
 
     // Clear settings cache (collection no longer active)

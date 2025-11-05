@@ -858,6 +858,12 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 // ============================================================================
 
 // Handle window removal - unbind any bound collection
+// Note: windows.onRemoved is handled in two places:
+// 1. Here for diagnostic logging and immediate response
+// 2. ProgressiveSyncService for reliability during service worker restarts
+// This redundancy is intentional - ProgressiveSyncService's module-level
+// registration ensures collections are always unbound even if this listener
+// doesn't fire due to service worker lifecycle issues.
 chrome.windows.onRemoved.addListener(async (windowId) => {
   console.log(`[Phase 2.7] chrome.windows.onRemoved fired for window ${windowId}`);
 
