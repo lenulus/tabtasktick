@@ -826,20 +826,9 @@ async function handleWindowRemoved(windowId) {
 
     // Unbind collection from window in IndexedDB
     // Delegates to WindowService which is the single source of truth for window binding
+    // WindowService handles broadcasting collection state changes to UI surfaces
     await WindowService.unbindCollectionFromWindow(collectionId);
     logAndBuffer('info', `Collection ${collectionId} unbound from window ${windowId} in IndexedDB`);
-
-    // Notify UI surfaces that collection state changed
-    // This ensures side panel, dashboard, etc. refresh to show updated state
-    try {
-      chrome.runtime.sendMessage({
-        action: 'collection.updated',
-        data: { collectionId }
-      });
-    } catch (error) {
-      // Ignore errors if no listeners (e.g., side panel not open)
-      logAndBuffer('debug', 'No listeners for collection.updated message');
-    }
 
     // Clear settings cache (collection no longer active)
     state.settingsCache.delete(collectionId);

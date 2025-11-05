@@ -588,6 +588,9 @@ export async function bindCollectionToWindow(collectionId, windowId) {
   // Update cache
   collectionCache.set(windowId, collectionId);
 
+  // Broadcast collection state change to all UI surfaces
+  await broadcastCollectionUpdate(collectionId);
+
   return updated;
 }
 
@@ -625,6 +628,9 @@ export async function unbindCollectionFromWindow(collectionId) {
 
   // Delegate to CollectionService for persistence
   const updated = await CollectionService.unbindFromWindow(collectionId);
+
+  // Broadcast collection state change to all UI surfaces
+  await broadcastCollectionUpdate(collectionId);
 
   return updated;
 }
@@ -761,6 +767,31 @@ export async function rebuildCollectionCache() {
  */
 export function clearCollectionCache() {
   collectionCache.clear();
+}
+
+/**
+ * Broadcasts a collection update message to all UI surfaces.
+ *
+ * Private helper that notifies side panels, dashboards, and other UI components
+ * that a collection's state has changed. This ensures all views refresh to show
+ * the updated active/saved state. Errors are silently ignored if no listeners
+ * are present (e.g., side panel not open).
+ *
+ * @param {string} collectionId - Collection that was updated
+ * @returns {void}
+ *
+ * @private
+ */
+async function broadcastCollectionUpdate(collectionId) {
+  try {
+    await chrome.runtime.sendMessage({
+      action: 'collection.updated',
+      data: { collectionId }
+    });
+  } catch (error) {
+    // Ignore errors if no listeners (e.g., side panel not open)
+    // This is expected behavior when UI surfaces aren't active
+  }
 }
 
 /**

@@ -16,6 +16,7 @@ import {
   exportCollection as exportCollectionService,
   formatExportSuccessMessage
 } from '../services/utils/collection-import-export-ui.js';
+import { handleCollectionOpened, handleCollectionClosed } from '../services/execution/CollectionFilterService.js';
 
 export class CollectionsView {
   constructor(controller) {
@@ -308,15 +309,9 @@ export class CollectionsView {
       if (result?.success) {
         notifications.success('Collection opened in new window');
 
-        // If filter was set to "Saved", switch to "All" to show the newly opened collection
-        // Otherwise users won't see the collection they just opened (it's now Active)
+        // Handle filter state transition (business logic delegated to service)
         if (this.controller.searchFilter) {
-          const filters = this.controller.searchFilter.getCollectionsFilters();
-          if (filters.state === 'saved') {
-            // Update filter to show all collections
-            this.controller.searchFilter.collectionsFilters.state = 'all';
-            await this.controller.searchFilter.saveFilterState();
-          }
+          await handleCollectionOpened(this.controller.searchFilter);
         }
 
         // Refresh to show updated active state
@@ -400,15 +395,9 @@ export class CollectionsView {
       await chrome.windows.remove(collection.windowId);
       notifications.success('Window closed - collection saved');
 
-      // If filter was set to "Active", switch to "All" to show the newly saved collection
-      // Otherwise users won't see the collection they just closed (it's now Saved)
+      // Handle filter state transition (business logic delegated to service)
       if (this.controller.searchFilter) {
-        const filters = this.controller.searchFilter.getCollectionsFilters();
-        if (filters.state === 'active') {
-          // Update filter to show all collections
-          this.controller.searchFilter.collectionsFilters.state = 'all';
-          await this.controller.searchFilter.saveFilterState();
-        }
+        await handleCollectionClosed(this.controller.searchFilter);
       }
 
       // Reload data (window close event will update collection)
