@@ -823,10 +823,10 @@ chrome.tabs.onCreated.addListener(async (tab) => {
     lastActive: Date.now(),
     lastAccessed: Date.now()
   });
-  
-  // Track history
-  await trackTabHistory('created');
-  
+
+  // Track history (use 'opened' to match chart expectations)
+  await trackTabHistory('opened');
+
   // Check immediate triggers
   await checkImmediateTriggers('tab.created');
 });
