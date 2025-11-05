@@ -80,12 +80,6 @@ body {
   gap: var(--spacing-md);
 }
 
-.panel-title {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .header-actions {
   display: flex;
   gap: var(--spacing-sm);
