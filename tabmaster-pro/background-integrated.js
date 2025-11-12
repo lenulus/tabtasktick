@@ -177,6 +177,13 @@ const state = {
 // Scheduler trigger handler
 async function onSchedulerTrigger(trigger) {
   console.log('Rule trigger fired:', trigger);
+
+  // Lazy load rules if state is empty (service worker may have restarted)
+  if (!state.rules || state.rules.length === 0) {
+    console.log('State is empty, lazy loading rules from storage...');
+    await loadRules();
+  }
+
   console.log('Current rules in state:', state.rules.map(r => ({ id: r.id, name: r.name, enabled: r.enabled })));
   const rule = state.rules.find(r => r.id === trigger.ruleId);
   console.log('Found rule:', rule ? `${rule.name} (${rule.id})` : 'NOT FOUND');
