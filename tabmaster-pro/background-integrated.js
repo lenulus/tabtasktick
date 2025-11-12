@@ -988,9 +988,9 @@ async function updateRule(ruleId, updates) {
   state.rules[ruleIndex] = newRule;
   
   await chrome.storage.local.set({ rules: state.rules });
-  
+
   // Update scheduler
-  scheduler.removeRule(ruleId);
+  await scheduler.removeRule(ruleId);
   if (newRule.enabled) {
     await scheduler.setupRule(newRule);
   }
@@ -1008,7 +1008,7 @@ async function toggleRule(ruleId) {
   await chrome.storage.local.set({ rules: state.rules });
 
   // Update scheduler
-  scheduler.removeRule(ruleId);
+  await scheduler.removeRule(ruleId);
   if (rule.enabled) {
     await scheduler.setupRule(rule);
   }
@@ -1021,10 +1021,10 @@ async function deleteRule(ruleId) {
   if (ruleIndex === -1) {
     return { success: false, error: 'Rule not found' };
   }
-  
+
   // Remove from scheduler
-  scheduler.removeRule(ruleId);
-  
+  await scheduler.removeRule(ruleId);
+
   // Remove from state
   state.rules.splice(ruleIndex, 1);
   await chrome.storage.local.set({ rules: state.rules });
@@ -1196,9 +1196,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           // Re-setup scheduler for all rules
           // First, remove all existing scheduled triggers
           for (const rule of state.rules) {
-            scheduler.removeRule(rule.id);
+            await scheduler.removeRule(rule.id);
           }
-          
+
           // Then setup the new/updated rules
           for (const rule of state.rules) {
             if (rule.enabled) {
