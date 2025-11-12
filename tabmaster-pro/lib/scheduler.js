@@ -81,10 +81,8 @@ export function createScheduler(options = {}) {
    * @param {string} ruleId - Rule ID
    * @param {string|number} interval - Interval like '30m', '1h', '2d' or ms
    */
-  async function scheduleRepeat(ruleId, interval) {
+  async function scheduleRepeat(ruleId, interval, options = {}) {
     console.log(`scheduleRepeat called for rule ${ruleId} with interval ${interval}`);
-    // Cancel existing interval if any
-    await cancelRepeat(ruleId);
 
     const ms = parseDuration(interval);
     console.log(`Parsed interval ${interval} to ${ms}ms`);
@@ -100,11 +98,26 @@ export function createScheduler(options = {}) {
         console.warn(`Requested repeat interval of ${ms}ms (${minutes} minutes) is less than the minimum of 1 minute for a repeating alarm. Chrome will clamp it to 1 minute.`);
       }
 
-      // Trigger immediately on start to align with previous setInterval behavior
-      console.log(`Triggering rule ${ruleId} immediately (repeat)`);
-      handleTrigger(ruleId, 'repeat');
+      const alarmName = `rule-repeat:${ruleId}`;
 
-      chrome.alarms.create(`rule-repeat:${ruleId}`, {
+      // Check if alarm already exists (for service worker restarts)
+      const existingAlarm = await chrome.alarms.get(alarmName);
+      if (existingAlarm && !options.force) {
+        console.log(`Alarm ${alarmName} already exists, skipping recreation (use force:true to override)`);
+        return;
+      }
+
+      // Cancel existing interval if any (only clear if we're going to recreate)
+      await cancelRepeat(ruleId);
+
+      // Trigger immediately on start to align with previous setInterval behavior
+      // Skip immediate trigger on service worker restart (unless forced)
+      if (options.triggerImmediately !== false) {
+        console.log(`Triggering rule ${ruleId} immediately (repeat)`);
+        handleTrigger(ruleId, 'repeat');
+      }
+
+      chrome.alarms.create(alarmName, {
         delayInMinutes: minutes,
         periodInMinutes: minutes,
       });
@@ -311,10 +324,12 @@ export function createScheduler(options = {}) {
   /**
    * Setup rule triggers based on rule configuration
    * @param {object} rule - Rule with trigger configuration
+   * @param {object} options - Setup options
+   * @param {boolean} options.isRestart - True if called during service worker restart
    * @returns {Promise<void>}
    */
-  async function setupRule(rule) {
-    console.log(`setupRule called for rule ${rule.name} (${rule.id}), enabled: ${rule.enabled}, trigger:`, rule.trigger);
+  async function setupRule(rule, options = {}) {
+    console.log(`setupRule called for rule ${rule.name} (${rule.id}), enabled: ${rule.enabled}, trigger:`, rule.trigger, 'options:', options);
     if (!rule.enabled || !rule.trigger) {
       console.log(`Rule ${rule.name} is disabled or has no trigger, skipping setup`);
       return;
@@ -336,7 +351,11 @@ export function createScheduler(options = {}) {
     // Handle both repeat_every and repeat formats
     if (trigger.repeat_every || trigger.repeat) {
       console.log(`Setting up repeat trigger for rule ${rule.name}: ${trigger.repeat_every || trigger.repeat}`);
-      await scheduleRepeat(rule.id, trigger.repeat_every || trigger.repeat);
+      // On restart, don't trigger immediately and don't force recreate existing alarms
+      const scheduleOptions = options.isRestart
+        ? { triggerImmediately: false, force: false }
+        : { triggerImmediately: true, force: true };
+      await scheduleRepeat(rule.id, trigger.repeat_every || trigger.repeat, scheduleOptions);
     }
 
     // Handle both once_at and once formats

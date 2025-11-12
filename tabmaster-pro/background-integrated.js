@@ -196,11 +196,12 @@ const scheduler = createChromeScheduler(chrome, onSchedulerTrigger);
 // Initialize scheduler on startup
 async function initializeScheduler() {
   await scheduler.init();
-  
+
   // Setup all enabled rules
+  // Use isRestart flag to prevent recreating existing alarms and immediate triggers
   for (const rule of state.rules) {
     if (rule.enabled) {
-      await scheduler.setupRule(rule);
+      await scheduler.setupRule(rule, { isRestart: true });
     }
   }
 }
