@@ -2995,7 +2995,7 @@ chrome.storage.onChanged.addListener(async (changes, namespace) => {
           console.log(`Disabling production rule: ${rule.name}`);
           rule.enabled = false;
           // Remove from scheduler
-          scheduler.removeRule(rule.id);
+          await scheduler.removeRule(rule.id);
         }
       }
 
