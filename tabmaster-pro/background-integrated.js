@@ -2859,7 +2859,13 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     await onSchedulerTrigger({ ruleId, type: 'repeat' });
   } else if (alarm.name === 'scheduled_backup' || alarm.name === 'scheduled_backup_cleanup') {
     // Phase 8.4: Delegate to ScheduledExportService
-    await ScheduledExportService.handleAlarm(alarm);
+    // Pass state directly to avoid service worker messaging to itself (which fails)
+    await ScheduledExportService.handleAlarm(alarm, {
+      rules: state.rules,
+      snoozedTabs: await SnoozeService.getSnoozedTabs(),
+      settings: state.settings,
+      statistics: state.statistics
+    }, tabTimeData);
   }
 });
 

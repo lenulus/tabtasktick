@@ -371,7 +371,7 @@ export async function deleteBackup(downloadId, deleteFile = false) {
  *   await ScheduledExportService.handleAlarm(alarm);
  * });
  */
-export async function handleAlarm(alarm) {
+export async function handleAlarm(alarm, state = null, tabTimeData = null) {
   await ensureInitialized();
 
   if (alarm.name === ALARM_NAME) {
@@ -379,7 +379,7 @@ export async function handleAlarm(alarm) {
     const config = await getScheduledExportConfig();
 
     if (config.enabled) {
-      await performScheduledExport(true); // true = automatic backup
+      await performScheduledExport(true, state, tabTimeData); // true = automatic backup
     }
   } else if (alarm.name === ALARM_CLEANUP) {
     console.log('ScheduledExportService: Cleanup alarm fired');
@@ -490,17 +490,25 @@ async function performScheduledExport(automatic = true, state = null, tabTimeDat
  */
 async function createFullSnapshot(state = null, tabTimeData = null) {
   // If state not provided (automatic backup from alarm), fetch it via message
+  // Note: This should not happen in normal operation as background should pass state directly
   if (!state) {
-    const response = await chrome.runtime.sendMessage({
-      action: 'getExportState'
-    });
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'getExportState'
+      });
 
-    if (!response || !response.state) {
-      throw new Error('Failed to get export state from background');
+      if (!response || !response.state) {
+        throw new Error('Failed to get export state from background');
+      }
+
+      state = response.state;
+      tabTimeData = response.tabTimeData;
+    } catch (error) {
+      // In service worker context, sendMessage to self fails with "Could not establish connection"
+      // This indicates the background didn't pass state directly, which it should
+      console.error('ScheduledExportService: Cannot get state via messaging (service worker cannot message itself)');
+      throw new Error('State must be provided directly to ScheduledExportService in service worker context');
     }
-
-    state = response.state;
-    tabTimeData = response.tabTimeData;
   }
 
   // Create FULL export with ALL data using ExportImportService
