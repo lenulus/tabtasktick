@@ -2978,11 +2978,13 @@ async function startMonitoring() {
     await loadSettings();
     await loadActivityLog();
     await loadDomainCategories();
-    // CRITICAL: Initialize scheduler on every service worker load
+    // CRITICAL: Initialize scheduler and services on every service worker load
     // Service workers can restart mid-session without triggering onStartup/onInstalled
-    // This ensures rules continue firing even after service worker restarts
+    // This ensures rules, snooze alarms, and backup schedules continue working after restarts
     await initializeScheduler();
-    console.log('Initial state loaded and scheduler initialized');
+    await SnoozeService.initialize();
+    await ScheduledExportService.initialize();
+    console.log('Initial state loaded, scheduler and services initialized');
   } catch (error) {
     console.error('Error loading initial state:', error);
   }
