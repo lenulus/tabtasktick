@@ -204,6 +204,12 @@ const scheduler = createChromeScheduler(chrome, onSchedulerTrigger);
 async function initializeScheduler() {
   await scheduler.init();
 
+  // Ensure rules are loaded before attempting to set them up
+  // This prevents race conditions where scheduler initializes before rules are loaded
+  if (!state.rules || state.rules.length === 0) {
+    await loadRules();
+  }
+
   // Setup all enabled rules
   // Use isRestart flag to prevent recreating existing alarms and immediate triggers
   for (const rule of state.rules) {
@@ -2972,7 +2978,11 @@ async function startMonitoring() {
     await loadSettings();
     await loadActivityLog();
     await loadDomainCategories();
-    console.log('Initial state loaded');
+    // CRITICAL: Initialize scheduler on every service worker load
+    // Service workers can restart mid-session without triggering onStartup/onInstalled
+    // This ensures rules continue firing even after service worker restarts
+    await initializeScheduler();
+    console.log('Initial state loaded and scheduler initialized');
   } catch (error) {
     console.error('Error loading initial state:', error);
   }
