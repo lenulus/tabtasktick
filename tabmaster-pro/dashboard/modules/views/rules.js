@@ -334,7 +334,7 @@ async function getTriggerInfoHTML(rule) {
     if (rule.enabled) {
       const nextRunTime = await getNextRunTime(rule.id);
       if (nextRunTime) {
-        nextRunHTML = `<br><span style="color: #666; font-size: 0.9em;">Next run: ${nextRunTime}</span>`;
+        nextRunHTML = ` <span style="color: #666;">(next: ${nextRunTime})</span>`;
       }
     }
 
@@ -1770,40 +1770,35 @@ export async function toggleAllRules(enabled) {
 export async function runRule(ruleId) {
   const rule = state.get('currentRules').find(r => r.id === ruleId);
   if (!rule) return;
-  
+
   const btn = document.querySelector(`[data-rule-id="${ruleId}"] button[data-action="run"]`);
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<svg class="spinner" width="16" height="16" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5"></circle></svg>';
   }
-  
+
   try {
     const result = await sendMessage({
       action: 'executeRule',
       ruleId: ruleId
     });
-    
+
     if (result.success) {
       showNotification(
-        `Rule executed successfully`, 
+        `Rule executed successfully`,
         'success'
       );
-      
-      // Refresh the view to show updated tab counts
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     } else {
       showNotification(`Rule execution failed: ${result.error}`, 'error');
     }
   } catch (error) {
     showNotification(`Error executing rule: ${error.message}`, 'error');
-  }
-  
-  // Restore button
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+  } finally {
+    // Always restore button state
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+    }
   }
 }
 
@@ -1859,11 +1854,11 @@ export async function testRule(ruleId) {
   } catch (error) {
     showNotification(`Error testing rule: ${error.message}`, 'error');
   }
-  
-  // Restore button
+
+  // Restore button to preview/eye icon
   if (btn) {
     btn.disabled = false;
-    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
   }
 }
 

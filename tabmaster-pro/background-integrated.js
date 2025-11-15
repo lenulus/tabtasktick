@@ -19,6 +19,9 @@ import { executeSnoozeOperations } from './services/execution/executeSnoozeOpera
 // Phase 8.4: Import ScheduledExportService for automatic backups
 import * as ScheduledExportService from './services/execution/ScheduledExportService.js';
 
+// Import activity formatter for detailed rule execution messages
+import { formatRuleActivityMessage } from './services/utils/activityFormatter.js';
+
 // TabTaskTick Phase 2.6: Import services for message handlers
 import * as CollectionService from './services/execution/CollectionService.js';
 import * as FolderService from './services/execution/FolderService.js';
@@ -621,15 +624,9 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
       state.performanceMetrics[rule.name] = executionTime;
     }
     
-    // Log activity
-    const totalActions = results.totalActions || 0;
-    if (totalActions > 0) {
-      logActivity(
-        'rule',
-        `${rule.name}: ${totalActions} actions (${triggerType})`,
-        triggerType === 'manual' ? 'manual' : 'auto'
-      );
-    }
+    // Log activity with detailed message
+    const activityMessage = formatRuleActivityMessage(rule.name, results, triggerType);
+    logActivity('rule', activityMessage, triggerType === 'manual' ? 'manual' : 'auto');
     
     // Update statistics
     if (results.rules.length > 0) {
