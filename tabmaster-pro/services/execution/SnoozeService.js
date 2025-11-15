@@ -59,12 +59,24 @@ const PERIODIC_ALARM_NAME = 'snooze_periodic_check';
 /**
  * Ensures the service is initialized by loading from storage if needed.
  * This handles service worker restarts where module state is reset.
+ * Also ensures the periodic fallback alarm exists (safety net for missed wake-ups).
  */
 async function ensureInitialized() {
   if (!isInitialized) {
     const data = await chrome.storage.local.get(SNOOZE_STORAGE_KEY);
     snoozedTabs = data[SNOOZE_STORAGE_KEY] || [];
     isInitialized = true;
+
+    // Ensure periodic fallback alarm exists (created on first use, not proactively)
+    const periodicAlarm = await chrome.alarms.get(PERIODIC_ALARM_NAME);
+    if (!periodicAlarm) {
+      chrome.alarms.create(PERIODIC_ALARM_NAME, {
+        delayInMinutes: 5,
+        periodInMinutes: 5,
+      });
+      console.log('SnoozeService: Created periodic fallback alarm');
+    }
+
     console.log(`SnoozeService lazy-initialized with ${snoozedTabs.length} snoozed tabs.`);
   }
 }

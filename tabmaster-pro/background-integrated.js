@@ -407,8 +407,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   console.log('TabMaster Pro installed');
   await loadDomainCategories();
   await initializeExtension();
-  await SnoozeService.initialize();
-  await ScheduledExportService.initialize(); // Phase 8.4: Initialize automatic backups
+  // SnoozeService and ScheduledExportService use lazy initialization
   await initializeDB(); // TabTaskTick Phase 2.6: Initialize IndexedDB
   await WindowService.rebuildCollectionCache(); // TabTaskTick Phase 2.6: Rebuild collection cache
   await ProgressiveSyncService.initialize(); // Phase 8: Initialize progressive collection sync
@@ -417,7 +416,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   await loadRules();
   await loadActivityLog();
   await initializeTabTimeTracking();
-  await initializeScheduler();
+  // Scheduler initialized in IIFE (runs before this)
   await checkAndMigrateTabs();
 });
 
@@ -426,14 +425,13 @@ chrome.runtime.onStartup.addListener(async () => {
   await setupContextMenus(); // Ensure context menus are set up on startup
   await loadSettings();
   await loadRules();
-  await SnoozeService.initialize();
-  await ScheduledExportService.initialize(); // Phase 8.4: Initialize automatic backups
+  // SnoozeService and ScheduledExportService use lazy initialization
   await initializeDB(); // TabTaskTick Phase 2.6: Initialize IndexedDB
   await WindowService.rebuildCollectionCache(); // TabTaskTick Phase 2.6: Rebuild collection cache
   await ProgressiveSyncService.initialize(); // Phase 8: Initialize progressive collection sync
   await loadActivityLog();
   await initializeTabTimeTracking();
-  await initializeScheduler();
+  // Scheduler initialized in IIFE (runs before this)
   await startMonitoring();
 });
 
@@ -2978,13 +2976,12 @@ async function startMonitoring() {
     await loadSettings();
     await loadActivityLog();
     await loadDomainCategories();
-    // CRITICAL: Initialize scheduler and services on every service worker load
+    // CRITICAL: Initialize scheduler on every service worker load
     // Service workers can restart mid-session without triggering onStartup/onInstalled
-    // This ensures rules, snooze alarms, and backup schedules continue working after restarts
+    // Scheduler needs proactive init to set up rule triggers with isRestart flag
+    // SnoozeService and ScheduledExportService use lazy initialization (when alarms fire)
     await initializeScheduler();
-    await SnoozeService.initialize();
-    await ScheduledExportService.initialize();
-    console.log('Initial state loaded, scheduler and services initialized');
+    console.log('Initial state loaded and scheduler initialized');
   } catch (error) {
     console.error('Error loading initial state:', error);
   }
