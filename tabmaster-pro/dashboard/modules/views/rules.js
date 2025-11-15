@@ -664,7 +664,6 @@ function getActionDescription(actions) {
       let desc = actionLabels[action.type] || action.type;
 
       // Add parameters
-      if (action.bookmark_first) desc += ' (bookmark first)';
       if (action.keep) desc += ` (keep ${action.keep})`;
       if (action.scope && action.scope !== 'global') desc += ` [${action.scope}]`;
       if (action.group_by) desc += ` by ${action.group_by}`;
@@ -1288,13 +1287,7 @@ function createActionElement(action, index) {
 function getActionParamsHTML(action) {
   switch (action.type) {
     case 'close':
-      return `
-        <label>
-          <input type="checkbox" ${action.bookmark_first ? 'checked' : ''}
-            data-action-index="${currentActions.indexOf(action)}" data-param="bookmark_first" class="action-param-checkbox">
-          Bookmark before closing
-        </label>
-      `;
+      return ''; // No parameters needed for close action
 
     case 'close-duplicates':
       return `

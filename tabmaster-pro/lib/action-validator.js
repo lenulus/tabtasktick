@@ -29,9 +29,9 @@ const SPECIAL_RULES = {
   
   // Snooze can bookmark first
   snooze: { allowsWith: ['bookmark'] },
-  
-  // Close can bookmark first (special parameter)
-  close: { allowsWith: [] } // Handled via bookmark_first parameter
+
+  // Close has no parameters
+  close: { allowsWith: [] }
 };
 
 /**
