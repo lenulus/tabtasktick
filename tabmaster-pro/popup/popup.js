@@ -208,7 +208,11 @@ async function loadStatistics() {
 
 async function loadRules() {
   try {
-    const rules = await sendMessage({ action: 'getRules' });
+    const response = await sendMessage({ action: 'getRules' });
+    // Handle both old format (direct array) and new format (wrapped), ensure it's always an array
+    const rules = Array.isArray(response)
+      ? response
+      : (Array.isArray(response?.rules) ? response.rules : []);
     updateRulesList(rules);
   } catch (error) {
     console.error('Failed to load rules:', error);
@@ -217,7 +221,11 @@ async function loadRules() {
 
 async function loadSnoozedTabs() {
   try {
-    const snoozedTabs = await sendMessage({ action: 'getSnoozedTabs' });
+    const response = await sendMessage({ action: 'getSnoozedTabs' });
+    // Handle both direct array and wrapped format, ensure it's always an array
+    const snoozedTabs = Array.isArray(response)
+      ? response
+      : (Array.isArray(response?.snoozedTabs) ? response.snoozedTabs : []);
     updateSnoozedList(snoozedTabs);
   } catch (error) {
     console.error('Failed to load snoozed tabs:', error);
