@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Package script for TabMaster Pro Chrome Extension
+# Package script for TabTaskTick Chrome Extension
 # Creates a clean zip file for Chrome Web Store submission
 # Supports automatic version incrementing
 
@@ -162,12 +162,12 @@ if [ -n "$SET_VERSION" ]; then
     CURRENT_VERSION=$(get_version)
 fi
 
-echo "Building TabMaster Pro extension package..."
+echo "Building TabTaskTick extension package..."
 echo "Version: $CURRENT_VERSION"
 
 # Set the output filename with version (replace dots with underscores)
 VERSION_SAFE=$(echo "$CURRENT_VERSION" | tr '.' '_')
-OUTPUT_FILE="../dist/tabmaster-pro-extension_${VERSION_SAFE}.zip"
+OUTPUT_FILE="../dist/tabtasktick-extension_${VERSION_SAFE}.zip"
 
 # Remove existing zip if present
 if [ -f "$OUTPUT_FILE" ]; then

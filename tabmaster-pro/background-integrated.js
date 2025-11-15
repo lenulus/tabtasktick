@@ -1,4 +1,4 @@
-// Background Service Worker for TabMaster Pro
+// Background Service Worker for TabTaskTick
 // Integrated with new Rules Engine 2.0 (engine.js + scheduler.js)
 
 // Import V2 engine (V1 removed in Phase 7.2)
@@ -407,7 +407,7 @@ async function loadActivityLog() {
 // ============================================================================
 
 chrome.runtime.onInstalled.addListener(async () => {
-  console.log('TabMaster Pro installed');
+  console.log('TabTaskTick installed');
   await loadDomainCategories();
   await initializeExtension();
   // SnoozeService and ScheduledExportService use lazy initialization
@@ -1972,7 +1972,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           chrome.notifications.create({
             type: 'basic',
             iconUrl: 'icons/icon-128.png',
-            title: request.title || 'TabMaster Pro',
+            title: request.title || 'TabTaskTick',
             message: request.message || ''
           });
           sendResponse({ success: true });
@@ -2972,7 +2972,7 @@ function migrateActions(oldActions) {
 // ============================================================================
 
 async function startMonitoring() {
-  console.log('TabMaster Pro monitoring started');
+  console.log('TabTaskTick monitoring started');
 }
 
 // Initialize state on script load

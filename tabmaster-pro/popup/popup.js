@@ -1,4 +1,4 @@
-// Popup JavaScript for TabMaster Pro
+// Popup JavaScript for TabTaskTick
 
 // ============================================================================
 // DOM Elements

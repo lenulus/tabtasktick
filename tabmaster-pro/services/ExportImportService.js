@@ -224,7 +224,7 @@ async function buildJSONExport(tabs, windows, groups, options, state, tabTimeDat
     description: `${tabs.length} tabs across ${windowsArray.length} window${windowsArray.length > 1 ? 's' : ''}`,
     browser: navigator.userAgent,
     extension: {
-      name: 'TabMaster Pro',
+      name: 'TabTaskTick',
       version: chrome.runtime.getManifest().version
     },
     session: {

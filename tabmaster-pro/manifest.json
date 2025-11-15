@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "TabMaster Pro",
+  "name": "TabTaskTick",
   "version": "1.3.16",
-  "description": "Intelligent tab and bookmark management with rules engine, auto-grouping, and snoozing",
+  "description": "Intelligent tab and task management with collections, rules engine, auto-grouping, and snoozing",
   "permissions": [
     "tabs",
     "tabGroups",
