@@ -206,7 +206,7 @@ function getSampleRules() {
   ];
 }
 
-export function updateRulesUI() {
+export async function updateRulesUI() {
   const rulesList = document.getElementById('rulesList');
   const emptyState = document.getElementById('rulesEmptyState');
 
@@ -223,30 +223,34 @@ export function updateRulesUI() {
     // Sort rules by priority
     const currentRules = state.get('currentRules') || [];
     console.log('Current rules in updateRulesUI:', currentRules);
-    
+
     // Ensure currentRules is an array
     if (!Array.isArray(currentRules)) {
       console.error('currentRules is not an array:', currentRules);
       return;
     }
-    
+
     const sortedRules = [...currentRules].sort((a, b) => (a.priority || 999) - (b.priority || 999));
 
-    sortedRules.forEach(rule => {
-      const ruleCard = createRuleCard(rule);
+    // Create rule cards asynchronously
+    for (const rule of sortedRules) {
+      const ruleCard = await createRuleCard(rule);
       rulesList.appendChild(ruleCard);
-    });
+    }
   }
 
   // Update sample rules in dropdown
   updateSampleRulesDropdown();
 }
 
-function createRuleCard(rule) {
+async function createRuleCard(rule) {
   const card = document.createElement('div');
   card.className = `rule-card ${!rule.enabled ? 'disabled' : ''}`;
   card.dataset.ruleId = rule.id;
   card.draggable = false; // Will be set dynamically on mousedown
+
+  // Get trigger info HTML asynchronously
+  const triggerInfoHTML = await getTriggerInfoHTML(rule);
 
   card.innerHTML = `
     <div class="rule-header">
@@ -300,15 +304,155 @@ function createRuleCard(rule) {
       <div class="rule-action">
         <strong>Then:</strong> ${getActionDescription(rule.then || rule.actions)}
       </div>
-      ${rule.trigger && rule.trigger.type === 'periodic' ? `
-      <div class="rule-trigger">
-        <strong>Runs:</strong> Every ${rule.trigger.interval} minutes
-      </div>
-      ` : ''}
+      ${triggerInfoHTML}
     </div>
   `;
 
   return card;
+}
+
+/**
+ * Get trigger information HTML for a rule
+ * Shows interval and next run time for repeat triggers
+ */
+async function getTriggerInfoHTML(rule) {
+  if (!rule.trigger) return '';
+
+  const trigger = rule.trigger;
+
+  // Handle repeat triggers (both 'repeat' type and legacy 'periodic')
+  if (trigger.type === 'repeat' || trigger.type === 'periodic') {
+    // Get interval from either repeat_every or every format
+    const interval = trigger.repeat_every || trigger.every || trigger.interval;
+    if (!interval) return '';
+
+    // Format interval for display
+    const intervalText = formatInterval(interval);
+
+    // Get next run time from chrome.alarms if rule is enabled
+    let nextRunHTML = '';
+    if (rule.enabled) {
+      const nextRunTime = await getNextRunTime(rule.id);
+      if (nextRunTime) {
+        nextRunHTML = `<br><span style="color: #666; font-size: 0.9em;">Next run: ${nextRunTime}</span>`;
+      }
+    }
+
+    return `
+      <div class="rule-trigger">
+        <strong>Runs:</strong> Every ${intervalText}${nextRunHTML}
+      </div>
+    `;
+  }
+
+  // Handle once triggers
+  if (trigger.type === 'once') {
+    const at = trigger.once_at || trigger.at;
+    if (at) {
+      const date = new Date(at);
+      const dateStr = date.toLocaleString();
+      return `
+        <div class="rule-trigger">
+          <strong>Runs:</strong> Once at ${dateStr}
+        </div>
+      `;
+    }
+  }
+
+  // Handle immediate triggers
+  if (trigger.type === 'immediate') {
+    return `
+      <div class="rule-trigger">
+        <strong>Runs:</strong> On tab events (immediate)
+      </div>
+    `;
+  }
+
+  // Handle onCreate triggers
+  if (trigger.type === 'onCreate') {
+    return `
+      <div class="rule-trigger">
+        <strong>Runs:</strong> When tabs are created
+      </div>
+    `;
+  }
+
+  return '';
+}
+
+/**
+ * Format interval string to human-readable text
+ * Converts '30m', '1h', '2d' to "30 minutes", "1 hour", "2 days"
+ */
+function formatInterval(interval) {
+  if (typeof interval === 'number') {
+    // Legacy format: interval in minutes
+    if (interval === 1) return '1 minute';
+    if (interval < 60) return `${interval} minutes`;
+    if (interval === 60) return '1 hour';
+    if (interval < 1440) return `${interval / 60} hours`;
+    if (interval === 1440) return '1 day';
+    return `${interval / 1440} days`;
+  }
+
+  // Modern format: '30m', '1h', '2d'
+  const match = interval.match(/^(\d+)([smhd])$/);
+  if (!match) return interval;
+
+  const [, num, unit] = match;
+  const value = parseInt(num);
+
+  const units = {
+    s: value === 1 ? 'second' : 'seconds',
+    m: value === 1 ? 'minute' : 'minutes',
+    h: value === 1 ? 'hour' : 'hours',
+    d: value === 1 ? 'day' : 'days'
+  };
+
+  return `${value} ${units[unit]}`;
+}
+
+/**
+ * Get next run time for a repeat rule from chrome.alarms
+ * Returns formatted relative time string (e.g., "in 5 minutes")
+ */
+async function getNextRunTime(ruleId) {
+  try {
+    const alarmName = `rule-repeat:${ruleId}`;
+    const alarm = await chrome.alarms.get(alarmName);
+
+    if (!alarm || !alarm.scheduledTime) {
+      return null;
+    }
+
+    const now = Date.now();
+    const scheduledTime = alarm.scheduledTime;
+    const diffMs = scheduledTime - now;
+
+    // If past due (shouldn't happen, but handle it)
+    if (diffMs < 0) {
+      return 'overdue';
+    }
+
+    // Format relative time
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+      return `in ${days} day${days !== 1 ? 's' : ''}`;
+    } else if (hours > 0) {
+      return `in ${hours} hour${hours !== 1 ? 's' : ''}`;
+    } else if (minutes > 0) {
+      return `in ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    } else {
+      return `in ${seconds} second${seconds !== 1 ? 's' : ''}`;
+    }
+  } catch (error) {
+    console.error('Error getting next run time:', error);
+    return null;
+  }
 }
 
 function updateSampleRulesDropdown() {
@@ -923,6 +1067,30 @@ export function openRuleModal(rule = null) {
       if (debounceDurationInput && rule.trigger.debounceDuration) {
         debounceDurationInput.value = rule.trigger.debounceDuration;
       }
+    } else if (rule.trigger.type === 'repeat') {
+      // Parse and populate interval and unit for repeat triggers
+      const interval = rule.trigger.repeat_every || rule.trigger.every;
+      if (interval) {
+        const match = interval.match(/^(\d+)([smhd])$/);
+        if (match) {
+          const repeatIntervalInput = document.getElementById('repeatInterval');
+          const repeatUnitSelect = document.getElementById('repeatUnit');
+          if (repeatIntervalInput) repeatIntervalInput.value = match[1];
+          if (repeatUnitSelect) repeatUnitSelect.value = match[2];
+        }
+      }
+    } else if (rule.trigger.type === 'once') {
+      // Populate datetime for once triggers
+      const at = rule.trigger.once_at || rule.trigger.at;
+      if (at) {
+        const onceAtInput = document.getElementById('onceAt');
+        if (onceAtInput) {
+          // Convert to datetime-local format (YYYY-MM-DDTHH:mm)
+          const date = new Date(at);
+          const dateStr = date.toISOString().slice(0, 16);
+          onceAtInput.value = dateStr;
+        }
+      }
     }
   }
 
@@ -1460,22 +1628,22 @@ export async function saveRule() {
         debounceDuration: debounceDuration
       };
       break;
-      
+
     case 'repeat':
       const interval = document.getElementById('repeatInterval')?.value || '30';
       const unit = document.getElementById('repeatUnit')?.value || 'm';
       trigger = {
         type: 'repeat',
-        every: `${interval}${unit}`
+        repeat_every: `${interval}${unit}`  // Use repeat_every (scheduler expects this)
       };
       break;
-      
+
     case 'once':
       const dateTime = document.getElementById('onceAt')?.value;
       if (dateTime) {
         trigger = {
           type: 'once',
-          at: new Date(dateTime).toISOString()
+          once_at: new Date(dateTime).toISOString()  // Use once_at (scheduler expects this)
         };
       }
       break;
