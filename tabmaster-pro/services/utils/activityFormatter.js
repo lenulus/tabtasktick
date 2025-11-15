@@ -71,3 +71,22 @@ function formatActionType(type, count) {
 export function pluralizeAction(count) {
   return count === 1 ? 'action' : 'actions';
 }
+
+/**
+ * Format action counts for UI display
+ * @param {object} actionCounts - Object mapping action types to counts
+ * @returns {string} Formatted action summary (e.g., "closed 2 tabs, grouped 5 tabs")
+ */
+export function formatActionCounts(actionCounts) {
+  if (!actionCounts || Object.keys(actionCounts).length === 0) {
+    return 'No matching tabs found';
+  }
+
+  const actionParts = [];
+  for (const [type, count] of Object.entries(actionCounts)) {
+    const verb = formatActionType(type, count);
+    actionParts.push(`${verb} ${count} ${count === 1 ? 'tab' : 'tabs'}`);
+  }
+
+  return actionParts.join(', ');
+}

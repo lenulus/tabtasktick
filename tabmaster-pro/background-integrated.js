@@ -627,12 +627,20 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
     // Log activity with detailed message
     const activityMessage = formatRuleActivityMessage(rule.name, results, triggerType);
     logActivity('rule', activityMessage, triggerType === 'manual' ? 'manual' : 'auto');
-    
-    // Update statistics
+
+    // Extract detailed action counts for frontend
+    const actionCounts = {};
+    let totalActions = 0;
+
     if (results.rules.length > 0) {
       const ruleResult = results.rules[0];
       for (const action of ruleResult.actions) {
         if (action.success) {
+          const type = action.action || action.type;
+          actionCounts[type] = (actionCounts[type] || 0) + 1;
+          totalActions++;
+
+          // Update statistics
           switch (action.action) {
             case 'close':
               state.statistics.tabsClosed++;
@@ -652,15 +660,16 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
           }
         }
       }
-      
+
       // Save statistics
       await chrome.storage.local.set({ statistics: state.statistics });
     }
-    
+
     return {
       success: true,
       matchCount: results.totalMatches,
       actionCount: totalActions,
+      actionCounts: actionCounts,
       errors: results.errors
     };
     

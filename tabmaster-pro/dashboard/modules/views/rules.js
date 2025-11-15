@@ -6,12 +6,13 @@ import { showNotification } from '../core/shared-utils.js';
 import { parseDSL, serializeRuleToDSL, validateDSL, formatDSL } from '../../../lib/dsl.js';
 import { createHighlightedOverlay } from '../../../lib/dsl-highlighter.js';
 import { ConditionsBuilder } from '../../../lib/conditions-builder.js';
-import { 
-  validateActionList, 
-  getCompatibleActions, 
+import {
+  validateActionList,
+  getCompatibleActions,
   getIncompatibilityReason,
-  sortActionsByPriority 
+  sortActionsByPriority
 } from '../../../lib/action-validator.js';
+import { formatActionCounts } from '../../../services/utils/activityFormatter.js';
 
 export async function loadRulesView() {
   console.log('Loading rules view...');
@@ -1784,9 +1785,13 @@ export async function runRule(ruleId) {
     });
 
     if (result.success) {
+      // Format detailed action message
+      const actionMessage = formatActionCounts(result.actionCounts);
+      const notificationType = result.actionCount > 0 ? 'success' : 'info';
+
       showNotification(
-        `Rule executed successfully`,
-        'success'
+        `Rule executed: ${actionMessage}`,
+        notificationType
       );
     } else {
       showNotification(`Rule execution failed: ${result.error}`, 'error');
@@ -1823,11 +1828,14 @@ export async function testRule(ruleId) {
     // Handle both old and new response formats
     if (result.success) {
       // New format
-      showNotification(
-        `Rule tested: ${result.affectedCount} tab(s) would be affected`, 
-        'info'
-      );
-      
+      const count = result.affectedCount;
+      const notificationType = count > 0 ? 'success' : 'info';
+      const message = count > 0
+        ? `Rule preview: ${count} tab${count === 1 ? '' : 's'} would be affected`
+        : `Rule preview: No matching tabs found`;
+
+      showNotification(message, notificationType);
+
       if (result.affectedTabs && result.affectedTabs.length > 0) {
         console.log('Affected tabs:', result.affectedTabs);
         // Pass the rule from the result if available, otherwise use the original
@@ -1836,11 +1844,13 @@ export async function testRule(ruleId) {
     } else if (result.matchingTabs !== undefined) {
       // Old format from background.js
       const count = result.matchingTabs.length;
-      showNotification(
-        `Rule tested: ${count} tab(s) would be affected`, 
-        'info'
-      );
-      
+      const notificationType = count > 0 ? 'success' : 'info';
+      const message = count > 0
+        ? `Rule preview: ${count} tab${count === 1 ? '' : 's'} would be affected`
+        : `Rule preview: No matching tabs found`;
+
+      showNotification(message, notificationType);
+
       if (count > 0) {
         console.log('Matching tabs:', result.matchingTabs);
       }
