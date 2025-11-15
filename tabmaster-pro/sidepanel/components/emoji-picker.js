@@ -29,7 +29,7 @@ export class EmojiPicker {
     wrapper.className = 'emoji-picker-compact';
 
     wrapper.innerHTML = `
-      <input type="hidden" id="${this.inputId}" value="${this.currentEmoji}">
+      <input type="hidden" id="${this.inputId}" name="${this.inputId}" value="${this.currentEmoji}">
 
       <div class="emoji-picker-trigger">
         <button type="button" class="emoji-current-btn" data-emoji-trigger>

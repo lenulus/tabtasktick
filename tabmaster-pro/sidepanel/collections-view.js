@@ -553,7 +553,7 @@ export class CollectionsView {
       const updates = {
         name: formData.get('name'),
         description: formData.get('description') || null,
-        icon: formData.get('icon') || '📁',
+        icon: formData.get('edit-icon') || '📁',
         tags: formData.get('tags')
           ? formData.get('tags').split(',').map(t => t.trim()).filter(t => t)
           : []

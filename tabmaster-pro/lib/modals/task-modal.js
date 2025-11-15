@@ -346,6 +346,8 @@ class TaskModalController {
 
     try {
       const date = new Date(dueDateInput);
+      // Set time to 23:59:59 so tasks due "today" aren't immediately overdue
+      date.setHours(23, 59, 59, 999);
       return date.getTime();
     } catch (error) {
       console.error('Error parsing due date:', error);

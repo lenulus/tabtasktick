@@ -10,6 +10,7 @@
 
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
+import { EmojiPicker } from './components/emoji-picker.js';
 import { CollectionsView } from './collections-view.js';
 import { CollectionDetailView } from './collection-detail.js';
 import { TasksView } from './tasks-view.js';
@@ -432,19 +433,12 @@ class SidePanelController {
           ></textarea>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="icon-group">
           <label for="collection-icon">
             Icon
             <span id="emoji-suggestion-badge" class="emoji-suggestion-badge" style="display: none;">✨ Suggested</span>
           </label>
-          <input
-            type="text"
-            id="collection-icon"
-            name="icon"
-            class="form-control"
-            maxlength="10"
-            placeholder="📁 (optional emoji)"
-          >
+          <!-- EmojiPicker will be inserted here -->
         </div>
 
         <div class="form-group">
@@ -475,38 +469,46 @@ class SidePanelController {
       const form = document.getElementById('save-window-form');
       const cancelBtn = form?.querySelector('[data-modal-cancel]');
       const nameInput = form?.querySelector('#collection-name');
-      const iconInput = form?.querySelector('#collection-icon');
+      const iconGroup = document.getElementById('icon-group');
       const badge = document.getElementById('emoji-suggestion-badge');
 
+      // Create and insert emoji picker
+      const suggestedIcon = suggestEmoji(suggestedName);
+      const emojiPicker = new EmojiPicker({
+        inputId: 'icon',
+        initialEmoji: suggestedIcon,
+        onChange: (emoji) => {
+          // User manually changed emoji
+          isEmojiSuggested = false;
+          badge.style.display = 'none';
+        }
+      });
+      iconGroup.appendChild(emojiPicker.create());
+
       // Phase 4.2.7: Emoji suggestion logic
-      let isEmojiSuggested = false;
+      let isEmojiSuggested = true; // Start as suggested since we set initial emoji
       let debounceTimer = null;
+
+      // Show suggested badge initially
+      badge.style.display = 'inline';
 
       const updateEmojiSuggestion = () => {
         const name = nameInput?.value || '';
         if (name.trim()) {
           const suggested = suggestEmoji(name);
-          if (!iconInput.value || isEmojiSuggested) {
-            iconInput.value = suggested;
+          const currentEmoji = emojiPicker.getEmoji();
+          if (!currentEmoji || currentEmoji === '📁' || isEmojiSuggested) {
+            emojiPicker.setEmoji(suggested);
             isEmojiSuggested = true;
             badge.style.display = 'inline';
           }
         }
       };
 
-      // Initial suggestion based on suggested name
-      updateEmojiSuggestion();
-
       // Update suggestion as user types (debounced)
       nameInput?.addEventListener('input', () => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(updateEmojiSuggestion, 300);
-      });
-
-      // Remove badge when user manually changes emoji
-      iconInput?.addEventListener('input', () => {
-        isEmojiSuggested = false;
-        badge.style.display = 'none';
       });
 
       // Auto-select the name for easy editing
