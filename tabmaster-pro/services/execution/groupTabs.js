@@ -46,6 +46,8 @@
  * });
  */
 
+import { extractDomainForGrouping } from '../utils/domainUtils.js';
+
 /**
  * Groups tabs by domain or custom name with configurable options.
  *
@@ -151,9 +153,6 @@
  *   callerWindowId: currentWindow.id // Ensures focus returns here
  * });
  */
-
-import { extractDomainForGrouping } from '../utils/domainUtils.js';
-
 export async function groupTabs(tabIds, options = {}) {
   const {
     byDomain = true,
