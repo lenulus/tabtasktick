@@ -1125,20 +1125,25 @@ function setupKeyboardShortcuts() {
 // ============================================================================
 
 // Listen for messages from background script
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'openRuleModal' && message.rule) {
-    // Switch to rules view if not already there
-    if (state.get('currentView') !== 'rules') {
-      switchView('rules');
-      await loadRulesView();
-    }
+    // Handle async operations in IIFE to avoid returning a Promise
+    (async () => {
+      // Switch to rules view if not already there
+      if (state.get('currentView') !== 'rules') {
+        switchView('rules');
+        await loadRulesView();
+      }
 
-    // Open the rule modal with the provided template
-    openRuleModal(message.rule);
+      // Open the rule modal with the provided template
+      openRuleModal(message.rule);
 
-    sendResponse({ success: true });
+      sendResponse({ success: true });
+    })();
+
+    return true; // Keep the message channel open for async response
   }
-  return true; // Keep the message channel open for async response
+  // Don't return anything - let other listeners handle this message
 });
 
 // Notify background that dashboard is ready

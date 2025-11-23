@@ -173,8 +173,11 @@ class SidePanelController {
     });
 
     // Listen for data updates from background
+    // Note: This listener only handles broadcast messages (collection.*, task.*, etc.)
+    // It does NOT handle request-response messages like getRules, getStatistics, etc.
     chrome.runtime.onMessage.addListener((message) => {
       this.handleBackgroundMessage(message);
+      // Don't return true - we never call sendResponse, this is broadcast-only
     });
   }
 
