@@ -963,6 +963,12 @@ body {
   color: #0984e3;
 }
 
+.tab-badge.category {
+  background: #dfe6e9;
+  color: #636e72;
+  font-weight: 500;
+}
+
 /* Groups Container */
 .groups-container {
   display: flex;

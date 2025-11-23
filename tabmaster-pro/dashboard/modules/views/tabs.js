@@ -292,6 +292,7 @@ export function renderGridView(tabs) {
     const badges = [];
     if (tab.pinned) badges.push('<span class="tab-badge pinned">Pinned</span>');
     if (tab.audible) badges.push('<span class="tab-badge audible">Playing</span>');
+    if (tab.category && tab.category !== 'unknown') badges.push(`<span class="tab-badge category">${tab.category}</span>`);
     
     // Filter out invalid favicon URLs
     const filterFaviconUrl = (url) => {
