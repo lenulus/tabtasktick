@@ -18,25 +18,25 @@ Following the v1.3.18 async message listener bug fix, architectural review revea
 **Estimated Time**: 2-3 hours
 **Target**: Before next release
 
-- [ ] Create `/tabmaster-pro/services/utils/listeners.js` with `safeAsyncListener` utility
-- [ ] Fix async listener at line 409 (`chrome.runtime.onInstalled`)
-- [ ] Fix async listener at line 426 (`chrome.runtime.onStartup`)
-- [ ] Fix async listener at line 841 (`chrome.tabs.onCreated`)
-- [ ] Fix async listener at line 857 (`chrome.tabs.onUpdated`)
-- [ ] Fix async listener at line 864 (`chrome.tabs.onRemoved`)
-- [ ] Fix async listener at line 873 (`chrome.tabs.onActivated`)
-- [ ] Fix async listener at line 889 (`chrome.windows.onFocusChanged`)
-- [ ] Fix async listener at line 928 (`chrome.tabs.onAttached`)
-- [ ] Fix async listener at line 2383 (`chrome.contextMenus.onClicked`)
-- [ ] Fix async listener at line 2716 (`chrome.alarms.onAlarm`)
-- [ ] Fix async listener at line 2868 (`chrome.bookmarks.onCreated`)
-- [ ] Fix async listener at line 3001 (`chrome.storage.onChanged`)
+- [x] Create `/tabmaster-pro/services/utils/listeners.js` with `safeAsyncListener` utility
+- [x] Fix async listener at line 412 (`chrome.runtime.onInstalled`)
+- [x] Fix async listener at line 429 (`chrome.runtime.onStartup`)
+- [x] Fix async listener at line 844 (`chrome.tabs.onCreated`)
+- [x] Fix async listener at line 860 (`chrome.tabs.onUpdated`)
+- [x] Fix async listener at line 867 (`chrome.tabs.onActivated`)
+- [x] Fix async listener at line 876 (`chrome.tabs.onRemoved`)
+- [x] Fix async listener at line 892 (`chrome.windows.onRemoved`)
+- [x] Fix async listener at line 931 (`chrome.windows.onFocusChanged`)
+- [x] Fix async listener at line 2386 (`chrome.commands.onCommand`)
+- [x] Fix async listener at line 2719 (`chrome.contextMenus.onClicked`)
+- [x] Fix async listener at line 2871 (`chrome.alarms.onAlarm`)
+- [x] Fix async listener at line 3004 (`chrome.storage.onChanged`)
 - [ ] Test: Install/uninstall extension
 - [ ] Test: Create/update/remove tabs
 - [ ] Test: Trigger alarms
 - [ ] Test: Context menus
 - [ ] Test: Change settings
-- [ ] Verify: `grep -n "\.addListener(async" tabmaster-pro/**/*.js` returns 0 results
+- [x] Verify: `grep -n "\.addListener(async" tabmaster-pro/**/*.js` returns 0 results
 - [ ] Commit Phase 1 changes
 
 **Reference**: [ARCHITECTURE-ACTION-PLAN.md - Phase 1](./ARCHITECTURE-ACTION-PLAN.md#phase-1-fix-async-listeners-immediate)
@@ -121,11 +121,11 @@ Following the v1.3.18 async message listener bug fix, architectural review revea
 
 ## 📊 Progress Summary
 
-**Overall Progress**: 0/4 phases complete
+**Overall Progress**: 0/4 phases complete (Phase 1: 14/20 tasks)
 
 | Phase | Priority | Status | Progress |
 |-------|----------|--------|----------|
-| 1: Async Listeners | 🚨 CRITICAL | Not Started | 0/17 tasks |
+| 1: Async Listeners | 🚨 CRITICAL | In Progress | 14/20 tasks (70%) |
 | 2: groupTabs Consolidation | 🔴 HIGH | Not Started | 0/17 tasks |
 | 3: Extract UI Logic | 🟡 MEDIUM | Not Started | 0/11 tasks |
 | 4: Preventive Infrastructure | 🟢 LOW | Not Started | 0/8 tasks |

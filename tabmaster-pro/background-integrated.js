@@ -22,6 +22,9 @@ import * as ScheduledExportService from './services/execution/ScheduledExportSer
 // Import activity formatter for detailed rule execution messages
 import { formatRuleActivityMessage } from './services/utils/activityFormatter.js';
 
+// Import listener utilities for safe async pattern
+import { safeAsyncListener } from './services/utils/listeners.js';
+
 // TabTaskTick Phase 2.6: Import services for message handlers
 import * as CollectionService from './services/execution/CollectionService.js';
 import * as FolderService from './services/execution/FolderService.js';
@@ -406,7 +409,7 @@ async function loadActivityLog() {
 // Extension Lifecycle
 // ============================================================================
 
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(safeAsyncListener(async () => {
   console.log('TabTaskTick installed');
   await loadDomainCategories();
   await initializeExtension();
@@ -421,9 +424,9 @@ chrome.runtime.onInstalled.addListener(async () => {
   await initializeTabTimeTracking();
   // Scheduler initialized in IIFE (runs before this)
   await checkAndMigrateTabs();
-});
+}));
 
-chrome.runtime.onStartup.addListener(async () => {
+chrome.runtime.onStartup.addListener(safeAsyncListener(async () => {
   await loadDomainCategories();
   await setupContextMenus(); // Ensure context menus are set up on startup
   await loadSettings();
@@ -436,7 +439,7 @@ chrome.runtime.onStartup.addListener(async () => {
   await initializeTabTimeTracking();
   // Scheduler initialized in IIFE (runs before this)
   await startMonitoring();
-});
+}));
 
 async function initializeExtension() {
   // This function now primarily handles first-time setup
@@ -838,7 +841,7 @@ async function executeAllRules() {
 // ============================================================================
 
 // Handle tab creation for immediate triggers
-chrome.tabs.onCreated.addListener(async (tab) => {
+chrome.tabs.onCreated.addListener(safeAsyncListener(async (tab) => {
   // Track time
   tabTimeData.set(tab.id, {
     created: Date.now(),
@@ -851,29 +854,29 @@ chrome.tabs.onCreated.addListener(async (tab) => {
 
   // Check immediate triggers
   await checkImmediateTriggers('tab.created');
-});
+}));
 
 // Handle tab updates
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener(safeAsyncListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete') {
     await checkImmediateTriggers('tab.updated');
   }
-});
+}));
 
 // Handle tab activation
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
+chrome.tabs.onActivated.addListener(safeAsyncListener(async (activeInfo) => {
   const timeData = tabTimeData.get(activeInfo.tabId);
   if (timeData) {
     timeData.lastActive = Date.now();
     timeData.lastAccessed = Date.now();
   }
-});
+}));
 
 // Handle tab removal
-chrome.tabs.onRemoved.addListener(async (tabId) => {
+chrome.tabs.onRemoved.addListener(safeAsyncListener(async (tabId) => {
   tabTimeData.delete(tabId);
   await trackTabHistory('closed');
-});
+}));
 
 // ============================================================================
 // Window Event Handling for Collection Binding (TabTaskTick Phase 2.7)
@@ -886,7 +889,7 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 // This redundancy is intentional - ProgressiveSyncService's module-level
 // registration ensures collections are always unbound even if this listener
 // doesn't fire due to service worker lifecycle issues.
-chrome.windows.onRemoved.addListener(async (windowId) => {
+chrome.windows.onRemoved.addListener(safeAsyncListener(async (windowId) => {
   console.log(`[Phase 2.7] chrome.windows.onRemoved fired for window ${windowId}`);
 
   // Diagnostic: Set a flag in storage to track that event fired
@@ -922,10 +925,10 @@ chrome.windows.onRemoved.addListener(async (windowId) => {
   } catch (error) {
     console.error(`[Phase 2.7] Failed to unbind collection on window close:`, error);
   }
-});
+}));
 
 // Optional: Track window focus for collection activity
-chrome.windows.onFocusChanged.addListener(async (windowId) => {
+chrome.windows.onFocusChanged.addListener(safeAsyncListener(async (windowId) => {
   // Skip WINDOW_ID_NONE (-1) which indicates no window has focus
   if (windowId === chrome.windows.WINDOW_ID_NONE) return;
 
@@ -949,7 +952,7 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
       console.error(`Failed to update collection on focus change:`, error);
     }
   }
-});
+}));
 
 // Check for rules with immediate triggers
 async function checkImmediateTriggers(event) {
@@ -2380,7 +2383,7 @@ async function bookmarkTabs(tabIds, folderName = 'TabMaster Bookmarks') {
 // Command Handlers
 // ============================================================================
 
-chrome.commands.onCommand.addListener(async (command) => {
+chrome.commands.onCommand.addListener(safeAsyncListener(async (command) => {
   console.log('Command received:', command);
 
   switch (command) {
@@ -2398,7 +2401,7 @@ chrome.commands.onCommand.addListener(async (command) => {
       await findAndCloseDuplicates();
       break;
   }
-});
+}));
 
 // ============================================================================
 // Context Menus
@@ -2713,7 +2716,7 @@ async function exportFromContextMenu(scope, windowId = null) {
   }
 }
 
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+chrome.contextMenus.onClicked.addListener(safeAsyncListener(async (info, tab) => {
   switch (info.menuItemId) {
     case 'snooze-1h':
       // Use new options signature with settings applied (convenience defaults)
@@ -2859,13 +2862,13 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       }
       break;
   }
-});
+}));
 
 // ============================================================================
 // Alarm Handlers
 // ============================================================================
 
-chrome.alarms.onAlarm.addListener(async (alarm) => {
+chrome.alarms.onAlarm.addListener(safeAsyncListener(async (alarm) => {
   if (alarm.name.startsWith('snooze_')) {
     await SnoozeService.handleAlarm(alarm);
   } else if (alarm.name.startsWith('rule-repeat:')) {
@@ -2881,7 +2884,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       statistics: state.statistics
     }, tabTimeData);
   }
-});
+}));
 
 // ============================================================================
 // Migration
@@ -2998,7 +3001,7 @@ async function startMonitoring() {
 })();
 
 // Listen for test mode changes
-chrome.storage.onChanged.addListener(async (changes, namespace) => {
+chrome.storage.onChanged.addListener(safeAsyncListener(async (changes, namespace) => {
   if (namespace === 'local' && changes.testModeActive) {
     const testModeActive = changes.testModeActive.newValue;
     const wasActive = changes.testModeActive.oldValue;
@@ -3055,7 +3058,7 @@ chrome.storage.onChanged.addListener(async (changes, namespace) => {
       }
     }
   }
-});
+}));
 
 // Export for testing
 if (typeof module !== 'undefined' && module.exports) {
