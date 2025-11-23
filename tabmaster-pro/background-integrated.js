@@ -396,9 +396,12 @@ function getActivityColor(action) {
 }
 
 async function loadActivityLog() {
-  const { activityLog } = await chrome.storage.local.get('activityLog');
+  const { activityLog, statistics } = await chrome.storage.local.get(['activityLog', 'statistics']);
   if (activityLog) {
     state.activityLog = activityLog;
+  }
+  if (statistics) {
+    state.statistics = { ...state.statistics, ...statistics };
   }
 }
 
@@ -1298,6 +1301,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           
         // Statistics
         case 'getStatistics':
+          // Ensure state is loaded before calculating statistics
+          // Service worker may have suspended and lost in-memory state
+          await loadActivityLog(); // Always reload to get latest statistics
           const stats = await getStatistics();
           sendResponse(stats);
           break;
