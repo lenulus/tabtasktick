@@ -19,6 +19,9 @@
  * - NEVER Promise = causes race conditions and non-deterministic behavior
  *
  * @param {Function} handler - Async handler function to wrap
+ * @param {Object} options - Configuration options
+ * @param {Function} options.errorHandler - Custom error handler (default: console.error)
+ * @param {boolean} options.logErrors - Whether to log errors (default: true)
  * @returns {Function} - Safe listener that uses IIFE pattern
  *
  * @example
@@ -33,56 +36,64 @@
  *     await initializeExtension();
  *   })
  * );
+ *
+ * // With custom error handling
+ * chrome.runtime.onInstalled.addListener(
+ *   safeAsyncListener(async () => {
+ *     await initializeExtension();
+ *   }, {
+ *     errorHandler: (error, context) => {
+ *       sendToMonitoring(error, context);
+ *     }
+ *   })
+ * );
  */
-export function safeAsyncListener(handler) {
-  return (...args) => {
+export function safeAsyncListener(handler, options = {}) {
+  // Prevent double-wrapping
+  if (handler.__safeWrapped) {
+    console.warn('Handler already wrapped with safeAsyncListener - skipping double-wrap');
+    return handler;
+  }
+
+  const {
+    errorHandler = null,
+    logErrors = true
+  } = options;
+
+  const wrapped = (...args) => {
     // Use IIFE to handle async without returning Promise
     (async () => {
       try {
         await handler(...args);
       } catch (error) {
-        console.error('Listener error:', error);
+        const context = {
+          handlerName: handler.name || 'anonymous',
+          argsCount: args.length,
+          timestamp: Date.now()
+        };
+
+        // Log error if enabled
+        if (logErrors) {
+          console.error('Listener error:', error, context);
+        }
+
+        // Call custom error handler if provided
+        if (errorHandler) {
+          try {
+            errorHandler(error, context);
+          } catch (handlerError) {
+            console.error('Error in custom error handler:', handlerError);
+          }
+        }
       }
     })();
     // Return undefined (implicit) - don't claim ownership unless needed
   };
-}
 
-/**
- * Safe wrapper for async message listeners that need to send responses
- *
- * Use this for chrome.runtime.onMessage listeners that need to call sendResponse.
- * Automatically handles the async pattern and keeps the message channel open.
- *
- * @param {Function} handler - Async handler that returns response data
- * @returns {Function} - Safe message listener
- *
- * @example
- * chrome.runtime.onMessage.addListener(
- *   safeAsyncMessageListener(async (message, sender) => {
- *     if (message.action === 'getData') {
- *       const data = await fetchData();
- *       return { success: true, data };
- *     }
- *     return null; // Let other listeners handle
- *   })
- * );
- */
-export function safeAsyncMessageListener(handler) {
-  return (message, sender, sendResponse) => {
-    (async () => {
-      try {
-        const result = await handler(message, sender);
-        if (result !== null && result !== undefined) {
-          sendResponse(result);
-        }
-      } catch (error) {
-        console.error('Message listener error:', error);
-        sendResponse({ success: false, error: error.message });
-      }
-    })();
-    return true; // Keep channel open for async response
-  };
+  // Mark as wrapped to prevent double-wrapping
+  wrapped.__safeWrapped = true;
+
+  return wrapped;
 }
 
 /**
@@ -93,5 +104,5 @@ export function safeAsyncMessageListener(handler) {
  * @returns {boolean} - True if function is async
  */
 export function isAsyncFunction(fn) {
-  return fn.constructor.name === 'AsyncFunction';
+  return fn && fn.constructor && fn.constructor.name === 'AsyncFunction';
 }

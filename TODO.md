@@ -31,13 +31,19 @@ Following the v1.3.18 async message listener bug fix, architectural review revea
 - [x] Fix async listener at line 2719 (`chrome.contextMenus.onClicked`)
 - [x] Fix async listener at line 2871 (`chrome.alarms.onAlarm`)
 - [x] Fix async listener at line 3004 (`chrome.storage.onChanged`)
+- [x] Verify: `grep -n "\.addListener(async" tabmaster-pro/**/*.js` returns 0 results
+- [x] **Checkpoint commit** (17daa66)
+- [x] **Improvements** (based on architecture-guardian review):
+  - [x] Add error handling options to `safeAsyncListener`
+  - [x] Remove unused `safeAsyncMessageListener` function
+  - [x] Add double-wrap protection
+  - [x] Create unit tests (`listeners.test.js`)
 - [ ] Test: Install/uninstall extension
 - [ ] Test: Create/update/remove tabs
 - [ ] Test: Trigger alarms
 - [ ] Test: Context menus
 - [ ] Test: Change settings
-- [x] Verify: `grep -n "\.addListener(async" tabmaster-pro/**/*.js` returns 0 results
-- [ ] Commit Phase 1 changes
+- [ ] Commit Phase 1 improvements
 
 **Reference**: [ARCHITECTURE-ACTION-PLAN.md - Phase 1](./ARCHITECTURE-ACTION-PLAN.md#phase-1-fix-async-listeners-immediate)
 
@@ -121,11 +127,11 @@ Following the v1.3.18 async message listener bug fix, architectural review revea
 
 ## 📊 Progress Summary
 
-**Overall Progress**: 0/4 phases complete (Phase 1: 14/20 tasks)
+**Overall Progress**: 0/4 phases complete (Phase 1: 18/24 tasks, 75%)
 
 | Phase | Priority | Status | Progress |
 |-------|----------|--------|----------|
-| 1: Async Listeners | 🚨 CRITICAL | In Progress | 14/20 tasks (70%) |
+| 1: Async Listeners | 🚨 CRITICAL | In Progress | 18/24 tasks (75%) |
 | 2: groupTabs Consolidation | 🔴 HIGH | Not Started | 0/17 tasks |
 | 3: Extract UI Logic | 🟡 MEDIUM | Not Started | 0/11 tasks |
 | 4: Preventive Infrastructure | 🟢 LOW | Not Started | 0/8 tasks |
