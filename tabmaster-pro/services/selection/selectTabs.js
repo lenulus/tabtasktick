@@ -57,6 +57,7 @@
  */
 
 import { getCategoriesForDomain } from '../../lib/domain-categories.js';
+import { extractDomain } from '../utils/domainUtils.js';
 
 /**
  * Selects tabs based on flexible filter criteria.
@@ -963,53 +964,6 @@ function evaluateOperator(actual, operator, expected) {
     default:
       console.warn(`Unknown operator: ${operator}`);
       return false;
-  }
-}
-
-/**
- * Extract domain from URL
- * @private
- */
-function extractDomain(url) {
-  if (!url) return 'unknown';
-
-  try {
-    // Handle special protocols
-    if (url.startsWith('chrome://')) {
-      return url.split('/')[2] ? `chrome://${url.split('/')[2]}` : 'chrome://';
-    }
-    if (url.startsWith('chrome-extension://')) {
-      return url.split('/')[2] || 'chrome-extension://';
-    }
-    if (url.startsWith('file://')) {
-      return 'file://';
-    }
-    if (url.startsWith('data:')) {
-      return 'data:';
-    }
-
-    // Try to parse as URL
-    let urlToParse = url;
-
-    // Add protocol if missing
-    if (!url.includes('://')) {
-      urlToParse = 'https://' + url;
-    }
-
-    const u = new URL(urlToParse);
-    const hostname = u.hostname || u.host;
-    if (!hostname) return 'unknown';
-
-    // Remove www prefix and lowercase
-    return hostname.toLowerCase().replace(/^www\./, '');
-  } catch {
-    // Handle malformed URLs
-    if (url.includes('.') && !url.includes(' ')) {
-      // Might be a domain without protocol
-      const match = url.match(/^([^\/]+)/);
-      if (match) return match[1].toLowerCase().replace(/^www\./, '');
-    }
-    return 'unknown';
   }
 }
 

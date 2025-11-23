@@ -46,6 +46,8 @@
  * });
  */
 
+import { extractDomainForGrouping } from '../utils/domainUtils.js';
+
 /**
  * Groups tabs by domain or custom name with configurable options.
  *
@@ -457,7 +459,7 @@ function groupTabsByDomain(tabs) {
   const domainMap = new Map();
 
   for (const tab of tabs) {
-    const domain = extractDomain(tab.url);
+    const domain = extractDomainForGrouping(tab.url);
     if (domain) {
       if (!domainMap.has(domain)) {
         domainMap.set(domain, []);
@@ -484,36 +486,6 @@ function groupTabsByWindow(tabs) {
   }
 
   return windowMap;
-}
-
-/**
- * Extract domain from URL
- * @private
- */
-function extractDomain(url) {
-  if (!url) return null;
-
-  try {
-    // Skip chrome:// and other special URLs
-    if (url.startsWith('chrome://') ||
-        url.startsWith('edge://') ||
-        url.startsWith('about:') ||
-        url.startsWith('chrome-extension://')) {
-      return null;
-    }
-
-    const u = new URL(url);
-    let hostname = u.hostname.toLowerCase();
-
-    // Remove www prefix
-    if (hostname.startsWith('www.')) {
-      hostname = hostname.slice(4);
-    }
-
-    return hostname || null;
-  } catch {
-    return null;
-  }
 }
 
 /**
