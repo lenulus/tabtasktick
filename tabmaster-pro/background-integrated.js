@@ -1068,9 +1068,14 @@ async function loadDomainCategories() {
 }
 
 function getCategoryForDomain(url) {
-  // This is now handled by engine.js using domain-categories.js
-  // Keeping this stub for compatibility
-  return 'unknown';
+  // Extract domain from URL
+  const domain = extractDomain(url);
+
+  // Get categories using the imported function
+  const categories = getCategoriesForDomain(domain);
+
+  // Return first category or 'unknown'
+  return categories.length > 0 ? categories[0] : 'unknown';
 }
 
 // ============================================================================
