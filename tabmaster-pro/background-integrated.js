@@ -701,7 +701,9 @@ async function previewRule(ruleId) {
       }
       // Prefer Chrome's lastAccessed over our tracked data
       tab.last_access = tab.lastAccessed || timeData?.lastAccessed || null;
-      tab.category = getCategoryForDomain(tab.url);
+      const domain = extractDomain(tab.url);
+      const categories = getCategoriesForDomain(domain);
+      tab.category = categories.length > 0 ? categories[0] : 'unknown';
     });
     
     // Get the current engine
@@ -790,7 +792,9 @@ async function executeAllRules() {
         tab.createdAt = timeData.created;
         tab.lastActivatedAt = timeData.lastActive;
       }
-      tab.category = getCategoryForDomain(tab.url);
+      const domain = extractDomain(tab.url);
+      const categories = getCategoriesForDomain(domain);
+      tab.category = categories.length > 0 ? categories[0] : 'unknown';
     });
 
     // Get the current engine
@@ -1067,17 +1071,6 @@ async function loadDomainCategories() {
   // Keeping this function for compatibility
 }
 
-function getCategoryForDomain(url) {
-  // Extract domain from URL
-  const domain = extractDomain(url);
-
-  // Get categories using the imported function
-  const categories = getCategoriesForDomain(domain);
-
-  // Return first category or 'unknown'
-  return categories.length > 0 ? categories[0] : 'unknown';
-}
-
 // ============================================================================
 // Action Helper - Routes all actions through engine for consistency
 // ============================================================================
@@ -1170,11 +1163,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           // Add time data to tabs
           const enhancedTabs = tabs.map(tab => {
             const timeData = tabTimeData.get(tab.id);
+            const domain = extractDomain(tab.url);
+            const categories = getCategoriesForDomain(domain);
+            const category = categories.length > 0 ? categories[0] : 'unknown';
             return {
               ...tab,
               timeData: timeData || null,
               last_access: tab.lastAccessed || timeData?.lastAccessed || null,
-              category: getCategoryForDomain(tab.url)
+              category
             };
           });
 

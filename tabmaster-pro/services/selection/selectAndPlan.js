@@ -3,6 +3,7 @@
 
 import { selectTabsMatchingRule } from './selectTabs.js';
 import { Command, createCommandFromAction } from '../../lib/commands/Command.js';
+import { extractDomain } from '../utils/domainUtils.js';
 
 /**
  * Select tabs matching a rule and generate commands for execution
@@ -122,21 +123,6 @@ function groupTabsByWindow(tabs) {
   }
 
   return groups;
-}
-
-/**
- * Extract domain from URL
- * @private
- */
-function extractDomain(url) {
-  if (!url) return 'unknown';
-
-  try {
-    const u = new URL(url);
-    return u.hostname.toLowerCase().replace('www.', '');
-  } catch {
-    return 'unknown';
-  }
 }
 
 /**
