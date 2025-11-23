@@ -2255,7 +2255,9 @@ async function groupByDomain(callerWindowId = null, currentWindowOnly = false, w
   let conditions = {};
   if (currentWindowOnly && windowId) {
     conditions = {
-      eq: ['tab.windowId', windowId]
+      subject: 'windowId',
+      operator: 'eq',
+      value: windowId
     };
   }
 
