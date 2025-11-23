@@ -1160,7 +1160,22 @@ export function sortAndRenderTabs(tabs, sortType) {
         return domainA.localeCompare(domainB);
       });
       break;
-      
+
+    case 'category':
+      // Sort by category alphabetically, with 'unknown' at the end
+      sorted.sort((a, b) => {
+        const catA = a.category || 'unknown';
+        const catB = b.category || 'unknown';
+
+        // Put 'unknown' categories at the end
+        if (catA === 'unknown' && catB !== 'unknown') return 1;
+        if (catA !== 'unknown' && catB === 'unknown') return -1;
+
+        // Alphabetical sort
+        return catA.localeCompare(catB);
+      });
+      break;
+
     case 'default':
     default:
       // Keep original order (by tab index)
