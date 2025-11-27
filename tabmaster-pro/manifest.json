@@ -10,13 +10,10 @@
     "storage",
     "alarms",
     "contextMenus",
-    "webNavigation",
-    "idle",
     "downloads",
     "notifications",
     "windows",
     "activeTab",
-    "processes",
     "sidePanel"
   ],
   "host_permissions": [
