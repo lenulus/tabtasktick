@@ -1061,11 +1061,12 @@ export async function syncCollectionFromWindow(collectionId) {
     const chromeGroupsMap = new Map(chromeGroups.map(g => [g.id, g]));
 
     // Get stored tabs
+    // Note: tabs are stored with 'tabId' field for Chrome runtime ID
     const storedTabs = collection.tabs || [];
     const storedTabsMap = new Map();
     for (const tab of storedTabs) {
-      if (tab.runtimeId) {
-        storedTabsMap.set(tab.runtimeId, tab);
+      if (tab.tabId) {
+        storedTabsMap.set(tab.tabId, tab);
       }
     }
 
@@ -1081,6 +1082,12 @@ export async function syncCollectionFromWindow(collectionId) {
 
     // STEP 1: Add or update tabs from Chrome
     for (const [runtimeId, chromeTab] of chromeTabsMap) {
+      // Skip tabs with empty or blank URLs (transient state)
+      if (!chromeTab.url || chromeTab.url === '' || chromeTab.url === 'about:blank') {
+        logAndBuffer('debug', `Full sync: Skipping tab ${runtimeId} - empty or blank URL`);
+        continue;
+      }
+
       const storedTab = storedTabsMap.get(runtimeId);
 
       if (!storedTab) {
@@ -1098,7 +1105,7 @@ export async function syncCollectionFromWindow(collectionId) {
           id: crypto.randomUUID(),
           collectionId,
           folderId,
-          runtimeId: chromeTab.id,
+          tabId: chromeTab.id, // Chrome runtime ID for lookups
           url: chromeTab.url,
           title: chromeTab.title,
           favicon: chromeTab.favIconUrl,
