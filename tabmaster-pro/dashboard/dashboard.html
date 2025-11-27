@@ -143,7 +143,7 @@
 
         <!-- Stats Cards -->
         <div class="stats-container">
-          <div class="stat-card">
+          <div class="stat-card stat-card-link" data-navigate="tabs" title="View all tabs">
             <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
                 <path d="M2 3h20v18H2z"></path>
@@ -155,8 +155,8 @@
               <div class="stat-change" id="statTabsChange">+0 today</div>
             </div>
           </div>
-          
-          <div class="stat-card">
+
+          <div class="stat-card stat-card-link" data-navigate="groups" title="View tab groups">
             <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -169,8 +169,8 @@
               <div class="stat-change" id="statGroupsInfo">0 collapsed</div>
             </div>
           </div>
-          
-          <div class="stat-card">
+
+          <div class="stat-card stat-card-link" data-navigate="snoozed" title="View snoozed tabs">
             <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -183,18 +183,17 @@
               <div class="stat-change" id="statNextWake">Next in --</div>
             </div>
           </div>
-          
-          <div class="stat-card">
+
+          <div class="stat-card stat-card-link" data-navigate="collections" title="View collections">
             <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M8 12h8M12 8v8"></path>
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
               </svg>
             </div>
             <div class="stat-content">
-              <div class="stat-value" id="statActive">0</div>
-              <div class="stat-label">Active Tabs</div>
-              <div class="stat-change" id="statSuspended">0 suspended</div>
+              <div class="stat-value" id="statCollections">0</div>
+              <div class="stat-label">Collections</div>
+              <div class="stat-change" id="statCollectionsInfo">0 active</div>
             </div>
           </div>
         </div>

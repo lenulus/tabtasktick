@@ -41,14 +41,18 @@ export async function loadOverviewData(filter = null) {
     
     document.getElementById('statSnoozed').textContent = stats.snoozedTabs;
     updateNextWakeTime(stats.snoozedTabs);
-    
-    // Calculate active and suspended tabs
-    const tabs = await chrome.tabs.query({});
-    const activeTabs = tabs.filter(t => !t.discarded && (t.active || t.audible));
-    const suspendedTabs = tabs.filter(t => t.discarded);
-    
-    document.getElementById('statActive').textContent = activeTabs.length;
-    document.getElementById('statSuspended').textContent = `${suspendedTabs.length} suspended`;
+
+    // Get collections count
+    try {
+      const collectionsResponse = await chrome.runtime.sendMessage({ action: 'getCollections' });
+      const collections = collectionsResponse?.collections || [];
+      const activeCollections = collections.filter(c => c.state === 'active');
+      document.getElementById('statCollections').textContent = collections.length;
+      document.getElementById('statCollectionsInfo').textContent = `${activeCollections.length} active`;
+    } catch (e) {
+      document.getElementById('statCollections').textContent = '0';
+      document.getElementById('statCollectionsInfo').textContent = '0 active';
+    }
     
     // Update charts with sample data
     console.log('Calling chart updates...');

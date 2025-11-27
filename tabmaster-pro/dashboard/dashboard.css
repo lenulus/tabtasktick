@@ -285,6 +285,14 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
+.stat-card-link {
+  cursor: pointer;
+}
+
+.stat-card-link:hover {
+  background: #f8f9ff;
+}
+
 .stat-icon {
   width: 56px;
   height: 56px;

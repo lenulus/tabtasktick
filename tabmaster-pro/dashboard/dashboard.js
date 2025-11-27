@@ -169,6 +169,27 @@ function setupNavigation() {
       item.classList.add('active');
     });
   });
+
+  // Setup stat card navigation (overview page deep links)
+  const statCards = document.querySelectorAll('.stat-card-link');
+  statCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const view = card.dataset.navigate;
+      if (view) {
+        switchView(view);
+        // Update nav active state
+        navItems.forEach(nav => {
+          if (nav.dataset.view === view) {
+            nav.classList.add('active');
+          } else {
+            nav.classList.remove('active');
+          }
+        });
+        // Update URL hash
+        window.location.hash = view;
+      }
+    });
+  });
 }
 
 function handleDeepLink() {
