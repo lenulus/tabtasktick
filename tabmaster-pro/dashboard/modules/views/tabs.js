@@ -38,6 +38,11 @@ import {
   updateBulkToolbar
 } from '../core/shared-utils.js';
 
+import {
+  getWindowNamesAndSignatures,
+  setWindowNamesAndSignatures
+} from '../../../services/utils/WindowNameService.js';
+
 // Track window filter selection to restore after rename dialog
 let lastWindowFilterSelection = 'all';
 
@@ -62,7 +67,7 @@ export async function loadTabsView(filter = null) {
     const groups = await chrome.tabGroups.query({});
     
     // Get custom window names from storage (keyed by window signature)
-    const { windowNames = {}, windowSignatures = {} } = await chrome.storage.local.get(['windowNames', 'windowSignatures']);
+    const { windowNames, windowSignatures } = await getWindowNamesAndSignatures();
     
     // Create window color map with better color generation for many windows
     const windowColorMap = new Map();
@@ -194,16 +199,14 @@ export async function loadTabsView(filter = null) {
     }
     if (sortInput) sortInput.value = preservedFilterState.sortType;
     
-    // Save updated window mappings
-    await chrome.storage.local.set({ 
-      windowNames,
-      windowSignatures: Object.fromEntries(
-        Array.from(windowSignatureMap.entries()).map(([id, sig]) => {
-          const name = windowNameMap.get(id);
-          return [sig, name];
-        }).filter(([sig, name]) => sig && !name.startsWith('Window '))
-      )
-    });
+    // Save updated window mappings via service
+    const updatedSignatures = Object.fromEntries(
+      Array.from(windowSignatureMap.entries()).map(([id, sig]) => {
+        const name = windowNameMap.get(id);
+        return [sig, name];
+      }).filter(([sig, name]) => sig && !name.startsWith('Window '))
+    );
+    await setWindowNamesAndSignatures(windowNames, updatedSignatures);
     
     // Apply current filter/sort if they exist (preserves state during refresh)
     if (document.getElementById('searchTabs') || document.getElementById('filterTabs')) {

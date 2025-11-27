@@ -3,6 +3,7 @@
 
 // Import state for managing selection state
 import state from './state.js';
+import { getWindowNames, setWindowNames } from '../../../services/utils/WindowNameService.js';
 
 // Selection state management
 export const selectionState = {
@@ -129,7 +130,7 @@ export async function showRenameWindowsDialog() {
     const windows = await chrome.windows.getAll({ populate: false });
 
     // Load existing window names from storage
-    const { windowNames = {} } = await chrome.storage.local.get(['windowNames']);
+    const windowNames = await getWindowNames();
 
   const modal = document.createElement('div');
   modal.className = 'modal show';
@@ -177,8 +178,8 @@ export async function showRenameWindowsDialog() {
       }
     });
 
-    // Save to storage (same format as tabs.js)
-    await chrome.storage.local.set({ windowNames: updatedNames });
+    // Save to storage via service
+    await setWindowNames(updatedNames);
 
     modal.remove();
     showNotification('Window names saved', 'success');

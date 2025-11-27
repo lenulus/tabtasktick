@@ -43,6 +43,9 @@ import {
 // Only formatters are imported here for the modal component to use
 import { formatSnoozeTitle, formatSnoozeDescription } from '../services/utils/snoozeFormatters.js';
 
+// Window name service for consistent window name handling
+import { getWindowNames } from '../services/utils/WindowNameService.js';
+
 // Phase 10: Keyboard shortcuts system
 import keyboardShortcuts from './modules/keyboard-shortcuts.js';
 import helpModal from './modules/help-modal.js';
@@ -680,8 +683,8 @@ async function showMoveToWindowDialog(tabIds) {
   const windows = await chrome.windows.getAll({ populate: true });
   const currentWindowId = (await chrome.windows.getCurrent()).id;
   
-  // Get window names from our stored data
-  const { windowNames = {} } = await chrome.storage.local.get(['windowNames']);
+  // Get window names from service
+  const windowNames = await getWindowNames();
   const { windowInfo } = window;
   
   // Get current tab info to determine source window
