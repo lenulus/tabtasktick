@@ -162,7 +162,8 @@ function setupNavigation() {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const view = item.dataset.view;
-      switchView(view);
+      // Pass null to signal nav click - resets filters for tabs view
+      switchView(view, null);
 
       // Update active state
       navItems.forEach(nav => nav.classList.remove('active'));

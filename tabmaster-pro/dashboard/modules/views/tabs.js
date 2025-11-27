@@ -46,18 +46,30 @@ import {
 // Track window filter selection to restore after rename dialog
 let lastWindowFilterSelection = 'all';
 
-export async function loadTabsView(filter = null) {
+export async function loadTabsView(filter = undefined) {
   // Store current filter values before they are potentially cleared
   const searchInput = document.getElementById('searchTabs');
   const filterInput = document.getElementById('filterTabs');
   const windowInput = document.getElementById('windowFilter');
   const sortInput = document.getElementById('sortTabs');
 
-  // If a filter is passed from deep link, use it; otherwise preserve current state
+  // Determine filter type:
+  // - If filter is explicitly null (nav click), reset to 'all'
+  // - If filter is a string like 'duplicates' (deep link), use that
+  // - If filter is undefined (page refresh), preserve current dropdown value
+  let filterType = 'all';
+  if (filter === null) {
+    filterType = 'all'; // Nav click - reset filters
+  } else if (filter) {
+    filterType = filter; // Deep link with specific filter
+  } else if (filterInput) {
+    filterType = filterInput.value; // Preserve current state
+  }
+
   const preservedFilterState = {
-    searchTerm: searchInput ? searchInput.value : '',
-    filterType: filter === 'duplicates' ? 'duplicates' : (filterInput ? filterInput.value : 'all'),
-    windowId: windowInput ? windowInput.value : 'all',
+    searchTerm: filter === null ? '' : (searchInput ? searchInput.value : ''),
+    filterType: filterType,
+    windowId: filter === null ? 'all' : (windowInput ? windowInput.value : 'all'),
     sortType: sortInput ? sortInput.value : 'default'
   };
   
