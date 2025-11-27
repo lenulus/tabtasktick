@@ -174,19 +174,24 @@ function setupNavigation() {
   const statCards = document.querySelectorAll('.stat-card-link');
   statCards.forEach(card => {
     card.addEventListener('click', () => {
-      const view = card.dataset.navigate;
-      if (view) {
-        switchView(view);
-        // Update nav active state
-        navItems.forEach(nav => {
-          if (nav.dataset.view === view) {
-            nav.classList.add('active');
-          } else {
-            nav.classList.remove('active');
-          }
-        });
-        // Update URL hash
-        window.location.hash = view;
+      const navigate = card.dataset.navigate;
+      if (navigate) {
+        // Special case: "duplicates" navigates to tabs view with duplicates filter
+        if (navigate === 'duplicates') {
+          switchView('tabs', 'duplicates');
+          // Update nav active state to show Tabs as active
+          navItems.forEach(nav => {
+            nav.classList.toggle('active', nav.dataset.view === 'tabs');
+          });
+          window.location.hash = 'tabs';
+        } else {
+          switchView(navigate);
+          // Update nav active state
+          navItems.forEach(nav => {
+            nav.classList.toggle('active', nav.dataset.view === navigate);
+          });
+          window.location.hash = navigate;
+        }
       }
     });
   });

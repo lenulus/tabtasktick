@@ -42,16 +42,12 @@ export async function loadOverviewData(filter = null) {
     document.getElementById('statSnoozed').textContent = stats.snoozedTabs;
     updateNextWakeTime(stats.snoozedTabs);
 
-    // Get collections count
-    try {
-      const collectionsResponse = await chrome.runtime.sendMessage({ action: 'getCollections' });
-      const collections = collectionsResponse?.collections || [];
-      const activeCollections = collections.filter(c => c.state === 'active');
-      document.getElementById('statCollections').textContent = collections.length;
-      document.getElementById('statCollectionsInfo').textContent = `${activeCollections.length} active`;
-    } catch (e) {
-      document.getElementById('statCollections').textContent = '0';
-      document.getElementById('statCollectionsInfo').textContent = '0 active';
+    // Update duplicates count (already in stats from getStatistics)
+    document.getElementById('statDuplicates').textContent = stats.duplicates || 0;
+    if (stats.duplicates > 0) {
+      document.getElementById('statDuplicatesInfo').textContent = 'Click to clean up';
+    } else {
+      document.getElementById('statDuplicatesInfo').textContent = 'None found';
     }
     
     // Update charts with sample data
