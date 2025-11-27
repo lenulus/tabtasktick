@@ -42,7 +42,6 @@ const elements = {
   debugBtn: document.getElementById('debugBtn'),
 
   // Footer
-  commandPalette: document.getElementById('commandPalette'),
   dashboard: document.getElementById('dashboard'),
   export: document.getElementById('export'),
   import: document.getElementById('import'),
@@ -549,7 +548,6 @@ function setupEventListeners() {
   elements.manageRulesBtn?.addEventListener('click', openRulesManager);
 
   // Footer Actions
-  elements.commandPalette.addEventListener('click', openCommandPalette);
   elements.dashboard.addEventListener('click', () => openDashboard());
   elements.export.addEventListener('click', openExportModal);
   elements.import.addEventListener('click', openImportModal);
@@ -1281,12 +1279,6 @@ async function openSidePanel(options = {}) {
 function openRulesManager() {
   // Open dashboard directly to the rules view
   openDashboard('rules');
-}
-
-function openCommandPalette() {
-  // Send message to background to open command palette
-  chrome.runtime.sendMessage({ action: 'openCommandPalette' });
-  window.close();
 }
 
 // ============================================================================

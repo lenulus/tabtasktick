@@ -5,27 +5,13 @@
 ### Primary Actions (Ctrl/Cmd + Shift + Letter)
 These use Ctrl+Shift on Windows/Linux, Cmd+Shift on Mac to avoid conflicts.
 
-Chrome limits extensions to 4 keyboard shortcuts. Additional actions can be accessed through the command palette or configured at chrome://extensions/shortcuts.
+Chrome limits extensions to 4 keyboard shortcuts. Configure shortcuts at chrome://extensions/shortcuts.
 
 | Action | Default Shortcut | Description |
 |--------|-----------------|-------------|
-| **Command Palette** | `Ctrl+Shift+P` | Open command palette for all actions |
 | **Quick Snooze** | `Ctrl+Shift+S` | Snooze current tab with dialog |
 | **Group by Domain** | `Ctrl+Shift+G` | Group all tabs by domain |
 | **Close Duplicates** | `Ctrl+Shift+D` | Close all duplicate tabs |
-
-### Additional Actions via Command Palette
-Access these and many more features through the command palette (`Ctrl+Shift+P`):
-
-- **Search Tabs** - Find tabs by title or URL
-- **Recent Tabs** - Show recently closed tabs
-- **Toggle Tab List** - Show/hide tab management panel  
-- **Emergency Save** - Backup all tabs instantly
-- **Meeting Mode** - Hide non-work tabs
-- **Focus Mode** - Show only current project
-- **Workspace Switch** - Switch between saved workspaces
-- **Bulk Select** - Toggle multi-select mode
-- And many more...
 
 ### Quick Actions (No Modifiers - Only in Extension Popup)
 When the extension popup is open:
@@ -58,34 +44,12 @@ When the extension popup is open:
 
 ### Recommended Custom Configurations
 
-#### For Developers
+#### Example Custom Configuration
 ```json
 {
-  "command_palette": "Ctrl+K",
   "quick_snooze": "Ctrl+Shift+Z",
-  "search_tabs": "Ctrl+P",
-  "toggle_tab_list": "Ctrl+`"
-}
-```
-
-#### For Power Users  
-```json
-{
-  "command_palette": "Alt+Space",
-  "emergency_save": "Ctrl+Shift+S",
-  "meeting_mode": "Ctrl+Shift+M",
-  "workspace_switch": "Ctrl+Tab"
-}
-```
-
-#### For Vim Users
-```json
-{
-  "command_palette": "Ctrl+Shift+P",
-  "search_tabs": "Ctrl+/",
-  "navigate_down": "j",
-  "navigate_up": "k",
-  "toggle_selection": "v"
+  "group_by_domain": "Ctrl+Shift+G",
+  "close_duplicates": "Ctrl+Shift+D"
 }
 ```
 
@@ -110,16 +74,10 @@ When the extension popup is open:
 ## Accessibility
 
 ### Screen Reader Support
-All shortcuts can be accessed via the command palette (`Ctrl+Shift+P`) with full screen reader support.
+All shortcuts are accessible via keyboard navigation with screen reader support.
 
 ### One-Handed Operation
-Enable "One-Handed Mode" in settings to use shortcuts with just the left hand:
-- Command Palette: `Ctrl+Space`
-- Quick Actions: `Ctrl+1-5`
-- Navigation: `Ctrl+Q/W/E/R`
-
-### Voice Control Integration
-Compatible with voice control software - say "Tab Master" followed by command name.
+Configure shortcuts in chrome://extensions/shortcuts to use left-hand-friendly combinations.
 
 ## Import/Export Settings
 
