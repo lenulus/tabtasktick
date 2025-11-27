@@ -426,7 +426,7 @@ export class CollectionsView {
       // Delete the collection via message
       const response = await chrome.runtime.sendMessage({
         action: 'deleteCollection',
-        collectionId
+        id: collectionId
       });
 
       if (response && response.success) {

@@ -609,6 +609,8 @@ export async function getCompleteCollection(collectionId) {
  * Find tab by Chrome tab ID (runtime ID)
  * Reverse lookup for tab moved/updated events
  *
+ * Uses the tabId index for O(1) lookup instead of full table scan.
+ *
  * @param {number} chromeTabId - Chrome tab ID
  * @returns {Promise<Object|null>} Tab with matching tabId, or null
  */
@@ -616,10 +618,11 @@ export async function findTabByRuntimeId(chromeTabId) {
   try {
     return await withTransaction(['tabs'], 'readonly', async (tx) => {
       const store = tx.objectStore('tabs');
-      const allTabs = await getAllFromStore(store);
+      const index = store.index('tabId');
+      const results = await getAllFromIndex(index, chromeTabId);
 
-      // Linear search (no index on tabId since it's ephemeral)
-      return allTabs.find(tab => tab.tabId === chromeTabId) || null;
+      // Return first match (should only be one tab per runtime ID)
+      return results.length > 0 ? results[0] : null;
     });
   } catch (error) {
     console.error('findTabByRuntimeId failed:', error);

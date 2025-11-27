@@ -128,6 +128,8 @@ function logAndBuffer(level, message, data) {
     console.error(fullMessage, data || '');
   } else if (level === 'warn') {
     console.warn(fullMessage, data || '');
+  } else if (level === 'debug') {
+    console.debug(fullMessage, data || '');
   } else {
     console.log(fullMessage, data || '');
   }
@@ -1270,6 +1272,7 @@ async function processChanges(collectionId, changes) {
  * Processes tab created change.
  *
  * Creates new tab in appropriate folder (or ungrouped).
+ * Skips tabs that are empty/blank (no URL) or already exist in storage.
  *
  * @param {string} collectionId - Collection ID
  * @param {Object} change - Change object
@@ -1284,6 +1287,20 @@ async function processTabCreated(collectionId, change) {
     url: tab.url,
     title: tab.title
   });
+
+  // Skip tabs with empty or blank URLs (transient state during tab creation)
+  if (!tab.url || tab.url === '' || tab.url === 'about:blank') {
+    logAndBuffer('debug', `Skipping tab ${tabId} - empty or blank URL: "${tab.url}"`);
+    return;
+  }
+
+  // Check if tab already exists in storage (e.g., during collection restoration)
+  // This prevents duplicate entries when RestoreCollectionService creates tabs
+  const existingTab = await findTabByRuntimeId(tabId);
+  if (existingTab) {
+    logAndBuffer('debug', `Skipping tab ${tabId} - already exists in storage with id ${existingTab.id}`);
+    return;
+  }
 
   // Use Chrome's tab index as position (preserves window-level ordering)
   const position = tab.index;

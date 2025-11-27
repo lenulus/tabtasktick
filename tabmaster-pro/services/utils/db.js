@@ -14,10 +14,11 @@
  * - v1: Initial schema with all stores and indexes
  * - v2: Phase 8 migration - ensure isActive index exists on collections store
  * - v3: Progressive Sync migration - add collectionId index to tabs store
+ * - v4: Add tabId index to tabs store for efficient runtime ID lookups
  */
 
 const DB_NAME = 'TabTaskTickDB';
-const DB_VERSION = 3; // Bumped for Progressive Sync collectionId index
+const DB_VERSION = 4; // Bumped for tabId index on tabs store
 
 // Singleton DB instance
 let dbInstance = null;
@@ -151,8 +152,22 @@ export async function getDB() {
           }
         }
 
+        if (oldVersion < 4) {
+          // Add tabId index to tabs store for efficient runtime ID lookups
+          // Used by findTabByRuntimeId in ProgressiveSyncService
+          const tx = event.target.transaction;
+          if (db.objectStoreNames.contains('tabs')) {
+            const tabStore = tx.objectStore('tabs');
+            // Check if index already exists before creating
+            if (!tabStore.indexNames.contains('tabId')) {
+              console.log('Adding tabId index to tabs store');
+              tabStore.createIndex('tabId', 'tabId', { unique: false });
+            }
+          }
+        }
+
         // Future version upgrades would go here:
-        // if (oldVersion < 4) { ... }
+        // if (oldVersion < 5) { ... }
       } catch (error) {
         console.error('Schema upgrade failed:', error);
         reject(new Error(`Schema upgrade failed: ${error.message}`));
