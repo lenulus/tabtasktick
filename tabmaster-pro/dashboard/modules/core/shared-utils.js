@@ -125,68 +125,78 @@ export function showNotification(message, type = 'success') {
 
 // Show rename windows dialog
 export async function showRenameWindowsDialog() {
-  const windows = await chrome.windows.getAll({ populate: false });
-  
+  try {
+    const windows = await chrome.windows.getAll({ populate: false });
+
+    // Load existing window names from storage
+    const { windowNames = {} } = await chrome.storage.local.get(['windowNames']);
+
   const modal = document.createElement('div');
-  modal.className = 'modal active';
+  modal.className = 'modal show';
   modal.innerHTML = `
-    <div class="modal-content">
-      <h3>Rename Windows</h3>
-      <div class="rename-windows-list">
-        ${windows.map(window => `
-          <div class="rename-window-item">
-            <label>Window ${window.id}</label>
-            <input type="text" 
-                   class="rename-input" 
-                   data-window-id="${window.id}"
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3>Rename Windows</h3>
+        <button class="modal-close" id="closeRenameModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        ${windows.map(win => `
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <label style="min-width: 100px; color: #6c757d; font-size: 14px;">Window ${windows.indexOf(win) + 1}</label>
+            <input type="text"
+                   class="rename-input"
+                   data-window-id="${win.id}"
                    placeholder="Enter name..."
-                   value="${state.windowNames.get(window.id) || ''}">
+                   value="${windowNames[win.id] || ''}"
+                   style="flex: 1; padding: 8px 12px; border: 1px solid #e9ecef; border-radius: 6px; font-size: 14px;">
           </div>
         `).join('')}
       </div>
-      <div class="modal-actions">
+      <div class="modal-footer">
         <button class="btn btn-secondary" id="cancelRename">Cancel</button>
         <button class="btn btn-primary" id="saveWindowNames">Save Names</button>
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   // Handle save
   document.getElementById('saveWindowNames').addEventListener('click', async () => {
     const inputs = modal.querySelectorAll('.rename-input');
-    const updates = {};
-    
+    const updatedNames = { ...windowNames };
+
     inputs.forEach(input => {
       const windowId = parseInt(input.dataset.windowId);
       const name = input.value.trim();
-      
+
       if (name) {
-        state.windowNames.set(windowId, name);
-        updates[`window_${windowId}`] = name;
+        updatedNames[windowId] = name;
       } else {
-        state.windowNames.delete(windowId);
-        updates[`window_${windowId}`] = null;
+        delete updatedNames[windowId];
       }
     });
-    
-    // Save to storage
-    await chrome.storage.local.set({ windowNames: updates });
-    
-    // Update dropdowns if on tabs view
-    if (state.activeView === 'tabs') {
-      updateWindowFilterDropdown();
-    }
-    
+
+    // Save to storage (same format as tabs.js)
+    await chrome.storage.local.set({ windowNames: updatedNames });
+
     modal.remove();
     showNotification('Window names saved', 'success');
+
+    // Refresh the tabs view to show updated window names
+    updateWindowFilterDropdown();
   });
   
-  // Handle cancel
+  // Handle cancel and close
   document.getElementById('cancelRename').addEventListener('click', () => {
     modal.remove();
   });
+  document.getElementById('closeRenameModal').addEventListener('click', () => {
+    modal.remove();
+  });
+  } catch (error) {
+    console.error('showRenameWindowsDialog error:', error);
+  }
 }
 
 // Update window filter dropdown (stub - actual implementation in tabs.js)

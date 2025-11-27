@@ -30,13 +30,16 @@ import {
 
 import state from '../core/state.js';
 
-import { 
-  handleTabSelection, 
-  showNotification, 
+import {
+  handleTabSelection,
+  showNotification,
   showRenameWindowsDialog,
   clearSelection,
-  updateBulkToolbar 
+  updateBulkToolbar
 } from '../core/shared-utils.js';
+
+// Track window filter selection to restore after rename dialog
+let lastWindowFilterSelection = 'all';
 
 export async function loadTabsView(filter = null) {
   // Store current filter values before they are potentially cleared
@@ -96,10 +99,9 @@ export async function loadTabsView(filter = null) {
         windowNames[window.id] = windowName;
       }
       // Otherwise generate smart default name based on content
+      // Note: current window indicator is shown in dropdown as "(current, X tabs)"
       else {
-        if (window.id === currentWindowId) {
-          windowName = 'Current Window';
-        } else if (windowTabs.length > 0) {
+        if (windowTabs.length > 0) {
           // Try to generate a smart name based on window content
           const domains = windowTabs.map(t => {
             try {
@@ -997,10 +999,8 @@ export function updateWindowFilterDropdown(windows, windowNameMap, currentWindow
     option.value = window.id;
     const name = windowNameMap.get(window.id);
     const tabCount = state.get('tabsData').filter(t => t.windowId === window.id).length;
-    option.textContent = `${name} (${tabCount} tabs)`;
-    if (window.id === currentWindowId) {
-      option.textContent = `⭐ ${option.textContent}`;
-    }
+    const currentIndicator = window.id === currentWindowId ? 'current, ' : '';
+    option.textContent = `${name} (${currentIndicator}${tabCount} tabs)`;
     windowFilter.appendChild(option);
   });
   
@@ -1017,13 +1017,17 @@ export function filterTabs() {
   const filterType = document.getElementById('filterTabs').value;
   const windowFilterValue = document.getElementById('windowFilter')?.value || 'all';
   const sortType = document.getElementById('sortTabs')?.value || 'default';
-  
+
   // Handle rename option
   if (windowFilterValue === 'rename') {
     showRenameWindowsDialog();
-    document.getElementById('windowFilter').value = 'all';
+    // Restore previous selection while dialog is open
+    document.getElementById('windowFilter').value = lastWindowFilterSelection;
     return;
   }
+
+  // Track current selection for restoration after rename
+  lastWindowFilterSelection = windowFilterValue;
   
   let filtered = state.get('tabsData');
   
@@ -1301,3 +1305,21 @@ export function showTabDetails(tab) {
     });
   });
 }
+
+// Listen for window filter update requests (e.g., after renaming windows)
+document.addEventListener('updateWindowFilter', async () => {
+  await loadTabsView();
+
+  // Restore the previous window filter selection
+  const windowFilter = document.getElementById('windowFilter');
+  if (windowFilter && lastWindowFilterSelection !== 'all') {
+    // Check if the option still exists (window may have been closed)
+    const optionExists = Array.from(windowFilter.options).some(
+      opt => opt.value === lastWindowFilterSelection
+    );
+    if (optionExists) {
+      windowFilter.value = lastWindowFilterSelection;
+      filterTabs();
+    }
+  }
+});
