@@ -175,12 +175,15 @@ Following the v1.3.18 async message listener bug fix, architectural review revea
 
 - [ ] Create `/services/utils/MessageListenerService.js`
 - [ ] Add ESLint rule `no-async-chrome-listener` to `.eslintrc.js`
-- [ ] Update CLAUDE.md with listener patterns section
+- [x] Update CLAUDE.md with listener patterns section
+- [x] Update service JSDoc examples (SnoozeService, ScheduledExportService)
+- [x] Add background event handling examples to service-usage-examples.md
+- [x] Document safeAsyncListener in service-dependencies.md
+- [x] Commit documentation updates (b68e19c)
 - [ ] Add integration tests for multi-context scenarios
 - [ ] Document patterns in service README files
 - [ ] Run ESLint on entire codebase
 - [ ] Fix any new violations found
-- [ ] Commit Phase 4 changes
 
 **Reference**: [ARCHITECTURE-ACTION-PLAN.md - Phase 4](./ARCHITECTURE-ACTION-PLAN.md#phase-4-add-preventive-infrastructure-low)
 
