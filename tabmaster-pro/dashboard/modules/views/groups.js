@@ -3,7 +3,6 @@
 
 import { showNotification } from '../core/shared-utils.js';
 import { getFaviconUrl } from '../core/utils.js';
-import { GroupingScope, groupTabsByDomain as groupTabsByDomainService, getCurrentWindowId } from '../../../services/TabGrouping.js';
 
 // Store UI collapsed state for groups
 const collapsedGroups = new Set();
@@ -209,19 +208,31 @@ async function closeGroup(groupId) {
 
 export async function groupTabsByDomain() {
   try {
-    // Use centralized TabGrouping service
-    // Use TARGETED scope for the dashboard's window
-    const currentWindowId = await getCurrentWindowId();
-    const result = await groupTabsByDomainService(GroupingScope.TARGETED, currentWindowId);
+    // Get current window to use targeted scope (group only within this window)
+    const currentWindow = await chrome.windows.getCurrent();
+
+    // Send message to background to perform grouping via unified service
+    const result = await chrome.runtime.sendMessage({
+      action: 'groupByDomain',
+      scope: 'targeted',
+      windowId: currentWindow.id
+    });
 
     await loadGroupsView();
 
-    // Show notification (side effects stay in caller)
-    if (result.groupsCreated > 0 || result.groupsReused > 0) {
-      const message = `Created ${result.groupsCreated} new groups, reused ${result.groupsReused} existing groups with ${result.totalTabsGrouped} tabs`;
-      showNotification(message, 'success');
+    // Show notification based on result
+    if (result.success) {
+      const groupsCreated = result.summary?.groupsCreated || 0;
+      const groupsReused = result.summary?.groupsReused || 0;
+
+      if (groupsCreated > 0 || groupsReused > 0) {
+        const message = `Created ${groupsCreated} new groups, reused ${groupsReused} existing groups`;
+        showNotification(message, 'success');
+      } else {
+        showNotification('No tabs to group by domain', 'info');
+      }
     } else {
-      showNotification('No tabs to group by domain', 'info');
+      showNotification(result.error || 'Failed to group tabs by domain', 'error');
     }
   } catch (error) {
     console.error('Failed to group tabs by domain:', error);
