@@ -132,7 +132,8 @@ export async function executeActions(actions, tabs, context, dryRun = false) {
         customName: action.name || null,
         perWindow: true,
         dryRun,
-        callerWindowId: action.callerWindowId || null
+        callerWindowId: action.callerWindowId || null,
+        minTabsPerGroup: action.minTabsPerGroup
       };
 
       const tabIds = tabs.map(t => t.id);

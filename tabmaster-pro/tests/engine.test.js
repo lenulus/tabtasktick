@@ -248,7 +248,7 @@ describe('Engine - executeActions', () => {
   
   test('should create named groups', async () => {
     const tabs = [createTab({ id: 1, windowId: 1 })];
-    const actions = [{ action: 'group', name: 'Work' }];
+    const actions = [{ action: 'group', name: 'Work', minTabsPerGroup: 1 }];
 
     chromeMock.tabs.get.mockResolvedValue(tabs[0]);
     chromeMock.tabGroups.query.mockResolvedValue([]);

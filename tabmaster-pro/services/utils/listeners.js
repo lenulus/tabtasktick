@@ -104,5 +104,8 @@ export function safeAsyncListener(handler, options = {}) {
  * @returns {boolean} - True if function is async
  */
 export function isAsyncFunction(fn) {
-  return fn && fn.constructor && fn.constructor.name === 'AsyncFunction';
+  if (!fn || typeof fn !== 'function') {
+    return false;
+  }
+  return fn.constructor && fn.constructor.name === 'AsyncFunction';
 }

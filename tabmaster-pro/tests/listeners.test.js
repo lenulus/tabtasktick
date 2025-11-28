@@ -3,6 +3,7 @@
  * Tests the safeAsyncListener wrapper for Chrome API event handlers
  */
 
+import { jest, describe, it, expect } from '@jest/globals';
 import { safeAsyncListener, isAsyncFunction } from '../services/utils/listeners.js';
 
 describe('safeAsyncListener', () => {
@@ -197,11 +198,11 @@ describe('safeAsyncListener', () => {
 
     it('should use "anonymous" for unnamed handlers', async () => {
       const customHandler = jest.fn();
-      const handler = async () => {
-        throw new Error('Test');
-      };
 
-      const wrapped = safeAsyncListener(handler, {
+      // Pass arrow function directly (not assigned to variable) to test truly anonymous
+      const wrapped = safeAsyncListener(async () => {
+        throw new Error('Test');
+      }, {
         errorHandler: customHandler
       });
       wrapped();
