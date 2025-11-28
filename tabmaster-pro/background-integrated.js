@@ -10,7 +10,6 @@ import * as WindowService from './services/execution/WindowService.js';
 import * as ExportImportService from './services/ExportImportService.js';
 import { groupTabs } from './services/execution/groupTabs.js';
 import { getTabStatistics, extractDomain, normalizeUrlForDuplicates, extractOrigin } from './services/selection/selectTabs.js';
-import { getCurrentWindowId } from './services/TabGrouping.js';
 import { getCategoriesForDomain } from './lib/domain-categories.js';
 
 // Phase 8.3: Import snooze operation services for proper message routing
