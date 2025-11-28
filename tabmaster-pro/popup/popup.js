@@ -1298,6 +1298,12 @@ function closeExportModal() {
   document.getElementById('exportModal').style.display = 'none';
 }
 
+async function openImportModal() {
+  // Open dashboard with backup/restore view
+  const dashboardUrl = chrome.runtime.getURL('dashboard/dashboard.html#export-import');
+  chrome.tabs.create({ url: dashboardUrl });
+  window.close();
+}
 
 function openHelp() {
   chrome.tabs.create({ url: 'https://github.com/yourusername/tabmaster-pro/wiki' });
