@@ -615,37 +615,6 @@ async function saveBackupConfiguration() {
   }
 }
 
-async function handleManualBackup() {
-  const backupNowBtn = document.getElementById('backupNowBtn');
-
-  try {
-    if (backupNowBtn) {
-      backupNowBtn.disabled = true;
-      backupNowBtn.textContent = 'Creating backup...';
-    }
-
-    const response = await chrome.runtime.sendMessage({
-      action: 'triggerManualBackup'
-    });
-
-    if (response.success) {
-      showNotification('Backup created successfully', 'success');
-      await loadBackupHistory();
-    } else {
-      throw new Error(response.error || 'Unknown error');
-    }
-
-  } catch (error) {
-    console.error('Failed to create manual backup:', error);
-    showNotification('Failed to create backup: ' + error.message, 'error');
-  } finally {
-    if (backupNowBtn) {
-      backupNowBtn.disabled = false;
-      backupNowBtn.textContent = 'Backup Now';
-    }
-  }
-}
-
 async function loadBackupHistory() {
   try {
     const response = await chrome.runtime.sendMessage({
