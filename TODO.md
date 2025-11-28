@@ -1,11 +1,29 @@
 # TabMaster Pro - TODO Tracker
 
 **Status**: Active
-**Last Updated**: 2025-11-23
-**Current Version**: 1.3.19 (dev)
-**Last Release**: 1.3.18
+**Last Updated**: 2025-11-28
+**Current Version**: 1.4.0 (dev)
+**Last Release**: 1.3.24
+**Stable Branch**: release/1.3 (1.3.24)
 
 > **📋 Full Details**: See [ARCHITECTURE-ACTION-PLAN.md](./ARCHITECTURE-ACTION-PLAN.md) for complete implementation plan, testing strategy, and rollback procedures.
+
+## 🔀 Branching Strategy
+
+**Phase 3 Risk Management**: Phase 3 (Extract UI Business Logic) is invasive work touching 59 Chrome API calls across UI layers. To ensure stability:
+
+- **`release/1.3`** - Stable maintenance branch
+  - Frozen at v1.3.24 (includes Phase 1 & 2 work)
+  - Receives critical hotfixes only
+  - Safe fallback if Phase 3 destabilizes
+
+- **`main`** - Active development branch
+  - Version: 1.4.0 (dev)
+  - Phase 3 architectural work in progress
+  - Will not release until Phase 3 complete and tested
+  - Can reset to release/1.3 if needed
+
+**Rollback Plan**: If Phase 3 fails, reset main to release/1.3 and continue from 1.3.x series.
 
 ## 🚨 Critical Work - Architectural Remediation
 
@@ -249,7 +267,9 @@ npm run test:e2e
 
 ## 🔄 Version History
 
-- **v1.3.19** (dev) - Current development version
+- **v1.4.0** (dev) - Current development version - Phase 3 architectural work
+- **v1.3.24** (2025-11-28) - Phase 2 complete (groupTabs consolidation), test suite fixes (932/933 passing)
+- **v1.3.19** (2025-11-23) - Phase 1 complete (async listener fixes), released
 - **v1.3.18** (2025-11-23) - Fixed dashboard.js async listener bug, released
 - **v1.3.17** - Previous release
 - **v1.3.16** - Last known fully working version before bug became visible
