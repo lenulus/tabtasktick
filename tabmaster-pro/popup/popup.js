@@ -70,6 +70,7 @@ let currentTab = null;
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+  await loadTestModeStatus();
   await loadBannerState();
   await loadCollectionsAndTasks();
   await loadStatistics();
@@ -115,6 +116,22 @@ async function loadBannerState() {
     elements.collectionsBanner.classList.remove('hidden');
   } catch (error) {
     console.error('Failed to load banner state:', error);
+  }
+}
+
+async function loadTestModeStatus() {
+  try {
+    const storage = await chrome.storage.local.get(['testModeActive']);
+    const testModeActive = storage.testModeActive;
+
+    const testModeBanner = document.getElementById('testModeBanner');
+    if (testModeActive) {
+      testModeBanner.style.display = 'flex';
+    } else {
+      testModeBanner.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Failed to load test mode status:', error);
   }
 }
 
@@ -526,6 +543,9 @@ function groupSnoozedTabsByPeriod(items) {
 // ============================================================================
 
 function setupEventListeners() {
+  // Test Mode Banner
+  document.getElementById('exitTestModeBtn')?.addEventListener('click', handleExitTestMode);
+
   // Collections & Tasks
   elements.bannerClose?.addEventListener('click', handleBannerDismiss);
   elements.saveWindowBtn?.addEventListener('click', handleSaveWindow);
@@ -593,6 +613,25 @@ async function handleBannerDismiss() {
     }, 300);
   } catch (error) {
     console.error('Failed to dismiss banner:', error);
+  }
+}
+
+async function handleExitTestMode() {
+  try {
+    // Disable test mode
+    await chrome.storage.local.set({ testModeActive: false });
+
+    // Hide banner with fade animation
+    const testModeBanner = document.getElementById('testModeBanner');
+    testModeBanner.style.opacity = '0';
+    setTimeout(() => {
+      testModeBanner.style.display = 'none';
+      testModeBanner.style.opacity = '1';
+    }, 300);
+
+    console.log('Test mode disabled from popup');
+  } catch (error) {
+    console.error('Failed to exit test mode:', error);
   }
 }
 

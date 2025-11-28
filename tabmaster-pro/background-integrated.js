@@ -594,7 +594,7 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
 
     // Build context for engine using SelectionService
     const context = buildContextForEngine(tabs, windows);
-    
+
     console.log('Running rule with dryRun=false');
 
     // Track performance for test mode
