@@ -31,7 +31,7 @@ export class TabChipRenderer {
     const isActive = tabSnapshot.isOpen !== false; // Assume open if not checked
 
     return `
-      <div class="tab-chip ${isActive ? 'active' : 'inactive'}" data-tab-snapshot='${JSON.stringify(tabSnapshot).replace(/'/g, "&#39;")}'>
+      <div class="tab-chip ${isActive ? 'active' : 'inactive'}" data-tab-snapshot='${JSON.stringify(tabSnapshot).replace(/'/g, '&#39;')}'>
         <img class="favicon" src="${escapeHtml(favicon)}" width="16" height="16" alt="">
         <span class="tab-title">${escapeHtml(title)}</span>
         ${!isActive ? '<span class="status-badge">Closed</span>' : ''}

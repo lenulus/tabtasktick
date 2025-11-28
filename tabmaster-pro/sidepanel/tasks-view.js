@@ -481,21 +481,21 @@ export class TasksView {
         const collectionId = actionBtn.dataset.collectionId;
 
         switch (action) {
-          case 'open-tabs':
-            await this.handleOpenTabs(taskId);
-            break;
-          case 'mark-fixed':
-            await this.handleMarkFixed(taskId);
-            break;
-          case 'edit':
-            await this.handleEditTask(taskId);
-            break;
-          case 'view-collection':
-            this.handleViewCollection(collectionId);
-            break;
-          case 'delete':
-            await this.handleDeleteTask(taskId);
-            break;
+        case 'open-tabs':
+          await this.handleOpenTabs(taskId);
+          break;
+        case 'mark-fixed':
+          await this.handleMarkFixed(taskId);
+          break;
+        case 'edit':
+          await this.handleEditTask(taskId);
+          break;
+        case 'view-collection':
+          this.handleViewCollection(collectionId);
+          break;
+        case 'delete':
+          await this.handleDeleteTask(taskId);
+          break;
         }
         return; // Prevent further event processing
       }
@@ -649,7 +649,7 @@ export class TasksView {
   async showDeleteConfirmation(task) {
     return new Promise((resolve) => {
       const collectionInfo = task.collectionId
-        ? `<p>This task is part of the collection. The collection will not be affected.</p>`
+        ? '<p>This task is part of the collection. The collection will not be affected.</p>'
         : '';
 
       modal.open({
@@ -957,7 +957,7 @@ export class TasksView {
     const isActive = tabRef.isOpen !== false; // Assume open if not checked
 
     return `
-      <div class="tab-chip ${isActive ? 'active' : 'inactive'}" data-tab-ref='${JSON.stringify(tabRef).replace(/'/g, "&#39;")}'>
+      <div class="tab-chip ${isActive ? 'active' : 'inactive'}" data-tab-ref='${JSON.stringify(tabRef).replace(/'/g, '&#39;')}'>
         <img class="favicon" src="${this.escapeHtml(favicon)}" width="16" height="16" alt="" onerror="this.src='chrome://favicon/'">
         <span class="tab-title">${this.escapeHtml(title)}</span>
         ${!isActive ? '<span class="status-badge">Closed</span>' : ''}

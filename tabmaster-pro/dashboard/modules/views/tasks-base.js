@@ -118,27 +118,27 @@ export function sortTasks(tasks, sortBy, sortDirection = 'asc') {
     let comparison = 0;
 
     switch (sortBy) {
-      case 'priority':
-        const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-        comparison = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
-        break;
+    case 'priority':
+      const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      comparison = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+      break;
 
-      case 'dueDate':
-        const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-        const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-        comparison = aDate - bDate;
-        break;
+    case 'dueDate':
+      const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+      const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+      comparison = aDate - bDate;
+      break;
 
-      case 'created':
-        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        break;
+    case 'created':
+      comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      break;
 
-      case 'alpha':
-        comparison = a.summary.localeCompare(b.summary);
-        break;
+    case 'alpha':
+      comparison = a.summary.localeCompare(b.summary);
+      break;
 
-      default:
-        comparison = 0;
+    default:
+      comparison = 0;
     }
 
     return sortDirection === 'desc' ? -comparison : comparison;
@@ -419,31 +419,31 @@ export async function handleBulkAction(action, selectedTaskIds) {
 
   try {
     switch (action) {
-      case 'changeStatus': {
-        const status = prompt('Enter status (open/active/fixed/abandoned):');
-        if (!status) return;
+    case 'changeStatus': {
+      const status = prompt('Enter status (open/active/fixed/abandoned):');
+      if (!status) return;
 
-        await bulkUpdateTasks(taskIds, { status });
-        break;
-      }
+      await bulkUpdateTasks(taskIds, { status });
+      break;
+    }
 
-      case 'changePriority': {
-        const priority = prompt('Enter priority (low/medium/high/critical):');
-        if (!priority) return;
+    case 'changePriority': {
+      const priority = prompt('Enter priority (low/medium/high/critical):');
+      if (!priority) return;
 
-        await bulkUpdateTasks(taskIds, { priority });
-        break;
-      }
+      await bulkUpdateTasks(taskIds, { priority });
+      break;
+    }
 
-      case 'delete': {
-        if (!confirm(`Delete ${taskIds.length} task(s)?`)) return;
+    case 'delete': {
+      if (!confirm(`Delete ${taskIds.length} task(s)?`)) return;
 
-        await bulkDeleteTasks(taskIds);
-        break;
-      }
+      await bulkDeleteTasks(taskIds);
+      break;
+    }
 
-      default:
-        showNotification(`Unknown action: ${action}`, 'error');
+    default:
+      showNotification(`Unknown action: ${action}`, 'error');
     }
   } catch (error) {
     console.error('Error in bulk action:', error);
@@ -821,7 +821,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
                 console.warn(`Tab ${tabId} not found`);
               }
             }
-            showNotification(`Opened tabs for task`, 'success');
+            showNotification('Opened tabs for task', 'success');
           } catch (error) {
             console.error('Failed to open tabs:', error);
             showNotification('Failed to open tabs', 'error');

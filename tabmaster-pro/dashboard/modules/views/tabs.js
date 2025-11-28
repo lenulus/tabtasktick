@@ -446,7 +446,7 @@ export function renderTreeView(tabs) {
     const allWindowTabs = [...Array.from(window.groups.values()).flatMap(g => g.tabs), ...window.ungroupedTabs];
     const selectedWindowTabs = allWindowTabs.filter(tab => state.selectedTabs.has(tab.id));
     const windowCheckedState = selectedWindowTabs.length === allWindowTabs.length ? 'checked' : 
-                                selectedWindowTabs.length > 0 ? 'indeterminate' : 'unchecked';
+      selectedWindowTabs.length > 0 ? 'indeterminate' : 'unchecked';
     
     // Window header
     const windowHeader = document.createElement('div');
@@ -496,7 +496,7 @@ export function renderTreeView(tabs) {
       // Calculate group selection state
       const selectedGroupTabs = group.tabs.filter(tab => state.selectedTabs.has(tab.id));
       const groupCheckedState = selectedGroupTabs.length === group.tabs.length ? 'checked' : 
-                                selectedGroupTabs.length > 0 ? 'indeterminate' : 'unchecked';
+        selectedGroupTabs.length > 0 ? 'indeterminate' : 'unchecked';
       
       // Group header
       const groupHeader = document.createElement('div');
@@ -880,19 +880,19 @@ function createTreeTab(tab) {
   const checkbox = tabEl.querySelector('.tab-checkbox');
   if (checkbox) {
     checkbox.addEventListener('change', (e) => {
-    e.stopPropagation();
-    if (e.target.checked) {
-      state.selectedTabs.add(tab.id);
-      tabEl.classList.add('selected');
-    } else {
-      state.selectedTabs.delete(tab.id);
-      tabEl.classList.remove('selected');
-    }
-    updateBulkToolbar();
+      e.stopPropagation();
+      if (e.target.checked) {
+        state.selectedTabs.add(tab.id);
+        tabEl.classList.add('selected');
+      } else {
+        state.selectedTabs.delete(tab.id);
+        tabEl.classList.remove('selected');
+      }
+      updateBulkToolbar();
     
-    // Update parent group/window checkbox states
-    updateParentCheckboxes(tabEl);
-  });
+      // Update parent group/window checkbox states
+      updateParentCheckboxes(tabEl);
+    });
   }
   
   // Make entire row clickable for selection (except checkbox, details, and goto button)
@@ -1075,130 +1075,130 @@ export function filterTabs() {
   
   // Apply type filter
   switch(filterType) {
-    case 'active':
-      filtered = filtered.filter(tab => tab.active);
-      break;
-    case 'suspended':
-      filtered = filtered.filter(tab => tab.discarded);
-      break;
-    case 'pinned':
-      filtered = filtered.filter(tab => tab.pinned);
-      break;
-    case 'audible':
-      filtered = filtered.filter(tab => tab.audible);
-      break;
-    case 'muted':
-      filtered = filtered.filter(tab => tab.mutedInfo && tab.mutedInfo.muted);
-      break;
-    case 'grouped':
-      filtered = filtered.filter(tab => tab.groupId && tab.groupId !== -1);
-      break;
-    case 'ungrouped':
-      filtered = filtered.filter(tab => !tab.groupId || tab.groupId === -1);
-      break;
-    case 'duplicates':
-      const urls = new Map();
-      filtered.forEach(tab => {
-        const normalizedUrl = normalizeUrl(tab.url);
-        if (!urls.has(normalizedUrl)) {
-          urls.set(normalizedUrl, []);
-        }
-        urls.get(normalizedUrl).push(tab);
-      });
-      filtered = [];
-      urls.forEach(tabs => {
-        if (tabs.length > 1) {
-          filtered.push(...tabs);
-        }
-      });
-      break;
+  case 'active':
+    filtered = filtered.filter(tab => tab.active);
+    break;
+  case 'suspended':
+    filtered = filtered.filter(tab => tab.discarded);
+    break;
+  case 'pinned':
+    filtered = filtered.filter(tab => tab.pinned);
+    break;
+  case 'audible':
+    filtered = filtered.filter(tab => tab.audible);
+    break;
+  case 'muted':
+    filtered = filtered.filter(tab => tab.mutedInfo && tab.mutedInfo.muted);
+    break;
+  case 'grouped':
+    filtered = filtered.filter(tab => tab.groupId && tab.groupId !== -1);
+    break;
+  case 'ungrouped':
+    filtered = filtered.filter(tab => !tab.groupId || tab.groupId === -1);
+    break;
+  case 'duplicates':
+    const urls = new Map();
+    filtered.forEach(tab => {
+      const normalizedUrl = normalizeUrl(tab.url);
+      if (!urls.has(normalizedUrl)) {
+        urls.set(normalizedUrl, []);
+      }
+      urls.get(normalizedUrl).push(tab);
+    });
+    filtered = [];
+    urls.forEach(tabs => {
+      if (tabs.length > 1) {
+        filtered.push(...tabs);
+      }
+    });
+    break;
   }
   
   sortAndRenderTabs(filtered, sortType);
 }
 
 export function sortAndRenderTabs(tabs, sortType) {
-  let sorted = [...tabs]; // Create a copy to avoid mutating original
+  const sorted = [...tabs]; // Create a copy to avoid mutating original
   
   switch(sortType) {
-    case 'window':
-      // Group tabs by window
-      sorted.sort((a, b) => {
-        if (a.windowId !== b.windowId) {
-          return a.windowId - b.windowId;
-        }
-        // Within same window, sort by index
-        return a.index - b.index;
-      });
-      break;
+  case 'window':
+    // Group tabs by window
+    sorted.sort((a, b) => {
+      if (a.windowId !== b.windowId) {
+        return a.windowId - b.windowId;
+      }
+      // Within same window, sort by index
+      return a.index - b.index;
+    });
+    break;
       
-    case 'recent':
-      // Most recently used (active tabs first, then by last accessed)
-      sorted.sort((a, b) => {
-        if (a.active) return -1;
-        if (b.active) return 1;
-        return (b.lastAccessed || 0) - (a.lastAccessed || 0);
-      });
-      break;
+  case 'recent':
+    // Most recently used (active tabs first, then by last accessed)
+    sorted.sort((a, b) => {
+      if (a.active) return -1;
+      if (b.active) return 1;
+      return (b.lastAccessed || 0) - (a.lastAccessed || 0);
+    });
+    break;
       
-    case 'oldest':
-      // Least recently used
-      sorted.sort((a, b) => {
-        if (a.active) return 1;
-        if (b.active) return -1;
-        return (a.lastAccessed || 0) - (b.lastAccessed || 0);
-      });
-      break;
+  case 'oldest':
+    // Least recently used
+    sorted.sort((a, b) => {
+      if (a.active) return 1;
+      if (b.active) return -1;
+      return (a.lastAccessed || 0) - (b.lastAccessed || 0);
+    });
+    break;
       
-    case 'suspended':
-      // Suspended tabs first (good for cleanup)
-      sorted.sort((a, b) => {
-        if (a.discarded && !b.discarded) return -1;
-        if (!a.discarded && b.discarded) return 1;
-        return 0;
-      });
-      break;
+  case 'suspended':
+    // Suspended tabs first (good for cleanup)
+    sorted.sort((a, b) => {
+      if (a.discarded && !b.discarded) return -1;
+      if (!a.discarded && b.discarded) return 1;
+      return 0;
+    });
+    break;
       
-    case 'active':
-      // Active/playing tabs first
-      sorted.sort((a, b) => {
-        const aScore = (a.active ? 4 : 0) + (a.audible ? 2 : 0) + (a.pinned ? 1 : 0);
-        const bScore = (b.active ? 4 : 0) + (b.audible ? 2 : 0) + (b.pinned ? 1 : 0);
-        return bScore - aScore;
-      });
-      break;
+  case 'active':
+    // Active/playing tabs first
+    sorted.sort((a, b) => {
+      const aScore = (a.active ? 4 : 0) + (a.audible ? 2 : 0) + (a.pinned ? 1 : 0);
+      const bScore = (b.active ? 4 : 0) + (b.audible ? 2 : 0) + (b.pinned ? 1 : 0);
+      return bScore - aScore;
+    });
+    break;
       
-    case 'title':
-      sorted.sort((a, b) => a.title.localeCompare(b.title));
-      break;
+  case 'title':
+    sorted.sort((a, b) => a.title.localeCompare(b.title));
+    break;
       
-    case 'domain':
-      sorted.sort((a, b) => {
-        const domainA = new URL(a.url).hostname;
-        const domainB = new URL(b.url).hostname;
-        return domainA.localeCompare(domainB);
-      });
-      break;
+  case 'domain':
+    sorted.sort((a, b) => {
+      const domainA = new URL(a.url).hostname;
+      const domainB = new URL(b.url).hostname;
+      return domainA.localeCompare(domainB);
+    });
+    break;
 
-    case 'category':
-      // Sort by category alphabetically, with 'unknown' at the end
-      sorted.sort((a, b) => {
-        const catA = a.category || 'unknown';
-        const catB = b.category || 'unknown';
+  case 'category':
+    // Sort by category alphabetically, with 'unknown' at the end
+    sorted.sort((a, b) => {
+      const catA = a.category || 'unknown';
+      const catB = b.category || 'unknown';
 
-        // Put 'unknown' categories at the end
-        if (catA === 'unknown' && catB !== 'unknown') return 1;
-        if (catA !== 'unknown' && catB === 'unknown') return -1;
+      // Put 'unknown' categories at the end
+      if (catA === 'unknown' && catB !== 'unknown') return 1;
+      if (catA !== 'unknown' && catB === 'unknown') return -1;
 
-        // Alphabetical sort
-        return catA.localeCompare(catB);
-      });
-      break;
+      // Alphabetical sort
+      return catA.localeCompare(catB);
+    });
+    break;
 
-    case 'default':
-    default:
-      // Keep original order (by tab index)
-      break;
+  case 'default':
+  default:
+    // Keep original order (by tab index)
+    break;
   }
 
   renderTabs(sorted);

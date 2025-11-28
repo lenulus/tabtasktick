@@ -270,35 +270,35 @@ export function sortTabs(tabs, sortType) {
   const sorted = [...tabs];
   
   switch (sortType) {
-    case 'alphabetical':
-      return sorted.sort((a, b) => a.title.localeCompare(b.title));
+  case 'alphabetical':
+    return sorted.sort((a, b) => a.title.localeCompare(b.title));
     
-    case 'domain':
-      return sorted.sort((a, b) => {
-        try {
-          const domainA = new URL(a.url).hostname;
-          const domainB = new URL(b.url).hostname;
-          return domainA.localeCompare(domainB);
-        } catch {
-          return 0;
-        }
-      });
+  case 'domain':
+    return sorted.sort((a, b) => {
+      try {
+        const domainA = new URL(a.url).hostname;
+        const domainB = new URL(b.url).hostname;
+        return domainA.localeCompare(domainB);
+      } catch {
+        return 0;
+      }
+    });
     
-    case 'recent':
-      return sorted.sort((a, b) => {
-        const accessA = a.lastAccessed || 0;
-        const accessB = b.lastAccessed || 0;
-        return accessB - accessA;
-      });
+  case 'recent':
+    return sorted.sort((a, b) => {
+      const accessA = a.lastAccessed || 0;
+      const accessB = b.lastAccessed || 0;
+      return accessB - accessA;
+    });
     
-    case 'oldest':
-      return sorted.sort((a, b) => {
-        const accessA = a.lastAccessed || Infinity;
-        const accessB = b.lastAccessed || Infinity;
-        return accessA - accessB;
-      });
+  case 'oldest':
+    return sorted.sort((a, b) => {
+      const accessA = a.lastAccessed || Infinity;
+      const accessB = b.lastAccessed || Infinity;
+      return accessA - accessB;
+    });
     
-    default:
-      return sorted;
+  default:
+    return sorted;
   }
 }

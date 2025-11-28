@@ -146,22 +146,22 @@ function sortCollections(collections, sortBy, sortOrder) {
     let aVal, bVal;
 
     switch (sortBy) {
-      case 'lastAccessed':
-        aVal = a.metadata.lastAccessed;
-        bVal = b.metadata.lastAccessed;
-        break;
-      case 'createdAt':
-        aVal = a.metadata.createdAt;
-        bVal = b.metadata.createdAt;
-        break;
-      case 'name':
-        aVal = (a.name || '').toLowerCase();
-        bVal = (b.name || '').toLowerCase();
-        return multiplier * aVal.localeCompare(bVal);
-      default:
-        // Default to lastAccessed
-        aVal = a.metadata.lastAccessed;
-        bVal = b.metadata.lastAccessed;
+    case 'lastAccessed':
+      aVal = a.metadata.lastAccessed;
+      bVal = b.metadata.lastAccessed;
+      break;
+    case 'createdAt':
+      aVal = a.metadata.createdAt;
+      bVal = b.metadata.createdAt;
+      break;
+    case 'name':
+      aVal = (a.name || '').toLowerCase();
+      bVal = (b.name || '').toLowerCase();
+      return multiplier * aVal.localeCompare(bVal);
+    default:
+      // Default to lastAccessed
+      aVal = a.metadata.lastAccessed;
+      bVal = b.metadata.lastAccessed;
     }
 
     return multiplier * (aVal - bVal);

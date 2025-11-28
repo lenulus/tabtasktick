@@ -343,11 +343,11 @@ export class TestRunner {
       dryRun
     });
 
-    console.log(`Rule execution response:`, response);
+    console.log('Rule execution response:', response);
 
     if (!response || !response.success) {
       const error = response?.error || 'No response from background';
-      console.error(`Rule execution failed:`, error);
+      console.error('Rule execution failed:', error);
       throw new Error(`Failed to execute rule: ${error}`);
     }
 

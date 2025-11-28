@@ -193,58 +193,58 @@ async function executeAction(action, tab, context, dryRun) {
 
   // Delegate all actions to services
   switch (actionType) {
-    case 'close':
-      return await closeTabs([tab.id]);
+  case 'close':
+    return await closeTabs([tab.id]);
 
-    case 'pin':
-      return await pinTabs([tab.id]);
+  case 'pin':
+    return await pinTabs([tab.id]);
 
-    case 'unpin':
-      return await unpinTabs([tab.id]);
+  case 'unpin':
+    return await unpinTabs([tab.id]);
 
-    case 'mute':
-      return await muteTabs([tab.id]);
+  case 'mute':
+    return await muteTabs([tab.id]);
 
-    case 'unmute':
-      return await unmuteTabs([tab.id]);
+  case 'unmute':
+    return await unmuteTabs([tab.id]);
 
-    case 'suspend':
-    case 'discard':
-      const result = await SuspensionService.suspendTabs([tab.id], action.params);
-      if (result.errors.length > 0) {
-        return { success: false, error: result.errors[0].error };
-      }
-      if (result.skipped.length > 0) {
-        return { success: false, error: 'Tab was skipped (active, pinned, or audible)' };
-      }
-      return { success: true, details: { suspended: tab.id } };
+  case 'suspend':
+  case 'discard':
+    const result = await SuspensionService.suspendTabs([tab.id], action.params);
+    if (result.errors.length > 0) {
+      return { success: false, error: result.errors[0].error };
+    }
+    if (result.skipped.length > 0) {
+      return { success: false, error: 'Tab was skipped (active, pinned, or audible)' };
+    }
+    return { success: true, details: { suspended: tab.id } };
 
-    case 'snooze':
-      const duration = parseDuration(action.for || '1h');
-      const snoozeUntil = Date.now() + duration;
-      await SnoozeService.snoozeTabs([tab.id], snoozeUntil, `rule: ${context.ruleName || 'v2_rule'}`);
-      return { success: true, details: { snoozed: tab.id, until: new Date(snoozeUntil).toISOString() } };
+  case 'snooze':
+    const duration = parseDuration(action.for || '1h');
+    const snoozeUntil = Date.now() + duration;
+    await SnoozeService.snoozeTabs([tab.id], snoozeUntil, `rule: ${context.ruleName || 'v2_rule'}`);
+    return { success: true, details: { snoozed: tab.id, until: new Date(snoozeUntil).toISOString() } };
 
-    case 'group':
-      // CRITICAL BUG FIX: Group action was imported but not in switch statement!
-      return await groupTabs([tab.id], {
-        name: action.name,
-        byDomain: action.by === 'domain' || action.group_by === 'domain',
-        createIfMissing: action.createIfMissing !== false,
-        windowId: tab.windowId // Ensure grouping in correct window
-      });
+  case 'group':
+    // CRITICAL BUG FIX: Group action was imported but not in switch statement!
+    return await groupTabs([tab.id], {
+      name: action.name,
+      byDomain: action.by === 'domain' || action.group_by === 'domain',
+      createIfMissing: action.createIfMissing !== false,
+      windowId: tab.windowId // Ensure grouping in correct window
+    });
 
-    case 'bookmark':
-      return await bookmarkTabs([tab.id], { folder: action.to });
+  case 'bookmark':
+    return await bookmarkTabs([tab.id], { folder: action.to });
 
-    case 'move':
-      return await moveTabsToWindow([tab.id], {
-        windowId: action.windowId || action.to,
-        preserveGroup: action.preserveGroup !== false
-      });
+  case 'move':
+    return await moveTabsToWindow([tab.id], {
+      windowId: action.windowId || action.to,
+      preserveGroup: action.preserveGroup !== false
+    });
 
-    default:
-      return { success: false, error: `Unknown action: ${actionType}` };
+  default:
+    return { success: false, error: `Unknown action: ${actionType}` };
   }
 }
 

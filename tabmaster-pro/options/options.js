@@ -195,38 +195,38 @@ function updateRulesUI() {
 
 function getConditionDescription(conditions) {
   switch (conditions.type) {
-    case 'duplicate':
-      return 'Duplicate tabs';
-    case 'domain_count':
-      return `More than ${conditions.minCount} tabs from same domain`;
-    case 'inactive':
-      return `Inactive for ${conditions.inactiveMinutes} minutes`;
-    case 'age_and_domain':
-      return `Tabs older than ${conditions.ageMinutes} minutes from ${conditions.domains.join(', ')}`;
-    case 'memory':
-      return `Memory usage exceeds ${conditions.thresholdPercent}%`;
-    case 'url_pattern':
-      return `URLs matching "${conditions.pattern}"${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
-    case 'category':
-      const categoryNames = conditions.categories ? conditions.categories.join(', ') : 'none';
-      return `Sites in categories: ${categoryNames}${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
-    default:
-      return 'Unknown condition';
+  case 'duplicate':
+    return 'Duplicate tabs';
+  case 'domain_count':
+    return `More than ${conditions.minCount} tabs from same domain`;
+  case 'inactive':
+    return `Inactive for ${conditions.inactiveMinutes} minutes`;
+  case 'age_and_domain':
+    return `Tabs older than ${conditions.ageMinutes} minutes from ${conditions.domains.join(', ')}`;
+  case 'memory':
+    return `Memory usage exceeds ${conditions.thresholdPercent}%`;
+  case 'url_pattern':
+    return `URLs matching "${conditions.pattern}"${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
+  case 'category':
+    const categoryNames = conditions.categories ? conditions.categories.join(', ') : 'none';
+    return `Sites in categories: ${categoryNames}${conditions.inactiveMinutes ? ` inactive for ${conditions.inactiveMinutes} minutes` : ''}`;
+  default:
+    return 'Unknown condition';
   }
 }
 
 function getActionDescription(actions) {
   switch (actions.type) {
-    case 'close':
-      return `Close tabs ${actions.saveToBookmarks ? '(save to bookmarks)' : ''}`;
-    case 'group':
-      return `Group tabs by ${actions.groupBy}`;
-    case 'snooze':
-      return `Snooze for ${actions.snoozeMinutes} minutes`;
-    case 'suspend':
-      return `Suspend tabs ${actions.excludePinned ? '(exclude pinned)' : ''}`;
-    default:
-      return 'Unknown action';
+  case 'close':
+    return `Close tabs ${actions.saveToBookmarks ? '(save to bookmarks)' : ''}`;
+  case 'group':
+    return `Group tabs by ${actions.groupBy}`;
+  case 'snooze':
+    return `Snooze for ${actions.snoozeMinutes} minutes`;
+  case 'suspend':
+    return `Suspend tabs ${actions.excludePinned ? '(exclude pinned)' : ''}`;
+  default:
+    return 'Unknown action';
   }
 }
 
@@ -269,37 +269,37 @@ function updateConditionParams() {
   let html = '';
   
   switch (conditionType) {
-    case 'domain_count':
-      html = `
+  case 'domain_count':
+    html = `
         <label>Minimum tab count</label>
         <input type="number" id="minCount" min="2" value="3">
       `;
-      break;
+    break;
     
-    case 'inactive':
-      html = `
+  case 'inactive':
+    html = `
         <label>Inactive duration (minutes)</label>
         <input type="number" id="inactiveMinutes" min="5" value="60">
         <label>URL patterns (comma-separated)</label>
         <input type="text" id="urlPatterns" placeholder="e.g., medium.com, dev.to">
       `;
-      break;
+    break;
     
-    case 'age_and_domain':
-      html = `
+  case 'age_and_domain':
+    html = `
         <label>Age (minutes)</label>
         <input type="number" id="ageMinutes" min="5" value="180">
         <label>Domains (comma-separated)</label>
         <input type="text" id="domains" placeholder="e.g., stackoverflow.com">
       `;
-      break;
+    break;
     
-    case 'memory':
-      html = `
+  case 'memory':
+    html = `
         <label>Memory threshold (%)</label>
         <input type="number" id="thresholdPercent" min="50" max="100" value="80">
       `;
-      break;
+    break;
   }
   
   paramsContainer.innerHTML = html;
@@ -312,40 +312,40 @@ function updateActionParams() {
   let html = '';
   
   switch (actionType) {
-    case 'close':
-      html = `
+  case 'close':
+    html = `
         <label>
           <input type="checkbox" id="saveToBookmarks" checked>
           Save to bookmarks before closing
         </label>
       `;
-      break;
+    break;
     
-    case 'group':
-      html = `
+  case 'group':
+    html = `
         <label>Group by</label>
         <select id="groupBy">
           <option value="domain">Domain</option>
           <option value="category">Category</option>
         </select>
       `;
-      break;
+    break;
     
-    case 'snooze':
-      html = `
+  case 'snooze':
+    html = `
         <label>Snooze duration (minutes)</label>
         <input type="number" id="snoozeMinutes" min="5" value="120">
       `;
-      break;
+    break;
     
-    case 'suspend':
-      html = `
+  case 'suspend':
+    html = `
         <label>
           <input type="checkbox" id="excludePinned" checked>
           Exclude pinned tabs
         </label>
       `;
-      break;
+    break;
   }
   
   paramsContainer.innerHTML = html;
@@ -367,51 +367,51 @@ async function saveRule() {
   const conditions = { type: conditionType };
   
   switch (conditionType) {
-    case 'domain_count':
-      conditions.minCount = parseInt(document.getElementById('minCount')?.value || 3);
-      break;
+  case 'domain_count':
+    conditions.minCount = parseInt(document.getElementById('minCount')?.value || 3);
+    break;
     
-    case 'inactive':
-      conditions.inactiveMinutes = parseInt(document.getElementById('inactiveMinutes')?.value || 60);
-      const urlPatterns = document.getElementById('urlPatterns')?.value;
-      if (urlPatterns) {
-        conditions.urlPatterns = urlPatterns.split(',').map(p => p.trim());
-      }
-      break;
+  case 'inactive':
+    conditions.inactiveMinutes = parseInt(document.getElementById('inactiveMinutes')?.value || 60);
+    const urlPatterns = document.getElementById('urlPatterns')?.value;
+    if (urlPatterns) {
+      conditions.urlPatterns = urlPatterns.split(',').map(p => p.trim());
+    }
+    break;
     
-    case 'age_and_domain':
-      conditions.ageMinutes = parseInt(document.getElementById('ageMinutes')?.value || 180);
-      const domains = document.getElementById('domains')?.value;
-      if (domains) {
-        conditions.domains = domains.split(',').map(d => d.trim());
-      }
-      break;
+  case 'age_and_domain':
+    conditions.ageMinutes = parseInt(document.getElementById('ageMinutes')?.value || 180);
+    const domains = document.getElementById('domains')?.value;
+    if (domains) {
+      conditions.domains = domains.split(',').map(d => d.trim());
+    }
+    break;
     
-    case 'memory':
-      conditions.thresholdPercent = parseInt(document.getElementById('thresholdPercent')?.value || 80);
-      break;
+  case 'memory':
+    conditions.thresholdPercent = parseInt(document.getElementById('thresholdPercent')?.value || 80);
+    break;
   }
   
   // Build actions object
   const actions = { type: actionType };
   
   switch (actionType) {
-    case 'close':
-      actions.saveToBookmarks = document.getElementById('saveToBookmarks')?.checked || false;
-      actions.keepFirst = true;
-      break;
+  case 'close':
+    actions.saveToBookmarks = document.getElementById('saveToBookmarks')?.checked || false;
+    actions.keepFirst = true;
+    break;
     
-    case 'group':
-      actions.groupBy = document.getElementById('groupBy')?.value || 'domain';
-      break;
+  case 'group':
+    actions.groupBy = document.getElementById('groupBy')?.value || 'domain';
+    break;
     
-    case 'snooze':
-      actions.snoozeMinutes = parseInt(document.getElementById('snoozeMinutes')?.value || 120);
-      break;
+  case 'snooze':
+    actions.snoozeMinutes = parseInt(document.getElementById('snoozeMinutes')?.value || 120);
+    break;
     
-    case 'suspend':
-      actions.excludePinned = document.getElementById('excludePinned')?.checked || false;
-      break;
+  case 'suspend':
+    actions.excludePinned = document.getElementById('excludePinned')?.checked || false;
+    break;
   }
   
   const rule = {
@@ -687,15 +687,15 @@ function setupEventListeners() {
       const ruleId = e.target.dataset.ruleId;
       
       switch (action) {
-        case 'edit':
-          editRule(ruleId);
-          break;
-        case 'toggle':
-          await toggleRule(ruleId);
-          break;
-        case 'delete':
-          await deleteRule(ruleId);
-          break;
+      case 'edit':
+        editRule(ruleId);
+        break;
+      case 'toggle':
+        await toggleRule(ruleId);
+        break;
+      case 'delete':
+        await deleteRule(ruleId);
+        break;
       }
     }
   });

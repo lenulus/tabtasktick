@@ -74,7 +74,7 @@ describe('Engine Tests [V2 Services]', () => {
         expect(matches).toHaveLength(2);
         expect(matches.map(t => t.id)).toEqual([1, 3]);
       } else {
-        console.log(`[V2 Services] does not have selectTabsMatchingRule, skipping`);
+        console.log('[V2 Services] does not have selectTabsMatchingRule, skipping');
       }
     });
 
@@ -82,7 +82,7 @@ describe('Engine Tests [V2 Services]', () => {
       const engine = getEngine();
 
       if (!engine.runRules) {
-        console.log(`[V2 Services] does not have runRules, skipping`);
+        console.log('[V2 Services] does not have runRules, skipping');
         return;
       }
 
@@ -112,7 +112,7 @@ describe('Engine Tests [V2 Services]', () => {
 
       const result = await engine.runRules(rules, context, { dryRun: true });
 
-      console.log(`[V2 Services] runRules result:`, {
+      console.log('[V2 Services] runRules result:', {
         totalMatches: result.totalMatches,
         totalActions: result.totalActions,
         rulesExecuted: result.rules?.length || result.rulesExecuted
@@ -127,7 +127,7 @@ describe('Engine Tests [V2 Services]', () => {
       const engine = getEngine();
 
       if (!engine.buildIndices) {
-        console.log(`[V2 Services] does not have buildIndices, skipping`);
+        console.log('[V2 Services] does not have buildIndices, skipping');
         return;
       }
 
@@ -139,7 +139,7 @@ describe('Engine Tests [V2 Services]', () => {
 
       const indices = engine.buildIndices(tabs);
 
-      console.log(`[V2 Services] buildIndices created:`, {
+      console.log('[V2 Services] buildIndices created:', {
         domains: Object.keys(indices.byDomain),
         githubTabs: indices.byDomain['github.com']?.length || 0,
         stackTabs: indices.byDomain['stackoverflow.com']?.length || 0

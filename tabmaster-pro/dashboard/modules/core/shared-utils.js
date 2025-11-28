@@ -132,9 +132,9 @@ export async function showRenameWindowsDialog() {
     // Load existing window names from storage
     const windowNames = await getWindowNames();
 
-  const modal = document.createElement('div');
-  modal.className = 'modal show';
-  modal.innerHTML = `
+    const modal = document.createElement('div');
+    modal.className = 'modal show';
+    modal.innerHTML = `
     <div class="modal-content" style="max-width: 500px;">
       <div class="modal-header">
         <h3>Rename Windows</h3>
@@ -160,41 +160,41 @@ export async function showRenameWindowsDialog() {
     </div>
   `;
 
-  document.body.appendChild(modal);
+    document.body.appendChild(modal);
 
-  // Handle save
-  document.getElementById('saveWindowNames').addEventListener('click', async () => {
-    const inputs = modal.querySelectorAll('.rename-input');
-    const updatedNames = { ...windowNames };
+    // Handle save
+    document.getElementById('saveWindowNames').addEventListener('click', async () => {
+      const inputs = modal.querySelectorAll('.rename-input');
+      const updatedNames = { ...windowNames };
 
-    inputs.forEach(input => {
-      const windowId = parseInt(input.dataset.windowId);
-      const name = input.value.trim();
+      inputs.forEach(input => {
+        const windowId = parseInt(input.dataset.windowId);
+        const name = input.value.trim();
 
-      if (name) {
-        updatedNames[windowId] = name;
-      } else {
-        delete updatedNames[windowId];
-      }
+        if (name) {
+          updatedNames[windowId] = name;
+        } else {
+          delete updatedNames[windowId];
+        }
+      });
+
+      // Save to storage via service
+      await setWindowNames(updatedNames);
+
+      modal.remove();
+      showNotification('Window names saved', 'success');
+
+      // Refresh the tabs view to show updated window names
+      updateWindowFilterDropdown();
     });
-
-    // Save to storage via service
-    await setWindowNames(updatedNames);
-
-    modal.remove();
-    showNotification('Window names saved', 'success');
-
-    // Refresh the tabs view to show updated window names
-    updateWindowFilterDropdown();
-  });
   
-  // Handle cancel and close
-  document.getElementById('cancelRename').addEventListener('click', () => {
-    modal.remove();
-  });
-  document.getElementById('closeRenameModal').addEventListener('click', () => {
-    modal.remove();
-  });
+    // Handle cancel and close
+    document.getElementById('cancelRename').addEventListener('click', () => {
+      modal.remove();
+    });
+    document.getElementById('closeRenameModal').addEventListener('click', () => {
+      modal.remove();
+    });
   } catch (error) {
     console.error('showRenameWindowsDialog error:', error);
   }

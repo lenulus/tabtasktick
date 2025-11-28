@@ -373,37 +373,37 @@ function parseDSL(input) {
 
     // Parse action parameters based on action type
     switch (action) {
-      case 'close':
-        // No parameters
-        break;
+    case 'close':
+      // No parameters
+      break;
       
-      case 'snooze':
-        if (peek().type === TokenType.IDENTIFIER && peek().value === 'for') {
-          current++;
-          result.for = consume(TokenType.DURATION).value;
-        }
-        if (peek().type === TokenType.IDENTIFIER && peek().value === 'wakeInto') {
-          current++;
-          result.wakeInto = consume(TokenType.STRING).value;
-        }
-        break;
+    case 'snooze':
+      if (peek().type === TokenType.IDENTIFIER && peek().value === 'for') {
+        current++;
+        result.for = consume(TokenType.DURATION).value;
+      }
+      if (peek().type === TokenType.IDENTIFIER && peek().value === 'wakeInto') {
+        current++;
+        result.wakeInto = consume(TokenType.STRING).value;
+      }
+      break;
       
-      case 'group':
-        if (peek().type === TokenType.IDENTIFIER && peek().value === 'name') {
-          current++;
-          result.name = consume(TokenType.STRING).value;
-        } else if (peek().type === TokenType.IDENTIFIER && peek().value === 'by') {
-          current++;
-          result.by = consume(TokenType.IDENTIFIER).value;
-        }
-        break;
+    case 'group':
+      if (peek().type === TokenType.IDENTIFIER && peek().value === 'name') {
+        current++;
+        result.name = consume(TokenType.STRING).value;
+      } else if (peek().type === TokenType.IDENTIFIER && peek().value === 'by') {
+        current++;
+        result.by = consume(TokenType.IDENTIFIER).value;
+      }
+      break;
       
-      case 'bookmark':
-        if (peek().type === TokenType.IDENTIFIER && peek().value === 'to') {
-          current++;
-          result.folder = consume(TokenType.STRING).value;
-        }
-        break;
+    case 'bookmark':
+      if (peek().type === TokenType.IDENTIFIER && peek().value === 'to') {
+        current++;
+        result.folder = consume(TokenType.STRING).value;
+      }
+      break;
     }
 
     return result;
@@ -443,25 +443,25 @@ function parseDSL(input) {
         const triggerType = consume(TokenType.IDENTIFIER).value;
         
         switch (triggerType) {
-          case 'immediate':
-            rule.trigger.immediate = true;
-            break;
-          case 'onAction':
-          case 'manual':
-            rule.trigger.on_action = true;
-            break;
-          case 'repeat':
-            if (peek().type === TokenType.IDENTIFIER && peek().value === 'every') {
-              current++;
-              rule.trigger.repeat_every = consume(TokenType.DURATION).value;
-            }
-            break;
-          case 'once':
-            if (peek().type === TokenType.IDENTIFIER && peek().value === 'at') {
-              current++;
-              rule.trigger.once_at = consume(TokenType.STRING).value;
-            }
-            break;
+        case 'immediate':
+          rule.trigger.immediate = true;
+          break;
+        case 'onAction':
+        case 'manual':
+          rule.trigger.on_action = true;
+          break;
+        case 'repeat':
+          if (peek().type === TokenType.IDENTIFIER && peek().value === 'every') {
+            current++;
+            rule.trigger.repeat_every = consume(TokenType.DURATION).value;
+          }
+          break;
+        case 'once':
+          if (peek().type === TokenType.IDENTIFIER && peek().value === 'at') {
+            current++;
+            rule.trigger.once_at = consume(TokenType.STRING).value;
+          }
+          break;
         }
       } else if (token.type === TokenType.FLAGS) {
         current++;
@@ -586,35 +586,35 @@ function serializeCondition(condition) {
 
 function serializeAction(action) {
   switch (action.action) {
-    case 'close':
-      return 'close';
+  case 'close':
+    return 'close';
     
-    case 'snooze':
-      let snooze = 'snooze';
-      if (action.for) {
-        snooze += ` for ${action.for}`;
-      }
-      if (action.wakeInto) {
-        snooze += ` wakeInto "${action.wakeInto}"`;
-      }
-      return snooze;
+  case 'snooze':
+    let snooze = 'snooze';
+    if (action.for) {
+      snooze += ` for ${action.for}`;
+    }
+    if (action.wakeInto) {
+      snooze += ` wakeInto "${action.wakeInto}"`;
+    }
+    return snooze;
     
-    case 'group':
-      if (action.name) {
-        return `group name "${action.name}"`;
-      } else if (action.by) {
-        return `group by ${action.by}`;
-      }
-      return 'group';
+  case 'group':
+    if (action.name) {
+      return `group name "${action.name}"`;
+    } else if (action.by) {
+      return `group by ${action.by}`;
+    }
+    return 'group';
     
-    case 'bookmark':
-      if (action.folder) {
-        return `bookmark to "${action.folder}"`;
-      }
-      return 'bookmark';
+  case 'bookmark':
+    if (action.folder) {
+      return `bookmark to "${action.folder}"`;
+    }
+    return 'bookmark';
     
-    default:
-      return action.action;
+  default:
+    return action.action;
   }
 }
 

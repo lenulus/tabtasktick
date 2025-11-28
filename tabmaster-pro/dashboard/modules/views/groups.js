@@ -16,7 +16,7 @@ export async function ungroupAllTabs() {
     const groupedTabs = tabs.filter(tab => tab.groupId && tab.groupId !== -1);
 
     if (groupedTabs.length === 0) {
-      showNotification("No grouped tabs to ungroup", "info");
+      showNotification('No grouped tabs to ungroup', 'info');
       return;
     }
 
@@ -27,11 +27,11 @@ export async function ungroupAllTabs() {
       tabIds: tabIds
     });
 
-    showNotification(`Ungrouped ${groupedTabs.length} tabs`, "success");
+    showNotification(`Ungrouped ${groupedTabs.length} tabs`, 'success');
     await loadGroupsView(); // Refresh the view
   } catch (error) {
-    console.error("Failed to ungroup tabs:", error);
-    showNotification("Failed to ungroup tabs", "error");
+    console.error('Failed to ungroup tabs:', error);
+    showNotification('Failed to ungroup tabs', 'error');
   }
 }
 
@@ -112,14 +112,14 @@ export function renderGroups(groups) {
       </div>
       <div class="group-tabs ${isUICollapsed ? 'collapsed' : ''}">
         ${group.tabs.map(tab => {
-          const favIconUrl = getFaviconUrl(tab);
-          return `
+    const favIconUrl = getFaviconUrl(tab);
+    return `
           <div class="group-tab-card">
             <img src="${favIconUrl}" class="group-tab-favicon" data-fallback="../icons/icon-16.png">
             <div class="group-tab-title">${tab.title}</div>
           </div>
         `;
-        }).join('')}
+  }).join('')}
       </div>
     `;
     

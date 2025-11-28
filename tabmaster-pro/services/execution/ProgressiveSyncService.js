@@ -1237,35 +1237,35 @@ async function processChanges(collectionId, changes) {
   for (const change of changes) {
     try {
       switch (change.type) {
-        case ChangeType.TAB_CREATED:
-          await processTabCreated(collectionId, change);
-          break;
-        case ChangeType.TAB_REMOVED:
-          await processTabRemoved(collectionId, change);
-          break;
-        case ChangeType.TAB_UPDATED:
-          await processTabUpdated(collectionId, change);
-          break;
-        case ChangeType.TAB_MOVED:
-          await processTabMoved(collectionId, change);
-          break;
-        case ChangeType.FOLDER_CREATED:
-          await processFolderCreated(collectionId, change);
-          break;
-        case ChangeType.FOLDER_UPDATED:
-          await processFolderUpdated(collectionId, change);
-          break;
-        case ChangeType.FOLDER_REMOVED:
-          await processFolderRemoved(collectionId, change);
-          break;
-        case ChangeType.FOLDER_MOVED:
-          await processFolderMoved(collectionId, change);
-          break;
-        default:
-          console.warn(`[ProgressiveSyncService] Unknown change type: ${change.type}`);
+      case ChangeType.TAB_CREATED:
+        await processTabCreated(collectionId, change);
+        break;
+      case ChangeType.TAB_REMOVED:
+        await processTabRemoved(collectionId, change);
+        break;
+      case ChangeType.TAB_UPDATED:
+        await processTabUpdated(collectionId, change);
+        break;
+      case ChangeType.TAB_MOVED:
+        await processTabMoved(collectionId, change);
+        break;
+      case ChangeType.FOLDER_CREATED:
+        await processFolderCreated(collectionId, change);
+        break;
+      case ChangeType.FOLDER_UPDATED:
+        await processFolderUpdated(collectionId, change);
+        break;
+      case ChangeType.FOLDER_REMOVED:
+        await processFolderRemoved(collectionId, change);
+        break;
+      case ChangeType.FOLDER_MOVED:
+        await processFolderMoved(collectionId, change);
+        break;
+      default:
+        console.warn(`[ProgressiveSyncService] Unknown change type: ${change.type}`);
       }
     } catch (error) {
-      console.error(`[ProgressiveSyncService] Failed to process change:`, change, error);
+      console.error('[ProgressiveSyncService] Failed to process change:', change, error);
       // Continue processing other changes
     }
   }
@@ -1287,7 +1287,7 @@ async function processChanges(collectionId, changes) {
 async function processTabCreated(collectionId, change) {
   const { tabId, groupId, data: tab } = change;
 
-  logAndBuffer('info', `Processing tab created:`, {
+  logAndBuffer('info', 'Processing tab created:', {
     collectionId,
     tabId,
     groupId,
@@ -1340,7 +1340,7 @@ async function processTabCreated(collectionId, change) {
     tabId: tab.id // Runtime ID for lookups
   };
 
-  logAndBuffer('info', `Saving tab to IndexedDB:`, {
+  logAndBuffer('info', 'Saving tab to IndexedDB:', {
     storageId: tabData.id,
     collectionId: tabData.collectionId,
     folderId: tabData.folderId,
@@ -1408,7 +1408,7 @@ async function processTabUpdated(collectionId, change) {
     return;
   }
 
-  logAndBuffer('info', `Found existing tab in IndexedDB`, {
+  logAndBuffer('info', 'Found existing tab in IndexedDB', {
     storageId: existingTab.id,
     currentUrl: existingTab.url,
     newUrl: changeInfo.url,
@@ -1418,7 +1418,7 @@ async function processTabUpdated(collectionId, change) {
 
   // Handle groupId change (tab added to/removed from group)
   let folderId = existingTab.folderId; // Default: keep existing
-  let oldFolderId = existingTab.folderId; // Track original folder for cleanup
+  const oldFolderId = existingTab.folderId; // Track original folder for cleanup
 
   if (changeInfo.groupId !== undefined) {
     if (changeInfo.groupId === chrome.tabGroups.TAB_GROUP_ID_NONE || changeInfo.groupId === -1) {
@@ -1539,7 +1539,7 @@ async function processTabMoved(collectionId, change) {
 
     logAndBuffer('info', `Synced ${updatedCount} tab positions (${affectedChromeTabs.length} tabs checked) in collection ${collectionId}`);
   } catch (error) {
-    logAndBuffer('error', `Failed to sync tab positions after move:`, error);
+    logAndBuffer('error', 'Failed to sync tab positions after move:', error);
   }
 }
 
@@ -1921,7 +1921,7 @@ export async function refreshSettings(collectionId) {
     throw new Error(`Collection not found: ${collectionId}`);
   }
 
-  logAndBuffer('info', `Collection found:`, {
+  logAndBuffer('info', 'Collection found:', {
     id: collection.id,
     name: collection.name,
     isActive: collection.isActive,

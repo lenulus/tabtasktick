@@ -56,9 +56,9 @@ function renderSnoozedTimeline(snoozedTabs) {
       </div>
       <div class="timeline-tabs">
         ${items.map(item => {
-          if (item.isWindowSnooze) {
-            // Render window snooze group
-            return `
+    if (item.isWindowSnooze) {
+      // Render window snooze group
+      return `
               <div class="window-snooze-card">
                 <div class="window-snooze-header">
                   <div class="window-icon">🪟</div>
@@ -84,9 +84,9 @@ function renderSnoozedTimeline(snoozedTabs) {
                 </div>
               </div>
             `;
-          } else {
-            // Render individual tab
-            return `
+    } else {
+      // Render individual tab
+      return `
               <div class="tab-card ${item.groupId ? 'grouped' : ''}">
                 <div class="tab-header">
                   <img src="${item.favicon || '../icons/icon-16.png'}" class="tab-favicon">
@@ -104,8 +104,8 @@ function renderSnoozedTimeline(snoozedTabs) {
                 </div>
               </div>
             `;
-          }
-        }).join('')}
+    }
+  }).join('')}
       </div>
     `;
 

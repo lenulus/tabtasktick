@@ -260,8 +260,8 @@ export class CollectionDetailView {
         ${collection.tags && collection.tags.length > 0 ? `
           <div class="collection-tags-large">
             ${collection.tags.map(tag =>
-              `<span class="tag">${this.escapeHtml(tag)}</span>`
-            ).join('')}
+    `<span class="tag">${this.escapeHtml(tag)}</span>`
+  ).join('')}
           </div>
         ` : ''}
 
@@ -625,42 +625,42 @@ export class CollectionDetailView {
       const action = button.dataset.action;
 
       switch (action) {
-        case 'back':
-          this.hide();
-          break;
-        case 'create-task':
-          await this.handleCreateTask();
-          break;
-        case 'open-task-tabs':
-          await this.handleOpenTaskTabs(button.dataset.taskId);
-          break;
-        case 'mark-fixed':
-          await this.handleMarkFixed(button.dataset.taskId);
-          break;
-        case 'edit-task':
-          await this.handleEditTask(button.dataset.taskId);
-          break;
-        case 'toggle-folder':
-          this.handleToggleFolder(button.dataset.folderId);
-          break;
-        case 'sync-collection':
-          await this.handleSyncCollection();
-          break;
-        case 'focus-window':
-          await this.handleFocusWindow();
-          break;
-        case 'close-window':
-          await this.handleCloseWindow();
-          break;
-        case 'open-collection':
-          await this.handleOpenCollection();
-          break;
-        case 'edit-collection':
-          await this.handleEditCollection();
-          break;
-        case 'save-settings':
-          await this.handleSaveSettings();
-          break;
+      case 'back':
+        this.hide();
+        break;
+      case 'create-task':
+        await this.handleCreateTask();
+        break;
+      case 'open-task-tabs':
+        await this.handleOpenTaskTabs(button.dataset.taskId);
+        break;
+      case 'mark-fixed':
+        await this.handleMarkFixed(button.dataset.taskId);
+        break;
+      case 'edit-task':
+        await this.handleEditTask(button.dataset.taskId);
+        break;
+      case 'toggle-folder':
+        this.handleToggleFolder(button.dataset.folderId);
+        break;
+      case 'sync-collection':
+        await this.handleSyncCollection();
+        break;
+      case 'focus-window':
+        await this.handleFocusWindow();
+        break;
+      case 'close-window':
+        await this.handleCloseWindow();
+        break;
+      case 'open-collection':
+        await this.handleOpenCollection();
+        break;
+      case 'edit-collection':
+        await this.handleEditCollection();
+        break;
+      case 'save-settings':
+        await this.handleSaveSettings();
+        break;
       }
     });
 

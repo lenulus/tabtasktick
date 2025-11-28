@@ -103,51 +103,51 @@ export function waitFor(ms) {
 // Helper to setup Chrome API responses for integration tests
 export function setupChromeResponses(scenario = 'default') {
   switch (scenario) {
-    case 'with-tabs':
-      chromeMock.tabs.query.mockResolvedValue([
-        createTab({ id: 1, url: 'https://example.com' }),
-        createTab({ id: 2, url: 'https://google.com' }),
-        createTab({ id: 3, url: 'https://github.com' })
-      ]);
-      break;
+  case 'with-tabs':
+    chromeMock.tabs.query.mockResolvedValue([
+      createTab({ id: 1, url: 'https://example.com' }),
+      createTab({ id: 2, url: 'https://google.com' }),
+      createTab({ id: 3, url: 'https://github.com' })
+    ]);
+    break;
       
-    case 'with-groups':
-      chromeMock.tabs.query.mockResolvedValue([
-        createTab({ id: 1, groupId: 1 }),
-        createTab({ id: 2, groupId: 1 }),
-        createTab({ id: 3, groupId: 2 })
-      ]);
-      chromeMock.tabGroups.query.mockResolvedValue([
-        { id: 1, title: 'Work', color: 'blue' },
-        { id: 2, title: 'Personal', color: 'red' }
-      ]);
-      break;
+  case 'with-groups':
+    chromeMock.tabs.query.mockResolvedValue([
+      createTab({ id: 1, groupId: 1 }),
+      createTab({ id: 2, groupId: 1 }),
+      createTab({ id: 3, groupId: 2 })
+    ]);
+    chromeMock.tabGroups.query.mockResolvedValue([
+      { id: 1, title: 'Work', color: 'blue' },
+      { id: 2, title: 'Personal', color: 'red' }
+    ]);
+    break;
       
-    case 'empty':
-      chromeMock.tabs.query.mockResolvedValue([]);
-      break;
+  case 'empty':
+    chromeMock.tabs.query.mockResolvedValue([]);
+    break;
       
-    default:
-      // Reset to empty state
-      break;
+  default:
+    // Reset to empty state
+    break;
   }
 }
 
 // Helper to verify action was executed
 export function verifyAction(action, expectedCalls) {
   switch (action.action) {
-    case 'close':
-      expect(chromeMock.tabs.remove).toHaveBeenCalledTimes(expectedCalls);
-      break;
-    case 'group':
-      expect(chromeMock.tabs.group).toHaveBeenCalledTimes(expectedCalls);
-      break;
-    case 'snooze':
-      expect(chromeMock.storage.local.set).toHaveBeenCalled();
-      break;
-    case 'bookmark':
-      expect(chromeMock.bookmarks.create).toHaveBeenCalledTimes(expectedCalls);
-      break;
+  case 'close':
+    expect(chromeMock.tabs.remove).toHaveBeenCalledTimes(expectedCalls);
+    break;
+  case 'group':
+    expect(chromeMock.tabs.group).toHaveBeenCalledTimes(expectedCalls);
+    break;
+  case 'snooze':
+    expect(chromeMock.storage.local.set).toHaveBeenCalled();
+    break;
+  case 'bookmark':
+    expect(chromeMock.bookmarks.create).toHaveBeenCalledTimes(expectedCalls);
+    break;
   }
 }
 

@@ -248,61 +248,61 @@ export async function snoozeTabs(tabIds, snoozeUntil, options = {}) {
  * await wakeTabs(snoozedTabIds, { makeActive: false });
  */
 export async function wakeTabs(snoozedTabIds, options = {}) {
-    await ensureInitialized();
-    const { makeActive = true, targetWindowId } = options; // Default to active for better UX
-    const newTabIds = [];
+  await ensureInitialized();
+  const { makeActive = true, targetWindowId } = options; // Default to active for better UX
+  const newTabIds = [];
 
-    const tabsToWake = snoozedTabs.filter(tab => snoozedTabIds.includes(tab.id));
-    const remainingTabs = snoozedTabs.filter(tab => !snoozedTabIds.includes(tab.id));
+  const tabsToWake = snoozedTabs.filter(tab => snoozedTabIds.includes(tab.id));
+  const remainingTabs = snoozedTabs.filter(tab => !snoozedTabIds.includes(tab.id));
 
-    for (let i = 0; i < tabsToWake.length; i++) {
-      const tab = tabsToWake[i];
-      try {
-        // Determine window for restoration based on restorationMode
-        // Default to 'original' for backward compatibility with tabs that don't have restorationMode set
-        const mode = tab.restorationMode || 'original';
-        let windowId;
+  for (let i = 0; i < tabsToWake.length; i++) {
+    const tab = tabsToWake[i];
+    try {
+      // Determine window for restoration based on restorationMode
+      // Default to 'original' for backward compatibility with tabs that don't have restorationMode set
+      const mode = tab.restorationMode || 'original';
+      let windowId;
 
-        if (targetWindowId) {
-          // Override: use explicit target window
-          windowId = targetWindowId;
-        } else if (mode === 'original' && tab.sourceWindowId) {
-          // Try to restore to original window
-          try {
-            await chrome.windows.get(tab.sourceWindowId);
-            windowId = tab.sourceWindowId;
-          } catch (e) {
-            // Original window doesn't exist, fall back to last focused
-            windowId = (await chrome.windows.getLastFocused()).id;
-          }
-        } else if (mode === 'current') {
-          // Restore to last focused window (service workers can't use getCurrent)
-          windowId = (await chrome.windows.getLastFocused()).id;
-        } else if (mode === 'original' && !tab.sourceWindowId) {
-          // Legacy tab without sourceWindowId - restore to last focused window
+      if (targetWindowId) {
+        // Override: use explicit target window
+        windowId = targetWindowId;
+      } else if (mode === 'original' && tab.sourceWindowId) {
+        // Try to restore to original window
+        try {
+          await chrome.windows.get(tab.sourceWindowId);
+          windowId = tab.sourceWindowId;
+        } catch (e) {
+          // Original window doesn't exist, fall back to last focused
           windowId = (await chrome.windows.getLastFocused()).id;
         }
-        // If mode === 'new', windowId stays undefined (creates new window)
-
-        const newTab = await chrome.tabs.create({
-          url: tab.url,
-          active: i === 0 ? makeActive : false, // Only make first tab active
-          windowId, // undefined creates new window
-        });
-        if (tab.groupId) {
-          await restoreTabToGroup(newTab.id, tab.groupId);
-        }
-        newTabIds.push(newTab.id);
-        chrome.alarms.clear(`${ALARM_PREFIX}${tab.id}`);
-      } catch (error) {
-        console.error(`Error waking tab ${tab.id}:`, error);
+      } else if (mode === 'current') {
+        // Restore to last focused window (service workers can't use getCurrent)
+        windowId = (await chrome.windows.getLastFocused()).id;
+      } else if (mode === 'original' && !tab.sourceWindowId) {
+        // Legacy tab without sourceWindowId - restore to last focused window
+        windowId = (await chrome.windows.getLastFocused()).id;
       }
-    }
+      // If mode === 'new', windowId stays undefined (creates new window)
 
-    snoozedTabs = remainingTabs;
-    await saveSnoozedTabs();
-    console.log(`Woke ${newTabIds.length} tabs.`);
-    return newTabIds;
+      const newTab = await chrome.tabs.create({
+        url: tab.url,
+        active: i === 0 ? makeActive : false, // Only make first tab active
+        windowId, // undefined creates new window
+      });
+      if (tab.groupId) {
+        await restoreTabToGroup(newTab.id, tab.groupId);
+      }
+      newTabIds.push(newTab.id);
+      chrome.alarms.clear(`${ALARM_PREFIX}${tab.id}`);
+    } catch (error) {
+      console.error(`Error waking tab ${tab.id}:`, error);
+    }
+  }
+
+  snoozedTabs = remainingTabs;
+  await saveSnoozedTabs();
+  console.log(`Woke ${newTabIds.length} tabs.`);
+  return newTabIds;
 }
 
 /**
@@ -498,14 +498,14 @@ async function checkMissedAlarms() {
  * @param {number} originalGroupId - The ID of the group to restore to.
  */
 async function restoreTabToGroup(newTabId, originalGroupId) {
-    if (!originalGroupId) return;
-    try {
-      // Check if the group still exists
-      await chrome.tabGroups.get(originalGroupId);
-      // If it exists, add the tab to it
-      await chrome.tabs.group({ tabIds: [newTabId], groupId: originalGroupId });
-    } catch (error) {
-      // Group likely doesn't exist anymore, which is fine.
-      console.log(`Could not restore tab ${newTabId} to group ${originalGroupId}. Group may no longer exist.`);
-    }
+  if (!originalGroupId) return;
+  try {
+    // Check if the group still exists
+    await chrome.tabGroups.get(originalGroupId);
+    // If it exists, add the tab to it
+    await chrome.tabs.group({ tabIds: [newTabId], groupId: originalGroupId });
+  } catch (error) {
+    // Group likely doesn't exist anymore, which is fine.
+    console.log(`Could not restore tab ${newTabId} to group ${originalGroupId}. Group may no longer exist.`);
+  }
 }

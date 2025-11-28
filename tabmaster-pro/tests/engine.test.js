@@ -550,7 +550,7 @@ describe('Engine - Complex Scenarios', () => {
       then: [
         { type: 'group', by: 'domain' },
         { type: 'snooze', for: '12h' }
-        ]
+      ]
     });
 
     chromeMock.tabs.group.mockResolvedValue(100);

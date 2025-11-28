@@ -119,7 +119,7 @@ class ModalManager {
 
     // Actions
     if (actions.length > 0) {
-      html += `<div class="modal-actions">`;
+      html += '<div class="modal-actions">';
       actions.forEach(action => {
         const {
           label = 'OK',
@@ -131,7 +131,7 @@ class ModalManager {
         const btnClass = `btn btn-${variant}`;
         html += `<button class="${btnClass}" data-action="${this.escapeHtml(label)}">${this.escapeHtml(label)}</button>`;
       });
-      html += `</div>`;
+      html += '</div>';
     }
 
     modal.innerHTML = html;

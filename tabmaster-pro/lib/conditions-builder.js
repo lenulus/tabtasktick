@@ -195,13 +195,13 @@ export class ConditionsBuilder {
       </label>
       <select class="subject-select" title="What to check">
         ${this.subjects.map(s => 
-          `<option value="${s.value}" data-type="${s.type}" ${s.value === condition.subject ? 'selected' : ''}>${s.label}</option>`
-        ).join('')}
+    `<option value="${s.value}" data-type="${s.type}" ${s.value === condition.subject ? 'selected' : ''}>${s.label}</option>`
+  ).join('')}
       </select>
       <select class="operator-select" title="How to compare">
         ${operators.map(op => 
-          `<option value="${op.value}" ${op.value === condition.operator ? 'selected' : ''}>${op.label}</option>`
-        ).join('')}
+    `<option value="${op.value}" ${op.value === condition.operator ? 'selected' : ''}>${op.label}</option>`
+  ).join('')}
       </select>
       <div class="value-input-container">
         ${this.createValueInput(subject.type, condition.value)}
@@ -214,17 +214,17 @@ export class ConditionsBuilder {
 
   createValueInput(type, value) {
     switch (type) {
-      case 'boolean':
-        return `
+    case 'boolean':
+      return `
           <select class="value-input value-boolean">
             <option value="true" ${value === true ? 'selected' : ''}>Yes</option>
             <option value="false" ${value === false || value === undefined ? 'selected' : ''}>No</option>
           </select>
         `;
       
-      case 'duration':
-        const duration = this.parseDuration(value);
-        return `
+    case 'duration':
+      const duration = this.parseDuration(value);
+      return `
           <div class="duration-input">
             <input type="number" class="value-input value-duration-number" value="${duration.value}" min="1">
             <select class="value-duration-unit">
@@ -235,26 +235,26 @@ export class ConditionsBuilder {
           </div>
         `;
       
-      case 'category':
-        const categories = Array.isArray(value) ? value : [];
-        // Generate options dynamically from DOMAIN_CATEGORIES
-        const categoryOptions = Object.keys(DOMAIN_CATEGORIES)
-          .sort()
-          .map(key => {
-            const category = DOMAIN_CATEGORIES[key];
-            const isSelected = categories.includes(key);
-            return `<option value="${key}" ${isSelected ? 'selected' : ''}>${category.name}</option>`;
-          })
-          .join('\n            ');
+    case 'category':
+      const categories = Array.isArray(value) ? value : [];
+      // Generate options dynamically from DOMAIN_CATEGORIES
+      const categoryOptions = Object.keys(DOMAIN_CATEGORIES)
+        .sort()
+        .map(key => {
+          const category = DOMAIN_CATEGORIES[key];
+          const isSelected = categories.includes(key);
+          return `<option value="${key}" ${isSelected ? 'selected' : ''}>${category.name}</option>`;
+        })
+        .join('\n            ');
 
-        return `
+      return `
           <select class="value-input value-category" multiple size="8">
             ${categoryOptions}
           </select>
         `;
       
-      case 'origin':
-        return `
+    case 'origin':
+      return `
           <select class="value-input value-origin">
             <option value="user" ${value === 'user' ? 'selected' : ''}>Opened by user</option>
             <option value="link" ${value === 'link' ? 'selected' : ''}>Opened from link</option>
@@ -264,11 +264,11 @@ export class ConditionsBuilder {
           </select>
         `;
       
-      case 'number':
-        return `<input type="number" class="value-input value-number" value="${value || 0}" min="0">`;
+    case 'number':
+      return `<input type="number" class="value-input value-number" value="${value || 0}" min="0">`;
       
-      default: // string
-        return `<input type="text" class="value-input value-string" value="${value || ''}" placeholder="Enter value">`;
+    default: // string
+      return `<input type="text" class="value-input value-string" value="${value || ''}" placeholder="Enter value">`;
     }
   }
 
@@ -477,23 +477,23 @@ export class ConditionsBuilder {
 
   parseValue(rowElement, type) {
     switch (type) {
-      case 'boolean':
-        return rowElement.querySelector('.value-boolean').value === 'true';
+    case 'boolean':
+      return rowElement.querySelector('.value-boolean').value === 'true';
       
-      case 'duration':
-        const num = rowElement.querySelector('.value-duration-number').value;
-        const unit = rowElement.querySelector('.value-duration-unit').value;
-        return this.formatDuration(num, unit);
+    case 'duration':
+      const num = rowElement.querySelector('.value-duration-number').value;
+      const unit = rowElement.querySelector('.value-duration-unit').value;
+      return this.formatDuration(num, unit);
       
-      case 'category':
-        const select = rowElement.querySelector('.value-category');
-        return Array.from(select.selectedOptions).map(opt => opt.value);
+    case 'category':
+      const select = rowElement.querySelector('.value-category');
+      return Array.from(select.selectedOptions).map(opt => opt.value);
       
-      case 'number':
-        return parseInt(rowElement.querySelector('.value-number').value) || 0;
+    case 'number':
+      return parseInt(rowElement.querySelector('.value-number').value) || 0;
       
-      default:
-        return rowElement.querySelector('.value-input').value;
+    default:
+      return rowElement.querySelector('.value-input').value;
     }
   }
 

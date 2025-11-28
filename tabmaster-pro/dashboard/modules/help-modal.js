@@ -330,7 +330,7 @@ class KeyboardShortcutsHelpModal {
     // Render as keyboard keys
     return parts.map((part, i) => {
       if (part === 'then') {
-        return `<span class="key-separator">then</span>`;
+        return '<span class="key-separator">then</span>';
       }
       return `<kbd class="keyboard-key">${part}</kbd>`;
     }).join(' ');

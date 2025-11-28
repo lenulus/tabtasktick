@@ -212,29 +212,29 @@ export function validateActionParams(action) {
   const errors = [];
   
   switch (action.type) {
-    case 'group':
-      if (!action.group_by || !['domain', 'window', 'category'].includes(action.group_by)) {
-        errors.push('Group action requires valid group_by parameter');
-      }
-      break;
+  case 'group':
+    if (!action.group_by || !['domain', 'window', 'category'].includes(action.group_by)) {
+      errors.push('Group action requires valid group_by parameter');
+    }
+    break;
       
-    case 'snooze':
-      if (!action.until || !action.until.match(/^\d+[mhd]$/)) {
-        errors.push('Snooze action requires valid duration');
-      }
-      break;
+  case 'snooze':
+    if (!action.until || !action.until.match(/^\d+[mhd]$/)) {
+      errors.push('Snooze action requires valid duration');
+    }
+    break;
       
-    case 'move_to_window':
-      if (!action.window_id || !['new', 'current'].includes(action.window_id)) {
-        errors.push('Move to window action requires valid window_id');
-      }
-      break;
+  case 'move_to_window':
+    if (!action.window_id || !['new', 'current'].includes(action.window_id)) {
+      errors.push('Move to window action requires valid window_id');
+    }
+    break;
       
-    case 'bookmark':
-      if (!action.folder) {
-        errors.push('Bookmark action requires folder name');
-      }
-      break;
+  case 'bookmark':
+    if (!action.folder) {
+      errors.push('Bookmark action requires folder name');
+    }
+    break;
   }
   
   return {

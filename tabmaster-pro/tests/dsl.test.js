@@ -435,7 +435,7 @@ trigger immediate
 
 describe('Edge cases', () => {
   test('handles empty rule', () => {
-    const dsl = `rule "Empty" { }`;
+    const dsl = 'rule "Empty" { }';
     const rules = parseDSL(dsl);
     
     expect(rules[0]).toEqual({

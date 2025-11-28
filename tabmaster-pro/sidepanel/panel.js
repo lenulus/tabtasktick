@@ -698,8 +698,8 @@ class SidePanelController {
             <select id="new-task-collection" name="collectionId" class="form-control">
               <option value="">Uncategorized</option>
               ${(this.collectionsData || []).map(c =>
-                `<option value="${c.id}">${this.escapeHtml(c.name || 'Unnamed')}</option>`
-              ).join('')}
+    `<option value="${c.id}">${this.escapeHtml(c.name || 'Unnamed')}</option>`
+  ).join('')}
             </select>
           </div>
         </div>
@@ -999,29 +999,29 @@ class SidePanelController {
     const sorted = [...collections];
 
     switch (sortBy) {
-      case 'lastAccessed':
-        return sorted.sort((a, b) => {
-          const aTime = a.metadata?.lastAccessed || 0;
-          const bTime = b.metadata?.lastAccessed || 0;
-          return bTime - aTime; // Descending
-        });
+    case 'lastAccessed':
+      return sorted.sort((a, b) => {
+        const aTime = a.metadata?.lastAccessed || 0;
+        const bTime = b.metadata?.lastAccessed || 0;
+        return bTime - aTime; // Descending
+      });
 
-      case 'created':
-        return sorted.sort((a, b) => {
-          const aTime = a.metadata?.createdAt || 0;
-          const bTime = b.metadata?.createdAt || 0;
-          return bTime - aTime; // Descending
-        });
+    case 'created':
+      return sorted.sort((a, b) => {
+        const aTime = a.metadata?.createdAt || 0;
+        const bTime = b.metadata?.createdAt || 0;
+        return bTime - aTime; // Descending
+      });
 
-      case 'name':
-        return sorted.sort((a, b) => {
-          const aName = (a.name || '').toLowerCase();
-          const bName = (b.name || '').toLowerCase();
-          return aName.localeCompare(bName); // Ascending
-        });
+    case 'name':
+      return sorted.sort((a, b) => {
+        const aName = (a.name || '').toLowerCase();
+        const bName = (b.name || '').toLowerCase();
+        return aName.localeCompare(bName); // Ascending
+      });
 
-      default:
-        return sorted;
+    default:
+      return sorted;
     }
   }
 
@@ -1035,47 +1035,47 @@ class SidePanelController {
     const sorted = [...tasks];
 
     switch (sortBy) {
-      case 'dueDate':
-        sorted.sort((a, b) => {
-          // Tasks with no due date go to the end
-          if (!a.dueDate && !b.dueDate) return 0;
-          if (!a.dueDate) return 1;
-          if (!b.dueDate) return -1;
-          return a.dueDate - b.dueDate; // Natural: earliest first
-        });
-        // Reverse if descending
-        return sortDirection === 'desc' ? sorted.reverse() : sorted;
+    case 'dueDate':
+      sorted.sort((a, b) => {
+        // Tasks with no due date go to the end
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return a.dueDate - b.dueDate; // Natural: earliest first
+      });
+      // Reverse if descending
+      return sortDirection === 'desc' ? sorted.reverse() : sorted;
 
-      case 'priority':
-        const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-        sorted.sort((a, b) => {
-          const aPriority = priorityOrder[a.priority] ?? 999;
-          const bPriority = priorityOrder[b.priority] ?? 999;
-          return aPriority - bPriority; // Natural: critical first
-        });
-        // Reverse if ascending
-        return sortDirection === 'asc' ? sorted.reverse() : sorted;
+    case 'priority':
+      const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      sorted.sort((a, b) => {
+        const aPriority = priorityOrder[a.priority] ?? 999;
+        const bPriority = priorityOrder[b.priority] ?? 999;
+        return aPriority - bPriority; // Natural: critical first
+      });
+      // Reverse if ascending
+      return sortDirection === 'asc' ? sorted.reverse() : sorted;
 
-      case 'created':
-        sorted.sort((a, b) => {
-          const aTime = a.createdAt || 0;
-          const bTime = b.createdAt || 0;
-          return aTime - bTime; // Natural: oldest first
-        });
-        // Reverse if descending (newest first)
-        return sortDirection === 'desc' ? sorted.reverse() : sorted;
+    case 'created':
+      sorted.sort((a, b) => {
+        const aTime = a.createdAt || 0;
+        const bTime = b.createdAt || 0;
+        return aTime - bTime; // Natural: oldest first
+      });
+      // Reverse if descending (newest first)
+      return sortDirection === 'desc' ? sorted.reverse() : sorted;
 
-      case 'alpha':
-        sorted.sort((a, b) => {
-          const aName = (a.summary || '').toLowerCase();
-          const bName = (b.summary || '').toLowerCase();
-          return aName.localeCompare(bName); // Natural: A → Z
-        });
-        // Reverse if descending (Z → A)
-        return sortDirection === 'desc' ? sorted.reverse() : sorted;
+    case 'alpha':
+      sorted.sort((a, b) => {
+        const aName = (a.summary || '').toLowerCase();
+        const bName = (b.summary || '').toLowerCase();
+        return aName.localeCompare(bName); // Natural: A → Z
+      });
+      // Reverse if descending (Z → A)
+      return sortDirection === 'desc' ? sorted.reverse() : sorted;
 
-      default:
-        return sorted;
+    default:
+      return sorted;
     }
   }
 
@@ -1097,65 +1097,65 @@ class SidePanelController {
     const { action, data } = message;
 
     switch (action) {
-      case 'collection.created':
-        // Reload collections with scroll position maintenance
-        this.reloadWithScrollMaintenance('collections');
-        // Highlight newly created collection
-        if (data?.collectionId) {
-          setTimeout(() => {
-            this.highlightItem('collection', data.collectionId);
-          }, 100);
-        }
-        break;
+    case 'collection.created':
+      // Reload collections with scroll position maintenance
+      this.reloadWithScrollMaintenance('collections');
+      // Highlight newly created collection
+      if (data?.collectionId) {
+        setTimeout(() => {
+          this.highlightItem('collection', data.collectionId);
+        }, 100);
+      }
+      break;
 
-      case 'collection.updated':
-      case 'collection.deleted':
-        // Reload collections with scroll position maintenance
-        this.reloadWithScrollMaintenance('collections');
-        break;
+    case 'collection.updated':
+    case 'collection.deleted':
+      // Reload collections with scroll position maintenance
+      this.reloadWithScrollMaintenance('collections');
+      break;
 
-      case 'task.created':
-        // Reload tasks with scroll position maintenance
-        this.reloadWithScrollMaintenance('tasks');
-        // Highlight newly created task
-        if (data?.taskId) {
-          setTimeout(() => {
-            this.highlightItem('task', data.taskId);
-          }, 100);
-        }
-        break;
+    case 'task.created':
+      // Reload tasks with scroll position maintenance
+      this.reloadWithScrollMaintenance('tasks');
+      // Highlight newly created task
+      if (data?.taskId) {
+        setTimeout(() => {
+          this.highlightItem('task', data.taskId);
+        }, 100);
+      }
+      break;
 
-      case 'task.updated':
-      case 'task.deleted':
-        // Reload tasks with scroll position maintenance
-        this.reloadWithScrollMaintenance('tasks');
-        break;
+    case 'task.updated':
+    case 'task.deleted':
+      // Reload tasks with scroll position maintenance
+      this.reloadWithScrollMaintenance('tasks');
+      break;
 
-      case 'openSidePanelView':
-        // Phase 4: Deep link from popup to specific view
-        if (data?.view) {
-          this.switchView(data.view);
-        }
-        break;
+    case 'openSidePanelView':
+      // Phase 4: Deep link from popup to specific view
+      if (data?.view) {
+        this.switchView(data.view);
+      }
+      break;
 
-      case 'openSidePanelWithAction':
-        // Phase 4: Deep link from popup with action (e.g., create collection modal)
-        if (data?.panelAction === 'createCollection') {
-          // Switch to collections view first
-          this.switchView('collections');
-          // Then open create collection modal
-          setTimeout(() => {
-            this.handleSaveWindow();
-          }, 100);
-        } else if (data?.panelAction === 'createTask') {
-          // Switch to tasks view first
-          this.switchView('tasks');
-          // Then open create task modal
-          setTimeout(() => {
-            this.handleCreateTask();
-          }, 100);
-        }
-        break;
+    case 'openSidePanelWithAction':
+      // Phase 4: Deep link from popup with action (e.g., create collection modal)
+      if (data?.panelAction === 'createCollection') {
+        // Switch to collections view first
+        this.switchView('collections');
+        // Then open create collection modal
+        setTimeout(() => {
+          this.handleSaveWindow();
+        }, 100);
+      } else if (data?.panelAction === 'createTask') {
+        // Switch to tasks view first
+        this.switchView('tasks');
+        // Then open create task modal
+        setTimeout(() => {
+          this.handleCreateTask();
+        }, 100);
+      }
+      break;
     }
   }
 

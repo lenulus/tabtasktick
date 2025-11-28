@@ -126,9 +126,9 @@ export class RuleBuilder {
    */
   isPredicateCondition(condition) {
     const predicateOperators = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte',
-                               'contains', 'notContains', 'startsWith',
-                               'endsWith', 'regex', 'in',
-                               'nin', 'is'];
+      'contains', 'notContains', 'startsWith',
+      'endsWith', 'regex', 'in',
+      'nin', 'is'];
     const keys = Object.keys(condition);
     return keys.length === 1 && predicateOperators.includes(keys[0]);
   }

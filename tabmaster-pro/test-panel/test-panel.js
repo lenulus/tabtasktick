@@ -181,7 +181,7 @@ async function runAllTests() {
     testMode.onScenarioCompleted = (scenario, result) => {
       const statusEmoji = result.status === 'passed' ? '✅' : result.status === 'failed' ? '❌' : '⚠️';
       log(`${statusEmoji} Scenario '${scenario.name}' completed: ${result.status} (${result.duration}ms)`,
-          result.status === 'passed' ? 'info' : 'error');
+        result.status === 'passed' ? 'info' : 'error');
     };
 
     // Pass Test Runner window ID to test mode for focus management
@@ -195,11 +195,11 @@ async function runAllTests() {
 
     displayResults(results);
     updateUI('active');
-    log(`\n=== Test Summary ===`, 'info');
+    log('\n=== Test Summary ===', 'info');
     log(`Total: ${results.summary.total} | Passed: ${results.summary.passed} | Failed: ${results.summary.failed}`, 'info');
 
     // Ask user if they want to clean up
-    log(`\nTest execution complete. Use 'Toggle Test Mode' to deactivate and clean up.`, 'info');
+    log('\nTest execution complete. Use \'Toggle Test Mode\' to deactivate and clean up.', 'info');
 
   } catch (error) {
     log(`Test execution failed: ${error.message}`, 'error');
@@ -241,7 +241,7 @@ async function runSelectedTests() {
     testMode.onScenarioCompleted = (scenario, result) => {
       const statusEmoji = result.status === 'passed' ? '✅' : result.status === 'failed' ? '❌' : '⚠️';
       log(`${statusEmoji} Scenario '${scenario.name}' completed: ${result.status} (${result.duration}ms)`,
-          result.status === 'passed' ? 'info' : 'error');
+        result.status === 'passed' ? 'info' : 'error');
     };
 
     // Pass Test Runner window ID to test mode for focus management
@@ -255,7 +255,7 @@ async function runSelectedTests() {
 
     displayResults(results);
     updateUI('active');
-    log(`\n=== Test Summary ===`, 'info');
+    log('\n=== Test Summary ===', 'info');
     log(`Selected tests completed: ${results.summary.passed}/${results.summary.total} passed`, 'info');
 
   } catch (error) {
@@ -296,32 +296,32 @@ function updateUI(state) {
   statusIndicator.classList.remove('active', 'inactive', 'running');
   
   switch (state) {
-    case 'inactive':
-      statusIndicator.classList.add('inactive');
-      statusText.textContent = 'Test Mode Inactive';
-      toggleBtn.classList.remove('active');
-      elements.runAllTests.disabled = true;
-      elements.runSelectedTest.disabled = true;
-      elements.stopTests.disabled = true;
-      break;
+  case 'inactive':
+    statusIndicator.classList.add('inactive');
+    statusText.textContent = 'Test Mode Inactive';
+    toggleBtn.classList.remove('active');
+    elements.runAllTests.disabled = true;
+    elements.runSelectedTest.disabled = true;
+    elements.stopTests.disabled = true;
+    break;
       
-    case 'active':
-      statusIndicator.classList.add('active');
-      statusText.textContent = 'Test Mode Active';
-      toggleBtn.classList.add('active');
-      elements.runAllTests.disabled = false;
-      elements.runSelectedTest.disabled = false;
-      elements.stopTests.disabled = true;
-      break;
+  case 'active':
+    statusIndicator.classList.add('active');
+    statusText.textContent = 'Test Mode Active';
+    toggleBtn.classList.add('active');
+    elements.runAllTests.disabled = false;
+    elements.runSelectedTest.disabled = false;
+    elements.stopTests.disabled = true;
+    break;
       
-    case 'running':
-      statusIndicator.classList.add('running');
-      statusText.textContent = 'Tests Running...';
-      toggleBtn.classList.add('active');
-      elements.runAllTests.disabled = true;
-      elements.runSelectedTest.disabled = true;
-      elements.stopTests.disabled = false;
-      break;
+  case 'running':
+    statusIndicator.classList.add('running');
+    statusText.textContent = 'Tests Running...';
+    toggleBtn.classList.add('active');
+    elements.runAllTests.disabled = true;
+    elements.runSelectedTest.disabled = true;
+    elements.stopTests.disabled = false;
+    break;
   }
 }
 
@@ -713,7 +713,7 @@ function logTestStep(scenario, step, result) {
       const actionCount = result.details.actionCount || result.details.actions?.length || 0;
       log(`    → Executed rule: ${matchCount} matches, ${actionCount} actions`, 'info');
       if (matchCount === 0) {
-        log(`    → WARNING: No tabs matched the rule conditions`, 'warning');
+        log('    → WARNING: No tabs matched the rule conditions', 'warning');
       }
     }
   }

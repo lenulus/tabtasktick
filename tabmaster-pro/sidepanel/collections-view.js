@@ -162,8 +162,8 @@ export class CollectionsView {
         ${collection.tags && collection.tags.length > 0 ? `
           <div class="collection-tags">
             ${collection.tags.slice(0, 3).map(tag =>
-              `<span class="tag">${this.escapeHtml(tag)}</span>`
-            ).join('')}
+    `<span class="tag">${this.escapeHtml(tag)}</span>`
+  ).join('')}
             ${collection.tags.length > 3 ? `<span class="tag-more">+${collection.tags.length - 3}</span>` : ''}
           </div>
         ` : ''}
@@ -224,30 +224,30 @@ export class CollectionsView {
         const action = button.dataset.action;
 
         switch (action) {
-          case 'view-details':
-            await this.handleViewDetails(collectionId);
-            break;
-          case 'focus':
-            await this.handleFocusWindow(collectionId);
-            break;
-          case 'open':
-            await this.handleOpenCollection(collectionId);
-            break;
-          case 'tasks':
-            await this.handleViewTasks(collectionId);
-            break;
-          case 'edit':
-            await this.handleEditCollection(collectionId);
-            break;
-          case 'close':
-            await this.handleCloseCollection(collectionId);
-            break;
-          case 'delete':
-            await this.handleDeleteCollection(collectionId);
-            break;
-          case 'export':
-            await this.handleExportCollection(collectionId);
-            break;
+        case 'view-details':
+          await this.handleViewDetails(collectionId);
+          break;
+        case 'focus':
+          await this.handleFocusWindow(collectionId);
+          break;
+        case 'open':
+          await this.handleOpenCollection(collectionId);
+          break;
+        case 'tasks':
+          await this.handleViewTasks(collectionId);
+          break;
+        case 'edit':
+          await this.handleEditCollection(collectionId);
+          break;
+        case 'close':
+          await this.handleCloseCollection(collectionId);
+          break;
+        case 'delete':
+          await this.handleDeleteCollection(collectionId);
+          break;
+        case 'export':
+          await this.handleExportCollection(collectionId);
+          break;
         }
       });
     };

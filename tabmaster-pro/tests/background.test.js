@@ -180,16 +180,16 @@ async function evaluateCondition(conditions, tab, allTabs) {
   let matches = false;
   
   switch (conditions.type) {
-    case 'domain_count':
-      matches = shouldGroupByDomain(tab, allTabs, conditions.minCount);
-      break;
+  case 'domain_count':
+    matches = shouldGroupByDomain(tab, allTabs, conditions.minCount);
+    break;
     
-    case 'category':
-      matches = await isCategoryMatch(tab, conditions);
-      break;
+  case 'category':
+    matches = await isCategoryMatch(tab, conditions);
+    break;
       
-    default:
-      return false;
+  default:
+    return false;
   }
   
   return matches;
@@ -202,7 +202,7 @@ async function isCategoryMatch(tab, conditions) {
   
   try {
     const url = new URL(tab.url);
-    let domain = url.hostname.replace(/^www\./, '');
+    const domain = url.hostname.replace(/^www\./, '');
     
     // Check direct domain match
     const categories = global.DOMAIN_CATEGORIES_MAP[domain] || [];

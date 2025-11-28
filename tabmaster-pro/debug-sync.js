@@ -66,7 +66,7 @@ document.getElementById('refreshCache').addEventListener('click', async () => {
     const response = await chrome.runtime.sendMessage({ action: 'refreshProgressiveSyncCache' });
     document.getElementById('syncTestResult').textContent =
       `Cache refreshed. Found ${response.activeCollectionCount} active collections.\n` +
-      `Now open a new tab in your collection's window and wait 5 seconds.`;
+      'Now open a new tab in your collection\'s window and wait 5 seconds.';
   } catch (error) {
     document.getElementById('syncTestResult').textContent = `Error: ${error.message}`;
   }

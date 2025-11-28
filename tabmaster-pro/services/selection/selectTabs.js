@@ -796,14 +796,14 @@ function getValueFromPath(obj, path, context) {
     if (!tab) return 0;
 
     switch (metric) {
-      case 'domain':
-        return context?.idx?.byDomain?.[tab.domain]?.length || 0;
-      case 'origin':
-        return context?.idx?.byOrigin?.[tab.origin || 'unknown']?.length || 0;
-      case 'dupeKey':
-        return context?.idx?.byDupeKey?.[tab.dupeKey]?.length || 0;
-      default:
-        return 0;
+    case 'domain':
+      return context?.idx?.byDomain?.[tab.domain]?.length || 0;
+    case 'origin':
+      return context?.idx?.byOrigin?.[tab.origin || 'unknown']?.length || 0;
+    case 'dupeKey':
+      return context?.idx?.byDupeKey?.[tab.dupeKey]?.length || 0;
+    default:
+      return 0;
     }
   }
 
@@ -887,83 +887,83 @@ function evaluateSingleCondition(tab, condition, context) {
  */
 function evaluateOperator(actual, operator, expected) {
   switch (operator) {
-    case '=':
-    case '==':
-    case 'eq':
-    case 'equals':
-      return actual == expected;
+  case '=':
+  case '==':
+  case 'eq':
+  case 'equals':
+    return actual == expected;
 
-    case '!=':
-    case 'neq':
-    case 'not_equals':
-    case 'notEquals':
-      return actual != expected;
+  case '!=':
+  case 'neq':
+  case 'not_equals':
+  case 'notEquals':
+    return actual != expected;
 
-    case '>':
-    case 'gt':
-    case 'greater_than':
-    case 'greaterThan':
-      return actual > expected;
+  case '>':
+  case 'gt':
+  case 'greater_than':
+  case 'greaterThan':
+    return actual > expected;
 
-    case '>=':
-    case 'gte':
-    case 'greater_than_or_equal':
-    case 'greaterThanOrEqual':
-      return actual >= expected;
+  case '>=':
+  case 'gte':
+  case 'greater_than_or_equal':
+  case 'greaterThanOrEqual':
+    return actual >= expected;
 
-    case '<':
-    case 'lt':
-    case 'less_than':
-    case 'lessThan':
-      return actual < expected;
+  case '<':
+  case 'lt':
+  case 'less_than':
+  case 'lessThan':
+    return actual < expected;
 
-    case '<=':
-    case 'lte':
-    case 'less_than_or_equal':
-    case 'lessThanOrEqual':
-      return actual <= expected;
+  case '<=':
+  case 'lte':
+  case 'less_than_or_equal':
+  case 'lessThanOrEqual':
+    return actual <= expected;
 
-    case 'contains':
-      return String(actual).toLowerCase().includes(String(expected).toLowerCase());
+  case 'contains':
+    return String(actual).toLowerCase().includes(String(expected).toLowerCase());
 
-    case 'not_contains':
-    case 'notContains':
-      return !String(actual).toLowerCase().includes(String(expected).toLowerCase());
+  case 'not_contains':
+  case 'notContains':
+    return !String(actual).toLowerCase().includes(String(expected).toLowerCase());
 
-    case 'starts_with':
-    case 'startsWith':
-      return String(actual).toLowerCase().startsWith(String(expected).toLowerCase());
+  case 'starts_with':
+  case 'startsWith':
+    return String(actual).toLowerCase().startsWith(String(expected).toLowerCase());
 
-    case 'ends_with':
-    case 'endsWith':
-      return String(actual).toLowerCase().endsWith(String(expected).toLowerCase());
+  case 'ends_with':
+  case 'endsWith':
+    return String(actual).toLowerCase().endsWith(String(expected).toLowerCase());
 
-    case 'matches':
-    case 'regex':
-      try {
-        return new RegExp(expected, 'i').test(String(actual));
-      } catch (error) {
-        console.warn(`Invalid regex pattern: ${expected}`, error);
-        return false;
-      }
-
-    case 'in':
-      return Array.isArray(expected) ? expected.includes(actual) : expected == actual;
-
-    case 'not_in':
-    case 'notIn':
-      return Array.isArray(expected) ? !expected.includes(actual) : expected != actual;
-
-    case 'is':
-      return Boolean(actual) === Boolean(expected);
-
-    case 'is_not':
-    case 'isNot':
-      return Boolean(actual) !== Boolean(expected);
-
-    default:
-      console.warn(`Unknown operator: ${operator}`);
+  case 'matches':
+  case 'regex':
+    try {
+      return new RegExp(expected, 'i').test(String(actual));
+    } catch (error) {
+      console.warn(`Invalid regex pattern: ${expected}`, error);
       return false;
+    }
+
+  case 'in':
+    return Array.isArray(expected) ? expected.includes(actual) : expected == actual;
+
+  case 'not_in':
+  case 'notIn':
+    return Array.isArray(expected) ? !expected.includes(actual) : expected != actual;
+
+  case 'is':
+    return Boolean(actual) === Boolean(expected);
+
+  case 'is_not':
+  case 'isNot':
+    return Boolean(actual) !== Boolean(expected);
+
+  default:
+    console.warn(`Unknown operator: ${operator}`);
+    return false;
   }
 }
 

@@ -164,8 +164,8 @@ function renderKanbanCard(task, collections) {
       <div class="kanban-card-footer">
         ${dueDateHtml}
         ${task.tabIds && task.tabIds.length > 0
-          ? `<span class="tab-count">${task.tabIds.length} tab${task.tabIds.length !== 1 ? 's' : ''}</span>`
-          : ''}
+    ? `<span class="tab-count">${task.tabIds.length} tab${task.tabIds.length !== 1 ? 's' : ''}</span>`
+    : ''}
       </div>
       <div class="kanban-card-actions">
         <button class="btn-icon" data-action="edit" data-task-id="${task.id}" title="Edit">
@@ -454,16 +454,16 @@ async function handleKanbanAction(action, taskId, collections) {
 
   try {
     switch (action) {
-      case 'edit':
-        showTaskDetailModal(task, collections);
-        break;
+    case 'edit':
+      showTaskDetailModal(task, collections);
+      break;
 
-      case 'open-tabs':
-        await handleOpenTaskTabs(taskId);
-        break;
+    case 'open-tabs':
+      await handleOpenTaskTabs(taskId);
+      break;
 
-      default:
-        console.warn('Unknown action:', action);
+    default:
+      console.warn('Unknown action:', action);
     }
   } catch (error) {
     console.error('Error handling Kanban action:', error);

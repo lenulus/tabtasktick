@@ -162,7 +162,7 @@ function renderListView(tasks, collections) {
 
 function renderSortIndicator(columnSort, sortConfig) {
   if (sortConfig.sortBy !== columnSort) {
-    return `<span class="sort-indicator"></span>`;
+    return '<span class="sort-indicator"></span>';
   }
 
   const icon = sortConfig.sortDirection === 'desc'
@@ -211,8 +211,8 @@ function renderListRow(task, collectionMap, index) {
       <td class="col-task" data-field="summary">
         <span class="task-summary">${escapeHtml(task.summary)}</span>
         ${task.tabIds && task.tabIds.length > 0
-          ? `<span class="tab-count-badge">${task.tabIds.length} tab${task.tabIds.length !== 1 ? 's' : ''}</span>`
-          : ''}
+    ? `<span class="tab-count-badge">${task.tabIds.length} tab${task.tabIds.length !== 1 ? 's' : ''}</span>`
+    : ''}
       </td>
       <td class="col-collection">
         ${collectionName}
@@ -403,40 +403,40 @@ function handleInlineEdit(cell, field, taskId) {
 
   // Create appropriate input based on field type
   switch (field) {
-    case 'summary':
-      input = document.createElement('input');
-      input.type = 'text';
-      input.value = currentValue || '';
-      break;
+  case 'summary':
+    input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentValue || '';
+    break;
 
-    case 'priority':
-      input = document.createElement('select');
-      input.innerHTML = `
+  case 'priority':
+    input = document.createElement('select');
+    input.innerHTML = `
         <option value="low" ${currentValue === 'low' ? 'selected' : ''}>Low</option>
         <option value="medium" ${currentValue === 'medium' ? 'selected' : ''}>Medium</option>
         <option value="high" ${currentValue === 'high' ? 'selected' : ''}>High</option>
         <option value="critical" ${currentValue === 'critical' ? 'selected' : ''}>Critical</option>
       `;
-      break;
+    break;
 
-    case 'status':
-      input = document.createElement('select');
-      input.innerHTML = `
+  case 'status':
+    input = document.createElement('select');
+    input.innerHTML = `
         <option value="open" ${currentValue === 'open' ? 'selected' : ''}>Open</option>
         <option value="active" ${currentValue === 'active' ? 'selected' : ''}>Active</option>
         <option value="fixed" ${currentValue === 'fixed' ? 'selected' : ''}>Fixed</option>
         <option value="abandoned" ${currentValue === 'abandoned' ? 'selected' : ''}>Abandoned</option>
       `;
-      break;
+    break;
 
-    case 'dueDate':
-      input = document.createElement('input');
-      input.type = 'date';
-      input.value = currentValue ? new Date(currentValue).toISOString().split('T')[0] : '';
-      break;
+  case 'dueDate':
+    input = document.createElement('input');
+    input.type = 'date';
+    input.value = currentValue ? new Date(currentValue).toISOString().split('T')[0] : '';
+    break;
 
-    default:
-      return;
+  default:
+    return;
   }
 
   input.className = 'inline-edit-input';
@@ -507,31 +507,31 @@ function handleKeyboardNavigation(e) {
   const rows = Array.from(document.querySelectorAll('.task-row'));
 
   switch (e.key) {
-    case 'ArrowUp':
-      e.preventDefault();
-      if (currentIndex > 0) {
-        rows[currentIndex - 1].focus();
-      }
-      break;
+  case 'ArrowUp':
+    e.preventDefault();
+    if (currentIndex > 0) {
+      rows[currentIndex - 1].focus();
+    }
+    break;
 
-    case 'ArrowDown':
-      e.preventDefault();
-      if (currentIndex < rows.length - 1) {
-        rows[currentIndex + 1].focus();
-      }
-      break;
+  case 'ArrowDown':
+    e.preventDefault();
+    if (currentIndex < rows.length - 1) {
+      rows[currentIndex + 1].focus();
+    }
+    break;
 
-    case 'Enter':
-      e.preventDefault();
-      const taskId = currentRow.dataset.taskId;
-      const tasks = state.get('tasks') || [];
-      const collections = state.get('collections') || [];
-      const task = tasks.find(t => t.id === taskId);
+  case 'Enter':
+    e.preventDefault();
+    const taskId = currentRow.dataset.taskId;
+    const tasks = state.get('tasks') || [];
+    const collections = state.get('collections') || [];
+    const task = tasks.find(t => t.id === taskId);
 
-      if (task) {
-        showTaskDetailModal(task, collections);
-      }
-      break;
+    if (task) {
+      showTaskDetailModal(task, collections);
+    }
+    break;
   }
 }
 
@@ -618,44 +618,44 @@ async function handleRowAction(action, taskId, collections) {
 
   try {
     switch (action) {
-      case 'edit':
-        showTaskDetailModal(task, collections);
-        break;
+    case 'edit':
+      showTaskDetailModal(task, collections);
+      break;
 
-      case 'delete':
-        if (!confirm(`Delete task "${task.summary}"?`)) return;
+    case 'delete':
+      if (!confirm(`Delete task "${task.summary}"?`)) return;
 
-        const result = await chrome.runtime.sendMessage({
-          action: 'deleteTask',
-          id: taskId
-        });
+      const result = await chrome.runtime.sendMessage({
+        action: 'deleteTask',
+        id: taskId
+      });
 
-        if (result.success) {
-          showNotification('Task deleted', 'success');
+      if (result.success) {
+        showNotification('Task deleted', 'success');
 
-          // Trigger refresh
-          const event = new CustomEvent('taskDeleted', { detail: { taskId } });
-          window.dispatchEvent(event);
-        } else {
-          showNotification('Failed to delete task', 'error');
-        }
-        break;
+        // Trigger refresh
+        const event = new CustomEvent('taskDeleted', { detail: { taskId } });
+        window.dispatchEvent(event);
+      } else {
+        showNotification('Failed to delete task', 'error');
+      }
+      break;
 
-      case 'open-tabs':
-        const openResult = await chrome.runtime.sendMessage({
-          action: 'openTaskTabs',
-          taskId
-        });
+    case 'open-tabs':
+      const openResult = await chrome.runtime.sendMessage({
+        action: 'openTaskTabs',
+        taskId
+      });
 
-        if (openResult.success) {
-          showNotification(`Opened ${openResult.opened || 0} tab(s)`, 'success');
-        } else {
-          showNotification('Failed to open task tabs', 'error');
-        }
-        break;
+      if (openResult.success) {
+        showNotification(`Opened ${openResult.opened || 0} tab(s)`, 'success');
+      } else {
+        showNotification('Failed to open task tabs', 'error');
+      }
+      break;
 
-      default:
-        console.warn('Unknown action:', action);
+    default:
+      console.warn('Unknown action:', action);
     }
   } catch (error) {
     console.error('Error handling row action:', error);

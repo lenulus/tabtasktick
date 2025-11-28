@@ -179,31 +179,31 @@ function sortTasks(tasks, sortBy, sortOrder) {
     let aVal, bVal;
 
     switch (sortBy) {
-      case 'dueDate':
-        // Special handling for null due dates - always sort last regardless of order
-        if (!a.dueDate && !b.dueDate) return 0;
-        if (!a.dueDate) return 1;  // a is null, sort last
-        if (!b.dueDate) return -1; // b is null, sort last
+    case 'dueDate':
+      // Special handling for null due dates - always sort last regardless of order
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;  // a is null, sort last
+      if (!b.dueDate) return -1; // b is null, sort last
 
-        aVal = a.dueDate;
-        bVal = b.dueDate;
-        break;
-      case 'priority':
-        aVal = priorityWeight[a.priority] || 0;
-        bVal = priorityWeight[b.priority] || 0;
-        break;
-      case 'createdAt':
-        aVal = a.createdAt;
-        bVal = b.createdAt;
-        break;
-      default:
-        // Default to dueDate
-        if (!a.dueDate && !b.dueDate) return 0;
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
+      aVal = a.dueDate;
+      bVal = b.dueDate;
+      break;
+    case 'priority':
+      aVal = priorityWeight[a.priority] || 0;
+      bVal = priorityWeight[b.priority] || 0;
+      break;
+    case 'createdAt':
+      aVal = a.createdAt;
+      bVal = b.createdAt;
+      break;
+    default:
+      // Default to dueDate
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
 
-        aVal = a.dueDate;
-        bVal = b.dueDate;
+      aVal = a.dueDate;
+      bVal = b.dueDate;
     }
 
     return multiplier * (aVal - bVal);

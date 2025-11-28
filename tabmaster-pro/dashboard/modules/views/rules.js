@@ -588,29 +588,29 @@ function getConditionDescription(conditions) {
   // Handle old format for backward compatibility
   let description = '';
   switch (conditions.type) {
-    case 'duplicate':
-      description = 'Duplicate tabs';
-      break;
-    case 'domain_count':
-      description = `${conditions.minCount}+ tabs from same domain`;
-      break;
-    case 'inactive':
-      description = conditions.urlPatterns && conditions.urlPatterns.length > 0 
-        ? `Tabs from ${conditions.urlPatterns.join(', ')}`
-        : 'All tabs';
-      break;
-    case 'age_and_domain':
-      description = `Tabs from ${conditions.domains.join(', ')}`;
-      break;
-    case 'url_pattern':
-      description = `URLs matching "${conditions.pattern}"`;
-      break;
-    case 'category':
-      const categoryNames = conditions.categories ? conditions.categories.join(', ') : 'none';
-      description = `Sites in categories: ${categoryNames}`;
-      break;
-    default:
-      return 'Unknown condition';
+  case 'duplicate':
+    description = 'Duplicate tabs';
+    break;
+  case 'domain_count':
+    description = `${conditions.minCount}+ tabs from same domain`;
+    break;
+  case 'inactive':
+    description = conditions.urlPatterns && conditions.urlPatterns.length > 0 
+      ? `Tabs from ${conditions.urlPatterns.join(', ')}`
+      : 'All tabs';
+    break;
+  case 'age_and_domain':
+    description = `Tabs from ${conditions.domains.join(', ')}`;
+    break;
+  case 'url_pattern':
+    description = `URLs matching "${conditions.pattern}"`;
+    break;
+  case 'category':
+    const categoryNames = conditions.categories ? conditions.categories.join(', ') : 'none';
+    description = `Sites in categories: ${categoryNames}`;
+    break;
+  default:
+    return 'Unknown condition';
   }
   
   // Add time criteria if present
@@ -678,16 +678,16 @@ function getActionDescription(actions) {
   
   // Handle old format
   switch (actions.type) {
-    case 'close':
-      return `Close tabs ${actions.saveToBookmarks ? '(save to bookmarks)' : ''}`;
-    case 'group':
-      return `Group tabs by ${actions.groupBy}`;
-    case 'snooze':
-      return `Snooze for ${actions.snoozeMinutes} minutes`;
-    case 'suspend':
-      return `Suspend tabs ${actions.excludePinned ? '(exclude pinned)' : ''}`;
-    default:
-      return 'Unknown action';
+  case 'close':
+    return `Close tabs ${actions.saveToBookmarks ? '(save to bookmarks)' : ''}`;
+  case 'group':
+    return `Group tabs by ${actions.groupBy}`;
+  case 'snooze':
+    return `Snooze for ${actions.snoozeMinutes} minutes`;
+  case 'suspend':
+    return `Suspend tabs ${actions.excludePinned ? '(exclude pinned)' : ''}`;
+  default:
+    return 'Unknown action';
   }
 }
 
@@ -921,21 +921,21 @@ export async function handleRuleAction(e) {
   const ruleId = ruleCard?.dataset.ruleId;
 
   switch (action) {
-    case 'test':
-      await testRule(ruleId);
-      break;
-    case 'run':
-      await runRule(ruleId);
-      break;
-    case 'edit':
-      const rule = state.get('currentRules').find(r => r.id === ruleId);
-      openRuleModal(rule);
-      break;
-    case 'delete':
-      if (confirm('Are you sure you want to delete this rule?')) {
-        await deleteRule(ruleId);
-      }
-      break;
+  case 'test':
+    await testRule(ruleId);
+    break;
+  case 'run':
+    await runRule(ruleId);
+    break;
+  case 'edit':
+    const rule = state.get('currentRules').find(r => r.id === ruleId);
+    openRuleModal(rule);
+    break;
+  case 'delete':
+    if (confirm('Are you sure you want to delete this rule?')) {
+      await deleteRule(ruleId);
+    }
+    break;
   }
 }
 
@@ -994,7 +994,7 @@ export function openRuleModal(rule = null) {
       if (!obj || typeof obj !== 'object') return false;
       // Check for predicate operators like 'eq', 'gt', 'contains', etc.
       const predicateOps = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'contains', 'not_contains',
-                           'starts_with', 'ends_with', 'regex', 'not_regex', 'in', 'not_in', 'is'];
+        'starts_with', 'ends_with', 'regex', 'not_regex', 'in', 'not_in', 'is'];
       return Object.keys(obj).some(key => predicateOps.includes(key));
     };
 
@@ -1037,17 +1037,17 @@ export function openRuleModal(rule = null) {
   const triggerType = document.getElementById('triggerType');
   if (rule?.trigger) {
     switch (rule.trigger.type) {
-      case 'immediate':
-        triggerType.value = 'immediate';
-        break;
-      case 'repeat':
-        triggerType.value = 'repeat';
-        break;
-      case 'once':
-        triggerType.value = 'once';
-        break;
-      default:
-        triggerType.value = 'manual';
+    case 'immediate':
+      triggerType.value = 'immediate';
+      break;
+    case 'repeat':
+      triggerType.value = 'repeat';
+      break;
+    case 'once':
+      triggerType.value = 'once';
+      break;
+    default:
+      triggerType.value = 'manual';
     }
   } else {
     triggerType.value = 'immediate';
@@ -1105,54 +1105,54 @@ function convertOldConditionsToNew(oldConditions) {
   const conditions = [];
   
   switch (oldConditions.type) {
-    case 'duplicate':
-      conditions.push({ subject: 'duplicate', operator: 'eq', value: true });
-      break;
+  case 'duplicate':
+    conditions.push({ subject: 'duplicate', operator: 'eq', value: true });
+    break;
 
-    case 'domain_count':
-      if (oldConditions.minCount) {
-        conditions.push({ subject: 'tab_count', operator: 'gte', value: oldConditions.minCount });
-      }
-      break;
+  case 'domain_count':
+    if (oldConditions.minCount) {
+      conditions.push({ subject: 'tab_count', operator: 'gte', value: oldConditions.minCount });
+    }
+    break;
       
-    case 'inactive':
-      if (oldConditions.urlPatterns) {
-        conditions.push({
-          any: oldConditions.urlPatterns.map(pattern => ({
-            subject: 'domain', operator: 'contains', value: pattern
-          }))
-        });
-      }
-      if (oldConditions.timeCriteria?.inactive) {
-        conditions.push({
-          subject: 'last_access',
-          operator: 'gt',
-          value: `${oldConditions.timeCriteria.inactive}m`
-        });
-      }
-      break;
+  case 'inactive':
+    if (oldConditions.urlPatterns) {
+      conditions.push({
+        any: oldConditions.urlPatterns.map(pattern => ({
+          subject: 'domain', operator: 'contains', value: pattern
+        }))
+      });
+    }
+    if (oldConditions.timeCriteria?.inactive) {
+      conditions.push({
+        subject: 'last_access',
+        operator: 'gt',
+        value: `${oldConditions.timeCriteria.inactive}m`
+      });
+    }
+    break;
       
-    case 'url_pattern':
-      if (oldConditions.pattern) {
-        conditions.push({ subject: 'url', operator: 'regex', value: oldConditions.pattern });
-      }
-      break;
+  case 'url_pattern':
+    if (oldConditions.pattern) {
+      conditions.push({ subject: 'url', operator: 'regex', value: oldConditions.pattern });
+    }
+    break;
       
-    case 'age_and_domain':
-      if (oldConditions.domains) {
-        conditions.push({
-          any: oldConditions.domains.map(domain => ({
-            subject: 'domain', operator: 'eq', value: domain
-          }))
-        });
-      }
-      break;
+  case 'age_and_domain':
+    if (oldConditions.domains) {
+      conditions.push({
+        any: oldConditions.domains.map(domain => ({
+          subject: 'domain', operator: 'eq', value: domain
+        }))
+      });
+    }
+    break;
       
-    case 'category':
-      if (oldConditions.categories) {
-        conditions.push({ subject: 'category', operator: 'in', value: oldConditions.categories });
-      }
-      break;
+  case 'category':
+    if (oldConditions.categories) {
+      conditions.push({ subject: 'category', operator: 'in', value: oldConditions.categories });
+    }
+    break;
   }
   
   // Add time criteria
@@ -1183,18 +1183,18 @@ function convertOldActionToNew(oldAction) {
   const action = { type: oldAction.type };
   
   switch (oldAction.type) {
-    case 'close':
-      if (oldAction.saveToBookmarks) action.bookmark_first = true;
-      break;
-    case 'group':
-      action.group_by = oldAction.groupBy || 'domain';
-      break;
-    case 'snooze':
-      action.until = `${oldAction.snoozeMinutes || 60}m`;
-      break;
-    case 'suspend':
-      if (oldAction.excludePinned) action.exclude_pinned = true;
-      break;
+  case 'close':
+    if (oldAction.saveToBookmarks) action.bookmark_first = true;
+    break;
+  case 'group':
+    action.group_by = oldAction.groupBy || 'domain';
+    break;
+  case 'snooze':
+    action.until = `${oldAction.snoozeMinutes || 60}m`;
+    break;
+  case 'suspend':
+    if (oldAction.excludePinned) action.exclude_pinned = true;
+    break;
   }
   
   return action;
@@ -1286,11 +1286,11 @@ function createActionElement(action, index) {
 // Get action parameters HTML
 function getActionParamsHTML(action) {
   switch (action.type) {
-    case 'close':
-      return ''; // No parameters needed for close action
+  case 'close':
+    return ''; // No parameters needed for close action
 
-    case 'close-duplicates':
-      return `
+  case 'close-duplicates':
+    return `
         <label>Keep:
           <select data-action-index="${currentActions.indexOf(action)}" data-param="keep" class="action-param-select">
             <option value="oldest" ${!action.keep || action.keep === 'oldest' ? 'selected' : ''}>Oldest tab</option>
@@ -1306,8 +1306,8 @@ function getActionParamsHTML(action) {
         </label>
       `;
 
-    case 'group':
-      return `
+  case 'group':
+    return `
         <label>Group by:
           <select data-action-index="${currentActions.indexOf(action)}" data-param="group_by" class="action-param-select">
             <option value="domain" ${action.group_by === 'domain' ? 'selected' : ''}>Domain</option>
@@ -1321,9 +1321,9 @@ function getActionParamsHTML(action) {
         </label>
       `;
       
-    case 'snooze':
-      const duration = parseDuration(action.until || '1h');
-      return `
+  case 'snooze':
+    const duration = parseDuration(action.until || '1h');
+    return `
         <label>Snooze for:
           <input type="number" value="${duration.value}" min="1"
             data-action-index="${currentActions.indexOf(action)}" data-param="snooze-value" class="action-param-snooze-value">
@@ -1335,8 +1335,8 @@ function getActionParamsHTML(action) {
         </label>
       `;
       
-    case 'move_to_window':
-      return `
+  case 'move_to_window':
+    return `
         <label>Target window:
           <select data-action-index="${currentActions.indexOf(action)}" data-param="window_id" class="action-param-select">
             <option value="new">New window</option>
@@ -1345,8 +1345,8 @@ function getActionParamsHTML(action) {
         </label>
       `;
       
-    default:
-      return '';
+  default:
+    return '';
   }
 }
 
@@ -1390,8 +1390,8 @@ function updateTriggerParams() {
   paramsContainer.innerHTML = '';
   
   switch (triggerType) {
-    case 'repeat':
-      paramsContainer.innerHTML = `
+  case 'repeat':
+    paramsContainer.innerHTML = `
         <label>Repeat every:
           <input type="number" id="repeatInterval" min="1" value="30">
           <select id="repeatUnit">
@@ -1401,20 +1401,20 @@ function updateTriggerParams() {
           </select>
         </label>
       `;
-      break;
+    break;
       
-    case 'once':
-      const now = new Date();
-      const dateStr = now.toISOString().slice(0, 16);
-      paramsContainer.innerHTML = `
+  case 'once':
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 16);
+    paramsContainer.innerHTML = `
         <label>Run at:
           <input type="datetime-local" id="onceAt" value="${dateStr}" min="${dateStr}">
         </label>
       `;
-      break;
+    break;
       
-    case 'immediate':
-      paramsContainer.innerHTML = `
+  case 'immediate':
+    paramsContainer.innerHTML = `
         <label class="checkbox-with-help">
           <input type="checkbox" id="debounce" checked>
           <span>Debounce</span>
@@ -1432,7 +1432,7 @@ function updateTriggerParams() {
           <span style="font-size: 13px; color: #666;">seconds</span>
         </div>
       `;
-      break;
+    break;
   }
 }
 
@@ -1530,16 +1530,16 @@ function createActionModal() {
     
     // Add default parameters based on type
     switch (type) {
-      case 'snooze':
-        action.until = '1h';
-        break;
-      case 'group':
-        action.group_by = 'domain';
-        break;
-      case 'close-duplicates':
-        action.keep = 'oldest';
-        action.scope = 'global'; // Default to global scope
-        break;
+    case 'snooze':
+      action.until = '1h';
+      break;
+    case 'group':
+      action.group_by = 'domain';
+      break;
+    case 'close-duplicates':
+      action.keep = 'oldest';
+      action.scope = 'global'; // Default to global scope
+      break;
     }
     
     currentActions.push(action);
@@ -1613,34 +1613,34 @@ export async function saveRule() {
   let trigger = { type: 'manual' };
   
   switch (triggerType) {
-    case 'immediate':
-      const debounceEnabled = document.getElementById('debounce')?.checked ?? true;
-      const debounceDuration = parseFloat(document.getElementById('debounceDuration')?.value || '2');
-      trigger = {
-        type: 'immediate',
-        debounce: debounceEnabled,
-        debounceDuration: debounceDuration
-      };
-      break;
+  case 'immediate':
+    const debounceEnabled = document.getElementById('debounce')?.checked ?? true;
+    const debounceDuration = parseFloat(document.getElementById('debounceDuration')?.value || '2');
+    trigger = {
+      type: 'immediate',
+      debounce: debounceEnabled,
+      debounceDuration: debounceDuration
+    };
+    break;
 
-    case 'repeat':
-      const interval = document.getElementById('repeatInterval')?.value || '30';
-      const unit = document.getElementById('repeatUnit')?.value || 'm';
-      trigger = {
-        type: 'repeat',
-        repeat_every: `${interval}${unit}`  // Use repeat_every (scheduler expects this)
-      };
-      break;
+  case 'repeat':
+    const interval = document.getElementById('repeatInterval')?.value || '30';
+    const unit = document.getElementById('repeatUnit')?.value || 'm';
+    trigger = {
+      type: 'repeat',
+      repeat_every: `${interval}${unit}`  // Use repeat_every (scheduler expects this)
+    };
+    break;
 
-    case 'once':
-      const dateTime = document.getElementById('onceAt')?.value;
-      if (dateTime) {
-        trigger = {
-          type: 'once',
-          once_at: new Date(dateTime).toISOString()  // Use once_at (scheduler expects this)
-        };
-      }
-      break;
+  case 'once':
+    const dateTime = document.getElementById('onceAt')?.value;
+    if (dateTime) {
+      trigger = {
+        type: 'once',
+        once_at: new Date(dateTime).toISOString()  // Use once_at (scheduler expects this)
+      };
+    }
+    break;
   }
   
   // Build complete rule in new format
@@ -1658,7 +1658,7 @@ export async function saveRule() {
   
   
   // Update existing or create new rule
-  let rules = state.get('currentRules');
+  const rules = state.get('currentRules');
   
   if (editingId) {
     // Update existing rule
@@ -1825,7 +1825,7 @@ export async function testRule(ruleId) {
       const notificationType = count > 0 ? 'success' : 'info';
       const message = count > 0
         ? `Rule preview: ${count} tab${count === 1 ? '' : 's'} would be affected`
-        : `Rule preview: No matching tabs found`;
+        : 'Rule preview: No matching tabs found';
 
       showNotification(message, notificationType);
 
@@ -1840,7 +1840,7 @@ export async function testRule(ruleId) {
       const notificationType = count > 0 ? 'success' : 'info';
       const message = count > 0
         ? `Rule preview: ${count} tab${count === 1 ? '' : 's'} would be affected`
-        : `Rule preview: No matching tabs found`;
+        : 'Rule preview: No matching tabs found';
 
       showNotification(message, notificationType);
 
@@ -2197,35 +2197,35 @@ function convertConditionsToNew(conditions) {
   const result = { all: [] };
 
   switch (type) {
-    case 'duplicate':
-      return { is: ['tab.isDupe', true] };
+  case 'duplicate':
+    return { is: ['tab.isDupe', true] };
     
-    case 'domain_count':
-      return { gte: ['tab.countPerOrigin:domain', conditions.minCount || 3] };
+  case 'domain_count':
+    return { gte: ['tab.countPerOrigin:domain', conditions.minCount || 3] };
     
-    case 'inactive':
-      if (conditions.urlPatterns && conditions.urlPatterns.length > 0) {
-        result.all.push({ in: ['tab.domain', conditions.urlPatterns] });
-      }
-      if (conditions.timeCriteria?.inactive) {
-        result.all.push({ gte: ['tab.age', `${conditions.timeCriteria.inactive}m`] });
-      }
-      break;
+  case 'inactive':
+    if (conditions.urlPatterns && conditions.urlPatterns.length > 0) {
+      result.all.push({ in: ['tab.domain', conditions.urlPatterns] });
+    }
+    if (conditions.timeCriteria?.inactive) {
+      result.all.push({ gte: ['tab.age', `${conditions.timeCriteria.inactive}m`] });
+    }
+    break;
     
-    case 'url_pattern':
-      return { regex: ['tab.url', conditions.pattern] };
+  case 'url_pattern':
+    return { regex: ['tab.url', conditions.pattern] };
     
-    case 'category':
-      return { in: ['tab.category', conditions.categories || []] };
+  case 'category':
+    return { in: ['tab.category', conditions.categories || []] };
     
-    case 'age_and_domain':
-      if (conditions.domains) {
-        result.all.push({ in: ['tab.domain', conditions.domains] });
-      }
-      if (conditions.timeCriteria?.inactive) {
-        result.all.push({ gte: ['tab.age', `${conditions.timeCriteria.inactive}m`] });
-      }
-      break;
+  case 'age_and_domain':
+    if (conditions.domains) {
+      result.all.push({ in: ['tab.domain', conditions.domains] });
+    }
+    if (conditions.timeCriteria?.inactive) {
+      result.all.push({ gte: ['tab.age', `${conditions.timeCriteria.inactive}m`] });
+    }
+    break;
   }
 
   return result.all.length === 1 ? result.all[0] : result;
@@ -2235,25 +2235,25 @@ function convertActionsToNew(actions) {
   const result = { action: actions.type };
 
   switch (actions.type) {
-    case 'close':
-      if (actions.saveToBookmarks) {
-        result.saveToBookmarks = true;
-      }
-      break;
+  case 'close':
+    if (actions.saveToBookmarks) {
+      result.saveToBookmarks = true;
+    }
+    break;
     
-    case 'snooze':
-      if (actions.snoozeMinutes) {
-        result.for = `${actions.snoozeMinutes}m`;
-      }
-      break;
+  case 'snooze':
+    if (actions.snoozeMinutes) {
+      result.for = `${actions.snoozeMinutes}m`;
+    }
+    break;
     
-    case 'group':
-      if (actions.groupBy) {
-        result.by = actions.groupBy;
-      } else if (actions.name) {
-        result.name = actions.name;
-      }
-      break;
+  case 'group':
+    if (actions.groupBy) {
+      result.by = actions.groupBy;
+    } else if (actions.name) {
+      result.name = actions.name;
+    }
+    break;
   }
 
   return result;
@@ -2316,31 +2316,31 @@ function convertActionsFromNew(action) {
   const result = { type: action.action };
 
   switch (action.action) {
-    case 'close':
-      if (action.saveToBookmarks) {
-        result.saveToBookmarks = true;
-      }
-      break;
+  case 'close':
+    if (action.saveToBookmarks) {
+      result.saveToBookmarks = true;
+    }
+    break;
     
-    case 'snooze':
-      if (action.for) {
-        const match = action.for.match(/(\d+)([mhd])/);
-        if (match) {
-          let minutes = parseInt(match[1]);
-          if (match[2] === 'h') minutes *= 60;
-          if (match[2] === 'd') minutes *= 1440;
-          result.snoozeMinutes = minutes;
-        }
+  case 'snooze':
+    if (action.for) {
+      const match = action.for.match(/(\d+)([mhd])/);
+      if (match) {
+        let minutes = parseInt(match[1]);
+        if (match[2] === 'h') minutes *= 60;
+        if (match[2] === 'd') minutes *= 1440;
+        result.snoozeMinutes = minutes;
       }
-      break;
+    }
+    break;
     
-    case 'group':
-      if (action.by) {
-        result.groupBy = action.by;
-      } else if (action.name) {
-        result.name = action.name;
-      }
-      break;
+  case 'group':
+    if (action.by) {
+      result.groupBy = action.by;
+    } else if (action.name) {
+      result.name = action.name;
+    }
+    break;
   }
 
   return result;

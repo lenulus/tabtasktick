@@ -784,7 +784,7 @@ test.describe('Side Panel Search & Filters', () => {
           children: container ? container.children.length : 0
         };
       });
-      console.log(`[should sort tasks by due date] Container state:`, JSON.stringify(containerExists, null, 2));
+      console.log('[should sort tasks by due date] Container state:', JSON.stringify(containerExists, null, 2));
 
       // DIAGNOSTIC: Check if panelController and presentationControls exist
       const controllerState = await page.evaluate(() => {
@@ -795,7 +795,7 @@ test.describe('Side Panel Search & Filters', () => {
           sortBy: window.panelController?.presentationControls?.sortBy
         };
       });
-      console.log(`[should sort tasks by due date] Controller state:`, JSON.stringify(controllerState, null, 2));
+      console.log('[should sort tasks by due date] Controller state:', JSON.stringify(controllerState, null, 2));
 
       // CRITICAL: Wait for presentation controls to be fully initialized before interacting
       await page.waitForSelector('#group-by-select', { state: 'visible', timeout: 10000 });
@@ -829,7 +829,7 @@ test.describe('Side Panel Search & Filters', () => {
           taskCardCount: document.querySelectorAll('.task-card').length
         };
       });
-      console.log(`[should sort tasks by due date] After groupBy=none:`, JSON.stringify(afterGroupByChange, null, 2));
+      console.log('[should sort tasks by due date] After groupBy=none:', JSON.stringify(afterGroupByChange, null, 2));
 
       // CRITICAL: Wait for re-render to complete after groupBy change
       // The change event triggers: onGroupByChange() → applyFiltersAndRender() → render()
@@ -860,7 +860,7 @@ test.describe('Side Panel Search & Filters', () => {
           hasOnSortDirectionChange: typeof pc?.onSortDirectionChange === 'function'
         };
       });
-      console.log(`[should sort tasks by due date] SortBy state AFTER change:`, JSON.stringify(sortByState, null, 2));
+      console.log('[should sort tasks by due date] SortBy state AFTER change:', JSON.stringify(sortByState, null, 2));
 
       // DIAGNOSTIC: Count tasks after sort selection
       const afterSortCount = await page.locator('.task-card').count();
@@ -883,7 +883,7 @@ test.describe('Side Panel Search & Filters', () => {
           return `[${idx}] ${summary} (due: ${dueDateStr})`;
         });
       });
-      console.log(`[should sort tasks by due date] Actual task order:`, taskOrder);
+      console.log('[should sort tasks by due date] Actual task order:', taskOrder);
 
       // Should be sorted by due date (soonest first, null last)
       const taskCards = page.locator('.task-card');

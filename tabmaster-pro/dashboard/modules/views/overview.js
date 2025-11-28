@@ -5,7 +5,7 @@ import { getTimeAgo, getActivityIcon } from '../core/utils.js';
 import state from '../core/state.js';
 
 // Store chart instances globally to ensure proper cleanup
-let chartInstances = {
+const chartInstances = {
   activity: null,
   domains: null
 };

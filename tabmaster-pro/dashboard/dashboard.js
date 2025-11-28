@@ -249,42 +249,42 @@ function switchView(view, filter = null) {
   
   // Load view-specific data
   switch(view) {
-    case 'overview':
-      loadOverviewData(filter);
-      break;
-    case 'tabs':
-      loadTabsView(filter);
-      break;
-    case 'groups':
-      loadGroupsView();
-      break;
-    case 'snoozed':
-      loadSnoozedView();
-      break;
-    case 'history':
-      loadHistoryView();
-      break;
-    case 'rules':
-      loadRulesView();
-      break;
-    case 'export-import':
-      if (typeof initializeExportImport === 'function') {
-        initializeExportImport();
-      }
-      break;
-    case 'collections':
-      loadCollectionsView();
-      break;
-    case 'tasks':
-      // Load with current view preference (Kanban or List)
-      const tasksViewPreference = state.get('tasksViewPreference') || 'kanban';
-      if (tasksViewPreference === 'kanban') {
-        loadKanbanView();
-      } else {
-        loadListView();
-      }
-      setupTasksViewToggle();
-      break;
+  case 'overview':
+    loadOverviewData(filter);
+    break;
+  case 'tabs':
+    loadTabsView(filter);
+    break;
+  case 'groups':
+    loadGroupsView();
+    break;
+  case 'snoozed':
+    loadSnoozedView();
+    break;
+  case 'history':
+    loadHistoryView();
+    break;
+  case 'rules':
+    loadRulesView();
+    break;
+  case 'export-import':
+    if (typeof initializeExportImport === 'function') {
+      initializeExportImport();
+    }
+    break;
+  case 'collections':
+    loadCollectionsView();
+    break;
+  case 'tasks':
+    // Load with current view preference (Kanban or List)
+    const tasksViewPreference = state.get('tasksViewPreference') || 'kanban';
+    if (tasksViewPreference === 'kanban') {
+      loadKanbanView();
+    } else {
+      loadListView();
+    }
+    setupTasksViewToggle();
+    break;
   }
 }
 
@@ -610,28 +610,28 @@ async function executeBulkAction(action) {
   
   try {
     switch(action) {
-      case 'close':
-        await closeTabs(selectedIds);
-        showNotification(`Closed ${count} tabs`, 'success');
-        break;
+    case 'close':
+      await closeTabs(selectedIds);
+      showNotification(`Closed ${count} tabs`, 'success');
+      break;
         
-      case 'snooze':
-        await showSnoozeDialog(selectedIds);
-        break;
+    case 'snooze':
+      await showSnoozeDialog(selectedIds);
+      break;
         
-      case 'group':
-        await groupTabs(selectedIds);
-        break;
+    case 'group':
+      await groupTabs(selectedIds);
+      break;
         
-      case 'bookmark':
-        await bookmarkTabs(selectedIds);
-        showNotification(`Bookmarked ${count} tabs`, 'success');
-        break;
+    case 'bookmark':
+      await bookmarkTabs(selectedIds);
+      showNotification(`Bookmarked ${count} tabs`, 'success');
+      break;
         
-      case 'move':
-        await showMoveToWindowDialog(selectedIds);
-        // Don't clear selection or refresh here - dialog handles it
-        return;
+    case 'move':
+      await showMoveToWindowDialog(selectedIds);
+      // Don't clear selection or refresh here - dialog handles it
+      return;
     }
     
     // Clear selection after success (except for move which handles its own)
@@ -730,14 +730,14 @@ async function showMoveToWindowDialog(tabIds) {
         <div class="modal-body" style="padding: 20px;">
           <div class="window-list" style="display: flex; flex-direction: column; gap: 8px;">
             ${windows.map(window => {
-              const name = windowInfo?.windowNameMap?.get(window.id) || 
+    const name = windowInfo?.windowNameMap?.get(window.id) || 
                           windowNames[window.id] || 
                           (window.id === currentWindowId ? 'Current Window' : `Window ${window.id}`);
-              const tabCount = window.tabs ? window.tabs.length : 0;
-              const isSource = window.id === sourceWindowId;
-              const windowColor = windowInfo?.windowColorMap?.get(window.id) || '#999';
+    const tabCount = window.tabs ? window.tabs.length : 0;
+    const isSource = window.id === sourceWindowId;
+    const windowColor = windowInfo?.windowColorMap?.get(window.id) || '#999';
               
-              return `
+    return `
                 <button class="window-option" 
                         data-window-id="${window.id}"
                         style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; 
@@ -755,7 +755,7 @@ async function showMoveToWindowDialog(tabIds) {
                   </div>
                 </button>
               `;
-            }).join('')}
+  }).join('')}
             <button class="window-option" 
                     data-window-id="new"
                     style="padding: 12px; border: 2px dashed #667eea; border-radius: 8px; 
@@ -802,7 +802,7 @@ async function showMoveToWindowDialog(tabIds) {
       try {
         const movedToId = await moveToWindow(tabIds, targetWindowId);
         const windowName = targetWindowId === 'new' ? 'new window' : 
-                          (windowInfo?.windowNameMap?.get(movedToId) || 
+          (windowInfo?.windowNameMap?.get(movedToId) || 
                            windowNames[movedToId] || 
                            `Window ${movedToId}`);
         
@@ -979,41 +979,41 @@ async function sendMessage(message) {
 }
 
 async function refreshData() {
-  const view = state.get("currentView") || "overview";
+  const view = state.get('currentView') || 'overview';
   switch(view) {
-    case "overview":
-      await loadOverviewData();
-      break;
-    case "tabs":
-      await loadTabsView();
-      break;
-    case "groups":
-      await loadGroupsView();
-      break;
-    case "snoozed":
-      await loadSnoozedView();
-      break;
-    case "history":
-      await loadHistoryView();
-      break;
-    case "rules":
-      await loadRulesView();
-      break;
+  case 'overview':
+    await loadOverviewData();
+    break;
+  case 'tabs':
+    await loadTabsView();
+    break;
+  case 'groups':
+    await loadGroupsView();
+    break;
+  case 'snoozed':
+    await loadSnoozedView();
+    break;
+  case 'history':
+    await loadHistoryView();
+    break;
+  case 'rules':
+    await loadRulesView();
+    break;
   }
 }
 
 async function promptGroupName() {
   return new Promise((resolve) => {
-    const name = prompt("Enter a name for the group:");
+    const name = prompt('Enter a name for the group:');
     resolve(name);
   });
 }
 
 function showProgressIndicator(message) {
   // Create progress overlay
-  const overlay = document.createElement("div");
-  overlay.id = "progressOverlay";
-  overlay.className = "progress-overlay";
+  const overlay = document.createElement('div');
+  overlay.id = 'progressOverlay';
+  overlay.className = 'progress-overlay';
   overlay.innerHTML = `
     <div class="progress-content">
       <div class="spinner"></div>
@@ -1024,7 +1024,7 @@ function showProgressIndicator(message) {
 }
 
 function hideProgressIndicator() {
-  const overlay = document.getElementById("progressOverlay");
+  const overlay = document.getElementById('progressOverlay');
   if (overlay) {
     overlay.remove();
   }
@@ -1033,12 +1033,12 @@ function hideProgressIndicator() {
 
 async function wakeAllSnoozed() {
   try {
-    await sendMessage({ action: "wakeAllSnoozed" });
-    showNotification("All snoozed tabs have been restored", "success");
+    await sendMessage({ action: 'wakeAllSnoozed' });
+    showNotification('All snoozed tabs have been restored', 'success');
     await refreshData();
   } catch (error) {
-    console.error("Failed to wake snoozed tabs:", error);
-    showNotification("Failed to wake snoozed tabs", "error");
+    console.error('Failed to wake snoozed tabs:', error);
+    showNotification('Failed to wake snoozed tabs', 'error');
   }
 }
 

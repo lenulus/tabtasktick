@@ -89,7 +89,7 @@ function renderHistory(history) {
       historyItem.className = 'history-item';
       
       const badge = item.source === 'auto' ? '<span class="source-badge auto">Auto</span>' : 
-                   item.source === 'rule' ? '<span class="source-badge rule">Rule</span>' : '';
+        item.source === 'rule' ? '<span class="source-badge rule">Rule</span>' : '';
       
       historyItem.innerHTML = `
         <div class="history-icon" style="color: ${item.color || '#666'};">
@@ -101,9 +101,9 @@ function renderHistory(history) {
             ${badge}
           </div>
           <div class="history-time">${new Date(item.timestamp).toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit'
-          })}</div>
+    hour: 'numeric', 
+    minute: '2-digit'
+  })}</div>
         </div>
       `;
       

@@ -130,14 +130,14 @@ function getActionsReadable(actions) {
 
   return actions.map(action => {
     switch (action.type) {
-      case 'close': return 'Close tab';
-      case 'group': return `Group into "${action.group || 'unnamed'}"`;
-      case 'snooze': return `Snooze for ${action.duration || 'default time'}`;
-      case 'pin': return 'Pin tab';
-      case 'unpin': return 'Unpin tab';
-      case 'mute': return 'Mute tab';
-      case 'unmute': return 'Unmute tab';
-      default: return action.type;
+    case 'close': return 'Close tab';
+    case 'group': return `Group into "${action.group || 'unnamed'}"`;
+    case 'snooze': return `Snooze for ${action.duration || 'default time'}`;
+    case 'pin': return 'Pin tab';
+    case 'unpin': return 'Unpin tab';
+    case 'mute': return 'Mute tab';
+    case 'unmute': return 'Unmute tab';
+    default: return action.type;
     }
   }).join(', ');
 }
@@ -501,14 +501,14 @@ export async function exportData(options = {}, state, tabTimeData) {
   const groups = await chrome.tabGroups.query(query);
 
   switch (format) {
-    case 'json':
-      return await buildJSONExport(tabs, windows, groups, options, state, tabTimeData);
-    case 'csv':
-      return buildCSVExport(tabs, groups, tabTimeData);
-    case 'markdown':
-      return await buildMarkdownExport(tabs, windows, groups, options, state);
-    default:
-      return await buildJSONExport(tabs, windows, groups, options, state, tabTimeData);
+  case 'json':
+    return await buildJSONExport(tabs, windows, groups, options, state, tabTimeData);
+  case 'csv':
+    return buildCSVExport(tabs, groups, tabTimeData);
+  case 'markdown':
+    return await buildMarkdownExport(tabs, windows, groups, options, state);
+  default:
+    return await buildJSONExport(tabs, windows, groups, options, state, tabTimeData);
   }
 }
 

@@ -39,7 +39,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-                    syncDebounceMs: 2000
+          syncDebounceMs: 2000
         }
       });
 
@@ -61,7 +61,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-                    syncDebounceMs: 2000
+          syncDebounceMs: 2000
         }
       });
 
@@ -71,7 +71,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: false,
-                    syncDebounceMs: 5000
+          syncDebounceMs: 5000
         }
       });
 
@@ -121,7 +121,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-                    syncDebounceMs: 2000
+          syncDebounceMs: 2000
         }
       });
 
@@ -154,7 +154,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-                    syncDebounceMs: 3000
+          syncDebounceMs: 3000
         }
       });
 
@@ -203,7 +203,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-                    syncDebounceMs: 2000
+          syncDebounceMs: 2000
         }
       });
 
@@ -227,7 +227,7 @@ describe('ProgressiveSyncService', () => {
         isActive: true,
         settings: {
           trackingEnabled: true,
-                    syncDebounceMs: 2000
+          syncDebounceMs: 2000
         }
       });
 
@@ -275,7 +275,7 @@ describe('ProgressiveSyncService', () => {
         name: 'Test Collection',
         settings: {
           trackingEnabled: true,
-                    syncDebounceMs: 2000
+          syncDebounceMs: 2000
         }
       });
 
@@ -311,7 +311,7 @@ describe('ProgressiveSyncService', () => {
 
       expect(collection.settings).toEqual({
         trackingEnabled: true,
-                syncDebounceMs: 2000
+        syncDebounceMs: 2000
       });
     });
 
@@ -325,7 +325,7 @@ describe('ProgressiveSyncService', () => {
 
       expect(collection.settings).toEqual({
         trackingEnabled: true,
-                syncDebounceMs: 5000
+        syncDebounceMs: 5000
       });
     });
 
@@ -334,13 +334,13 @@ describe('ProgressiveSyncService', () => {
         name: 'Test Collection',
         settings: {
           trackingEnabled: false,
-                    syncDebounceMs: 8000
+          syncDebounceMs: 8000
         }
       });
 
       expect(collection.settings).toEqual({
         trackingEnabled: false,
-                syncDebounceMs: 8000
+        syncDebounceMs: 8000
       });
     });
   });
@@ -363,7 +363,7 @@ describe('ProgressiveSyncService', () => {
         isActive: false,
         settings: {
           trackingEnabled: true,
-                    syncDebounceMs: 2000
+          syncDebounceMs: 2000
         }
       });
 

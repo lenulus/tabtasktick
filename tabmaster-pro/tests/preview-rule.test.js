@@ -108,9 +108,9 @@ async function previewRule(rule, tabs) {
 
 function evaluateCondition(conditions, tab, allTabs) {
   switch (conditions.type) {
-    case 'duplicate':
-      return !tab.pinned && allTabs.filter(t => t.url === tab.url).length > 1;
-    default:
-      return false;
+  case 'duplicate':
+    return !tab.pinned && allTabs.filter(t => t.url === tab.url).length > 1;
+  default:
+    return false;
   }
 }

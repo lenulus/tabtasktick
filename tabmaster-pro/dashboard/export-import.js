@@ -121,22 +121,22 @@ async function handleExport() {
     let fileExtension, mimeType, content;
 
     switch (format) {
-      case 'csv':
-        fileExtension = 'csv';
-        mimeType = 'text/csv';
-        content = data.csv;
-        break;
-      case 'markdown':
-        fileExtension = 'md';
-        mimeType = 'text/markdown';
-        content = data.markdown;
-        break;
-      case 'json':
-      default:
-        fileExtension = 'json';
-        mimeType = 'application/json';
-        content = JSON.stringify(data, null, 2);
-        break;
+    case 'csv':
+      fileExtension = 'csv';
+      mimeType = 'text/csv';
+      content = data.csv;
+      break;
+    case 'markdown':
+      fileExtension = 'md';
+      mimeType = 'text/markdown';
+      content = data.markdown;
+      break;
+    case 'json':
+    default:
+      fileExtension = 'json';
+      mimeType = 'application/json';
+      content = JSON.stringify(data, null, 2);
+      break;
     }
 
     // Create download

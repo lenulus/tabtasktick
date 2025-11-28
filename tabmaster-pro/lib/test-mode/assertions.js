@@ -174,7 +174,7 @@ export class Assertions {
     return {
       passed: !exists.passed,
       message: exists.passed 
-        ? `Tab exists but was expected not to exist` 
+        ? 'Tab exists but was expected not to exist' 
         : 'Tab does not exist as expected',
       actual: exists.actual
     };
@@ -831,24 +831,24 @@ export class Assertions {
    */
   evaluateCondition(actual, expected, condition) {
     switch (condition) {
-      case 'equals':
-        return actual === expected;
-      case 'notEquals':
-        return actual !== expected;
-      case 'greaterThan':
-        return actual > expected;
-      case 'greaterThanOrEquals':
-        return actual >= expected;
-      case 'lessThan':
-        return actual < expected;
-      case 'lessThanOrEquals':
-        return actual <= expected;
-      case 'contains':
-        return String(actual).includes(String(expected));
-      case 'notContains':
-        return !String(actual).includes(String(expected));
-      default:
-        return actual === expected;
+    case 'equals':
+      return actual === expected;
+    case 'notEquals':
+      return actual !== expected;
+    case 'greaterThan':
+      return actual > expected;
+    case 'greaterThanOrEquals':
+      return actual >= expected;
+    case 'lessThan':
+      return actual < expected;
+    case 'lessThanOrEquals':
+      return actual <= expected;
+    case 'contains':
+      return String(actual).includes(String(expected));
+    case 'notContains':
+      return !String(actual).includes(String(expected));
+    default:
+      return actual === expected;
     }
   }
 

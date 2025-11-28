@@ -241,8 +241,8 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
 
   const tags = collection.tags && collection.tags.length > 0
     ? collection.tags.slice(0, 3).map(tag =>
-        `<span class="tag">${escapeHtml(tag)}</span>`
-      ).join('')
+      `<span class="tag">${escapeHtml(tag)}</span>`
+    ).join('')
     : '';
 
   const moreTags = collection.tags && collection.tags.length > 3
@@ -303,7 +303,7 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
 
       <div class="collection-actions">
         ${isActive
-          ? `<button class="btn btn-sm btn-secondary" data-action="focus" data-collection-id="${collection.id}">
+    ? `<button class="btn btn-sm btn-secondary" data-action="focus" data-collection-id="${collection.id}">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -318,7 +318,7 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
               </svg>
               Close
             </button>`
-          : `<button class="btn btn-sm btn-primary" data-action="open" data-collection-id="${collection.id}">
+    : `<button class="btn btn-sm btn-primary" data-action="open" data-collection-id="${collection.id}">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -551,29 +551,29 @@ async function handleCollectionAction(action, collectionId) {
 
   try {
     switch (action) {
-      case 'open':
-        await handleOpenCollection(collectionId);
-        break;
-      case 'focus':
-        await handleFocusWindow(collectionId);
-        break;
-      case 'close':
-        await handleCloseWindow(collectionId);
-        break;
-      case 'view-details':
-        await handleViewDetails(collectionId);
-        break;
-      case 'edit':
-        await handleEditCollection(collectionId);
-        break;
-      case 'delete':
-        await handleDeleteCollection(collectionId);
-        break;
-      case 'export':
-        await handleExportCollection(collectionId);
-        break;
-      default:
-        console.warn('Unknown action:', action);
+    case 'open':
+      await handleOpenCollection(collectionId);
+      break;
+    case 'focus':
+      await handleFocusWindow(collectionId);
+      break;
+    case 'close':
+      await handleCloseWindow(collectionId);
+      break;
+    case 'view-details':
+      await handleViewDetails(collectionId);
+      break;
+    case 'edit':
+      await handleEditCollection(collectionId);
+      break;
+    case 'delete':
+      await handleDeleteCollection(collectionId);
+      break;
+    case 'export':
+      await handleExportCollection(collectionId);
+      break;
+    default:
+      console.warn('Unknown action:', action);
     }
   } catch (error) {
     console.error('Error handling collection action:', error);
@@ -716,7 +716,7 @@ function renderCollectionDetails(collection) {
   const folders = collection.folders || [];
   const tasks = collection.tasks || [];
 
-  let html = `
+  const html = `
     <div class="collection-details">
       <!-- Header Section -->
       <div class="details-header">
@@ -839,19 +839,19 @@ function renderCollectionDetails(collection) {
           <h4>Tasks (${tasks.length})</h4>
           <div class="details-list">
             ${tasks.map(task => {
-              const priorityColors = {
-                critical: '#f5576c',
-                high: '#fa709a',
-                medium: '#667eea',
-                low: '#4facfe'
-              };
-              const statusColors = {
-                open: '#667eea',
-                active: '#4facfe',
-                fixed: '#43e97b',
-                abandoned: '#999'
-              };
-              return `
+    const priorityColors = {
+      critical: '#f5576c',
+      high: '#fa709a',
+      medium: '#667eea',
+      low: '#4facfe'
+    };
+    const statusColors = {
+      open: '#667eea',
+      active: '#4facfe',
+      fixed: '#43e97b',
+      abandoned: '#999'
+    };
+    return `
                 <div class="detail-list-item">
                   <div class="detail-list-info">
                     <div class="detail-list-title">${escapeHtml(task.summary)}</div>
@@ -869,7 +869,7 @@ function renderCollectionDetails(collection) {
                   </div>
                 </div>
               `;
-            }).join('')}
+  }).join('')}
           </div>
         </div>
       ` : ''}
@@ -1279,7 +1279,7 @@ function filterAndRenderCollections() {
   const sortType = document.getElementById('sortCollections')?.value || 'lastAccessed';
 
   // Filter
-  let filtered = collections.filter(collection => {
+  const filtered = collections.filter(collection => {
     // Search filter
     if (searchTerm) {
       const searchable = [
@@ -1304,15 +1304,15 @@ function filterAndRenderCollections() {
   // Sort
   filtered.sort((a, b) => {
     switch (sortType) {
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'created':
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      case 'tabCount':
-        return (b.metadata?.tabCount || 0) - (a.metadata?.tabCount || 0);
-      case 'lastAccessed':
-      default:
-        return (b.metadata?.lastAccessed || 0) - (a.metadata?.lastAccessed || 0);
+    case 'name':
+      return a.name.localeCompare(b.name);
+    case 'created':
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    case 'tabCount':
+      return (b.metadata?.tabCount || 0) - (a.metadata?.tabCount || 0);
+    case 'lastAccessed':
+    default:
+      return (b.metadata?.lastAccessed || 0) - (a.metadata?.lastAccessed || 0);
     }
   });
 

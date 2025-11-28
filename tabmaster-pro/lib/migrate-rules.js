@@ -43,64 +43,64 @@ function migrateConditions(oldConditions) {
   }
   
   switch (oldConditions.type) {
-    case 'domain':
-      if (oldConditions.operator === 'contains') {
-        return { contains: ['tab.url', oldConditions.value] };
-      }
-      return { eq: ['tab.domain', oldConditions.value] };
+  case 'domain':
+    if (oldConditions.operator === 'contains') {
+      return { contains: ['tab.url', oldConditions.value] };
+    }
+    return { eq: ['tab.domain', oldConditions.value] };
       
-    case 'age':
-      const ageMs = parseAgeValue(oldConditions.value);
-      return { gte: ['tab.age', `${Math.floor(ageMs / (60 * 1000))}m`] };
+  case 'age':
+    const ageMs = parseAgeValue(oldConditions.value);
+    return { gte: ['tab.age', `${Math.floor(ageMs / (60 * 1000))}m`] };
       
-    case 'duplicate':
-      return { is: ['tab.isDupe', true] };
+  case 'duplicate':
+    return { is: ['tab.isDupe', true] };
       
-    case 'memory':
-      // Convert memory condition to a custom check
-      return {
-        all: [
-          { gte: ['tab.memory', oldConditions.value * 1024 * 1024] } // Convert MB to bytes
-        ]
-      };
+  case 'memory':
+    // Convert memory condition to a custom check
+    return {
+      all: [
+        { gte: ['tab.memory', oldConditions.value * 1024 * 1024] } // Convert MB to bytes
+      ]
+    };
       
-    case 'inactive':
-      const inactiveMs = parseAgeValue(oldConditions.value);
-      return { gte: ['tab.age', `${Math.floor(inactiveMs / (60 * 1000))}m`] };
+  case 'inactive':
+    const inactiveMs = parseAgeValue(oldConditions.value);
+    return { gte: ['tab.age', `${Math.floor(inactiveMs / (60 * 1000))}m`] };
       
-    case 'grouped':
-      return { is: ['tab.isGrouped', oldConditions.value === 'true'] };
+  case 'grouped':
+    return { is: ['tab.isGrouped', oldConditions.value === 'true'] };
       
-    case 'pinned':
-      return { is: ['tab.isPinned', oldConditions.value === 'true'] };
+  case 'pinned':
+    return { is: ['tab.isPinned', oldConditions.value === 'true'] };
       
-    case 'url':
-      if (oldConditions.operator === 'contains') {
-        return { contains: ['tab.url', oldConditions.value] };
-      } else if (oldConditions.operator === 'regex') {
-        return { regex: ['tab.url', oldConditions.value] };
-      }
-      return { eq: ['tab.url', oldConditions.value] };
+  case 'url':
+    if (oldConditions.operator === 'contains') {
+      return { contains: ['tab.url', oldConditions.value] };
+    } else if (oldConditions.operator === 'regex') {
+      return { regex: ['tab.url', oldConditions.value] };
+    }
+    return { eq: ['tab.url', oldConditions.value] };
       
-    case 'title':
-      if (oldConditions.operator === 'contains') {
-        return { contains: ['tab.title', oldConditions.value] };
-      }
-      return { eq: ['tab.title', oldConditions.value] };
+  case 'title':
+    if (oldConditions.operator === 'contains') {
+      return { contains: ['tab.title', oldConditions.value] };
+    }
+    return { eq: ['tab.title', oldConditions.value] };
       
-    case 'composite':
-      // Handle composite conditions
-      if (oldConditions.conditions && Array.isArray(oldConditions.conditions)) {
-        const operator = oldConditions.operator || 'and';
-        const migrated = oldConditions.conditions.map(c => migrateConditions(c));
+  case 'composite':
+    // Handle composite conditions
+    if (oldConditions.conditions && Array.isArray(oldConditions.conditions)) {
+      const operator = oldConditions.operator || 'and';
+      const migrated = oldConditions.conditions.map(c => migrateConditions(c));
         
-        if (operator === 'or') {
-          return { any: migrated };
-        } else {
-          return { all: migrated };
-        }
+      if (operator === 'or') {
+        return { any: migrated };
+      } else {
+        return { all: migrated };
       }
-      break;
+    }
+    break;
   }
   
   // Default fallback
@@ -121,55 +121,55 @@ function migrateActions(oldActions) {
   const actions = [];
   
   switch (oldActions.type) {
-    case 'close':
+  case 'close':
+    actions.push({ 
+      action: 'close',
+      keepFirst: oldActions.keepFirst
+    });
+    break;
+      
+  case 'group':
+    if (oldActions.groupName) {
       actions.push({ 
-        action: 'close',
-        keepFirst: oldActions.keepFirst
+        action: 'group',
+        name: oldActions.groupName,
+        createIfMissing: true
       });
-      break;
-      
-    case 'group':
-      if (oldActions.groupName) {
-        actions.push({ 
-          action: 'group',
-          name: oldActions.groupName,
-          createIfMissing: true
-        });
-      } else if (oldActions.groupBy) {
-        actions.push({
-          action: 'group',
-          by: oldActions.groupBy // 'domain', 'origin', etc.
-        });
-      } else {
-        actions.push({ action: 'group' });
-      }
-      break;
-      
-    case 'snooze':
+    } else if (oldActions.groupBy) {
       actions.push({
-        action: 'snooze',
-        for: oldActions.duration || oldActions.time || '2h',
-        wakeInto: oldActions.wakeInto || 'same_window'
+        action: 'group',
+        by: oldActions.groupBy // 'domain', 'origin', etc.
       });
-      break;
+    } else {
+      actions.push({ action: 'group' });
+    }
+    break;
       
-    case 'bookmark':
-      actions.push({
-        action: 'bookmark',
-        to: oldActions.folder || 'TabMaster Rules'
-      });
-      break;
+  case 'snooze':
+    actions.push({
+      action: 'snooze',
+      for: oldActions.duration || oldActions.time || '2h',
+      wakeInto: oldActions.wakeInto || 'same_window'
+    });
+    break;
       
-    case 'suspend':
-      // Suspend is not directly supported in new engine
-      // Could be implemented as a custom action
-      console.warn('Suspend action not yet implemented in new engine');
-      break;
+  case 'bookmark':
+    actions.push({
+      action: 'bookmark',
+      to: oldActions.folder || 'TabMaster Rules'
+    });
+    break;
       
-    case 'mute':
-      // Mute could be implemented as a tab update
-      console.warn('Mute action not yet implemented in new engine');
-      break;
+  case 'suspend':
+    // Suspend is not directly supported in new engine
+    // Could be implemented as a custom action
+    console.warn('Suspend action not yet implemented in new engine');
+    break;
+      
+  case 'mute':
+    // Mute could be implemented as a tab update
+    console.warn('Mute action not yet implemented in new engine');
+    break;
   }
   
   return actions;
@@ -225,12 +225,12 @@ function parseAgeValue(value) {
       const unit = match[2].toLowerCase();
       
       switch (unit[0]) {
-        case 'm':
-          return num * 60 * 1000;
-        case 'h':
-          return num * 60 * 60 * 1000;
-        case 'd':
-          return num * 24 * 60 * 60 * 1000;
+      case 'm':
+        return num * 60 * 1000;
+      case 'h':
+        return num * 60 * 60 * 1000;
+      case 'd':
+        return num * 24 * 60 * 60 * 1000;
       }
     }
   }
