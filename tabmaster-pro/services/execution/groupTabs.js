@@ -56,12 +56,17 @@ import { extractDomainForGrouping } from '../utils/domainUtils.js';
  *
  * 1. **Domain-based grouping** (byDomain: true): Automatically groups tabs by their domain
  *    (e.g., all github.com tabs in one group, all reddit.com tabs in another). Group names
- *    are derived from domain names. Single-tab domains are skipped (no point grouping alone).
+ *    are derived from domain names. Respects minTabsPerGroup threshold.
  *
  * 2. **Custom naming** (customName provided): Groups all tabs under a single custom name,
  *    regardless of their domains. Useful for manual organization like "Project X" or "Research".
  *
- * The perWindow option controls cross-window behavior:
+ * Scoping control determines how windows are handled:
+ * - scope: 'targeted' (default) - Groups tabs only within specified window (requires targetWindowId)
+ * - scope: 'global' - Pulls all tabs from all windows into target window, then groups
+ * - scope: 'per_window' - Processes each window independently
+ *
+ * Legacy perWindow option is preserved for backward compatibility:
  * - perWindow: true (default) - Respects window boundaries, creates separate groups per window
  * - perWindow: false - Allows cross-window grouping, may move tabs to consolidate groups
  *
@@ -76,7 +81,12 @@ import { extractDomainForGrouping } from '../utils/domainUtils.js';
  * @param {Object} [options={}] - Grouping configuration options
  * @param {boolean} [options.byDomain=true] - Group tabs by their domain names
  * @param {string} [options.customName] - Custom group name (overrides byDomain if provided)
- * @param {boolean} [options.perWindow=true] - Respect window boundaries (no cross-window grouping)
+ * @param {string} [options.scope='targeted'] - Scoping mode: 'global' | 'targeted' | 'per_window'
+ * @param {number} [options.targetWindowId] - Target window ID (required for global/targeted scopes)
+ * @param {boolean} [options.perWindow=true] - Legacy: Respect window boundaries (no cross-window grouping)
+ * @param {number} [options.minTabsPerGroup=2] - Minimum tabs required to create a new group
+ * @param {boolean} [options.includeSingleIfExisting=true] - Add single tab to existing group with same name
+ * @param {boolean} [options.includePinned=false] - Include pinned tabs in grouping
  * @param {boolean} [options.collapsed=false] - Collapse groups after creation
  * @param {boolean} [options.dryRun=false] - Preview mode - returns plan without executing
  * @param {number} [options.callerWindowId] - Window ID to restore focus to (overrides auto-detection)
@@ -157,7 +167,12 @@ export async function groupTabs(tabIds, options = {}) {
   const {
     byDomain = true,
     customName = null,
+    scope = 'targeted',
+    targetWindowId = null,
     perWindow = true,
+    minTabsPerGroup = 2,
+    includeSingleIfExisting = true,
+    includePinned = false,
     collapsed = false,
     dryRun = false,
     callerWindowId = null
@@ -172,13 +187,32 @@ export async function groupTabs(tabIds, options = {}) {
   }
 
   try {
+    // Validate scope-specific requirements
+    // Exception: For backward compatibility, if using default scope with perWindow=true,
+    // allow missing targetWindowId (will be inferred from tabs)
+    const isLegacyUsage = scope === 'targeted' && !targetWindowId && perWindow;
+
+    if ((scope === 'global' || (scope === 'targeted' && !isLegacyUsage)) && !targetWindowId) {
+      return {
+        success: false,
+        error: `targetWindowId is required for scope: '${scope}'`,
+        results: [],
+        plan: []
+      };
+    }
+
     // Get full tab objects for the provided IDs
     const tabs = await Promise.all(
       tabIds.map(id => chrome.tabs.get(id).catch(() => null))
     );
 
     // Filter out nulls (tabs that don't exist)
-    const validTabs = tabs.filter(tab => tab !== null);
+    let validTabs = tabs.filter(tab => tab !== null);
+
+    // Filter out pinned tabs if not included
+    if (!includePinned) {
+      validTabs = validTabs.filter(tab => !tab.pinned);
+    }
 
     if (validTabs.length === 0) {
       return {
@@ -187,6 +221,46 @@ export async function groupTabs(tabIds, options = {}) {
         results: [],
         plan: []
       };
+    }
+
+    // Handle scope: 'global' - pull all tabs to target window first
+    if (scope === 'global') {
+      return await handleGlobalScope(validTabs, targetWindowId, {
+        byDomain,
+        customName,
+        minTabsPerGroup,
+        includeSingleIfExisting,
+        collapsed,
+        dryRun,
+        callerWindowId
+      });
+    }
+
+    // Handle scope: 'per_window' - process each window independently
+    if (scope === 'per_window') {
+      return await handlePerWindowScope(validTabs, {
+        byDomain,
+        customName,
+        minTabsPerGroup,
+        includeSingleIfExisting,
+        collapsed,
+        dryRun,
+        callerWindowId
+      });
+    }
+
+    // Handle scope: 'targeted' - filter to target window only
+    // Skip filtering if using legacy API (no targetWindowId provided)
+    if (scope === 'targeted' && targetWindowId) {
+      validTabs = validTabs.filter(tab => tab.windowId === targetWindowId);
+      if (validTabs.length === 0) {
+        return {
+          success: false,
+          error: 'No valid tabs found in target window',
+          results: [],
+          plan: []
+        };
+      }
     }
 
     // Build execution plan
@@ -200,12 +274,28 @@ export async function groupTabs(tabIds, options = {}) {
         const tabsByWindow = groupTabsByWindow(validTabs);
 
         for (const [windowId, windowTabs] of tabsByWindow) {
-          const step = await planGroupCreation(windowTabs, customName, windowId, collapsed, false);
+          const step = await planGroupCreation(
+            windowTabs,
+            customName,
+            windowId,
+            collapsed,
+            false,
+            minTabsPerGroup,
+            includeSingleIfExisting
+          );
           if (step) plan.push(step);
         }
       } else {
         // Group all tabs together (may involve moving tabs)
-        const step = await planGroupCreation(validTabs, customName, null, collapsed, true);
+        const step = await planGroupCreation(
+          validTabs,
+          customName,
+          null,
+          collapsed,
+          true,
+          minTabsPerGroup,
+          includeSingleIfExisting
+        );
         if (step) plan.push(step);
       }
     } else if (byDomain) {
@@ -218,19 +308,29 @@ export async function groupTabs(tabIds, options = {}) {
           const tabsByWindow = groupTabsByWindow(domainTabs);
 
           for (const [windowId, windowTabs] of tabsByWindow) {
-            // Skip if only 1 tab - no point in creating a group for a single tab
-            if (windowTabs.length > 1) {
-              const step = await planGroupCreation(windowTabs, domain, windowId, collapsed, false);
-              if (step) plan.push(step);
-            }
+            const step = await planGroupCreation(
+              windowTabs,
+              domain,
+              windowId,
+              collapsed,
+              false,
+              minTabsPerGroup,
+              includeSingleIfExisting
+            );
+            if (step) plan.push(step);
           }
         } else {
           // Group all tabs of this domain together (may move windows)
-          // Skip if only 1 tab - no point in creating a group for a single tab
-          if (domainTabs.length > 1) {
-            const step = await planGroupCreation(domainTabs, domain, null, collapsed, true);
-            if (step) plan.push(step);
-          }
+          const step = await planGroupCreation(
+            domainTabs,
+            domain,
+            null,
+            collapsed,
+            true,
+            minTabsPerGroup,
+            includeSingleIfExisting
+          );
+          if (step) plan.push(step);
         }
       }
     }
@@ -283,7 +383,15 @@ export async function groupTabs(tabIds, options = {}) {
  * Plan a grouping operation
  * @private
  */
-async function planGroupCreation(tabs, groupName, windowId, collapsed, allowWindowMove = false) {
+async function planGroupCreation(
+  tabs,
+  groupName,
+  windowId,
+  collapsed,
+  allowWindowMove = false,
+  minTabsPerGroup = 2,
+  includeSingleIfExisting = true
+) {
   if (tabs.length === 0) {
     return null;
   }
@@ -313,6 +421,11 @@ async function planGroupCreation(tabs, groupName, windowId, collapsed, allowWind
 
   if (existingGroup) {
     // Reuse existing group - tabs will be moved to the group's window
+    // Apply includeSingleIfExisting: if false, still require minTabsPerGroup for reuse
+    if (!includeSingleIfExisting && tabIds.length < minTabsPerGroup) {
+      return null;
+    }
+
     return {
       action: 'reuse',
       groupId: existingGroup.id,
@@ -322,6 +435,11 @@ async function planGroupCreation(tabs, groupName, windowId, collapsed, allowWind
       allowWindowMove: true // Allow movement to join the existing group
     };
   } else {
+    // Create new group only if we meet the threshold
+    if (tabIds.length < minTabsPerGroup) {
+      return null;
+    }
+
     return {
       action: 'create',
       groupName: groupName,
@@ -449,6 +567,212 @@ async function executeGroupStep(step, callerWindowId = null) {
       step: step
     };
   }
+}
+
+/**
+ * Handle global scope: Pull all tabs to target window, then group
+ * @private
+ */
+async function handleGlobalScope(validTabs, targetWindowId, options) {
+  const {
+    byDomain,
+    customName,
+    minTabsPerGroup,
+    includeSingleIfExisting,
+    collapsed,
+    dryRun,
+    callerWindowId
+  } = options;
+
+  const plan = [];
+  const results = [];
+
+  // Partition tabs by whether they need to move
+  const tabsToMove = validTabs.filter(tab => tab.windowId !== targetWindowId);
+
+  // Build move plan
+  for (const tab of tabsToMove) {
+    plan.push({
+      kind: 'move',
+      tabId: tab.id,
+      toWindowId: targetWindowId,
+      index: -1
+    });
+  }
+
+  // Execute moves (unless dry-run)
+  if (!dryRun) {
+    for (const step of plan.filter(s => s.kind === 'move')) {
+      try {
+        await chrome.tabs.move(step.tabId, {
+          windowId: step.toWindowId,
+          index: step.index
+        });
+      } catch (err) {
+        console.warn(`Move failed for tab ${step.tabId}:`, err);
+      }
+    }
+  }
+
+  // After moves, refresh tabs in target window and group them
+  const targetWindowTabs = await chrome.tabs.query({ windowId: targetWindowId });
+  const tabIdsSet = new Set(validTabs.map(t => t.id));
+  const movedTabs = targetWindowTabs.filter(tab => tabIdsSet.has(tab.id));
+
+  // Group the tabs in the target window
+  const groupResult = await groupTabsInWindow(movedTabs, {
+    byDomain,
+    customName,
+    windowId: targetWindowId,
+    minTabsPerGroup,
+    includeSingleIfExisting,
+    collapsed,
+    dryRun,
+    callerWindowId,
+    perWindow: true // Within target window, respect window boundaries
+  });
+
+  // Merge plans and results
+  plan.push(...(groupResult.plan || []));
+  results.push(...(groupResult.results || []));
+
+  return {
+    success: groupResult.success,
+    results,
+    plan,
+    summary: {
+      totalTabs: validTabs.length,
+      tabsMoved: tabsToMove.length,
+      groupsCreated: groupResult.summary?.groupsCreated || 0,
+      groupsReused: groupResult.summary?.groupsReused || 0
+    }
+  };
+}
+
+/**
+ * Handle per-window scope: Process each window independently
+ * @private
+ */
+async function handlePerWindowScope(validTabs, options) {
+  const {
+    byDomain,
+    customName,
+    minTabsPerGroup,
+    includeSingleIfExisting,
+    collapsed,
+    dryRun,
+    callerWindowId
+  } = options;
+
+  // Group tabs by window
+  const tabsByWindow = groupTabsByWindow(validTabs);
+
+  const allPlans = [];
+  const allResults = [];
+  let totalGroupsCreated = 0;
+  let totalGroupsReused = 0;
+
+  // Process each window independently
+  for (const [windowId, windowTabs] of tabsByWindow) {
+    const windowResult = await groupTabsInWindow(windowTabs, {
+      byDomain,
+      customName,
+      windowId,
+      minTabsPerGroup,
+      includeSingleIfExisting,
+      collapsed,
+      dryRun,
+      callerWindowId,
+      perWindow: true
+    });
+
+    if (windowResult.plan) allPlans.push(...windowResult.plan);
+    if (windowResult.results) allResults.push(...windowResult.results);
+    totalGroupsCreated += windowResult.summary?.groupsCreated || 0;
+    totalGroupsReused += windowResult.summary?.groupsReused || 0;
+  }
+
+  return {
+    success: true,
+    results: allResults,
+    plan: allPlans,
+    summary: {
+      totalTabs: validTabs.length,
+      windowsProcessed: tabsByWindow.size,
+      groupsCreated: totalGroupsCreated,
+      groupsReused: totalGroupsReused
+    }
+  };
+}
+
+/**
+ * Group tabs within a single window (helper for scope handlers)
+ * @private
+ */
+async function groupTabsInWindow(tabs, options) {
+  const {
+    byDomain,
+    customName,
+    windowId,
+    minTabsPerGroup,
+    includeSingleIfExisting,
+    collapsed,
+    dryRun,
+    callerWindowId,
+    perWindow
+  } = options;
+
+  const plan = [];
+  const results = [];
+
+  if (customName) {
+    // Group all tabs under custom name
+    const step = await planGroupCreation(
+      tabs,
+      customName,
+      windowId,
+      collapsed,
+      !perWindow,
+      minTabsPerGroup,
+      includeSingleIfExisting
+    );
+    if (step) plan.push(step);
+  } else if (byDomain) {
+    // Group tabs by their domains
+    const tabsByDomain = groupTabsByDomain(tabs);
+
+    for (const [domain, domainTabs] of tabsByDomain) {
+      const step = await planGroupCreation(
+        domainTabs,
+        domain,
+        windowId,
+        collapsed,
+        !perWindow,
+        minTabsPerGroup,
+        includeSingleIfExisting
+      );
+      if (step) plan.push(step);
+    }
+  }
+
+  // Execute plan (unless dry-run)
+  if (!dryRun) {
+    for (const step of plan) {
+      const result = await executeGroupStep(step, callerWindowId);
+      results.push(result);
+    }
+  }
+
+  return {
+    success: true,
+    results,
+    plan,
+    summary: {
+      totalTabs: tabs.length,
+      groupsCreated: plan.filter(s => s?.action === 'create').length,
+      groupsReused: plan.filter(s => s?.action === 'reuse').length
+    }
+  };
 }
 
 /**
