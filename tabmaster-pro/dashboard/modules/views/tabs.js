@@ -2,7 +2,14 @@
 // Handles the main tabs list view with grid/tree display modes
 
 import {
-  normalizeUrl
+  normalizeUrl,
+  getWindowSignature,
+  generateWindowColor,
+  getFaviconUrl,
+  getGroupColor,
+  getTabState,
+  getLastAccessText,
+  getTimeAgo
 } from '../core/utils.js';
 
 import {

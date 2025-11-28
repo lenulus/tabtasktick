@@ -2,7 +2,8 @@
 // Shared infrastructure for Kanban and List views
 
 import {
-  escapeHtml
+  escapeHtml,
+  getTimeAgo
 } from '../core/utils.js';
 
 import state from '../core/state.js';
