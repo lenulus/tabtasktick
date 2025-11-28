@@ -1,31 +1,13 @@
 // Tabs View Module
 // Handles the main tabs list view with grid/tree display modes
 
-import { 
-  debounce, 
-  formatBytes, 
-  getTimeAgo, 
-  getActivityIcon, 
-  getGroupColor, 
-  getTabState, 
-  getLastAccessText,
-  getWindowSignature,
-  generateWindowColor,
-  getFaviconUrl,
-  getColorForDomain,
-  escapeHtml,
-  sortTabs,
+import {
   normalizeUrl
 } from '../core/utils.js';
 
-import { 
-  VIEWS, 
-  TAB_STATES, 
-  ACTIVITY_TYPES, 
-  SORT_TYPES, 
-  FILTER_TYPES, 
-  STORAGE_KEYS,
-  LIMITS 
+import {
+  FILTER_TYPES,
+  LIMITS
 } from '../core/constants.js';
 
 import state from '../core/state.js';

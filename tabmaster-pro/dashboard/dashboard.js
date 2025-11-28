@@ -1,47 +1,15 @@
 // Dashboard JavaScript for TabMaster Pro
 
-// Import utilities
-import { 
-  debounce, 
-  formatBytes, 
-  getTimeAgo, 
-  getActivityIcon, 
-  getGroupColor, 
-  getTabState, 
-  getLastAccessText,
-  getWindowSignature,
-  generateWindowColor,
-  getFaviconUrl,
-  getColorForDomain,
-  escapeHtml,
-  sortTabs
-} from './modules/core/utils.js';
-
-import { 
-  VIEWS, 
-  TAB_STATES, 
-  ACTIVITY_TYPES, 
-  SORT_TYPES, 
-  FILTER_TYPES, 
-  STORAGE_KEYS,
-  LIMITS 
-} from './modules/core/constants.js';
+// Note: Most utility functions and constants are now used directly in view modules
+// Main dashboard.js only imports what it needs for coordination
 
 import state from './modules/core/state.js';
 
 // Import shared utilities
 import {
-  handleTabSelection,
   clearSelection,
-  showNotification,
-  showRenameWindowsDialog,
-  selectionState
+  showNotification
 } from './modules/core/shared-utils.js';
-
-// Phase 8.3: Snooze formatters for SnoozeModal component
-// Note: Detection and execution services are called via message passing (background handlers)
-// Only formatters are imported here for the modal component to use
-import { formatSnoozeTitle, formatSnoozeDescription } from '../services/utils/snoozeFormatters.js';
 
 // Window name service for consistent window name handling
 import { getWindowNames } from '../services/utils/WindowNameService.js';
@@ -51,36 +19,17 @@ import keyboardShortcuts from './modules/keyboard-shortcuts.js';
 import helpModal from './modules/help-modal.js';
 
 // Tasks view modules
-import { showTaskDetailModal, handleBulkAction } from './modules/views/tasks-base.js';
+import { showTaskDetailModal } from './modules/views/tasks-base.js';
 
 // Import view modules
-import { 
-  loadTabsView, 
-  updateTabCount, 
-  renderTabs, 
-  renderGridView, 
-  renderTreeView,
-  updateWindowFilterDropdown,
-  filterTabs,
-  sortAndRenderTabs 
+import {
+  loadTabsView,
+  filterTabs
 } from './modules/views/tabs.js';
 import { loadOverviewData, cleanupCharts } from './modules/views/overview.js';
-import { 
-  loadRulesView, 
-  updateRulesUI, 
-  setupRulesEventListeners,
-  handleRuleAction,
-  installSampleRule,
-  openRuleModal,
-  closeRuleModal,
-  saveRule,
-  toggleRule,
-  deleteRule,
-  toggleAllRules,
-  testRule,
-  testAllRules,
-  setupRuleDragAndDrop,
-  updateRulePriorities
+import {
+  loadRulesView,
+  openRuleModal
 } from './modules/views/rules.js';
 import { loadGroupsView, groupTabsByDomain, ungroupAllTabs } from './modules/views/groups.js';
 import { loadSnoozedView } from './modules/views/snoozed.js';

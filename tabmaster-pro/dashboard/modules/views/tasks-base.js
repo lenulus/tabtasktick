@@ -2,8 +2,6 @@
 // Shared infrastructure for Kanban and List views
 
 import {
-  debounce,
-  getTimeAgo,
   escapeHtml
 } from '../core/utils.js';
 
