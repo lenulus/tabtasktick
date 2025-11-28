@@ -342,6 +342,9 @@ describe('Engine - executeActions', () => {
     chromeMock.tabs.group.mockResolvedValue(100);
     chromeMock.tabGroups.update.mockResolvedValue({});
 
+    // Mock chrome.tabs.get to reject for closed tabs (simulating they don't exist)
+    chromeMock.tabs.get.mockRejectedValue(new Error('Tab not found'));
+
     const results = await executeActions(actions, tabs, {}, false);
 
     // Close action executed on both tabs

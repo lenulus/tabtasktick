@@ -107,6 +107,7 @@ export const chromeMock = {
     lastError: null,
     id: 'test-extension-id',
     getURL: jest.fn(path => `chrome-extension://test-extension-id/${path}`),
+    getManifest: jest.fn(() => ({ version: '1.0.0' })),
     sendMessage: jest.fn(() => Promise.resolve()),
     onMessage: {
       addListener: jest.fn(),
@@ -151,12 +152,12 @@ export function resetChromeMocks() {
   Object.values(chromeMock).forEach(api => {
     if (typeof api === 'object' && api !== null) {
       Object.values(api).forEach(method => {
-        if (method && typeof method.mockReset === 'function') {
-          method.mockReset();
-        } else if (method && typeof method === 'object' && method.addListener && typeof method.addListener.mockReset === 'function') {
-          method.addListener.mockReset();
-          if (method.removeListener && typeof method.removeListener.mockReset === 'function') {
-            method.removeListener.mockReset();
+        if (method && typeof method.mockClear === 'function') {
+          method.mockClear();
+        } else if (method && typeof method === 'object' && method.addListener && typeof method.addListener.mockClear === 'function') {
+          method.addListener.mockClear();
+          if (method.removeListener && typeof method.removeListener.mockClear === 'function') {
+            method.removeListener.mockClear();
           }
         }
       });

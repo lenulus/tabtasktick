@@ -5,50 +5,15 @@
 
 import { jest } from '@jest/globals';
 import * as ScheduledExportService from '../../services/execution/ScheduledExportService.js';
+import { chromeMock, resetChromeMocks } from '../utils/chrome-mock.js';
 
-// Mock chrome APIs
-global.chrome = {
-  storage: {
-    local: {
-      get: jest.fn(),
-      set: jest.fn()
-    }
-  },
-  alarms: {
-    create: jest.fn(),
-    clear: jest.fn(),
-    onAlarm: {
-      addListener: jest.fn()
-    }
-  },
-  downloads: {
-    download: jest.fn(),
-    search: jest.fn(),
-    removeFile: jest.fn(),
-    erase: jest.fn(),
-    show: jest.fn(),
-    showDefaultFolder: jest.fn()
-  },
-  runtime: {
-    sendMessage: jest.fn(),
-    getManifest: jest.fn(() => ({ version: '1.0.0' }))
-  },
-  tabs: {
-    query: jest.fn(() => Promise.resolve([]))
-  },
-  windows: {
-    get: jest.fn(() => Promise.resolve({ id: 1 })),
-    getAll: jest.fn(() => Promise.resolve([]))
-  },
-  tabGroups: {
-    query: jest.fn(() => Promise.resolve([]))
-  }
-};
+// Use shared chrome mock
+global.chrome = chromeMock;
 
 describe('ScheduledExportService', () => {
   beforeEach(() => {
-    // Reset mocks
-    jest.clearAllMocks();
+    // Reset all mocks using shared utility
+    resetChromeMocks();
 
     // Default storage responses
     chrome.storage.local.get.mockResolvedValue({});
