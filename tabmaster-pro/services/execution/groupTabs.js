@@ -463,8 +463,6 @@ async function executeGroupStep(step, callerWindowId = null) {
     return { success: false, error: 'No tabs to group' };
   }
 
-  console.log('[executeGroupStep] callerWindowId:', callerWindowId, 'action:', step.action, 'windowId:', step.windowId);
-
   try {
     let groupId;
     let originalFocusedWindowId = callerWindowId; // Use provided caller window if available
@@ -512,10 +510,7 @@ async function executeGroupStep(step, callerWindowId = null) {
 
       // Restore original focus
       if (originalFocusedWindowId && originalFocusedWindowId !== step.windowId) {
-        console.log('[executeGroupStep] Restoring focus to window:', originalFocusedWindowId);
         await chrome.windows.update(originalFocusedWindowId, { focused: true });
-      } else {
-        console.log('[executeGroupStep] NOT restoring focus. originalFocusedWindowId:', originalFocusedWindowId, 'step.windowId:', step.windowId);
       }
     } else if (step.action === 'reuse') {
       // Add to existing group
@@ -545,10 +540,7 @@ async function executeGroupStep(step, callerWindowId = null) {
 
       // Restore original focus
       if (needsFocusSwitch && originalFocusedWindowId) {
-        console.log('[executeGroupStep] (reuse) Restoring focus to window:', originalFocusedWindowId);
         await chrome.windows.update(originalFocusedWindowId, { focused: true });
-      } else {
-        console.log('[executeGroupStep] (reuse) NOT restoring focus. needsFocusSwitch:', needsFocusSwitch, 'originalFocusedWindowId:', originalFocusedWindowId);
       }
     }
 
