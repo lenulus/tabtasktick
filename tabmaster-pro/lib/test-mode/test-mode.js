@@ -2,6 +2,7 @@
 // Provides safe, isolated environment for integration testing
 
 import { TestRunner } from './test-runner.js';
+import { enterTestMode, exitTestMode, getTestModeStatus } from '../../services/execution/TestModeService.js';
 
 export class TestMode {
   constructor() {
@@ -48,9 +49,11 @@ export class TestMode {
     // Create isolated test window
     await this.createTestWindow();
 
-    // Store test window ID in storage for reconnection
+    // Use service to activate test mode (single source of truth)
+    await enterTestMode({ source: 'test_panel' });
+
+    // Store test window ID separately (test-panel specific state)
     await chrome.storage.local.set({
-      testModeActive: true,
       testWindowId: this.testWindow.id
     });
 
@@ -93,7 +96,10 @@ export class TestMode {
     } catch (error) {
       // Window no longer exists
       console.log('Test window no longer exists, cleaning up');
-      await chrome.storage.local.remove(['testModeActive', 'testWindowId', 'testOriginalState']);
+      // Use service to exit test mode (single source of truth)
+      await exitTestMode({ source: 'test_panel_reconnect_error' });
+      // Remove test-panel specific data
+      await chrome.storage.local.remove(['testWindowId', 'testOriginalState']);
       throw new Error('Test window no longer exists');
     }
   }
@@ -1490,8 +1496,11 @@ export class TestMode {
       }
 
       // Clear test mode flags and data - do this LAST to prevent race conditions
-      // The storage change listener will restore production rules when testModeActive is removed
-      await chrome.storage.local.remove(['testModeActive', 'testWindowId', 'testOriginalState']);
+      // The storage change listener will restore production rules when testModeActive changes
+      // Use service to exit test mode (single source of truth)
+      await exitTestMode({ source: 'test_panel_cleanup' });
+      // Remove test-panel specific data
+      await chrome.storage.local.remove(['testWindowId', 'testOriginalState']);
 
     } catch (error) {
       console.error('Error during cleanup:', error);
@@ -1512,7 +1521,7 @@ export class TestMode {
    * Check if test mode is active
    */
   static async isActive() {
-    const { testModeActive } = await chrome.storage.local.get('testModeActive');
-    return !!testModeActive;
+    const status = await getTestModeStatus();
+    return status.active;
   }
 }

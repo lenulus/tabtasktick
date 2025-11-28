@@ -1,6 +1,12 @@
 // Popup JavaScript for TabTaskTick
 
 // ============================================================================
+// Imports
+// ============================================================================
+
+import { exitTestMode } from '../services/execution/TestModeService.js';
+
+// ============================================================================
 // DOM Elements
 // ============================================================================
 
@@ -618,18 +624,20 @@ async function handleBannerDismiss() {
 
 async function handleExitTestMode() {
   try {
-    // Disable test mode
-    await chrome.storage.local.set({ testModeActive: false });
+    // Use service to exit test mode (single source of truth)
+    const result = await exitTestMode({ source: 'popup_ui' });
 
-    // Hide banner with fade animation
-    const testModeBanner = document.getElementById('testModeBanner');
-    testModeBanner.style.opacity = '0';
-    setTimeout(() => {
-      testModeBanner.style.display = 'none';
-      testModeBanner.style.opacity = '1';
-    }, 300);
+    if (result.success) {
+      // Hide banner with fade animation (UI concern only)
+      const testModeBanner = document.getElementById('testModeBanner');
+      testModeBanner.style.opacity = '0';
+      setTimeout(() => {
+        testModeBanner.style.display = 'none';
+        testModeBanner.style.opacity = '1';
+      }, 300);
 
-    console.log('Test mode disabled from popup');
+      console.log('Test mode disabled from popup');
+    }
   } catch (error) {
     console.error('Failed to exit test mode:', error);
   }
