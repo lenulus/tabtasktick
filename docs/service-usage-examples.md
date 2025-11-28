@@ -501,6 +501,149 @@ function formatTitle(operations) {
 
 ---
 
+## Background Event Handling
+
+**Goal**: Handle Chrome extension events in background service worker
+
+**Services**: Various services + `safeAsyncListener` utility
+
+### Alarm Events (SnoozeService, ScheduledExportService)
+
+```javascript
+// In background-integrated.js
+import * as SnoozeService from './services/execution/SnoozeService.js';
+import * as ScheduledExportService from './services/execution/ScheduledExportService.js';
+import { safeAsyncListener } from './services/utils/listeners.js';
+
+// Initialize services once
+await SnoozeService.initialize();
+await ScheduledExportService.initialize();
+
+// Handle alarms - CRITICAL: Use safeAsyncListener for async handlers
+chrome.alarms.onAlarm.addListener(safeAsyncListener(async (alarm) => {
+  if (alarm.name.startsWith('snooze_')) {
+    await SnoozeService.handleAlarm(alarm);
+  } else if (alarm.name === 'scheduled_backup') {
+    await ScheduledExportService.handleAlarm(alarm);
+  } else if (alarm.name === 'backup_cleanup') {
+    await ScheduledExportService.handleAlarm(alarm);
+  }
+}));
+```
+
+### Tab Events (Progressive Sync, Analytics)
+
+```javascript
+import { safeAsyncListener } from './services/utils/listeners.js';
+
+// Tab created - track for analytics
+chrome.tabs.onCreated.addListener(safeAsyncListener(async (tab) => {
+  await recordTabCreation(tab);
+  await updateTabStatistics();
+}));
+
+// Tab updated - track changes
+chrome.tabs.onUpdated.addListener(safeAsyncListener(async (tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    await handleTabURLChange(tabId, changeInfo.url);
+  }
+  if (changeInfo.audible !== undefined) {
+    await handleTabAudioChange(tabId, changeInfo.audible);
+  }
+}));
+
+// Tab removed - cleanup
+chrome.tabs.onRemoved.addListener(safeAsyncListener(async (tabId, removeInfo) => {
+  await cleanupTabMetadata(tabId);
+  await updateTabStatistics();
+}));
+```
+
+### Window Events
+
+```javascript
+import * as WindowService from './services/execution/WindowService.js';
+import { safeAsyncListener } from './services/utils/listeners.js';
+
+// Window removed - cleanup orphaned metadata
+chrome.windows.onRemoved.addListener(safeAsyncListener(async (windowId) => {
+  await WindowService.cleanupOrphanedWindowMetadata();
+}, {
+  errorHandler: (error, context) => {
+    console.error('Window cleanup failed:', error, context);
+  },
+  logErrors: true
+}));
+
+// Window focus changed - track active window
+chrome.windows.onFocusChanged.addListener(safeAsyncListener(async (windowId) => {
+  if (windowId !== chrome.windows.WINDOW_ID_NONE) {
+    await recordActiveWindow(windowId);
+  }
+}));
+```
+
+### Message Listeners (Special Case)
+
+Message listeners need `sendResponse()` callback, so they use manual IIFE pattern:
+
+```javascript
+// ❌ WRONG - Don't use safeAsyncListener for message listeners
+chrome.runtime.onMessage.addListener(safeAsyncListener(async (message) => {
+  // Can't use sendResponse here!
+}));
+
+// ✅ CORRECT - Manual IIFE pattern for message listeners
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  (async () => {
+    try {
+      if (message.action === 'snoozeTab') {
+        const result = await SnoozeService.snoozeTabs([message.tabId], message.snoozeUntil);
+        sendResponse({ success: true, data: result });
+      } else if (message.action === 'exportData') {
+        const data = await ExportImportService.exportData(message.options);
+        sendResponse({ success: true, data });
+      } else {
+        sendResponse({ success: false, error: 'Unknown action' });
+      }
+    } catch (error) {
+      sendResponse({ success: false, error: error.message });
+    }
+  })();
+  return true; // Keep channel open for async response
+});
+```
+
+### Why safeAsyncListener?
+
+**Problem**: Using `async` directly on Chrome listeners returns a Promise instead of true/undefined:
+
+```javascript
+// ❌ WRONG - Returns Promise, causes race conditions
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  await handleAlarm(alarm);
+  // Actually returns Promise.resolve(undefined) - BREAKS Chrome!
+});
+```
+
+**Solution**: `safeAsyncListener` wraps the handler in an IIFE that doesn't return a Promise:
+
+```javascript
+// ✅ CORRECT - Returns undefined, runs async code safely
+chrome.alarms.onAlarm.addListener(safeAsyncListener(async (alarm) => {
+  await handleAlarm(alarm);
+  // IIFE pattern ensures no Promise returned
+}));
+```
+
+**Benefits**:
+- ✅ No race conditions
+- ✅ Automatic error handling with context
+- ✅ Double-wrap protection
+- ✅ Configurable error logging
+
+---
+
 ## Testing Services
 
 All services should be testable in isolation:

@@ -182,6 +182,7 @@ graph TB
 | Service | Layer | Depends On | Used By |
 |---------|-------|------------|---------|
 | **snoozeFormatters** | Utility | None (pure functions) | UI surfaces (popup, dashboard) |
+| **listeners** (safeAsyncListener) | Utility | None | Background event handlers (alarms, tabs, windows, storage) |
 | **selectTabs** | Selection | chrome.tabs | All orchestrators, rules engine |
 | **detectSnoozeOperations** | Selection | chrome.tabs | executeSnoozeOperations, UI |
 | **TabActionsService** | Execution | chrome.tabs, chrome.tabGroups, chrome.windows | DeduplicationOrchestrator, rules engine |
@@ -540,6 +541,44 @@ These services have no service dependencies (only storage utilities):
 | WindowService (extended) | IndexedDB (via storage-queries), chrome.windows | 2 |
 
 **Architecture Note**: No service directly accesses IndexedDB - all go through storage-queries.js → db.js chain.
+
+### Async Event Listener Pattern
+
+**Critical Pattern**: Chrome event listeners MUST NOT use `async` directly - use `safeAsyncListener` utility
+
+```javascript
+import { safeAsyncListener } from './services/utils/listeners.js';
+
+// ❌ WRONG - Returns Promise, causes race conditions
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  await SnoozeService.handleAlarm(alarm);
+});
+
+// ✅ CORRECT - Uses safeAsyncListener wrapper
+chrome.alarms.onAlarm.addListener(safeAsyncListener(async (alarm) => {
+  await SnoozeService.handleAlarm(alarm);
+}));
+```
+
+**Why**: Async functions return Promises. Chrome expects `true` (keep channel open) or `undefined` (close channel), NOT a Promise.
+
+**Exception**: `chrome.runtime.onMessage` needs `sendResponse` callback, uses manual IIFE:
+
+```javascript
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  (async () => {
+    const result = await handleMessage(message);
+    sendResponse(result);
+  })();
+  return true; // Keep channel open
+});
+```
+
+**Utility Location**: `/services/utils/listeners.js`
+- `safeAsyncListener(handler, options)` - Wraps async handlers safely
+- `isAsyncFunction(fn)` - Checks if function is async (for validation)
+
+**See**: [CLAUDE.md - Async Listener Pattern](../CLAUDE.md#async-listener-pattern-critical) for full documentation
 
 ---
 

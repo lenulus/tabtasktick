@@ -366,10 +366,13 @@ export async function deleteBackup(downloadId, deleteFile = false) {
  * @example
  * // In background service worker
  * import * as ScheduledExportService from './services/execution/ScheduledExportService.js';
+ * import { safeAsyncListener } from './services/utils/listeners.js';
  *
- * chrome.alarms.onAlarm.addListener(async (alarm) => {
- *   await ScheduledExportService.handleAlarm(alarm);
- * });
+ * chrome.alarms.onAlarm.addListener(safeAsyncListener(async (alarm) => {
+ *   if (alarm.name === 'scheduled_backup' || alarm.name === 'backup_cleanup') {
+ *     await ScheduledExportService.handleAlarm(alarm);
+ *   }
+ * }));
  */
 export async function handleAlarm(alarm, state = null, tabTimeData = null) {
   await ensureInitialized();

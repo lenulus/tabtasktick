@@ -420,10 +420,13 @@ export async function rescheduleSnoozedTab(snoozedTabId, newSnoozeUntil) {
  * @example
  * // In background service worker
  * import * as SnoozeService from './services/execution/SnoozeService.js';
+ * import { safeAsyncListener } from './services/utils/listeners.js';
  *
- * chrome.alarms.onAlarm.addListener((alarm) => {
- *   await SnoozeService.handleAlarm(alarm);
- * });
+ * chrome.alarms.onAlarm.addListener(safeAsyncListener(async (alarm) => {
+ *   if (alarm.name.startsWith('snooze_')) {
+ *     await SnoozeService.handleAlarm(alarm);
+ *   }
+ * }));
  *
  * @example
  * // Alarm names

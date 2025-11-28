@@ -677,6 +677,132 @@ const selectedTabIds = getCheckedTabs(); // UI tracks what user selected
 await groupTabs(selectedTabIds, { byDomain: true });
 ```
 
+## Async Listener Pattern (CRITICAL)
+
+**NEVER use `async` directly on Chrome API event listeners** - this returns a Promise instead of true/undefined, causing non-deterministic behavior and race conditions.
+
+### The Problem
+
+```javascript
+// ❌ WRONG - Returns Promise, causes race conditions
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  const result = await someAsyncOperation();
+  sendResponse(result);
+  return true; // Actually returns Promise.resolve(true) - BREAKS Chrome!
+});
+
+// ❌ WRONG - No return value, channel closes immediately
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  await handleAlarm(alarm);
+  // Channel already closed, async work may be interrupted
+});
+```
+
+### The Solution: safeAsyncListener
+
+Use the `safeAsyncListener` utility from `/services/utils/listeners.js`:
+
+```javascript
+// ✅ CORRECT - For message listeners (need sendResponse)
+import { safeAsyncListener } from './services/utils/listeners.js';
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  (async () => {
+    try {
+      const result = await someAsyncOperation();
+      sendResponse({ success: true, data: result });
+    } catch (error) {
+      sendResponse({ success: false, error: error.message });
+    }
+  })();
+  return true; // Keeps channel open for async response
+});
+
+// ✅ CORRECT - For non-response listeners (alarms, tab events, etc.)
+chrome.alarms.onAlarm.addListener(safeAsyncListener(async (alarm) => {
+  if (alarm.name.startsWith('snooze_')) {
+    await SnoozeService.handleAlarm(alarm);
+  } else if (alarm.name === 'scheduled_backup') {
+    await ScheduledExportService.handleAlarm(alarm);
+  }
+}));
+
+// ✅ CORRECT - Tab event listeners
+chrome.tabs.onCreated.addListener(safeAsyncListener(async (tab) => {
+  await handleTabCreated(tab);
+}));
+
+// ✅ CORRECT - With custom error handling
+chrome.windows.onRemoved.addListener(safeAsyncListener(async (windowId) => {
+  await WindowService.cleanupOrphanedWindowMetadata();
+}, {
+  errorHandler: (error, context) => {
+    console.error('Window cleanup failed:', error, context);
+    sendToMonitoring(error);
+  },
+  logErrors: true
+}));
+```
+
+### How safeAsyncListener Works
+
+```javascript
+export function safeAsyncListener(handler, options = {}) {
+  const wrapped = (...args) => {
+    // IIFE pattern - executes async code without returning Promise
+    (async () => {
+      try {
+        await handler(...args);
+      } catch (error) {
+        // Error handling with context
+        if (options.logErrors) {
+          console.error('Listener error:', error, {
+            handlerName: handler.name || 'anonymous',
+            argsCount: args.length
+          });
+        }
+        if (options.errorHandler) {
+          options.errorHandler(error, context);
+        }
+      }
+    })();
+    // Returns undefined (implicit) - correct for non-message listeners
+  };
+
+  wrapped.__safeWrapped = true; // Prevents double-wrapping
+  return wrapped;
+}
+```
+
+### When to Use Each Pattern
+
+| Listener Type | Pattern | Why |
+|---------------|---------|-----|
+| `chrome.runtime.onMessage` | Manual IIFE + `return true` | Needs `sendResponse()` callback |
+| `chrome.alarms.onAlarm` | `safeAsyncListener` | No response needed |
+| `chrome.tabs.onCreated` | `safeAsyncListener` | No response needed |
+| `chrome.tabs.onUpdated` | `safeAsyncListener` | No response needed |
+| `chrome.tabs.onRemoved` | `safeAsyncListener` | No response needed |
+| `chrome.windows.onRemoved` | `safeAsyncListener` | No response needed |
+| `chrome.storage.onChanged` | `safeAsyncListener` | No response needed |
+
+### Detection and Prevention
+
+```bash
+# Find violations (should return 0 results)
+grep -rn "\.addListener(async" tabmaster-pro/**/*.js
+
+# Approved pattern
+grep -rn "safeAsyncListener" tabmaster-pro/**/*.js
+```
+
+### Reference
+
+- **Phase 1 Implementation**: All async listeners fixed in background-integrated.js
+- **Utility**: `/services/utils/listeners.js`
+- **Tests**: `/tests/listeners.test.js` (16 tests, all passing)
+- **Background**: Architectural remediation work (v1.3.19)
+
 ## Testing
 
 ### Unit Tests
