@@ -8,6 +8,7 @@ import { createChromeScheduler } from './lib/scheduler.js';
 import * as SnoozeService from './services/execution/SnoozeService.js';
 import * as WindowService from './services/execution/WindowService.js';
 import * as ExportImportService from './services/ExportImportService.js';
+import { groupTabs } from './services/execution/groupTabs.js';
 import { getTabStatistics, extractDomain, normalizeUrlForDuplicates, extractOrigin } from './services/selection/selectTabs.js';
 import { getCurrentWindowId } from './services/TabGrouping.js';
 import { getCategoriesForDomain } from './lib/domain-categories.js';
@@ -645,21 +646,21 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
 
           // Update statistics
           switch (action.action) {
-            case 'close':
-              state.statistics.tabsClosed++;
-              await trackTabHistory('closed');
-              break;
-            case 'snooze':
-              state.statistics.tabsSnoozed++;
-              await trackTabHistory('snoozed');
-              break;
-            case 'group':
-              state.statistics.tabsGrouped++;
-              await trackTabHistory('grouped');
-              break;
-            case 'bookmark':
-              await trackTabHistory('bookmarked');
-              break;
+          case 'close':
+            state.statistics.tabsClosed++;
+            await trackTabHistory('closed');
+            break;
+          case 'snooze':
+            state.statistics.tabsSnoozed++;
+            await trackTabHistory('snoozed');
+            break;
+          case 'group':
+            state.statistics.tabsGrouped++;
+            await trackTabHistory('grouped');
+            break;
+          case 'bookmark':
+            await trackTabHistory('bookmarked');
+            break;
           }
         }
       }
@@ -923,7 +924,7 @@ chrome.windows.onRemoved.addListener(safeAsyncListener(async (windowId) => {
       console.log(`[Phase 2.7] No bound collection found for window ${windowId}, skipping unbind`);
     }
   } catch (error) {
-    console.error(`[Phase 2.7] Failed to unbind collection on window close:`, error);
+    console.error('[Phase 2.7] Failed to unbind collection on window close:', error);
   }
 }));
 
@@ -949,7 +950,7 @@ chrome.windows.onFocusChanged.addListener(safeAsyncListener(async (windowId) => 
   } catch (error) {
     // Focus changes are frequent, only log errors in debug mode
     if (state.settings.debugMode) {
-      console.error(`Failed to update collection on focus change:`, error);
+      console.error('Failed to update collection on focus change:', error);
     }
   }
 }));
@@ -1158,1031 +1159,1045 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   (async () => {
     try {
       switch (request.action) {
-        // Tab operations
-        case 'getTabs':
-          const tabs = await chrome.tabs.query({});
-          const windows = await chrome.windows.getAll();
+      // Tab operations
+      case 'getTabs':
+        const tabs = await chrome.tabs.query({});
+        const windows = await chrome.windows.getAll();
 
-          // Add time data to tabs
-          const enhancedTabs = tabs.map(tab => {
-            const timeData = tabTimeData.get(tab.id);
-            const domain = extractDomain(tab.url);
-            const categories = getCategoriesForDomain(domain);
-            const category = categories.length > 0 ? categories[0] : 'unknown';
-            return {
-              ...tab,
-              timeData: timeData || null,
-              last_access: tab.lastAccessed || timeData?.lastAccessed || null,
-              category
-            };
-          });
+        // Add time data to tabs
+        const enhancedTabs = tabs.map(tab => {
+          const timeData = tabTimeData.get(tab.id);
+          const domain = extractDomain(tab.url);
+          const categories = getCategoriesForDomain(domain);
+          const category = categories.length > 0 ? categories[0] : 'unknown';
+          return {
+            ...tab,
+            timeData: timeData || null,
+            last_access: tab.lastAccessed || timeData?.lastAccessed || null,
+            category
+          };
+        });
 
-          sendResponse({ tabs: enhancedTabs, windows });
-          break;
+        sendResponse({ tabs: enhancedTabs, windows });
+        break;
           
-        case 'getTabTimeData':
-          const timeData = {};
-          for (const [tabId, data] of tabTimeData.entries()) {
-            timeData[tabId] = data;
-          }
-          sendResponse({ timeData });
-          break;
+      case 'getTabTimeData':
+        const timeData = {};
+        for (const [tabId, data] of tabTimeData.entries()) {
+          timeData[tabId] = data;
+        }
+        sendResponse({ timeData });
+        break;
           
         // Rule operations
-        case 'getRules':
-          // Always reload rules from storage to ensure we have the latest
-          await loadRules();
-          const rulesToSend = state.rules || [];
-          sendResponse(rulesToSend);
-          break;
+      case 'getRules':
+        // Always reload rules from storage to ensure we have the latest
+        await loadRules();
+        const rulesToSend = state.rules || [];
+        sendResponse(rulesToSend);
+        break;
           
-        case 'addRule':
-          const addResult = await addRule(request.rule);
-          sendResponse(addResult);
-          break;
+      case 'addRule':
+        const addResult = await addRule(request.rule);
+        sendResponse(addResult);
+        break;
           
-        case 'updateRule':
-          const updateResult = await updateRule(request.ruleId, request.updates);
-          sendResponse(updateResult);
-          break;
+      case 'updateRule':
+        const updateResult = await updateRule(request.ruleId, request.updates);
+        sendResponse(updateResult);
+        break;
 
-        case 'toggleRule':
-          const toggleResult = await toggleRule(request.ruleId);
-          sendResponse(toggleResult);
-          break;
+      case 'toggleRule':
+        const toggleResult = await toggleRule(request.ruleId);
+        sendResponse(toggleResult);
+        break;
 
-        case 'updateRules':
-          // Bulk update all rules (used by dashboard)
-          state.rules = request.rules || [];
-          await chrome.storage.local.set({ rules: state.rules });
+      case 'updateRules':
+        // Bulk update all rules (used by dashboard)
+        state.rules = request.rules || [];
+        await chrome.storage.local.set({ rules: state.rules });
           
-          // Re-setup scheduler for all rules
-          // First, remove all existing scheduled triggers
-          for (const rule of state.rules) {
-            await scheduler.removeRule(rule.id);
-          }
+        // Re-setup scheduler for all rules
+        // First, remove all existing scheduled triggers
+        for (const rule of state.rules) {
+          await scheduler.removeRule(rule.id);
+        }
 
-          // Then setup the new/updated rules
-          for (const rule of state.rules) {
-            if (rule.enabled) {
-              await scheduler.setupRule(rule);
-            }
+        // Then setup the new/updated rules
+        for (const rule of state.rules) {
+          if (rule.enabled) {
+            await scheduler.setupRule(rule);
           }
+        }
           
-          sendResponse({ success: true });
-          break;
+        sendResponse({ success: true });
+        break;
           
-        case 'deleteRule':
-          const deleteResult = await deleteRule(request.ruleId);
-          sendResponse(deleteResult);
-          break;
+      case 'deleteRule':
+        const deleteResult = await deleteRule(request.ruleId);
+        sendResponse(deleteResult);
+        break;
           
-        case 'previewRule':
-          // Ensure rules are loaded before preview
-          await loadRules();
-          const preview = await previewRule(request.ruleId);
-          sendResponse(preview);
-          break;
+      case 'previewRule':
+        // Ensure rules are loaded before preview
+        await loadRules();
+        const preview = await previewRule(request.ruleId);
+        sendResponse(preview);
+        break;
           
-        case 'executeRule':
-          // Ensure scheduler is set up for the rule if it has triggers
-          if (request.testMode) {
-            const rule = state.rules.find(r => r.id === request.ruleId);
-            if (rule && rule.trigger && (rule.trigger.repeat || rule.trigger.repeat_every)) {
-              console.log(`Setting up scheduler for repeat rule: ${rule.name}`);
-              await scheduler.setupRule(rule);
-            }
+      case 'executeRule':
+        // Ensure scheduler is set up for the rule if it has triggers
+        if (request.testMode) {
+          const rule = state.rules.find(r => r.id === request.ruleId);
+          if (rule && rule.trigger && (rule.trigger.repeat || rule.trigger.repeat_every)) {
+            console.log(`Setting up scheduler for repeat rule: ${rule.name}`);
+            await scheduler.setupRule(rule);
           }
-          const execResult = await executeRule(request.ruleId, 'manual', request.testMode);
-          sendResponse(execResult);
-          break;
+        }
+        const execResult = await executeRule(request.ruleId, 'manual', request.testMode);
+        sendResponse(execResult);
+        break;
           
-        case 'executeAllRules':
-          const allResult = await executeAllRules();
-          sendResponse(allResult);
-          break;
+      case 'executeAllRules':
+        const allResult = await executeAllRules();
+        sendResponse(allResult);
+        break;
           
-        case 'getSchedulerStatus':
-          const status = scheduler.getStatus();
-          sendResponse({ status });
-          break;
+      case 'getSchedulerStatus':
+        const status = scheduler.getStatus();
+        sendResponse({ status });
+        break;
 
         // Test Engine Selection
-        case 'setTestEngine':
-          state.testEngine = request.engine || 'v1';
-          console.log(`Test engine switched to: ${state.testEngine}`);
-          sendResponse({ success: true, engine: state.testEngine });
-          break;
+      case 'setTestEngine':
+        state.testEngine = request.engine || 'v1';
+        console.log(`Test engine switched to: ${state.testEngine}`);
+        sendResponse({ success: true, engine: state.testEngine });
+        break;
 
-        case 'getTestEngine':
-          sendResponse({ engine: state.testEngine });
-          break;
+      case 'getTestEngine':
+        sendResponse({ engine: state.testEngine });
+        break;
 
         // Activity log
-        case 'getActivityLog':
-          sendResponse(state.activityLog || []);
-          break;
+      case 'getActivityLog':
+        sendResponse(state.activityLog || []);
+        break;
           
-        case 'clearActivityLog':
-          state.activityLog = [];
-          await chrome.storage.local.set({ activityLog: [] });
-          sendResponse({ success: true });
-          break;
+      case 'clearActivityLog':
+        state.activityLog = [];
+        await chrome.storage.local.set({ activityLog: [] });
+        sendResponse({ success: true });
+        break;
           
         // Settings
-        case 'getSettings':
-          sendResponse({ settings: state.settings });
-          break;
+      case 'getSettings':
+        sendResponse({ settings: state.settings });
+        break;
           
-        case 'updateSettings':
-          state.settings = { ...state.settings, ...request.settings };
-          await chrome.storage.local.set({ settings: state.settings });
-          sendResponse({ success: true });
-          break;
+      case 'updateSettings':
+        state.settings = { ...state.settings, ...request.settings };
+        await chrome.storage.local.set({ settings: state.settings });
+        sendResponse({ success: true });
+        break;
           
         // Statistics
-        case 'getStatistics':
-          const stats = await getStatistics();
-          sendResponse(stats);
-          break;
+      case 'getStatistics':
+        const stats = await getStatistics();
+        sendResponse(stats);
+        break;
           
-        case 'getTabInfo':
-          const tabInfo = await getTabInfo();
-          sendResponse(tabInfo);
-          break;
+      case 'getTabInfo':
+        const tabInfo = await getTabInfo();
+        sendResponse(tabInfo);
+        break;
 
-        case 'getRecentLogs':
-          // Return recent console logs for debugging
-          sendResponse({
-            logs: recentLogs.map(log => ({
-              ...log,
-              time: new Date(log.timestamp).toLocaleTimeString()
-            }))
-          });
-          break;
+      case 'getRecentLogs':
+        // Return recent console logs for debugging
+        sendResponse({
+          logs: recentLogs.map(log => ({
+            ...log,
+            time: new Date(log.timestamp).toLocaleTimeString()
+          }))
+        });
+        break;
 
         // Tab operations - all routed through engine for consistency
-        case 'closeTabs':
-          const closeResult = await executeActionViaEngine('close', request.tabIds);
-          sendResponse({ success: true, result: closeResult });
-          break;
+      case 'closeTabs':
+        const closeResult = await executeActionViaEngine('close', request.tabIds);
+        sendResponse({ success: true, result: closeResult });
+        break;
 
-        case 'focusTab':
-          // THIN - delegate to TabActionsService
-          const focusTabResult = await TabActionsService.focusTab(request.tabId);
-          sendResponse(focusTabResult);
-          break;
+      case 'focusTab':
+        // THIN - delegate to TabActionsService
+        const focusTabResult = await TabActionsService.focusTab(request.tabId);
+        sendResponse(focusTabResult);
+        break;
 
-        case 'focusWindow':
-          // THIN - delegate to WindowService
-          const focusWindowResult = await WindowService.focusWindow(request.windowId);
-          sendResponse(focusWindowResult);
-          break;
+      case 'focusWindow':
+        // THIN - delegate to WindowService
+        const focusWindowResult = await WindowService.focusWindow(request.windowId);
+        sendResponse(focusWindowResult);
+        break;
 
-        case 'closeWindow':
-          // THIN - delegate to WindowService
-          const closeWindowResult = await WindowService.closeWindow(request.windowId);
-          sendResponse(closeWindowResult);
-          break;
+      case 'closeWindow':
+        // THIN - delegate to WindowService
+        const closeWindowResult = await WindowService.closeWindow(request.windowId);
+        sendResponse(closeWindowResult);
+        break;
 
-        case 'getAllWindows':
-          // Get all windows for display purposes (UI needs window metadata)
-          const allWindows = await chrome.windows.getAll();
-          sendResponse({ windows: allWindows });
-          break;
+      case 'getAllWindows':
+        // Get all windows for display purposes (UI needs window metadata)
+        const allWindows = await chrome.windows.getAll();
+        sendResponse({ windows: allWindows });
+        break;
 
-        case 'getCurrentWindow':
-          // Get the current window
-          const currentWindow = await chrome.windows.getCurrent();
-          sendResponse({ window: currentWindow });
-          break;
+      case 'getCurrentWindow':
+        // Get the current window
+        const currentWindow = await chrome.windows.getCurrent();
+        sendResponse({ window: currentWindow });
+        break;
 
-        case 'groupTabs':
-          const groupParams = {};
-          if (request.groupName) groupParams.name = request.groupName;
-          if (request.color) groupParams.color = request.color;
-          if (request.callerWindowId) groupParams.callerWindowId = request.callerWindowId;
-          const groupResult = await executeActionViaEngine('group', request.tabIds, groupParams);
-          sendResponse({ success: true, result: groupResult });
-          break;
+      case 'groupTabs':
+        const groupParams = {};
+        if (request.groupName) groupParams.name = request.groupName;
+        if (request.color) groupParams.color = request.color;
+        if (request.callerWindowId) groupParams.callerWindowId = request.callerWindowId;
+        const groupResult = await executeActionViaEngine('group', request.tabIds, groupParams);
+        sendResponse({ success: true, result: groupResult });
+        break;
 
-        case 'snoozeTabs':
-          // Convert minutes to milliseconds for backward compatibility
-          const duration = request.minutes ? request.minutes * 60 * 1000 : request.duration;
-          const snoozeUntil = Date.now() + duration;
-          // Get restoration mode from settings (explicit parameter passing)
-          const restorationMode = request.restorationMode || state.settings.tabRestorationMode || 'original';
-          await SnoozeService.snoozeTabs(request.tabIds, snoozeUntil, {
-            reason: request.reason,
-            restorationMode,
-            sourceWindowId: request.sourceWindowId,
-            windowSnoozeId: request.windowSnoozeId
-          });
-          sendResponse({ success: true });
-          break;
+      case 'snoozeTabs':
+        // Convert minutes to milliseconds for backward compatibility
+        const duration = request.minutes ? request.minutes * 60 * 1000 : request.duration;
+        const snoozeUntil = Date.now() + duration;
+        // Get restoration mode from settings (explicit parameter passing)
+        const restorationMode = request.restorationMode || state.settings.tabRestorationMode || 'original';
+        await SnoozeService.snoozeTabs(request.tabIds, snoozeUntil, {
+          reason: request.reason,
+          restorationMode,
+          sourceWindowId: request.sourceWindowId,
+          windowSnoozeId: request.windowSnoozeId
+        });
+        sendResponse({ success: true });
+        break;
 
-        case 'detectSnoozeOperations':
-          // Phase 8.3: Smart window detection service
-          // UI sends tab IDs, service determines if it's a window snooze or individual tabs
-          const detection = await detectSnoozeOperations(request.tabIds);
-          sendResponse(detection);
-          break;
+      case 'detectSnoozeOperations':
+        // Phase 8.3: Smart window detection service
+        // UI sends tab IDs, service determines if it's a window snooze or individual tabs
+        const detection = await detectSnoozeOperations(request.tabIds);
+        sendResponse(detection);
+        break;
 
-        case 'executeSnoozeOperations':
-          // Phase 8.3: Execute snooze operations (window or tabs)
-          // This is the ONE execution path for all snooze operations from UI
-          const execOptions = {
-            ...request.options,
-            // Apply settings for UI operations (convenience defaults)
-            // Rules should pass explicit parameters and won't hit this path
-            restorationMode: request.options?.restorationMode || state.settings.tabRestorationMode || 'original'
-          };
-          const snoozeExecResult = await executeSnoozeOperations({
-            operations: request.operations,
-            snoozeUntil: request.snoozeUntil,
-            options: execOptions
-          });
-          sendResponse(snoozeExecResult);
-          break;
+      case 'executeSnoozeOperations':
+        // Phase 8.3: Execute snooze operations (window or tabs)
+        // This is the ONE execution path for all snooze operations from UI
+        const execOptions = {
+          ...request.options,
+          // Apply settings for UI operations (convenience defaults)
+          // Rules should pass explicit parameters and won't hit this path
+          restorationMode: request.options?.restorationMode || state.settings.tabRestorationMode || 'original'
+        };
+        const snoozeExecResult = await executeSnoozeOperations({
+          operations: request.operations,
+          snoozeUntil: request.snoozeUntil,
+          options: execOptions
+        });
+        sendResponse(snoozeExecResult);
+        break;
 
-        case 'suspendInactiveTabs':
-          // Suspend inactive, non-pinned tabs via engine for consistency
-          const engine = getEngine();
-          const tempSuspendRule = {
-            id: 'temp-suspend-inactive',
-            name: 'Suspend Inactive Tabs',
-            enabled: true,
-            when: {
-              all: [
-                { subject: 'active', operator: 'equals', value: false },
-                { subject: 'pinned', operator: 'equals', value: false }
-              ]
-            },
-            then: [{ action: 'suspend' }]
-          };
-          const suspendContext = await buildContext();
-          if (request.windowId) {
-            suspendContext.tabs = suspendContext.tabs.filter(t => t.windowId === request.windowId);
+      case 'suspendInactiveTabs':
+        // Suspend inactive, non-pinned tabs via engine for consistency
+        const engine = getEngine();
+        const tempSuspendRule = {
+          id: 'temp-suspend-inactive',
+          name: 'Suspend Inactive Tabs',
+          enabled: true,
+          when: {
+            all: [
+              { subject: 'active', operator: 'equals', value: false },
+              { subject: 'pinned', operator: 'equals', value: false }
+            ]
+          },
+          then: [{ action: 'suspend' }]
+        };
+        const suspendContext = await buildContext();
+        if (request.windowId) {
+          suspendContext.tabs = suspendContext.tabs.filter(t => t.windowId === request.windowId);
+        }
+        // Rule already has pinned: false condition hardcoded
+        const suspendResult = await engine.runRules([tempSuspendRule], suspendContext);
+        sendResponse({
+          success: true,
+          suspended: suspendResult.totalActions || 0
+        });
+        break;
+
+      case 'bookmarkTabs':
+        const bookmarkParams = {};
+        if (request.folder) bookmarkParams.folder = request.folder;
+        const bookmarkResult = await executeActionViaEngine('bookmark', request.tabIds, bookmarkParams);
+        sendResponse({ success: true, result: bookmarkResult });
+        break;
+
+      case 'moveToWindow':
+        const moveParams = {
+          windowId: request.windowId || request.targetWindowId
+        };
+        const moveResult = await executeActionViaEngine('move', request.tabIds, moveParams);
+        sendResponse({ success: true, result: moveResult });
+        break;
+
+      case 'ungroupTabs':
+        // Ungroup tabs - direct Chrome API call (not an engine action)
+        await chrome.tabs.ungroup(request.tabIds);
+        logActivity('ungroup', `Ungrouped ${request.tabIds.length} tabs`, 'manual');
+        sendResponse({ success: true });
+        break;
+
+      case 'closeDuplicates':
+        const closedCount = await findAndCloseDuplicates();
+        sendResponse(closedCount);
+        break;
+          
+      case 'groupByDomain':
+        // Group tabs by domain using unified groupTabs service
+        const scope = request.scope || 'targeted';
+        const targetWindowId = request.windowId;
+
+        // Get all tabs (or specific window tabs based on scope)
+        let tabsToGroup;
+        if (scope === 'global' || scope === 'per_window') {
+          tabsToGroup = await chrome.tabs.query({});
+        } else {
+          tabsToGroup = await chrome.tabs.query({ windowId: targetWindowId });
+        }
+
+        const tabIds = tabsToGroup.map(t => t.id);
+
+        const groupByDomainResult = await groupTabs(tabIds, {
+          byDomain: true,
+          scope: scope,
+          targetWindowId: targetWindowId,
+          callerWindowId: request.callerWindowId
+        });
+
+        sendResponse(groupByDomainResult);
+        break;
+          
+      case 'snoozeCurrent':
+        const snoozeResult = await quickSnoozeCurrent(request.minutes);
+        sendResponse(snoozeResult);
+        break;
+          
+      case 'getSnoozedTabs':
+        const snoozedTabs = await SnoozeService.getSnoozedTabs();
+        sendResponse(snoozedTabs);
+        break;
+          
+      case 'wakeSnoozedTab':
+        await SnoozeService.wakeTabs([request.tabId]);
+        sendResponse({ success: true });
+        break;
+          
+      case 'wakeAllSnoozed':
+        const allSnoozed = await SnoozeService.getSnoozedTabs();
+
+        // Separate window snoozes from individual tab snoozes
+        const windowSnoozes = new Map(); // windowSnoozeId -> tab ids
+        const individualTabs = [];
+
+        for (const tab of allSnoozed) {
+          if (tab.windowSnoozeId) {
+            if (!windowSnoozes.has(tab.windowSnoozeId)) {
+              windowSnoozes.set(tab.windowSnoozeId, []);
+            }
+            windowSnoozes.get(tab.windowSnoozeId).push(tab.id);
+          } else {
+            individualTabs.push(tab.id);
           }
-          // Rule already has pinned: false condition hardcoded
-          const suspendResult = await engine.runRules([tempSuspendRule], suspendContext);
-          sendResponse({
-            success: true,
-            suspended: suspendResult.totalActions || 0
-          });
-          break;
+        }
 
-        case 'bookmarkTabs':
-          const bookmarkParams = {};
-          if (request.folder) bookmarkParams.folder = request.folder;
-          const bookmarkResult = await executeActionViaEngine('bookmark', request.tabIds, bookmarkParams);
-          sendResponse({ success: true, result: bookmarkResult });
-          break;
+        // Restore window snoozes first (recreates windows)
+        for (const [windowSnoozeId, tabIds] of windowSnoozes) {
+          try {
+            await WindowService.restoreWindow(windowSnoozeId);
+          } catch (error) {
+            console.error(`Failed to restore window ${windowSnoozeId}:`, error);
+            // Fall back to individual tab wake if window restore fails
+            await SnoozeService.wakeTabs(tabIds);
+          }
+        }
 
-        case 'moveToWindow':
-          const moveParams = {
-            windowId: request.windowId || request.targetWindowId
-          };
-          const moveResult = await executeActionViaEngine('move', request.tabIds, moveParams);
-          sendResponse({ success: true, result: moveResult });
-          break;
+        // Then wake individual tabs (opens in current window)
+        if (individualTabs.length > 0) {
+          await SnoozeService.wakeTabs(individualTabs);
+        }
 
-        case 'ungroupTabs':
-          // Ungroup tabs - direct Chrome API call (not an engine action)
-          await chrome.tabs.ungroup(request.tabIds);
-          logActivity('ungroup', `Ungrouped ${request.tabIds.length} tabs`, 'manual');
-          sendResponse({ success: true });
-          break;
+        sendResponse({
+          success: true,
+          count: allSnoozed.length,
+          windows: windowSnoozes.size,
+          individualTabs: individualTabs.length
+        });
+        break;
 
-        case 'closeDuplicates':
-          const closedCount = await findAndCloseDuplicates();
-          sendResponse(closedCount);
-          break;
-          
-        case 'groupByDomain':
-          // Get parameters from request
-          console.log('[groupByDomain] request:', request);
-          const callerWindowId = request.callerWindowId || null;
-          const currentWindowOnly = request.currentWindowOnly || false;
-          const windowId = request.windowId || null;
-          console.log('[groupByDomain] callerWindowId:', callerWindowId, 'currentWindowOnly:', currentWindowOnly, 'windowId:', windowId);
-          const groupByDomainResult = await groupByDomain(callerWindowId, currentWindowOnly, windowId);
-          sendResponse(groupByDomainResult);
-          break;
-          
-        case 'snoozeCurrent':
-          const snoozeResult = await quickSnoozeCurrent(request.minutes);
-          sendResponse(snoozeResult);
-          break;
-          
-        case 'getSnoozedTabs':
-          const snoozedTabs = await SnoozeService.getSnoozedTabs();
-          sendResponse(snoozedTabs);
-          break;
-          
-        case 'wakeSnoozedTab':
-          await SnoozeService.wakeTabs([request.tabId]);
-          sendResponse({ success: true });
-          break;
-          
-        case 'wakeAllSnoozed':
+      case 'deleteSnoozedTab':
+        await SnoozeService.deleteSnoozedTab(request.tabId);
+        sendResponse({ success: true });
+        break;
+
+      case 'restoreWindow':
+        try {
+          const restoreResult = await WindowService.restoreWindow(request.windowSnoozeId);
+          sendResponse({ success: true, result: restoreResult });
+        } catch (error) {
+          console.error('Failed to restore window:', error);
+          sendResponse({ success: false, error: error.message });
+        }
+        break;
+
+      case 'deleteWindow':
+        try {
+          // Get all tabs for this window snooze
           const allSnoozed = await SnoozeService.getSnoozedTabs();
+          const windowTabs = allSnoozed.filter(t => t.windowSnoozeId === request.windowSnoozeId);
+          const tabIds = windowTabs.map(t => t.id);
 
-          // Separate window snoozes from individual tab snoozes
-          const windowSnoozes = new Map(); // windowSnoozeId -> tab ids
-          const individualTabs = [];
-
-          for (const tab of allSnoozed) {
-            if (tab.windowSnoozeId) {
-              if (!windowSnoozes.has(tab.windowSnoozeId)) {
-                windowSnoozes.set(tab.windowSnoozeId, []);
-              }
-              windowSnoozes.get(tab.windowSnoozeId).push(tab.id);
-            } else {
-              individualTabs.push(tab.id);
-            }
+          // Delete all tabs in window snooze
+          for (const tabId of tabIds) {
+            await SnoozeService.deleteSnoozedTab(tabId);
           }
 
-          // Restore window snoozes first (recreates windows)
-          for (const [windowSnoozeId, tabIds] of windowSnoozes) {
-            try {
-              await WindowService.restoreWindow(windowSnoozeId);
-            } catch (error) {
-              console.error(`Failed to restore window ${windowSnoozeId}:`, error);
-              // Fall back to individual tab wake if window restore fails
-              await SnoozeService.wakeTabs(tabIds);
-            }
-          }
+          // Delete window metadata
+          const stored = await chrome.storage.local.get('windowMetadata');
+          const allMetadata = stored.windowMetadata || {};
+          delete allMetadata[request.windowSnoozeId];
+          await chrome.storage.local.set({ windowMetadata: allMetadata });
 
-          // Then wake individual tabs (opens in current window)
-          if (individualTabs.length > 0) {
-            await SnoozeService.wakeTabs(individualTabs);
-          }
+          sendResponse({ success: true, deletedCount: tabIds.length });
+        } catch (error) {
+          console.error('Failed to delete window:', error);
+          sendResponse({ success: false, error: error.message });
+        }
+        break;
 
-          sendResponse({
-            success: true,
-            count: allSnoozed.length,
-            windows: windowSnoozes.size,
-            individualTabs: individualTabs.length
-          });
-          break;
-
-        case 'deleteSnoozedTab':
-          await SnoozeService.deleteSnoozedTab(request.tabId);
-          sendResponse({ success: true });
-          break;
-
-        case 'restoreWindow':
-          try {
-            const restoreResult = await WindowService.restoreWindow(request.windowSnoozeId);
-            sendResponse({ success: true, result: restoreResult });
-          } catch (error) {
-            console.error('Failed to restore window:', error);
-            sendResponse({ success: false, error: error.message });
-          }
-          break;
-
-        case 'deleteWindow':
-          try {
-            // Get all tabs for this window snooze
-            const allSnoozed = await SnoozeService.getSnoozedTabs();
-            const windowTabs = allSnoozed.filter(t => t.windowSnoozeId === request.windowSnoozeId);
-            const tabIds = windowTabs.map(t => t.id);
-
-            // Delete all tabs in window snooze
-            for (const tabId of tabIds) {
-              await SnoozeService.deleteSnoozedTab(tabId);
-            }
-
-            // Delete window metadata
-            const stored = await chrome.storage.local.get('windowMetadata');
-            const allMetadata = stored.windowMetadata || {};
-            delete allMetadata[request.windowSnoozeId];
-            await chrome.storage.local.set({ windowMetadata: allMetadata });
-
-            sendResponse({ success: true, deletedCount: tabIds.length });
-          } catch (error) {
-            console.error('Failed to delete window:', error);
-            sendResponse({ success: false, error: error.message });
-          }
-          break;
-
-        case 'clearTestSnoozedTabs':
-          const testPatterns = request.patterns || [];
-          const allTestSnoozed = await SnoozeService.getSnoozedTabs();
-          const tabsToClear = allTestSnoozed.filter(tab =>
-            testPatterns.some(pattern => tab.url?.includes(pattern))
-          );
-          const removedCount = tabsToClear.length;
-          for (const tab of tabsToClear) {
-            await SnoozeService.deleteSnoozedTab(tab.id);
-          }
-          console.log(`Cleared ${removedCount} test snoozed tabs`);
-          sendResponse({ success: true, removedCount });
-          break;
+      case 'clearTestSnoozedTabs':
+        const testPatterns = request.patterns || [];
+        const allTestSnoozed = await SnoozeService.getSnoozedTabs();
+        const tabsToClear = allTestSnoozed.filter(tab =>
+          testPatterns.some(pattern => tab.url?.includes(pattern))
+        );
+        const removedCount = tabsToClear.length;
+        for (const tab of tabsToClear) {
+          await SnoozeService.deleteSnoozedTab(tab.id);
+        }
+        console.log(`Cleared ${removedCount} test snoozed tabs`);
+        sendResponse({ success: true, removedCount });
+        break;
 
         // Test Mode Operations
-        case 'setTestTabTime':
-          if (request.timeData) {
-            tabTimeData.set(request.tabId, request.timeData);
-            console.log(`Set test tab ${request.tabId} time data:`, request.timeData);
-            sendResponse({ success: true });
+      case 'setTestTabTime':
+        if (request.timeData) {
+          tabTimeData.set(request.tabId, request.timeData);
+          console.log(`Set test tab ${request.tabId} time data:`, request.timeData);
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ success: false, error: 'No timeData provided' });
+        }
+        break;
+          
+      case 'setTestTabOrigin':
+        // Store test tab origin info for testing
+        if (!state.testTabOrigins) {
+          state.testTabOrigins = new Map();
+        }
+        state.testTabOrigins.set(request.tabId, {
+          origin: request.origin,
+          referrer: request.referrer
+        });
+        sendResponse({ success: true });
+        break;
+          
+      case 'markTestTabSuspended':
+        // Mark tab as suspended in test mode
+        if (!state.testTabStates) {
+          state.testTabStates = new Map();
+        }
+        state.testTabStates.set(request.tabId, { suspended: true });
+        sendResponse({ success: true });
+        break;
+
+      case 'getConsoleLogs':
+        // Return captured console logs
+        sendResponse({ logs: consoleLogs });
+        break;
+          
+      case 'getTestRuleExecutions':
+        // Return test rule execution history (lookup by ID or name)
+        let executions = [];
+        if (state.testRuleExecutions) {
+          executions = state.testRuleExecutions.get(request.ruleId) || [];
+          // If not found by ID, try by name
+          if (executions.length === 0) {
+            // Find rule by name to get its ID
+            const rule = state.rules?.find(r => r.name === request.ruleId);
+            if (rule) {
+              executions = state.testRuleExecutions.get(rule.id) || [];
+            }
+          }
+        }
+        sendResponse({ executions });
+        break;
+          
+      case 'getTestMetrics':
+        // Return test performance metrics
+        const metrics = {
+          avgExecutionTime: state.testMetrics?.avgExecutionTime || 0,
+          totalExecutions: state.testMetrics?.totalExecutions || 0
+        };
+        sendResponse(metrics);
+        break;
+          
+      case 'getPerformanceMetrics':
+        // Return performance metrics for assertions
+        const perfMetrics = state.performanceMetrics || {};
+        sendResponse(perfMetrics);
+        break;
+          
+      case 'analyzeDuplicates':
+        // Analyze duplicates for test assertions
+        const testTabs = (Array.isArray(request.tabs) ? request.tabs : null) || await chrome.tabs.query({});
+        const testWindows = await chrome.windows.getAll();
+        const testContext = buildContextForEngine(testTabs, testWindows);
+        const dupeGroups = [];
+
+        for (const [dupeKey, tabs] of Object.entries(testContext.idx.byDupeKey)) {
+          if (tabs.length > 1) {
+            dupeGroups.push({
+              dupeKey,
+              count: tabs.length,
+              tabs: tabs.map(t => ({ id: t.id, url: t.url }))
+            });
+          }
+        }
+
+        sendResponse({ groups: dupeGroups });
+        break;
+          
+      case 'getScheduledTriggers':
+        // Return scheduled triggers for a rule
+        const triggers = [];
+        if (scheduler && scheduler.getScheduledTriggers) {
+          const allTriggers = scheduler.getScheduledTriggers();
+          if (request.ruleId) {
+            triggers.push(...allTriggers.filter(t => t.ruleId === request.ruleId));
           } else {
-            sendResponse({ success: false, error: 'No timeData provided' });
+            triggers.push(...allTriggers);
           }
-          break;
+        }
+        sendResponse({ triggers });
+        break;
           
-        case 'setTestTabOrigin':
-          // Store test tab origin info for testing
-          if (!state.testTabOrigins) {
-            state.testTabOrigins = new Map();
-          }
-          state.testTabOrigins.set(request.tabId, {
-            origin: request.origin,
-            referrer: request.referrer
-          });
-          sendResponse({ success: true });
-          break;
-          
-        case 'markTestTabSuspended':
-          // Mark tab as suspended in test mode
-          if (!state.testTabStates) {
-            state.testTabStates = new Map();
-          }
-          state.testTabStates.set(request.tabId, { suspended: true });
-          sendResponse({ success: true });
-          break;
-
-        case 'getConsoleLogs':
-          // Return captured console logs
-          sendResponse({ logs: consoleLogs });
-          break;
-          
-        case 'getTestRuleExecutions':
-          // Return test rule execution history (lookup by ID or name)
-          let executions = [];
-          if (state.testRuleExecutions) {
-            executions = state.testRuleExecutions.get(request.ruleId) || [];
-            // If not found by ID, try by name
-            if (executions.length === 0) {
-              // Find rule by name to get its ID
-              const rule = state.rules?.find(r => r.name === request.ruleId);
-              if (rule) {
-                executions = state.testRuleExecutions.get(rule.id) || [];
-              }
-            }
-          }
-          sendResponse({ executions });
-          break;
-          
-        case 'getTestMetrics':
-          // Return test performance metrics
-          const metrics = {
-            avgExecutionTime: state.testMetrics?.avgExecutionTime || 0,
-            totalExecutions: state.testMetrics?.totalExecutions || 0
-          };
-          sendResponse(metrics);
-          break;
-          
-        case 'getPerformanceMetrics':
-          // Return performance metrics for assertions
-          const perfMetrics = state.performanceMetrics || {};
-          sendResponse(perfMetrics);
-          break;
-          
-        case 'analyzeDuplicates':
-          // Analyze duplicates for test assertions
-          const testTabs = (Array.isArray(request.tabs) ? request.tabs : null) || await chrome.tabs.query({});
-          const testWindows = await chrome.windows.getAll();
-          const testContext = buildContextForEngine(testTabs, testWindows);
-          const dupeGroups = [];
-
-          for (const [dupeKey, tabs] of Object.entries(testContext.idx.byDupeKey)) {
-            if (tabs.length > 1) {
-              dupeGroups.push({
-                dupeKey,
-                count: tabs.length,
-                tabs: tabs.map(t => ({ id: t.id, url: t.url }))
-              });
-            }
-          }
-
-          sendResponse({ groups: dupeGroups });
-          break;
-          
-        case 'getScheduledTriggers':
-          // Return scheduled triggers for a rule
-          const triggers = [];
-          if (scheduler && scheduler.getScheduledTriggers) {
-            const allTriggers = scheduler.getScheduledTriggers();
-            if (request.ruleId) {
-              triggers.push(...allTriggers.filter(t => t.ruleId === request.ruleId));
-            } else {
-              triggers.push(...allTriggers);
-            }
-          }
-          sendResponse({ triggers });
-          break;
-          
-        case 'getRule':
-          // Get a specific rule by ID
-          const rule = state.rules.find(r => r.id === request.ruleId || r.name === request.ruleId);
-          sendResponse({ success: !!rule, rule });
-          break;
+      case 'getRule':
+        // Get a specific rule by ID
+        const rule = state.rules.find(r => r.id === request.ruleId || r.name === request.ruleId);
+        sendResponse({ success: !!rule, rule });
+        break;
 
         // Export/Import Operations
-        case 'exportData':
-          // Call ExportImportService with explicit parameters
-          const exportResult = await ExportImportService.exportData(
-            request.options,
-            state,
-            tabTimeData
-          );
-          sendResponse(exportResult);
-          break;
+      case 'exportData':
+        // Call ExportImportService with explicit parameters
+        const exportResult = await ExportImportService.exportData(
+          request.options,
+          state,
+          tabTimeData
+        );
+        sendResponse(exportResult);
+        break;
 
-        case 'importData':
-          // Call ExportImportService with explicit context
-          const importResult = await ExportImportService.importData(
-            request.data,
-            request.options,
-            state,
-            loadRules,
-            scheduler
-          );
-          sendResponse(importResult);
-          break;
+      case 'importData':
+        // Call ExportImportService with explicit context
+        const importResult = await ExportImportService.importData(
+          request.data,
+          request.options,
+          state,
+          loadRules,
+          scheduler
+        );
+        sendResponse(importResult);
+        break;
 
         // Scheduled Backup Operations (Phase 8.4)
-        case 'getScheduledExportConfig':
-          const config = await ScheduledExportService.getScheduledExportConfig();
-          sendResponse({ config });
-          break;
+      case 'getScheduledExportConfig':
+        const config = await ScheduledExportService.getScheduledExportConfig();
+        sendResponse({ config });
+        break;
 
-        case 'enableScheduledExports':
-          await ScheduledExportService.enableScheduledExports(request.config);
-          sendResponse({ success: true });
-          break;
+      case 'enableScheduledExports':
+        await ScheduledExportService.enableScheduledExports(request.config);
+        sendResponse({ success: true });
+        break;
 
-        case 'disableScheduledExports':
-          await ScheduledExportService.disableScheduledExports();
-          sendResponse({ success: true });
-          break;
+      case 'disableScheduledExports':
+        await ScheduledExportService.disableScheduledExports();
+        sendResponse({ success: true });
+        break;
 
-        case 'triggerManualBackup':
-          const exportState = {
+      case 'triggerManualBackup':
+        const exportState = {
+          rules: state.rules,
+          snoozedTabs: await SnoozeService.getSnoozedTabs(),
+          settings: state.settings,
+          statistics: state.statistics
+        };
+        const backupResult = await ScheduledExportService.triggerManualBackup(exportState, tabTimeData);
+        sendResponse(backupResult);
+        break;
+
+      case 'getBackupHistory':
+        const backups = await ScheduledExportService.getBackupHistory();
+        sendResponse({ backups });
+        break;
+
+      case 'deleteBackup':
+        await ScheduledExportService.deleteBackup(request.downloadId, request.deleteFile);
+        sendResponse({ success: true });
+        break;
+
+      case 'getExportState':
+        // Return FULL state for creating complete snapshots
+        sendResponse({
+          state: {
             rules: state.rules,
             snoozedTabs: await SnoozeService.getSnoozedTabs(),
             settings: state.settings,
             statistics: state.statistics
-          };
-          const backupResult = await ScheduledExportService.triggerManualBackup(exportState, tabTimeData);
-          sendResponse(backupResult);
-          break;
+          },
+          tabTimeData
+        });
+        break;
 
-        case 'getBackupHistory':
-          const backups = await ScheduledExportService.getBackupHistory();
-          sendResponse({ backups });
-          break;
-
-        case 'deleteBackup':
-          await ScheduledExportService.deleteBackup(request.downloadId, request.deleteFile);
-          sendResponse({ success: true });
-          break;
-
-        case 'getExportState':
-          // Return FULL state for creating complete snapshots
-          sendResponse({
-            state: {
-              rules: state.rules,
-              snoozedTabs: await SnoozeService.getSnoozedTabs(),
-              settings: state.settings,
-              statistics: state.statistics
-            },
-            tabTimeData
-          });
-          break;
-
-        case 'validateBackup':
-          const validation = await ScheduledExportService.validateBackup(request.backup);
-          sendResponse(validation);
-          break;
+      case 'validateBackup':
+        const validation = await ScheduledExportService.validateBackup(request.backup);
+        sendResponse(validation);
+        break;
 
         // ================================================================
         // TabTaskTick Phase 3.1: Side Panel Management
         // ================================================================
 
-        case 'setSidePanel':
-          // Swap between test panel and TabTaskTick panel
-          try {
-            const panelPath = request.panel === 'tabtasktick'
-              ? 'sidepanel/panel.html'
-              : 'test-panel/test-panel.html';
+      case 'setSidePanel':
+        // Swap between test panel and TabTaskTick panel
+        try {
+          const panelPath = request.panel === 'tabtasktick'
+            ? 'sidepanel/panel.html'
+            : 'test-panel/test-panel.html';
 
-            await chrome.sidePanel.setOptions({
-              path: panelPath,
-              enabled: true
-            });
+          await chrome.sidePanel.setOptions({
+            path: panelPath,
+            enabled: true
+          });
 
-            // Open the panel if requested
-            if (request.open) {
-              const window = await chrome.windows.getLastFocused();
-              await chrome.sidePanel.open({ windowId: window.id });
-            }
-
-            sendResponse({ success: true, panel: request.panel });
-          } catch (error) {
-            console.error('Failed to set side panel:', error);
-            sendResponse({ success: false, error: error.message });
+          // Open the panel if requested
+          if (request.open) {
+            const window = await chrome.windows.getLastFocused();
+            await chrome.sidePanel.open({ windowId: window.id });
           }
-          break;
+
+          sendResponse({ success: true, panel: request.panel });
+        } catch (error) {
+          console.error('Failed to set side panel:', error);
+          sendResponse({ success: false, error: error.message });
+        }
+        break;
 
         // ================================================================
         // TabTaskTick Phase 2.6: Collection, Folder, Tab, Task Operations
         // ================================================================
 
         // Collection Operations
-        case 'createCollection':
-          const createdCollection = await CollectionService.createCollection(request.params);
-          sendResponse({ success: true, collection: createdCollection });
-          break;
+      case 'createCollection':
+        const createdCollection = await CollectionService.createCollection(request.params);
+        sendResponse({ success: true, collection: createdCollection });
+        break;
 
-        case 'updateCollection':
-          const updatedCollection = await CollectionService.updateCollection(request.id, request.updates);
-          sendResponse({ success: true, collection: updatedCollection });
-          break;
+      case 'updateCollection':
+        const updatedCollection = await CollectionService.updateCollection(request.id, request.updates);
+        sendResponse({ success: true, collection: updatedCollection });
+        break;
 
-        case 'deleteCollection':
-          await CollectionService.deleteCollection(request.id);
-          sendResponse({ success: true });
-          break;
+      case 'deleteCollection':
+        await CollectionService.deleteCollection(request.id);
+        sendResponse({ success: true });
+        break;
 
-        case 'getCollection':
-          const collection = await getCollection(request.id || request.collectionId);
-          sendResponse({ success: true, collection });
-          break;
+      case 'getCollection':
+        const collection = await getCollection(request.id || request.collectionId);
+        sendResponse({ success: true, collection });
+        break;
 
-        case 'getCollections':
-          const collections = await selectCollections(request.filters || {});
-          sendResponse({ success: true, collections });
-          break;
+      case 'getCollections':
+        const collections = await selectCollections(request.filters || {});
+        sendResponse({ success: true, collections });
+        break;
 
-        case 'getCompleteCollection':
-          const completeCollection = await getCompleteCollection(request.id || request.collectionId);
-          sendResponse({ success: true, collection: completeCollection });
-          break;
+      case 'getCompleteCollection':
+        const completeCollection = await getCompleteCollection(request.id || request.collectionId);
+        sendResponse({ success: true, collection: completeCollection });
+        break;
 
         // Phase 8: Progressive Sync Operations
-        case 'updateCollectionSettings':
-          const updatedSettingsCollection = await CollectionService.updateCollectionSettings(
-            request.collectionId || request.id,
-            request.settings
-          );
+      case 'updateCollectionSettings':
+        const updatedSettingsCollection = await CollectionService.updateCollectionSettings(
+          request.collectionId || request.id,
+          request.settings
+        );
           // Refresh ProgressiveSyncService settings cache
-          await ProgressiveSyncService.refreshSettings(request.collectionId || request.id);
-          sendResponse({ success: true, collection: updatedSettingsCollection });
-          break;
+        await ProgressiveSyncService.refreshSettings(request.collectionId || request.id);
+        sendResponse({ success: true, collection: updatedSettingsCollection });
+        break;
 
-        case 'getSyncStatus':
-          const syncStatus = ProgressiveSyncService.getSyncStatus(request.collectionId || request.id);
-          sendResponse({ success: true, status: syncStatus });
-          break;
+      case 'getSyncStatus':
+        const syncStatus = ProgressiveSyncService.getSyncStatus(request.collectionId || request.id);
+        sendResponse({ success: true, status: syncStatus });
+        break;
 
-        case 'syncCollectionFromWindow':
-          const syncResult = await ProgressiveSyncService.syncCollectionFromWindow(request.collectionId);
-          sendResponse(syncResult);
-          break;
+      case 'syncCollectionFromWindow':
+        const syncResult = await ProgressiveSyncService.syncCollectionFromWindow(request.collectionId);
+        sendResponse(syncResult);
+        break;
 
-        case 'flushSync':
-          // Manual flush trigger (for testing or user-requested sync)
-          if (request.collectionId) {
-            await ProgressiveSyncService.flush(request.collectionId);
-          } else {
-            await ProgressiveSyncService.flush(); // Flush all
-          }
-          sendResponse({ success: true });
-          break;
+      case 'flushSync':
+        // Manual flush trigger (for testing or user-requested sync)
+        if (request.collectionId) {
+          await ProgressiveSyncService.flush(request.collectionId);
+        } else {
+          await ProgressiveSyncService.flush(); // Flush all
+        }
+        sendResponse({ success: true });
+        break;
 
         // Progressive Sync Diagnostic Handlers
-        case 'checkProgressiveSyncInit':
-          sendResponse({
-            success: true,
-            initialized: ProgressiveSyncService.isInitialized()
-          });
-          break;
+      case 'checkProgressiveSyncInit':
+        sendResponse({
+          success: true,
+          initialized: ProgressiveSyncService.isInitialized()
+        });
+        break;
 
-        case 'getProgressiveSyncCache':
-          sendResponse({
-            success: true,
-            cache: ProgressiveSyncService.getSettingsCache()
-          });
-          break;
+      case 'getProgressiveSyncCache':
+        sendResponse({
+          success: true,
+          cache: ProgressiveSyncService.getSettingsCache()
+        });
+        break;
 
-        case 'checkCollectionSync':
-          const collectionSyncInfo = await ProgressiveSyncService.getCollectionSyncInfo(request.collectionId);
-          sendResponse({ success: true, ...collectionSyncInfo });
-          break;
+      case 'checkCollectionSync':
+        const collectionSyncInfo = await ProgressiveSyncService.getCollectionSyncInfo(request.collectionId);
+        sendResponse({ success: true, ...collectionSyncInfo });
+        break;
 
-        case 'refreshProgressiveSyncCache':
-          await ProgressiveSyncService.refreshAllSettings();
-          const cacheAfterRefresh = ProgressiveSyncService.getSettingsCache();
-          sendResponse({
-            success: true,
-            activeCollectionCount: Object.keys(cacheAfterRefresh).length,
-            cache: cacheAfterRefresh
-          });
-          break;
+      case 'refreshProgressiveSyncCache':
+        await ProgressiveSyncService.refreshAllSettings();
+        const cacheAfterRefresh = ProgressiveSyncService.getSettingsCache();
+        sendResponse({
+          success: true,
+          activeCollectionCount: Object.keys(cacheAfterRefresh).length,
+          cache: cacheAfterRefresh
+        });
+        break;
 
-        case 'getProgressiveSyncPending':
-          sendResponse({
-            success: true,
-            pending: ProgressiveSyncService.getPendingChanges()
-          });
-          break;
+      case 'getProgressiveSyncPending':
+        sendResponse({
+          success: true,
+          pending: ProgressiveSyncService.getPendingChanges()
+        });
+        break;
 
-        case 'getProgressiveSyncLogs':
-          const logs = ProgressiveSyncService.getRecentLogs(request.limit || 500);
-          sendResponse({
-            success: true,
-            logs,
-            count: logs.length
-          });
-          break;
+      case 'getProgressiveSyncLogs':
+        const logs = ProgressiveSyncService.getRecentLogs(request.limit || 500);
+        sendResponse({
+          success: true,
+          logs,
+          count: logs.length
+        });
+        break;
 
-        case 'clearProgressiveSyncLogs':
-          ProgressiveSyncService.clearLogs();
-          sendResponse({ success: true });
-          break;
+      case 'clearProgressiveSyncLogs':
+        ProgressiveSyncService.clearLogs();
+        sendResponse({ success: true });
+        break;
 
         // Folder Operations
-        case 'createFolder':
-          const createdFolder = await FolderService.createFolder({
-            ...request.params,
-            collectionId: request.collectionId || request.params.collectionId
-          });
-          sendResponse({ success: true, folder: createdFolder });
-          break;
+      case 'createFolder':
+        const createdFolder = await FolderService.createFolder({
+          ...request.params,
+          collectionId: request.collectionId || request.params.collectionId
+        });
+        sendResponse({ success: true, folder: createdFolder });
+        break;
 
-        case 'updateFolder':
-          const updatedFolder = await FolderService.updateFolder(request.id, request.updates);
-          sendResponse({ success: true, folder: updatedFolder });
-          break;
+      case 'updateFolder':
+        const updatedFolder = await FolderService.updateFolder(request.id, request.updates);
+        sendResponse({ success: true, folder: updatedFolder });
+        break;
 
-        case 'deleteFolder':
-          await FolderService.deleteFolder(request.id);
-          sendResponse({ success: true });
-          break;
+      case 'deleteFolder':
+        await FolderService.deleteFolder(request.id);
+        sendResponse({ success: true });
+        break;
 
-        case 'getFoldersByCollection':
-          const collectionFolders = await getFoldersByCollection(request.collectionId);
-          sendResponse({ success: true, folders: collectionFolders });
-          break;
+      case 'getFoldersByCollection':
+        const collectionFolders = await getFoldersByCollection(request.collectionId);
+        sendResponse({ success: true, folders: collectionFolders });
+        break;
 
         // Tab Operations
-        case 'createTab':
-          const createdTab = await TabService.createTab({
-            ...request.params,
-            folderId: request.folderId || request.params.folderId
-          });
-          sendResponse({ success: true, tab: createdTab });
-          break;
+      case 'createTab':
+        const createdTab = await TabService.createTab({
+          ...request.params,
+          folderId: request.folderId || request.params.folderId
+        });
+        sendResponse({ success: true, tab: createdTab });
+        break;
 
-        case 'updateTab':
-          const tabId = request.tabId || request.id;
-          const updatedTab = await TabService.updateTab(tabId, request.updates);
-          sendResponse({ success: true, tab: updatedTab });
-          break;
+      case 'updateTab':
+        const tabId = request.tabId || request.id;
+        const updatedTab = await TabService.updateTab(tabId, request.updates);
+        sendResponse({ success: true, tab: updatedTab });
+        break;
 
-        case 'deleteTab':
-          await TabService.deleteTab(request.id);
-          sendResponse({ success: true });
-          break;
+      case 'deleteTab':
+        await TabService.deleteTab(request.id);
+        sendResponse({ success: true });
+        break;
 
-        case 'getTab':
-          const tabIdOrRuntimeId = request.tabId || request.id;
-          let tab;
+      case 'getTab':
+        const tabIdOrRuntimeId = request.tabId || request.id;
+        let tab;
 
-          // If it's a number, it's a Chrome runtime tab ID
-          if (typeof tabIdOrRuntimeId === 'number' || !isNaN(Number(tabIdOrRuntimeId))) {
-            tab = await findTabByRuntimeId(Number(tabIdOrRuntimeId));
-          } else {
-            // Otherwise it's a storage ID (UUID)
-            tab = await getTab(tabIdOrRuntimeId);
-          }
+        // If it's a number, it's a Chrome runtime tab ID
+        if (typeof tabIdOrRuntimeId === 'number' || !isNaN(Number(tabIdOrRuntimeId))) {
+          tab = await findTabByRuntimeId(Number(tabIdOrRuntimeId));
+        } else {
+          // Otherwise it's a storage ID (UUID)
+          tab = await getTab(tabIdOrRuntimeId);
+        }
 
-          sendResponse({ success: true, tab });
-          break;
+        sendResponse({ success: true, tab });
+        break;
 
-        case 'showNotification':
-          chrome.notifications.create({
-            type: 'basic',
-            iconUrl: 'icons/icon-128.png',
-            title: request.title || 'TabTaskTick',
-            message: request.message || ''
-          });
-          sendResponse({ success: true });
-          break;
+      case 'showNotification':
+        chrome.notifications.create({
+          type: 'basic',
+          iconUrl: 'icons/icon-128.png',
+          title: request.title || 'TabTaskTick',
+          message: request.message || ''
+        });
+        sendResponse({ success: true });
+        break;
 
-        case 'getTabsByFolder':
-          const folderTabs = await getTabsByFolder(request.folderId);
-          sendResponse({ success: true, tabs: folderTabs });
-          break;
+      case 'getTabsByFolder':
+        const folderTabs = await getTabsByFolder(request.folderId);
+        sendResponse({ success: true, tabs: folderTabs });
+        break;
 
-        case 'getUngroupedTabs':
-          // Get tabs with folderId === null for a specific collection
-          // Note: Can't use index for null, so we filter all tabs
-          const allTabsForUngrouped = await getAllTabs();
-          const ungroupedTabsForCollection = allTabsForUngrouped.filter(tab =>
-            tab.folderId === null && tab.collectionId === request.collectionId
-          );
+      case 'getUngroupedTabs':
+        // Get tabs with folderId === null for a specific collection
+        // Note: Can't use index for null, so we filter all tabs
+        const allTabsForUngrouped = await getAllTabs();
+        const ungroupedTabsForCollection = allTabsForUngrouped.filter(tab =>
+          tab.folderId === null && tab.collectionId === request.collectionId
+        );
           // Sort by position (window-level ordering)
-          ungroupedTabsForCollection.sort((a, b) => a.position - b.position);
-          sendResponse({ success: true, tabs: ungroupedTabsForCollection });
-          break;
+        ungroupedTabsForCollection.sort((a, b) => a.position - b.position);
+        sendResponse({ success: true, tabs: ungroupedTabsForCollection });
+        break;
 
         // Task Operations
-        case 'createTask':
-          const createdTask = await TaskService.createTask(request.params);
-          sendResponse({ success: true, task: createdTask });
-          break;
+      case 'createTask':
+        const createdTask = await TaskService.createTask(request.params);
+        sendResponse({ success: true, task: createdTask });
+        break;
 
-        case 'updateTask':
-          const updatedTask = await TaskService.updateTask(request.id, request.updates);
-          sendResponse({ success: true, task: updatedTask });
-          break;
+      case 'updateTask':
+        const updatedTask = await TaskService.updateTask(request.id, request.updates);
+        sendResponse({ success: true, task: updatedTask });
+        break;
 
-        case 'deleteTask':
-          await TaskService.deleteTask(request.id);
-          sendResponse({ success: true });
-          break;
+      case 'deleteTask':
+        await TaskService.deleteTask(request.id);
+        sendResponse({ success: true });
+        break;
 
-        case 'addTaskComment':
-          const taskWithComment = await TaskService.addComment(request.taskId, request.text);
-          sendResponse({ success: true, task: taskWithComment });
-          break;
+      case 'addTaskComment':
+        const taskWithComment = await TaskService.addComment(request.taskId, request.text);
+        sendResponse({ success: true, task: taskWithComment });
+        break;
 
-        case 'getTasks':
-          const tasks = await selectTasks(request.filters || {});
-          sendResponse({ success: true, tasks });
-          break;
+      case 'getTasks':
+        const tasks = await selectTasks(request.filters || {});
+        sendResponse({ success: true, tasks });
+        break;
 
-        case 'getTask':
-          const task = await getTask(request.id);
-          sendResponse({ success: true, task });
-          break;
+      case 'getTask':
+        const task = await getTask(request.id);
+        sendResponse({ success: true, task });
+        break;
 
         // TabTaskTick Phase 6: Orchestration service message handlers
-        case 'captureWindow':
-          console.log('[background] captureWindow requested:', {
-            windowId: request.windowId,
-            keepActive: request.keepActive,
-            keepActiveType: typeof request.keepActive
-          });
+      case 'captureWindow':
+        console.log('[background] captureWindow requested:', {
+          windowId: request.windowId,
+          keepActive: request.keepActive,
+          keepActiveType: typeof request.keepActive
+        });
 
-          const captureResult = await CaptureWindowService.captureWindow({
-            windowId: request.windowId,
-            metadata: request.metadata,
-            keepActive: request.keepActive
-          });
+        const captureResult = await CaptureWindowService.captureWindow({
+          windowId: request.windowId,
+          metadata: request.metadata,
+          keepActive: request.keepActive
+        });
 
-          console.log('[background] captureWindow complete - result:', {
-            success: !!captureResult.collection,
-            collectionId: captureResult.collection?.id,
-            collectionName: captureResult.collection?.name,
-            windowId: captureResult.collection?.windowId,
+        console.log('[background] captureWindow complete - result:', {
+          success: !!captureResult.collection,
+          collectionId: captureResult.collection?.id,
+          collectionName: captureResult.collection?.name,
+          windowId: captureResult.collection?.windowId,
+          isActive: captureResult.collection?.isActive,
+          hasSettings: !!captureResult.collection?.settings,
+          trackingEnabled: captureResult.collection?.settings?.trackingEnabled
+        });
+
+        // Phase 8: Track collection if it's now active
+        if (captureResult.collection && captureResult.collection.isActive) {
+          console.log('[background] ✓ Collection is active, calling trackCollection for', captureResult.collection.id);
+          try {
+            await ProgressiveSyncService.trackCollection(captureResult.collection.id);
+            console.log('[background] ✓ trackCollection completed successfully');
+          } catch (error) {
+            console.error('[background] ✗ trackCollection failed:', error);
+          }
+        } else {
+          console.warn('[background] ✗ NOT tracking collection:', {
+            hasCollection: !!captureResult.collection,
             isActive: captureResult.collection?.isActive,
-            hasSettings: !!captureResult.collection?.settings,
-            trackingEnabled: captureResult.collection?.settings?.trackingEnabled
+            windowId: captureResult.collection?.windowId
           });
+        }
 
-          // Phase 8: Track collection if it's now active
-          if (captureResult.collection && captureResult.collection.isActive) {
-            console.log('[background] ✓ Collection is active, calling trackCollection for', captureResult.collection.id);
-            try {
-              await ProgressiveSyncService.trackCollection(captureResult.collection.id);
-              console.log('[background] ✓ trackCollection completed successfully');
-            } catch (error) {
-              console.error('[background] ✗ trackCollection failed:', error);
-            }
-          } else {
-            console.warn('[background] ✗ NOT tracking collection:', {
-              hasCollection: !!captureResult.collection,
-              isActive: captureResult.collection?.isActive,
-              windowId: captureResult.collection?.windowId
-            });
+        sendResponse({ success: true, ...captureResult });
+        break;
+
+      case 'restoreCollection':
+        console.log('[background] restoreCollection requested:', {
+          collectionId: request.collectionId,
+          createNewWindow: request.createNewWindow,
+          windowId: request.windowId
+        });
+
+        const collectionRestoreResult = await RestoreCollectionService.restoreCollection({
+          collectionId: request.collectionId,
+          createNewWindow: request.createNewWindow,
+          windowId: request.windowId,
+          focused: request.focused,
+          windowState: request.windowState
+        });
+
+        console.log('[background] restoreCollection complete - result:', {
+          success: !!collectionRestoreResult.collection,
+          collectionId: collectionRestoreResult.collection?.id,
+          collectionName: collectionRestoreResult.collection?.name,
+          windowId: collectionRestoreResult.collection?.windowId,
+          isActive: collectionRestoreResult.collection?.isActive,
+          hasSettings: !!collectionRestoreResult.collection?.settings,
+          trackingEnabled: collectionRestoreResult.collection?.settings?.trackingEnabled
+        });
+
+        // Phase 8: Track restored collection (now active)
+        if (collectionRestoreResult.collection && collectionRestoreResult.collection.isActive) {
+          console.log('[background] ✓ Collection is active, calling trackCollection for', collectionRestoreResult.collection.id);
+          try {
+            await ProgressiveSyncService.trackCollection(collectionRestoreResult.collection.id);
+            console.log('[background] ✓ trackCollection completed successfully');
+          } catch (error) {
+            console.error('[background] ✗ trackCollection failed:', error);
           }
-
-          sendResponse({ success: true, ...captureResult });
-          break;
-
-        case 'restoreCollection':
-          console.log('[background] restoreCollection requested:', {
-            collectionId: request.collectionId,
-            createNewWindow: request.createNewWindow,
-            windowId: request.windowId
-          });
-
-          const collectionRestoreResult = await RestoreCollectionService.restoreCollection({
-            collectionId: request.collectionId,
-            createNewWindow: request.createNewWindow,
-            windowId: request.windowId,
-            focused: request.focused,
-            windowState: request.windowState
-          });
-
-          console.log('[background] restoreCollection complete - result:', {
-            success: !!collectionRestoreResult.collection,
-            collectionId: collectionRestoreResult.collection?.id,
-            collectionName: collectionRestoreResult.collection?.name,
-            windowId: collectionRestoreResult.collection?.windowId,
+        } else {
+          console.warn('[background] ✗ NOT tracking collection:', {
+            hasCollection: !!collectionRestoreResult.collection,
             isActive: collectionRestoreResult.collection?.isActive,
-            hasSettings: !!collectionRestoreResult.collection?.settings,
-            trackingEnabled: collectionRestoreResult.collection?.settings?.trackingEnabled
+            windowId: collectionRestoreResult.collection?.windowId
           });
+        }
 
-          // Phase 8: Track restored collection (now active)
-          if (collectionRestoreResult.collection && collectionRestoreResult.collection.isActive) {
-            console.log('[background] ✓ Collection is active, calling trackCollection for', collectionRestoreResult.collection.id);
-            try {
-              await ProgressiveSyncService.trackCollection(collectionRestoreResult.collection.id);
-              console.log('[background] ✓ trackCollection completed successfully');
-            } catch (error) {
-              console.error('[background] ✗ trackCollection failed:', error);
-            }
-          } else {
-            console.warn('[background] ✗ NOT tracking collection:', {
-              hasCollection: !!collectionRestoreResult.collection,
-              isActive: collectionRestoreResult.collection?.isActive,
-              windowId: collectionRestoreResult.collection?.windowId
-            });
-          }
+        sendResponse({ success: true, ...collectionRestoreResult });
+        break;
 
-          sendResponse({ success: true, ...collectionRestoreResult });
-          break;
-
-        case 'openTaskTabs':
-          const openResult = await TaskExecutionService.openTaskTabs(request.taskId);
-          sendResponse({ success: true, ...openResult });
-          break;
+      case 'openTaskTabs':
+        const openResult = await TaskExecutionService.openTaskTabs(request.taskId);
+        sendResponse({ success: true, ...openResult });
+        break;
 
         // TabTaskTick Phase 9: Collection Import/Export
-        case 'exportCollection':
-          const collectionExportResult = await CollectionExportService.exportCollection(
-            request.collectionId,
-            request.options || {}
-          );
-          sendResponse({ success: true, ...collectionExportResult });
-          break;
+      case 'exportCollection':
+        const collectionExportResult = await CollectionExportService.exportCollection(
+          request.collectionId,
+          request.options || {}
+        );
+        sendResponse({ success: true, ...collectionExportResult });
+        break;
 
-        case 'exportCollections':
-          const exportMultipleResult = await CollectionExportService.exportCollections(
-            request.collectionIds,
-            request.options || {}
-          );
-          sendResponse({ success: true, ...exportMultipleResult });
-          break;
+      case 'exportCollections':
+        const exportMultipleResult = await CollectionExportService.exportCollections(
+          request.collectionIds,
+          request.options || {}
+        );
+        sendResponse({ success: true, ...exportMultipleResult });
+        break;
 
-        case 'exportAllCollections':
-          // Get all collection IDs
-          const allCollections = await selectCollections({});
-          const allCollectionIds = allCollections.map(c => c.id);
-          const exportAllResult = await CollectionExportService.exportCollections(
-            allCollectionIds,
-            request.options || {}
-          );
-          sendResponse({ success: true, ...exportAllResult });
-          break;
+      case 'exportAllCollections':
+        // Get all collection IDs
+        const allCollections = await selectCollections({});
+        const allCollectionIds = allCollections.map(c => c.id);
+        const exportAllResult = await CollectionExportService.exportCollections(
+          allCollectionIds,
+          request.options || {}
+        );
+        sendResponse({ success: true, ...exportAllResult });
+        break;
 
-        case 'importCollections':
-          const collectionImportResult = await CollectionImportService.importCollections(
-            request.data,
-            request.options || {}
-          );
-          sendResponse({ success: true, ...collectionImportResult });
-          break;
+      case 'importCollections':
+        const collectionImportResult = await CollectionImportService.importCollections(
+          request.data,
+          request.options || {}
+        );
+        sendResponse({ success: true, ...collectionImportResult });
+        break;
 
-        case 'focusWindow':
-          await chrome.windows.update(request.windowId, { focused: true });
-          sendResponse({ success: true });
-          break;
+      case 'focusWindow':
+        await chrome.windows.update(request.windowId, { focused: true });
+        sendResponse({ success: true });
+        break;
 
         // Context Menus (for testing)
-        case 'setupContextMenus':
-          await setupContextMenus();
-          sendResponse({ success: true });
-          break;
+      case 'setupContextMenus':
+        await setupContextMenus();
+        sendResponse({ success: true });
+        break;
 
-        case 'getContextMenus':
-          const menuItems = await new Promise((resolve) => {
-            chrome.contextMenus.getAll((items) => {
-              resolve(items);
-            });
+      case 'getContextMenus':
+        const menuItems = await new Promise((resolve) => {
+          chrome.contextMenus.getAll((items) => {
+            resolve(items);
           });
-          sendResponse({ success: true, items: menuItems });
-          break;
+        });
+        sendResponse({ success: true, items: menuItems });
+        break;
 
-        default:
-          sendResponse({ error: 'Unknown action' });
+      default:
+        sendResponse({ error: 'Unknown action' });
       }
     } catch (error) {
       console.error('Error handling message:', error);
@@ -2250,58 +2265,6 @@ async function findAndCloseDuplicates() {
   return closedCount;
 }
 
-// Group tabs by domain - uses engine for consistency
-async function groupByDomain(callerWindowId = null, currentWindowOnly = false, windowId = null) {
-  // Use engine via runRules to ensure proper tab enhancement and consistent behavior
-  const engine = getEngine();
-
-  // Build conditions based on whether we want current window only
-  let conditions = {};
-  if (currentWindowOnly && windowId) {
-    conditions = {
-      subject: 'windowId',
-      operator: 'eq',
-      value: windowId
-    };
-  }
-
-  // Create a temporary rule for manual grouping by domain
-  const tempRule = {
-    id: 'manual-group-by-domain',
-    name: 'Manual Group By Domain',
-    enabled: true,
-    conditions: conditions, // Filter by window if requested
-    actions: [{
-      action: 'group',
-      by: 'domain',
-      callerWindowId: callerWindowId // Pass through to groupTabs service
-    }]
-  };
-
-  // Execute via engine.runRules to get proper tab enhancement
-  // Inject pinned condition if skipPinnedByDefault is enabled
-  const ruleToRun = injectPinnedCondition(tempRule, state.settings.skipPinnedByDefault);
-  const result = await engine.runRules(
-    [ruleToRun],
-    { chrome },
-    { dryRun: false }
-  );
-
-  // Count actions executed (each grouped tab is an action)
-  const groupedCount = result.totalActions || 0;
-
-  // Update statistics (side effects stay in caller)
-  if (groupedCount > 0) {
-    state.statistics.tabsGrouped += groupedCount;
-    await chrome.storage.local.set({ statistics: state.statistics });
-
-    // Log activity
-    logActivity('group', `Grouped ${groupedCount} tab${groupedCount > 1 ? 's' : ''} by domain`, 'manual');
-  }
-
-  return { totalTabsGrouped: groupedCount };
-}
-
 // Quick snooze current tab
 async function quickSnoozeCurrent(minutes = 120) {
   const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -2312,19 +2275,6 @@ async function quickSnoozeCurrent(minutes = 120) {
     return { success: true, tabId: activeTab.id };
   }
   return { success: false, error: 'No active tab' };
-}
-
-async function groupTabs(tabIds, groupName) {
-  if (tabIds.length === 0) return;
-  
-  const groupId = await chrome.tabs.group({ tabIds });
-  if (groupName) {
-    await chrome.tabGroups.update(groupId, { title: groupName });
-  }
-  
-  state.statistics.tabsGrouped += tabIds.length;
-  await chrome.storage.local.set({ statistics: state.statistics });
-  logActivity('group', `Grouped ${tabIds.length} tabs`, 'manual');
 }
 
 async function bookmarkTabs(tabIds, folderName = 'TabMaster Bookmarks') {
@@ -2387,19 +2337,19 @@ chrome.commands.onCommand.addListener(safeAsyncListener(async (command) => {
   console.log('Command received:', command);
 
   switch (command) {
-    case 'quick_snooze':
-      await quickSnoozeCurrent();
-      break;
+  case 'quick_snooze':
+    await quickSnoozeCurrent();
+    break;
 
-    case 'group_by_domain':
-      // Route through engine via groupByDomain (already uses getEngine())
-      await groupByDomain();
-      break;
+  case 'group_by_domain':
+    // Route through engine via groupByDomain (already uses getEngine())
+    await groupByDomain();
+    break;
 
-    case 'close_duplicates':
-      // Route through engine (already uses getEngine())
-      await findAndCloseDuplicates();
-      break;
+  case 'close_duplicates':
+    // Route through engine (already uses getEngine())
+    await findAndCloseDuplicates();
+    break;
   }
 }));
 
@@ -2718,149 +2668,149 @@ async function exportFromContextMenu(scope, windowId = null) {
 
 chrome.contextMenus.onClicked.addListener(safeAsyncListener(async (info, tab) => {
   switch (info.menuItemId) {
-    case 'snooze-1h':
-      // Use new options signature with settings applied (convenience defaults)
-      await SnoozeService.snoozeTabs([tab.id], Date.now() + 60 * 60 * 1000, {
-        reason: 'context_menu_1h',
-        restorationMode: state.settings.tabRestorationMode || 'original',
-        sourceWindowId: tab.windowId
-      });
-      break;
-    case 'snooze-3h':
-      await SnoozeService.snoozeTabs([tab.id], Date.now() + 3 * 60 * 60 * 1000, {
-        reason: 'context_menu_3h',
-        restorationMode: state.settings.tabRestorationMode || 'original',
-        sourceWindowId: tab.windowId
-      });
-      break;
-    case 'snooze-tomorrow':
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(9, 0, 0, 0);
-      await SnoozeService.snoozeTabs([tab.id], tomorrow.getTime(), {
-        reason: 'context_menu_tomorrow',
-        restorationMode: state.settings.tabRestorationMode || 'original',
-        sourceWindowId: tab.windowId
-      });
-      break;
-    case 'create-rule-for-domain':
-      await createRuleForTab(tab, 'domain');
-      break;
-    case 'create-rule-for-url':
-      await createRuleForTab(tab, 'url');
-      break;
-    case 'export-current-window':
-      await exportFromContextMenu('current-window', tab.windowId);
-      break;
-    case 'export-all-windows':
-      await exportFromContextMenu('all-windows');
-      break;
-    case 'snooze-window-1h':
-      // THIN - delegate to WindowService with options (settings applied)
-      await WindowService.snoozeWindow(
-        tab.windowId,
-        1000 * 60 * 60, // 1 hour
-        {
-          reason: 'context_menu_window_1h',
-          restorationMode: state.settings.tabRestorationMode || 'original'
-        }
-      );
-      console.log('Window snoozed for 1 hour');
-      break;
-    case 'snooze-window-3h':
-      // THIN - delegate to WindowService with options (settings applied)
-      await WindowService.snoozeWindow(
-        tab.windowId,
-        1000 * 60 * 60 * 3, // 3 hours
-        {
-          reason: 'context_menu_window_3h',
-          restorationMode: state.settings.tabRestorationMode || 'original'
-        }
-      );
-      console.log('Window snoozed for 3 hours');
-      break;
-    case 'snooze-window-tomorrow':
-      // THIN - delegate to WindowService with options (settings applied)
-      const tomorrowWindow = new Date();
-      tomorrowWindow.setDate(tomorrowWindow.getDate() + 1);
-      tomorrowWindow.setHours(9, 0, 0, 0);
-      await WindowService.snoozeWindow(
-        tab.windowId,
-        tomorrowWindow.getTime() - Date.now(),
-        {
-          reason: 'context_menu_window_tomorrow',
-          restorationMode: state.settings.tabRestorationMode || 'original'
-        }
-      );
-      console.log('Window snoozed until tomorrow');
-      break;
-    case 'dedupe-window':
-      // THIN - delegate to WindowService
-      const result = await WindowService.deduplicateWindow(
-        tab.windowId,
-        'oldest',
-        false
-      );
-      console.log('Window deduplicated:', result);
-      break;
+  case 'snooze-1h':
+    // Use new options signature with settings applied (convenience defaults)
+    await SnoozeService.snoozeTabs([tab.id], Date.now() + 60 * 60 * 1000, {
+      reason: 'context_menu_1h',
+      restorationMode: state.settings.tabRestorationMode || 'original',
+      sourceWindowId: tab.windowId
+    });
+    break;
+  case 'snooze-3h':
+    await SnoozeService.snoozeTabs([tab.id], Date.now() + 3 * 60 * 60 * 1000, {
+      reason: 'context_menu_3h',
+      restorationMode: state.settings.tabRestorationMode || 'original',
+      sourceWindowId: tab.windowId
+    });
+    break;
+  case 'snooze-tomorrow':
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    await SnoozeService.snoozeTabs([tab.id], tomorrow.getTime(), {
+      reason: 'context_menu_tomorrow',
+      restorationMode: state.settings.tabRestorationMode || 'original',
+      sourceWindowId: tab.windowId
+    });
+    break;
+  case 'create-rule-for-domain':
+    await createRuleForTab(tab, 'domain');
+    break;
+  case 'create-rule-for-url':
+    await createRuleForTab(tab, 'url');
+    break;
+  case 'export-current-window':
+    await exportFromContextMenu('current-window', tab.windowId);
+    break;
+  case 'export-all-windows':
+    await exportFromContextMenu('all-windows');
+    break;
+  case 'snooze-window-1h':
+    // THIN - delegate to WindowService with options (settings applied)
+    await WindowService.snoozeWindow(
+      tab.windowId,
+      1000 * 60 * 60, // 1 hour
+      {
+        reason: 'context_menu_window_1h',
+        restorationMode: state.settings.tabRestorationMode || 'original'
+      }
+    );
+    console.log('Window snoozed for 1 hour');
+    break;
+  case 'snooze-window-3h':
+    // THIN - delegate to WindowService with options (settings applied)
+    await WindowService.snoozeWindow(
+      tab.windowId,
+      1000 * 60 * 60 * 3, // 3 hours
+      {
+        reason: 'context_menu_window_3h',
+        restorationMode: state.settings.tabRestorationMode || 'original'
+      }
+    );
+    console.log('Window snoozed for 3 hours');
+    break;
+  case 'snooze-window-tomorrow':
+    // THIN - delegate to WindowService with options (settings applied)
+    const tomorrowWindow = new Date();
+    tomorrowWindow.setDate(tomorrowWindow.getDate() + 1);
+    tomorrowWindow.setHours(9, 0, 0, 0);
+    await WindowService.snoozeWindow(
+      tab.windowId,
+      tomorrowWindow.getTime() - Date.now(),
+      {
+        reason: 'context_menu_window_tomorrow',
+        restorationMode: state.settings.tabRestorationMode || 'original'
+      }
+    );
+    console.log('Window snoozed until tomorrow');
+    break;
+  case 'dedupe-window':
+    // THIN - delegate to WindowService
+    const result = await WindowService.deduplicateWindow(
+      tab.windowId,
+      'oldest',
+      false
+    );
+    console.log('Window deduplicated:', result);
+    break;
 
     // TabTaskTick: Context menu handlers (Phase 5)
-    case 'add-to-collection':
-      // Open collection selector modal
-      chrome.windows.create({
-        url: chrome.runtime.getURL('lib/modals/collection-selector.html') +
+  case 'add-to-collection':
+    // Open collection selector modal
+    chrome.windows.create({
+      url: chrome.runtime.getURL('lib/modals/collection-selector.html') +
           `?tabId=${tab.id}&url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title)}`,
-        type: 'popup',
-        width: 500,
-        height: 600
-      });
-      break;
+      type: 'popup',
+      width: 500,
+      height: 600
+    });
+    break;
 
-    case 'create-task-for-tab':
-      // Open task creation modal with tab pre-filled
-      chrome.windows.create({
-        url: chrome.runtime.getURL('lib/modals/task-modal.html') +
+  case 'create-task-for-tab':
+    // Open task creation modal with tab pre-filled
+    chrome.windows.create({
+      url: chrome.runtime.getURL('lib/modals/task-modal.html') +
           `?summary=${encodeURIComponent(tab.title)}&tabId=${tab.id}&url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title)}`,
-        type: 'popup',
-        width: 600,
-        height: 700
-      });
-      break;
+      type: 'popup',
+      width: 600,
+      height: 700
+    });
+    break;
 
-    case 'add-note-to-tab':
-      // Open note modal
-      chrome.windows.create({
-        url: chrome.runtime.getURL('lib/modals/note-modal.html') +
+  case 'add-note-to-tab':
+    // Open note modal
+    chrome.windows.create({
+      url: chrome.runtime.getURL('lib/modals/note-modal.html') +
           `?tabId=${tab.id}&url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title)}`,
-        type: 'popup',
-        width: 500,
-        height: 400
-      });
-      break;
+      type: 'popup',
+      width: 500,
+      height: 400
+    });
+    break;
 
-    case 'save-window-as-collection':
-      // Get current window from the action context (service workers can't use getCurrent)
-      const currentWindow = await chrome.windows.getLastFocused({ populate: true });
-      // Note: This would require CaptureWindowService from Phase 6
-      // For now, show a notification that this feature is coming
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: 'icons/icon-128.png',
-        title: 'Feature Coming Soon',
-        message: 'Save Window as Collection will be available in Phase 6'
-      });
-      console.log('Save window as collection - coming in Phase 6');
-      break;
+  case 'save-window-as-collection':
+    // Get current window from the action context (service workers can't use getCurrent)
+    const currentWindow = await chrome.windows.getLastFocused({ populate: true });
+    // Note: This would require CaptureWindowService from Phase 6
+    // For now, show a notification that this feature is coming
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'icons/icon-128.png',
+      title: 'Feature Coming Soon',
+      message: 'Save Window as Collection will be available in Phase 6'
+    });
+    console.log('Save window as collection - coming in Phase 6');
+    break;
 
-    case 'open-side-panel':
-      // Open the side panel
-      try {
-        await chrome.sidePanel.open({ windowId: tab.windowId });
-        console.log('Side panel opened');
-      } catch (error) {
-        console.error('Error opening side panel:', error);
-      }
-      break;
+  case 'open-side-panel':
+    // Open the side panel
+    try {
+      await chrome.sidePanel.open({ windowId: tab.windowId });
+      console.log('Side panel opened');
+    } catch (error) {
+      console.error('Error opening side panel:', error);
+    }
+    break;
   }
 }));
 
@@ -2931,14 +2881,14 @@ function migrateConditions(oldConditions) {
   // Convert old condition format to new format
   // This is a simplified migration - expand based on actual old format
   switch (oldConditions.type) {
-    case 'domain':
-      return { eq: ['tab.domain', oldConditions.value] };
-    case 'age':
-      return { gte: ['tab.age', oldConditions.value] };
-    case 'duplicate':
-      return { is: ['tab.isDupe', true] };
-    default:
-      return { all: [] }; // Empty condition
+  case 'domain':
+    return { eq: ['tab.domain', oldConditions.value] };
+  case 'age':
+    return { gte: ['tab.age', oldConditions.value] };
+  case 'duplicate':
+    return { is: ['tab.isDupe', true] };
+  default:
+    return { all: [] }; // Empty condition
   }
 }
 
@@ -2947,21 +2897,21 @@ function migrateActions(oldActions) {
   const actions = [];
   
   switch (oldActions.type) {
-    case 'close':
-      actions.push({ action: 'close' });
-      break;
-    case 'group':
-      actions.push({ 
-        action: 'group',
-        name: oldActions.groupName
-      });
-      break;
-    case 'snooze':
-      actions.push({
-        action: 'snooze',
-        for: oldActions.duration || '2h'
-      });
-      break;
+  case 'close':
+    actions.push({ action: 'close' });
+    break;
+  case 'group':
+    actions.push({ 
+      action: 'group',
+      name: oldActions.groupName
+    });
+    break;
+  case 'snooze':
+    actions.push({
+      action: 'snooze',
+      for: oldActions.duration || '2h'
+    });
+    break;
   }
   
   return actions;
