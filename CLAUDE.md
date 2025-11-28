@@ -803,6 +803,92 @@ grep -rn "safeAsyncListener" tabmaster-pro/**/*.js
 - **Tests**: `/tests/listeners.test.js` (16 tests, all passing)
 - **Background**: Architectural remediation work (v1.3.19)
 
+## ESLint and Code Quality
+
+### ⚠️ CRITICAL: ESLint "Unused" Warnings Need Manual Verification
+
+**ESLint cannot detect usage in template literals or DOM rendering code.**
+
+When ESLint reports a function or import as "unused", **DO NOT immediately delete it** if it's in a view module (dashboard, popup, sidepanel). You MUST verify with runtime testing.
+
+### Why ESLint Misses Usage
+
+ESLint's static analysis can't detect function calls in:
+
+```javascript
+// ❌ ESLint can't see this usage
+const html = `<div>${getTimeAgo(date)}</div>`;
+
+// ❌ ESLint can't see this usage
+element.innerHTML = 'Status: ' + getTabState(tab);
+
+// ❌ ESLint can't see this usage
+const color = tab.groupColor ? getGroupColor(tab.groupColor) : 'default';
+
+// ✅ ESLint CAN see this usage
+const result = getTimeAgo(date);
+element.textContent = result;
+```
+
+### Verification Process
+
+Before removing "unused" imports from view modules:
+
+1. **Search for the function name** in the file: `grep -n "functionName" file.js`
+2. **Check for usage in**:
+   - Template literals (backticks)
+   - String concatenation
+   - innerHTML/textContent assignments
+   - Conditional expressions in rendering code
+3. **Runtime test**: Load the view in the browser and check console for errors
+4. **Only delete if**: No grep matches AND no runtime errors
+
+### Example: Lesson Learned (v1.4.0)
+
+In commit d614dd6, we removed these imports as "unused":
+```javascript
+// Removed as "dead code"
+import { getWindowSignature, getTabState, getLastAccessText } from './utils.js';
+```
+
+ESLint said they were unused, but they were actually called in template literals:
+```javascript
+// Line 81 - ESLint didn't see this
+const signature = getWindowSignature(windowTabs);
+
+// Line 329 - ESLint didn't see this
+html += `<span>${getTabState(tab)}</span>`;
+```
+
+Result: **Dashboard "All Tabs" view completely broken at runtime**.
+
+### Safe to Trust ESLint For
+
+ESLint "unused" warnings ARE reliable for:
+- Service files (pure logic, no templates)
+- Test files (no DOM rendering)
+- Background scripts (no UI code)
+- Imports that grep shows zero usage
+
+### Tools for Verification
+
+```bash
+# Search for function usage (including templates)
+grep -rn "functionName" dashboard/modules/views/
+
+# Check if function is called anywhere
+rg "functionName\(" --type js
+
+# Runtime test: Open dashboard and check console
+# Look for: ReferenceError: functionName is not defined
+```
+
+### ESLint Custom Rules
+
+We have custom ESLint rules in `eslint-plugin-local/`:
+- `no-async-chrome-listener` - Prevents async listener bugs
+- See `eslint-plugin-local/README.md` for details
+
 ## Testing
 
 ### Unit Tests
