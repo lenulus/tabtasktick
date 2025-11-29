@@ -277,6 +277,12 @@ case 'getRecentLogs':
 | `/dashboard/dashboard.js` | MODIFY | Import console-capture |
 | `/sidepanel/sidepanel.js` | MODIFY | Import console-capture |
 
+## Limitations (Accepted)
+
+- **Buffers are ephemeral** - Service worker restart clears background buffer, UI surface close clears that buffer. This is fine for "what just happened?" debugging, not historical analysis.
+- **Each surface isolated** - No centralized log store. For cross-surface debugging, use DevTools.
+- **DevTools for deep debugging** - Open DevTools on service worker (`chrome://extensions` → "service worker" link) or UI surfaces for full console access.
+
 ## What We're NOT Doing
 
 - No complex LoggerService with ring buffers and scopes
@@ -284,6 +290,7 @@ case 'getRecentLogs':
 - No initialization complexity or ensureInitialized patterns
 - No centralized log buffer (each surface has its own)
 - No configuration persistence beyond developerMode and developerLogLevel
+- No persistent log storage (chrome.storage would add I/O overhead)
 
 ## Testing
 
