@@ -18,63 +18,24 @@
             <p class="subtitle">Configure your tab and task management preferences</p>
           </div>
         </div>
-        <div class="header-actions">
-          <button class="btn btn-secondary" id="importBtn">Import Settings</button>
-          <button class="btn btn-primary" id="exportBtn">Export Settings</button>
-        </div>
       </div>
     </header>
 
     <!-- Settings Navigation -->
     <nav class="nav-tabs">
       <button class="nav-tab active" data-tab="general">General</button>
-      <button class="nav-tab" data-tab="rules">Rules Engine</button>
-      <button class="nav-tab" data-tab="automation">Automation</button>
       <button class="nav-tab" data-tab="keybinds">Keyboard Shortcuts</button>
-      <button class="nav-tab" data-tab="performance">Performance</button>
+      <button class="nav-tab" data-tab="data">Data Management</button>
       <button class="nav-tab" data-tab="about">About</button>
     </nav>
 
     <!-- Settings Content -->
     <div class="content">
-      
+
       <!-- General Tab -->
       <div class="tab-panel active" id="general">
         <section class="settings-section">
-          <h2>Basic Settings</h2>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="autoCloseEnabled">Enable Auto-Close</label>
-              <p class="setting-description">Automatically close tabs based on rules</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="autoCloseEnabled" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="autoGroupEnabled">Enable Auto-Grouping</label>
-              <p class="setting-description">Automatically group tabs by domain or rules</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="autoGroupEnabled" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="duplicateDetection">Duplicate Detection</label>
-              <p class="setting-description">Detect and manage duplicate tabs</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="duplicateDetection" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
+          <h2>Tab Behavior</h2>
 
           <div class="setting-item">
             <div class="setting-info">
@@ -85,22 +46,6 @@
               <input type="checkbox" id="skipPinnedByDefault" checked>
               <span class="slider"></span>
             </label>
-          </div>
-
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="maxTabsWarning">Tab Count Warning Threshold</label>
-              <p class="setting-description">Show warning when tab count exceeds this number</p>
-            </div>
-            <input type="number" id="maxTabsWarning" min="10" max="500" value="100">
-          </div>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="defaultSnoozeMinutes">Default Snooze Duration (minutes)</label>
-              <p class="setting-description">Default time for quick snooze action</p>
-            </div>
-            <input type="number" id="defaultSnoozeMinutes" min="5" max="10080" value="120">
           </div>
         </section>
 
@@ -117,92 +62,6 @@
               <option value="current">In current window</option>
               <option value="new">In new window</option>
             </select>
-          </div>
-        </section>
-
-        <section class="settings-section">
-          <h2>Rules Engine</h2>
-
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="activeEngine">Active Engine</label>
-              <p class="setting-description">V2 Services is the production engine with services-first architecture.</p>
-            </div>
-            <select id="activeEngine" class="engine-selector">
-              <option value="v2-services">V2 Services - Production</option>
-            </select>
-          </div>
-
-          <div class="engine-info" id="engineInfo">
-            <div class="info-card">
-              <h4 id="engineInfoTitle">Engine Information</h4>
-              <p id="engineInfoDescription">Loading...</p>
-              <div class="engine-status" id="engineStatus">
-                <span class="status-label">Status:</span>
-                <span class="status-badge" id="engineStatusBadge">Active</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="settings-section">
-          <h2>Notifications</h2>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="notifyOnAutoClose">Auto-Close Notifications</label>
-              <p class="setting-description">Show notifications when tabs are automatically closed</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="notifyOnAutoClose" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="notifyOnSnooze">Snooze Notifications</label>
-              <p class="setting-description">Show notifications when tabs are snoozed or restored</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="notifyOnSnooze" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-        </section>
-
-        <section class="settings-section">
-          <h2>Tab Preview Cards</h2>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="previewEnabled">Enable Tab Previews</label>
-              <p class="setting-description">Show detailed preview cards when hovering over tabs</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="previewEnabled" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="previewScreenshots">Show Screenshots</label>
-              <p class="setting-description">Display tab screenshots in preview cards (may impact performance)</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="previewScreenshots" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="previewDelay">Hover Delay</label>
-              <p class="setting-description">Time to wait before showing preview (milliseconds)</p>
-            </div>
-            <input type="range" id="previewDelay" min="0" max="1000" value="300" step="50">
-            <span class="range-value" id="previewDelayValue">300ms</span>
           </div>
         </section>
 
@@ -245,267 +104,105 @@
         </section>
       </div>
 
-      <!-- Rules Engine Tab -->
-      <div class="tab-panel" id="rules">
-        <section class="settings-section">
-          <div class="section-header">
-            <h2>Rules Management</h2>
-            <button class="btn btn-primary btn-sm" id="addRuleBtn">+ Add Rule</button>
-          </div>
-          
-          <div class="rules-container" id="rulesContainer">
-            <!-- Rules will be populated here -->
-          </div>
-        </section>
-
-        <!-- Rule Editor Modal -->
-        <div class="modal" id="ruleModal">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h3 id="ruleModalTitle">Add New Rule</h3>
-              <button class="close-btn" id="closeRuleModal">&times;</button>
-            </div>
-            <div class="modal-body">
-              <div class="form-group">
-                <label for="ruleName">Rule Name</label>
-                <input type="text" id="ruleName" placeholder="Enter rule name">
-              </div>
-              
-              <div class="form-group">
-                <label for="ruleCondition">Condition Type</label>
-                <select id="ruleCondition">
-                  <option value="duplicate">Duplicate Tabs</option>
-                  <option value="domain_count">Domain Count</option>
-                  <option value="inactive">Inactive Tabs</option>
-                  <option value="age_and_domain">Age and Domain</option>
-                  <option value="memory">Memory Usage</option>
-                </select>
-              </div>
-              
-              <div class="form-group condition-params" id="conditionParams">
-                <!-- Dynamic condition parameters -->
-              </div>
-              
-              <div class="form-group">
-                <label for="ruleAction">Action Type</label>
-                <select id="ruleAction">
-                  <option value="close">Close Tabs</option>
-                  <option value="group">Group Tabs</option>
-                  <option value="snooze">Snooze Tabs</option>
-                  <option value="suspend">Suspend Tabs</option>
-                </select>
-              </div>
-              
-              <div class="form-group action-params" id="actionParams">
-                <!-- Dynamic action parameters -->
-              </div>
-              
-              <div class="form-group">
-                <label for="rulePriority">Priority</label>
-                <input type="number" id="rulePriority" min="1" max="100" value="10">
-                <p class="help-text">Lower numbers have higher priority</p>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-secondary" id="cancelRuleBtn">Cancel</button>
-              <button class="btn btn-primary" id="saveRuleBtn">Save Rule</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Automation Tab -->
-      <div class="tab-panel" id="automation">
-        <section class="settings-section">
-          <h2>Automation Schedule</h2>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="autoRunInterval">Rule Evaluation Interval (minutes)</label>
-              <p class="setting-description">How often to check and apply rules</p>
-            </div>
-            <input type="number" id="autoRunInterval" min="1" max="60" value="5">
-          </div>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="runOnStartup">Run Rules on Browser Startup</label>
-              <p class="setting-description">Apply rules when browser starts</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="runOnStartup" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <div class="setting-info">
-              <label for="suspendOnBattery">Suspend Automation on Battery</label>
-              <p class="setting-description">Disable automatic actions when on battery power</p>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="suspendOnBattery">
-              <span class="slider"></span>
-            </label>
-          </div>
-        </section>
-
-        <section class="settings-section">
-          <h2>Whitelist</h2>
-          <p class="section-description">Domains that should never be automatically closed</p>
-          
-          <div class="whitelist-container">
-            <div class="input-group">
-              <input type="text" id="whitelistInput" placeholder="Enter domain (e.g., gmail.com)">
-              <button class="btn btn-primary" id="addWhitelistBtn">Add</button>
-            </div>
-            <ul class="whitelist" id="whitelistDomains">
-              <!-- Whitelist domains will be populated here -->
-            </ul>
-          </div>
-        </section>
-      </div>
-
       <!-- Keyboard Shortcuts Tab -->
       <div class="tab-panel" id="keybinds">
         <section class="settings-section">
           <h2>Keyboard Shortcuts</h2>
-          <p class="section-description">Customize keyboard shortcuts to match your workflow. Click on any shortcut to change it.</p>
-          
+
           <div class="shortcuts-info">
             <div class="info-card">
-              <h4>💡 Tip</h4>
-              <p>For system-wide shortcut management, visit <code>chrome://extensions/shortcuts</code></p>
+              <h4>How to Change Shortcuts</h4>
+              <p>Chrome extension shortcuts can only be modified through Chrome's built-in settings.
+                 Visit <a href="chrome://extensions/shortcuts" id="shortcutsLink">chrome://extensions/shortcuts</a>
+                 to customize these shortcuts.</p>
             </div>
           </div>
-          
+
           <div class="shortcuts-list" id="shortcutsList">
             <div class="shortcut-item">
               <div class="shortcut-info">
-                <h4>Command Palette</h4>
-                <p>Access all TabTaskTick features</p>
+                <h4>Open Popup</h4>
+                <p>Open the TabTaskTick popup</p>
               </div>
-              <div class="shortcut-key" data-command="_execute_action">
+              <div class="shortcut-key">
                 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
-                <button class="edit-shortcut">Edit</button>
               </div>
             </div>
-            
+
             <div class="shortcut-item">
               <div class="shortcut-info">
                 <h4>Quick Snooze</h4>
                 <p>Snooze the current tab with dialog</p>
               </div>
-              <div class="shortcut-key" data-command="quick_snooze">
+              <div class="shortcut-key">
                 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>
-                <button class="edit-shortcut">Edit</button>
               </div>
             </div>
-            
+
             <div class="shortcut-item">
               <div class="shortcut-info">
                 <h4>Group by Domain</h4>
                 <p>Organize all tabs into domain groups</p>
               </div>
-              <div class="shortcut-key" data-command="group_by_domain">
+              <div class="shortcut-key">
                 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>
-                <button class="edit-shortcut">Edit</button>
               </div>
             </div>
-            
+
             <div class="shortcut-item">
               <div class="shortcut-info">
                 <h4>Close Duplicates</h4>
                 <p>Remove all duplicate tabs</p>
               </div>
-              <div class="shortcut-key" data-command="close_duplicates">
+              <div class="shortcut-key">
                 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>
-                <button class="edit-shortcut">Edit</button>
               </div>
             </div>
-            
-          </div>
-          
-          <div class="actions-row">
-            <button class="btn btn-secondary" id="resetShortcuts">Reset to Defaults</button>
-            <button class="btn btn-secondary" id="importShortcuts">Import Shortcuts</button>
-            <button class="btn btn-primary" id="exportShortcuts">Export Shortcuts</button>
-          </div>
-        </section>
-        
-        <section class="settings-section">
-          <h2>Shortcut Profiles</h2>
-          <p class="section-description">Quick presets for different workflows</p>
-          
-          <div class="profile-grid">
-            <button class="profile-btn" data-profile="default">
-              <h4>Default</h4>
-              <p>Standard shortcuts</p>
-            </button>
-            <button class="profile-btn" data-profile="developer">
-              <h4>Developer</h4>
-              <p>VS Code style</p>
-            </button>
-            <button class="profile-btn" data-profile="vim">
-              <h4>Vim User</h4>
-              <p>Vim-like navigation</p>
-            </button>
-            <button class="profile-btn" data-profile="minimal">
-              <h4>Minimal</h4>
-              <p>Essential shortcuts only</p>
-            </button>
           </div>
         </section>
       </div>
 
-      <!-- Performance Tab -->
-      <div class="tab-panel" id="performance">
+      <!-- Data Management Tab -->
+      <div class="tab-panel" id="data">
         <section class="settings-section">
-          <h2>Memory Management</h2>
-          
+          <h2>Data Management</h2>
+          <p class="section-description">Manage your extension data and reset settings</p>
+
           <div class="setting-item">
             <div class="setting-info">
-              <label for="memoryThreshold">Memory Threshold (%)</label>
-              <p class="setting-description">Trigger memory management when usage exceeds this percentage</p>
+              <label>Clear Activity History</label>
+              <p class="setting-description">Remove all recorded tab activity history</p>
             </div>
-            <div class="range-container">
-              <input type="range" id="memoryThreshold" min="50" max="95" value="80">
-              <span class="range-value" id="memoryThresholdValue">80%</span>
-            </div>
+            <button class="btn btn-secondary" id="clearHistory">Clear History</button>
           </div>
-          
+
           <div class="setting-item">
             <div class="setting-info">
-              <label for="tabSuspendTime">Auto-Suspend After (minutes)</label>
-              <p class="setting-description">Suspend inactive tabs after this duration</p>
+              <label>Clear All Data</label>
+              <p class="setting-description">Remove all extension data including snoozed tabs, rules, and settings</p>
             </div>
-            <input type="number" id="tabSuspendTime" min="5" max="120" value="30">
+            <button class="btn btn-secondary" id="clearStorage">Clear All Data</button>
           </div>
-          
+
           <div class="setting-item">
             <div class="setting-info">
-              <label for="maxTabsPerGroup">Maximum Tabs per Group</label>
-              <p class="setting-description">Maximum number of tabs in a single group</p>
+              <label>Reset to Defaults</label>
+              <p class="setting-description">Restore all settings to their default values</p>
             </div>
-            <input type="number" id="maxTabsPerGroup" min="5" max="50" value="20">
+            <button class="btn btn-danger" id="resetSettings">Reset to Defaults</button>
           </div>
         </section>
 
         <section class="settings-section">
-          <h2>Data Management</h2>
-          
+          <h2>Import & Export</h2>
+          <p class="section-description">For full data export/import including scheduled backups, use the Dashboard</p>
+
           <div class="setting-item">
             <div class="setting-info">
-              <label for="historyRetention">History Retention (days)</label>
-              <p class="setting-description">How long to keep tab closure history</p>
+              <label>Open Dashboard</label>
+              <p class="setting-description">Access advanced export/import features with multiple formats and scheduling</p>
             </div>
-            <input type="number" id="historyRetention" min="1" max="90" value="30">
-          </div>
-          
-          <div class="actions-row">
-            <button class="btn btn-secondary" id="clearHistory">Clear History</button>
-            <button class="btn btn-secondary" id="clearStorage">Clear All Data</button>
-            <button class="btn btn-danger" id="resetSettings">Reset to Defaults</button>
+            <button class="btn btn-primary" id="openDashboard">Open Dashboard</button>
           </div>
         </section>
       </div>
@@ -516,55 +213,14 @@
           <div class="about-content">
             <img src="../icons/icon-128.png" alt="TabTaskTick" class="about-logo">
             <h2>TabTaskTick</h2>
-            <p class="version">Version 1.0.0</p>
-            
+            <p class="version" id="versionNumber">Version loading...</p>
+
             <div class="about-info">
               <p>Advanced tab and bookmark management extension with intelligent automation.</p>
-              
-              <div class="stats-summary">
-                <h3>Lifetime Statistics</h3>
-                <div class="stats-grid">
-                  <div class="stat">
-                    <span class="stat-label">Tabs Closed</span>
-                    <span class="stat-value" id="lifetimeTabsClosed">0</span>
-                  </div>
-                  <div class="stat">
-                    <span class="stat-label">Tabs Snoozed</span>
-                    <span class="stat-value" id="lifetimeTabsSnoozed">0</span>
-                  </div>
-                  <div class="stat">
-                    <span class="stat-label">Tabs Grouped</span>
-                    <span class="stat-value" id="lifetimeTabsGrouped">0</span>
-                  </div>
-                  <div class="stat">
-                    <span class="stat-label">Duplicates Removed</span>
-                    <span class="stat-value" id="lifetimeDuplicatesRemoved">0</span>
-                  </div>
-                </div>
-              </div>
-              
+
               <div class="links">
-                <a href="https://github.com/yourusername/tabmaster-pro" target="_blank">GitHub</a>
-                <a href="https://github.com/yourusername/tabmaster-pro/wiki" target="_blank">Documentation</a>
-                <a href="https://github.com/yourusername/tabmaster-pro/issues" target="_blank">Report Issue</a>
-                <a href="#" id="privacyLink">Privacy Policy</a>
-              </div>
-              
-              <div class="keyboard-shortcuts">
-                <h3>Keyboard Shortcuts</h3>
-                <dl>
-                  <dt>Ctrl/Cmd + Shift + P</dt>
-                  <dd>Open command palette</dd>
-                  
-                  <dt>Ctrl/Cmd + Shift + S</dt>
-                  <dd>Quick snooze current tab</dd>
-                  
-                  <dt>Ctrl/Cmd + Shift + G</dt>
-                  <dd>Group all tabs by domain</dd>
-                  
-                  <dt>Ctrl/Cmd + Shift + D</dt>
-                  <dd>Close duplicate tabs</dd>
-                </dl>
+                <a href="https://github.com/lenulus/bmpro" target="_blank">GitHub</a>
+                <a href="https://github.com/lenulus/bmpro/issues" target="_blank">Report Issue</a>
               </div>
             </div>
           </div>
@@ -578,9 +234,6 @@
     </div>
   </div>
 
-  <!-- Import file input (hidden) -->
-  <input type="file" id="importFile" accept=".json" style="display: none;">
-  
   <script type="module" src="options.js"></script>
 </body>
 </html>

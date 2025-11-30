@@ -392,6 +392,7 @@ chrome.runtime.onInstalled.addListener(safeAsyncListener(async () => {
   await ProgressiveSyncService.initialize(); // Phase 8: Initialize progressive collection sync
   await setupContextMenus();
   await loadSettings();
+  await loadStatistics();
   await loadRules();
   await loadActivityLog();
   await initializeTabTimeTracking();
@@ -497,6 +498,17 @@ async function loadSettings() {
   if (activeEngine) {
     state.testEngine = activeEngine;
     console.log(`Loaded engine preference: ${activeEngine}`);
+  }
+}
+
+/**
+ * Load statistics from storage (persisted across service worker restarts)
+ */
+async function loadStatistics() {
+  const { statistics } = await chrome.storage.local.get('statistics');
+  if (statistics) {
+    state.statistics = { ...state.statistics, ...statistics };
+    console.log('Loaded statistics:', state.statistics);
   }
 }
 
@@ -2905,6 +2917,7 @@ async function startMonitoring() {
   try {
     await loadRules();
     await loadSettings();
+    await loadStatistics();
     await loadActivityLog();
     await loadDomainCategories();
     // CRITICAL: Initialize scheduler on every service worker load
