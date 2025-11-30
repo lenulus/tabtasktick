@@ -37,19 +37,6 @@ const LEVELS = { debug: 0, log: 1, info: 1, warn: 2, error: 3 };
 // State
 let effectiveLevel = 2; // Default to warn (conservative)
 
-// Surface detection (for getSurface() export)
-// eslint-disable-next-line no-undef
-const SURFACE = typeof location === 'undefined' ? 'background'
-  // eslint-disable-next-line no-undef
-  : location.pathname.includes('/popup/') ? 'popup'
-    // eslint-disable-next-line no-undef
-    : location.pathname.includes('/dashboard/') ? 'dashboard'
-      // eslint-disable-next-line no-undef
-      : location.pathname.includes('/sidepanel/') ? 'sidepanel'
-        // eslint-disable-next-line no-undef
-        : location.pathname.includes('/options/') ? 'options'
-          : 'unknown';
-
 /**
  * Apply log level by swapping console method references
  * Methods below threshold become noop, others are restored to original
@@ -108,14 +95,6 @@ export async function initConsoleCapture() {
 
   await loadSettings();
   listenForChanges();
-}
-
-/**
- * Get the detected surface name
- * @returns {string} Surface name (popup, dashboard, sidepanel, options, background, unknown)
- */
-export function getSurface() {
-  return SURFACE;
 }
 
 /**

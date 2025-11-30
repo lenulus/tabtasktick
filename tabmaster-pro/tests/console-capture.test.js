@@ -307,14 +307,6 @@ describe('console-capture', () => {
     });
   });
 
-  describe('surface detection', () => {
-    it('should return "unknown" or "background" for unrecognized paths', async () => {
-      const surface = consoleCapture.getSurface();
-      // In test environment, location is likely undefined or unmatched
-      expect(['unknown', 'background']).toContain(surface);
-    });
-  });
-
   describe('getEffectiveLevel', () => {
     it('should return current effective level', async () => {
       consoleCapture._setEffectiveLevelForTesting(3);

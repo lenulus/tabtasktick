@@ -1,17 +1,17 @@
-# Logging System Plan v2 - Simple Console Capture
+# Logging System Plan v2 - Console Log Level Filtering
 
 ## Overview
 
-Replace the over-engineered LoggerService approach with a simple console override that captures logs with minimal overhead.
+Replace the over-engineered LoggerService approach with a simple reference-swap pattern that filters console output while preserving caller info in DevTools.
 
 ## Goals
 
-1. Capture console.log/warn/error with surface tagging
+1. Filter console.log/warn/error based on log level setting
 2. Developer Mode toggle controls debug feature visibility
 3. Adjustable log level when Developer Mode is ON
 4. Conservative defaults (WARN/ERROR only) when Developer Mode is OFF
-5. No messaging overhead - each surface keeps its own buffer
-6. Background has the important logs (business logic runs there)
+5. Preserve caller info in DevTools (file:line shown correctly)
+6. Minimal overhead - reference swap, no wrapping
 
 ## Architecture
 
@@ -39,58 +39,42 @@ Replace the over-engineered LoggerService approach with a simple console overrid
 
 ```javascript
 /**
- * Simple console capture utility
- * - Auto-detects surface from location
- * - Overrides console.log/warn/error
- * - Respects developer mode and log level settings
- * - No messaging overhead - logs stay in surface's buffer
+ * Console log level filtering utility
+ *
+ * Uses reference swapping (not wrapping) to preserve caller info in DevTools.
+ * Respects developer mode and log level settings from chrome.storage.
  */
 
-// Surface detection (runs once at load)
-const SURFACE = typeof location === 'undefined' ? 'background'
-  : location.pathname.includes('/popup/') ? 'popup'
-  : location.pathname.includes('/dashboard/') ? 'dashboard'
-  : location.pathname.includes('/sidepanel/') ? 'sidepanel'
-  : location.pathname.includes('/options/') ? 'options'
-  : 'unknown';
+import { safeAsyncListener } from './listeners.js';
 
-// Log levels
-const LEVELS = { debug: 0, info: 1, log: 1, warn: 2, error: 3 };
-
-// State
-const recentLogs = [];
-const MAX_LOGS = 500;
-let effectiveLevel = 2; // Default to warn (conservative)
-
-// Original console methods
-const originalConsole = {
-  debug: console.debug,
-  log: console.log,
-  info: console.info,
-  warn: console.warn,
-  error: console.error
+// Keep bound originals so `this` is correct and call sites are preserved
+const ORIGINAL = {
+  debug: (console.debug || console.log).bind(console),
+  log: console.log.bind(console),
+  info: console.info.bind(console),
+  warn: console.warn.bind(console),
+  error: console.error.bind(console)
 };
 
-// Capture function
-function capture(type, args) {
-  const level = LEVELS[type];
-  if (level >= effectiveLevel) {
-    recentLogs.push({
-      surface: SURFACE,
-      type,
-      level,
-      timestamp: Date.now(),
-      message: args.map(arg => {
-        if (typeof arg === 'object') {
-          try { return JSON.stringify(arg); }
-          catch { return String(arg); }
-        }
-        return String(arg);
-      }).join(' ')
-    });
-    if (recentLogs.length > MAX_LOGS) recentLogs.shift();
-  }
-  originalConsole[type].apply(console, args);
+// Single shared noop for filtered methods
+function noop() {}
+
+// Log levels: debug=0, log=1, info=1, warn=2, error=3
+const LEVELS = { debug: 0, log: 1, info: 1, warn: 2, error: 3 };
+
+// State
+let effectiveLevel = 2; // Default to warn (conservative)
+
+/**
+ * Apply log level by swapping console method references
+ * Methods below threshold become noop, others are restored to original
+ */
+function applyLogLevel() {
+  console.debug = (LEVELS.debug >= effectiveLevel) ? ORIGINAL.debug : noop;
+  console.log = (LEVELS.log >= effectiveLevel) ? ORIGINAL.log : noop;
+  console.info = (LEVELS.info >= effectiveLevel) ? ORIGINAL.info : noop;
+  console.warn = (LEVELS.warn >= effectiveLevel) ? ORIGINAL.warn : noop;
+  console.error = (LEVELS.error >= effectiveLevel) ? ORIGINAL.error : noop;
 }
 
 // Load settings from storage
@@ -100,16 +84,14 @@ async function loadSettings() {
       'developerMode',
       'developerLogLevel'
     ]);
-    // If dev mode off, force warn level; otherwise use saved level
     effectiveLevel = developerMode ? (developerLogLevel ?? 2) : 2;
   } catch {
-    effectiveLevel = 2; // Default to warn on error
+    effectiveLevel = 2;
   }
+  applyLogLevel();
 }
 
-// Listen for settings changes (uses safeAsyncListener per CLAUDE.md)
-import { safeAsyncListener } from './listeners.js';
-
+// Listen for settings changes
 function listenForChanges() {
   chrome.storage.onChanged.addListener(safeAsyncListener(async (changes, area) => {
     if (area === 'local') {
@@ -120,35 +102,16 @@ function listenForChanges() {
   }));
 }
 
-// Initialization guard (prevents double-init on service worker restart)
+// Initialization guard
 let initialized = false;
 
-// Initialize - call this once per surface
 export async function initConsoleCapture() {
   if (initialized) return;
   initialized = true;
-
   await loadSettings();
   listenForChanges();
-
-  console.debug = (...args) => capture('debug', args);
-  console.log = (...args) => capture('log', args);
-  console.info = (...args) => capture('info', args);
-  console.warn = (...args) => capture('warn', args);
-  console.error = (...args) => capture('error', args);
 }
 
-// Get logs for this surface
-export function getRecentLogs() {
-  return [...recentLogs];
-}
-
-// Get surface name
-export function getSurface() {
-  return SURFACE;
-}
-
-// Get current effective level (for conditional expensive logging)
 export function getEffectiveLevel() {
   return effectiveLevel;
 }
@@ -279,9 +242,8 @@ case 'getRecentLogs':
 
 ## Limitations (Accepted)
 
-- **Buffers are ephemeral** - Service worker restart clears background buffer, UI surface close clears that buffer. This is fine for "what just happened?" debugging, not historical analysis.
-- **Each surface isolated** - No centralized log store. For cross-surface debugging, use DevTools.
-- **DevTools for deep debugging** - Open DevTools on service worker (`chrome://extensions` → "service worker" link) or UI surfaces for full console access.
+- **No buffer capture** - The original plan included a `recentLogs` buffer, but this was removed in favor of preserving caller info in DevTools. Wrapping console methods causes DevTools to show `console-capture.js:XX` instead of the actual caller file:line. The reference swap approach (swapping console methods between bound originals and `noop`) preserves caller info.
+- **DevTools for all debugging** - Open DevTools on service worker (`chrome://extensions` → "service worker" link) or UI surfaces for full console access. No in-app log viewer.
 
 ## What We're NOT Doing
 
@@ -304,9 +266,8 @@ case 'getRecentLogs':
 ## Unit Tests for Utility
 
 Add `/tests/console-capture.test.js`:
-- `capture()` respects log levels
+- Level filtering (reference swap to noop vs original)
 - `loadSettings()` handles missing/malformed storage
-- Surface detection accuracy
 - Initialization guard prevents double-init
 - Storage change listener updates effective level
 

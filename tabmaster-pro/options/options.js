@@ -9,7 +9,7 @@ import {
 } from '../lib/engineLoader.js';
 
 // Console capture for logging
-import { initConsoleCapture, getSurface, getEffectiveLevel } from '../services/utils/console-capture.js';
+import { initConsoleCapture, getEffectiveLevel } from '../services/utils/console-capture.js';
 initConsoleCapture();
 
 // ============================================================================
@@ -715,12 +715,10 @@ function setupEventListeners() {
 
   document.getElementById('testLogLevels').addEventListener('click', () => {
     const timestamp = new Date().toLocaleTimeString();
-    const surface = getSurface();
     const effectiveLevel = getEffectiveLevel();
     const levelNames = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
 
-    console.log(`--- Test at ${timestamp} ---`);
-    console.log(`  Surface: "${surface}" | Effective Level: ${levelNames[effectiveLevel]} (${effectiveLevel})`);
+    console.log(`--- Test at ${timestamp} | Level: ${levelNames[effectiveLevel]} ---`);
     console.debug(`  [DEBUG] This message (level 0) ${effectiveLevel <= 0 ? '✓ visible' : '✗ filtered'}`);
     console.log(`  [LOG]   This message (level 1) ${effectiveLevel <= 1 ? '✓ visible' : '✗ filtered'}`);
     console.info(`  [INFO]  This message (level 1) ${effectiveLevel <= 1 ? '✓ visible' : '✗ filtered'}`);
@@ -728,7 +726,7 @@ function setupEventListeners() {
     console.error(`  [ERROR] This message (level 3) ✓ always visible`);
     console.log(`--- End test (DEBUG requires "Verbose" in DevTools) ---`);
 
-    showNotification(`Surface: ${surface} | Level: ${levelNames[effectiveLevel]}`);
+    showNotification(`Level: ${levelNames[effectiveLevel]}`);
   });
 
   // Rules
