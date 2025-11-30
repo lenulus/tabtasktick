@@ -286,8 +286,8 @@ async function initializeTabTimeTracking() {
     tabs.forEach(tab => {
       tabTimeData.set(tab.id, {
         created: now - (5 * 60 * 1000), // Assume 5 minutes old for existing tabs
-        lastActive: tab.active ? now : now - (10 * 60 * 1000),
-        lastAccessed: now - (10 * 60 * 1000)
+        lastActive: tab.active ? now : (tab.lastAccessed || now - (10 * 60 * 1000)),
+        lastAccessed: tab.lastAccessed || now - (10 * 60 * 1000) // Use Chrome's value if available
       });
     });
     
