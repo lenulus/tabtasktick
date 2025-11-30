@@ -5,6 +5,10 @@
 // ============================================================================
 
 import { exitTestMode } from '../services/execution/TestModeService.js';
+import { initConsoleCapture } from '../services/utils/console-capture.js';
+
+// Initialize console capture immediately
+initConsoleCapture();
 
 // ============================================================================
 // DOM Elements
@@ -86,6 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
   setupStatCardLinks();
   setupCollectionsLinks();
+  await setupDeveloperFeatures();
 
   // Initialize snooze modal
   snoozeModal = new SnoozeModal();
@@ -138,6 +143,26 @@ async function loadTestModeStatus() {
     }
   } catch (error) {
     console.error('Failed to load test mode status:', error);
+  }
+}
+
+/**
+ * Setup developer features visibility based on Developer Mode setting
+ * Hides debug buttons when Developer Mode is OFF
+ */
+async function setupDeveloperFeatures() {
+  try {
+    const { developerMode } = await chrome.storage.local.get('developerMode');
+
+    // Hide or show debug-related buttons based on developer mode
+    if (elements.debugBtn) {
+      elements.debugBtn.style.display = developerMode ? '' : 'none';
+    }
+    if (elements.testPanel) {
+      elements.testPanel.style.display = developerMode ? '' : 'none';
+    }
+  } catch (error) {
+    console.error('Failed to setup developer features:', error);
   }
 }
 

@@ -5,6 +5,10 @@
 
 import state from './modules/core/state.js';
 
+// Console capture for logging
+import { initConsoleCapture } from '../services/utils/console-capture.js';
+initConsoleCapture();
+
 // Import shared utilities
 import {
   clearSelection,

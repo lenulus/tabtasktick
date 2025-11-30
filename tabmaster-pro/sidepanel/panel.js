@@ -25,6 +25,10 @@ import {
 import { getCurrentTabSnapshot } from '../services/utils/tab-snapshot.js';
 import { TabChipRenderer } from './components/tab-chip-renderer.js';
 
+// Console capture for logging
+import { initConsoleCapture } from '../services/utils/console-capture.js';
+initConsoleCapture();
+
 class SidePanelController {
   constructor() {
     this.currentView = 'collections'; // 'collections' or 'tasks'

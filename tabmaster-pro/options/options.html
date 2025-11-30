@@ -205,6 +205,44 @@
             <span class="range-value" id="previewDelayValue">300ms</span>
           </div>
         </section>
+
+        <section class="settings-section">
+          <h2>Developer Options</h2>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <label for="developerMode">Developer Mode</label>
+              <p class="setting-description">Enable debugging features and detailed logging</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="developerMode">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div id="developerSettings" class="developer-settings hidden">
+            <div class="setting-item">
+              <div class="setting-info">
+                <label for="developerLogLevel">Log Level</label>
+                <p class="setting-description">Controls which log messages are captured for debugging</p>
+              </div>
+              <select id="developerLogLevel" class="setting-select">
+                <option value="0">DEBUG (verbose)</option>
+                <option value="1">INFO</option>
+                <option value="2" selected>WARN (default)</option>
+                <option value="3">ERROR (minimal)</option>
+              </select>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <label>Test Log Filtering</label>
+                <p class="setting-description">Emit a test log at each level to verify filtering (check browser console)</p>
+              </div>
+              <button class="btn btn-secondary" id="testLogLevels">Test Log Levels</button>
+            </div>
+          </div>
+        </section>
       </div>
 
       <!-- Rules Engine Tab -->

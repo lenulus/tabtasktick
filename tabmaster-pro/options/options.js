@@ -8,6 +8,10 @@ import {
   onEngineChanged
 } from '../lib/engineLoader.js';
 
+// Console capture for logging
+import { initConsoleCapture, getSurface, getEffectiveLevel } from '../services/utils/console-capture.js';
+initConsoleCapture();
+
 // ============================================================================
 // State Management
 // ============================================================================
@@ -99,10 +103,35 @@ async function loadSettings() {
     const whitelist = currentSettings.whitelist || [];
     whitelistDomains = whitelist;
     updateWhitelistUI();
-    
+
+    // Load developer settings (stored directly in chrome.storage.local)
+    await loadDeveloperSettings();
+
   } catch (error) {
     console.error('Failed to load settings:', error);
     showNotification('Failed to load settings', 'error');
+  }
+}
+
+/**
+ * Load and apply developer settings from chrome.storage.local
+ */
+async function loadDeveloperSettings() {
+  try {
+    const { developerMode, developerLogLevel } = await chrome.storage.local.get([
+      'developerMode',
+      'developerLogLevel'
+    ]);
+
+    const developerModeCheckbox = document.getElementById('developerMode');
+    const developerLogLevelSelect = document.getElementById('developerLogLevel');
+    const developerSettingsPanel = document.getElementById('developerSettings');
+
+    developerModeCheckbox.checked = developerMode || false;
+    developerLogLevelSelect.value = developerLogLevel ?? 2;
+    developerSettingsPanel.classList.toggle('hidden', !developerMode);
+  } catch (error) {
+    console.error('Failed to load developer settings:', error);
   }
 }
 
@@ -670,7 +699,38 @@ function setupEventListeners() {
     previewDelayValue.textContent = `${previewDelay.value}ms`;
   });
   previewDelay.addEventListener('change', saveSettings);
-  
+
+  // Developer Mode settings
+  document.getElementById('developerMode').addEventListener('change', async (e) => {
+    const enabled = e.target.checked;
+    await chrome.storage.local.set({ developerMode: enabled });
+    document.getElementById('developerSettings').classList.toggle('hidden', !enabled);
+    showSaveNotification();
+  });
+
+  document.getElementById('developerLogLevel').addEventListener('change', async (e) => {
+    await chrome.storage.local.set({ developerLogLevel: parseInt(e.target.value) });
+    showSaveNotification();
+  });
+
+  document.getElementById('testLogLevels').addEventListener('click', () => {
+    const timestamp = new Date().toLocaleTimeString();
+    const surface = getSurface();
+    const effectiveLevel = getEffectiveLevel();
+    const levelNames = ['DEBUG', 'INFO', 'WARN', 'ERROR'];
+
+    console.log(`--- Test at ${timestamp} ---`);
+    console.log(`  Surface: "${surface}" | Effective Level: ${levelNames[effectiveLevel]} (${effectiveLevel})`);
+    console.debug(`  [DEBUG] This message (level 0) ${effectiveLevel <= 0 ? '✓ visible' : '✗ filtered'}`);
+    console.log(`  [LOG]   This message (level 1) ${effectiveLevel <= 1 ? '✓ visible' : '✗ filtered'}`);
+    console.info(`  [INFO]  This message (level 1) ${effectiveLevel <= 1 ? '✓ visible' : '✗ filtered'}`);
+    console.warn(`  [WARN]  This message (level 2) ${effectiveLevel <= 2 ? '✓ visible' : '✗ filtered'}`);
+    console.error(`  [ERROR] This message (level 3) ✓ always visible`);
+    console.log(`--- End test (DEBUG requires "Verbose" in DevTools) ---`);
+
+    showNotification(`Surface: ${surface} | Level: ${levelNames[effectiveLevel]}`);
+  });
+
   // Rules
   document.getElementById('addRuleBtn').addEventListener('click', () => openRuleModal());
   document.getElementById('closeRuleModal').addEventListener('click', closeRuleModal);
