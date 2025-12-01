@@ -12,10 +12,10 @@ export const selectionState = {
 };
 
 // Tab selection handling
-export function handleTabSelection(checkbox, tabId, tabCard) {
+export function handleTabSelection(event, checkbox, tabId, tabCard) {
   const wasChecked = checkbox.checked;
-  
-  if (event.shiftKey && selectionState.startId !== null) {
+
+  if (event?.shiftKey && selectionState.startId !== null) {
     // Range selection
     handleRangeSelection(tabId);
   } else {

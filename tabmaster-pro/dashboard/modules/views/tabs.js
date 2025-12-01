@@ -344,20 +344,12 @@ export function renderGridView(tabs) {
       }, true);
     }
     
-    // Add click handler for selection
+    // Add click handler for selection (handleTabSelection handles shift-click range selection internally)
     const checkbox = card.querySelector('.tab-checkbox');
     checkbox.addEventListener('change', (e) => {
-      handleTabSelection(e.target, tab.id, card);
+      handleTabSelection(e, e.target, tab.id, card);
     });
-    
-    // Handle shift-click for range selection
-    checkbox.addEventListener('click', (e) => {
-      if (e.shiftKey && selectionState.lastSelectedId !== null) {
-        e.preventDefault();
-        handleRangeSelection(tab.id);
-      }
-    });
-    
+
     // Add click handler to open tab
     card.addEventListener('click', (e) => {
       // Don't open tab if clicking on checkbox or its wrapper
