@@ -29,6 +29,7 @@ import { safeAsyncListener } from './services/utils/listeners.js';
 import * as CollectionService from './services/execution/CollectionService.js';
 import * as FolderService from './services/execution/FolderService.js';
 import * as TabService from './services/execution/TabService.js';
+import * as TabActionsService from './services/execution/TabActionsService.js';
 import * as TaskService from './services/execution/TaskService.js';
 import { selectCollections } from './services/selection/selectCollections.js';
 import { selectTasks } from './services/selection/selectTasks.js';
@@ -1401,7 +1402,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           },
           then: [{ action: 'suspend' }]
         };
-        const suspendContext = await buildContext();
+        const suspendContext = await buildContextForEngine(await chrome.tabs.query({}), await chrome.windows.getAll());
         if (request.windowId) {
           suspendContext.tabs = suspendContext.tabs.filter(t => t.windowId === request.windowId);
         }
@@ -2257,6 +2258,26 @@ async function quickSnoozeCurrent(minutes = 120) {
   return { success: false, error: 'No active tab' };
 }
 
+// Group tabs in current window by domain
+async function groupCurrentWindowByDomain() {
+  const currentWindow = await chrome.windows.getCurrent();
+  const tabs = await chrome.tabs.query({ windowId: currentWindow.id });
+  const tabIds = tabs.map(t => t.id);
+
+  const result = await groupTabs(tabIds, {
+    byDomain: true,
+    scope: 'targeted',
+    targetWindowId: currentWindow.id
+  });
+
+  const groupsCreated = result.summary?.groupsCreated || 0;
+  if (groupsCreated > 0) {
+    logActivity('group', `Grouped tabs into ${groupsCreated} domain group${groupsCreated > 1 ? 's' : ''}`, 'manual');
+  }
+
+  return result;
+}
+
 async function bookmarkTabs(tabIds, folderName = 'TabMaster Bookmarks') {
   // Create or find folder
   const bookmarkTree = await chrome.bookmarks.getTree();
@@ -2322,8 +2343,7 @@ chrome.commands.onCommand.addListener(safeAsyncListener(async (command) => {
     break;
 
   case 'group_by_domain':
-    // Route through engine via groupByDomain (already uses getEngine())
-    await groupByDomain();
+    await groupCurrentWindowByDomain();
     break;
 
   case 'close_duplicates':
