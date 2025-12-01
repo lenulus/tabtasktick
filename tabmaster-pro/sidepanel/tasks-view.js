@@ -14,6 +14,12 @@
 import { notifications } from './components/notification.js';
 import { modal } from './components/modal.js';
 import { TabChipRenderer } from './components/tab-chip-renderer.js';
+import {
+  getCurrentTabSnapshot,
+  isTabOpen,
+  formatTabTitle,
+  getFallbackFavicon
+} from '../services/utils/tab-snapshot.js';
 
 export class TasksView {
   constructor(controller) {
