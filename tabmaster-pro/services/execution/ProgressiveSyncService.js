@@ -136,6 +136,20 @@ function logAndBuffer(level, message, data) {
 }
 
 /**
+ * Checks if a URL is a system/internal URL that shouldn't be saved
+ * @param {string} url - URL to check
+ * @returns {boolean} True if system URL
+ */
+function isSystemUrl(url) {
+  if (!url) return true;
+  return url.startsWith('chrome://') ||
+         url.startsWith('chrome-extension://') ||
+         url.startsWith('edge://') ||
+         url.startsWith('about:') ||
+         url.startsWith('view-source:');
+}
+
+/**
  * Change types for queue
  */
 const ChangeType = {
@@ -1404,6 +1418,41 @@ async function processTabUpdated(collectionId, change) {
   // Find tab by runtime ID
   const existingTab = await findTabByRuntimeId(tabId);
   if (!existingTab) {
+    // Tab not found - this can happen when a tab was created with empty URL
+    // (e.g., new tab page) and then navigated to a real URL.
+    // If we have a valid URL now, create the tab instead of skipping.
+    const newUrl = changeInfo.url;
+    if (newUrl && newUrl !== '' && newUrl !== 'about:blank' && !isSystemUrl(newUrl)) {
+      logAndBuffer('info', `Tab ${tabId} not in IndexedDB but has valid URL, creating tab`, { url: newUrl });
+
+      // Create the tab similar to processTabCreated
+      const position = tab.index;
+      let folderId = null;
+
+      if (tab.groupId !== undefined && tab.groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE && tab.groupId !== -1) {
+        const folder = await findOrCreateFolder(collectionId, tab.groupId, position);
+        folderId = folder.id;
+      }
+
+      const tabData = {
+        id: crypto.randomUUID(),
+        collectionId,
+        folderId,
+        url: newUrl,
+        title: changeInfo.title || tab.title || newUrl,
+        favicon: changeInfo.favIconUrl || tab.favIconUrl,
+        note: undefined,
+        position,
+        isPinned: tab.pinned || false,
+        tabId: tabId
+      };
+
+      await saveTab(tabData);
+      logAndBuffer('info', `Created tab ${tabId} from update event in collection ${collectionId}`);
+      await updateMetadataCounts(collectionId);
+      return;
+    }
+
     logAndBuffer('warn', `Tab ${tabId} not found in IndexedDB, cannot update`);
     return;
   }
