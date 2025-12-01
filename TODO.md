@@ -93,30 +93,6 @@ The logging system is now in place. Next steps:
 
 ---
 
-## Upcoming Features
-
-### Active Tab State Tracking for Collection Restoration
-
-**Status**: Planned
-**Plan**: [/plans/active-tab-tracking-plan.md](./plans/active-tab-tracking-plan.md)
-**Estimated Effort**: 2 hours
-
-**Problem**: When a collection window is closed and later restored, we lose track of which tab was active. The user has to manually find their place again.
-
-**Solution**: On window close, look up `lastAccessed` timestamps from `tabTimeData` for all tabs in the collection, find the max, and store that tab's storage ID in collection metadata. On restore, activate that tab.
-
-**Why it's simple**:
-- `tabTimeData` Map entries persist through window close
-- We already have all tabs in IndexedDB with their Chrome `tabId`
-- One-time lookup at close time - no continuous tracking needed
-
-**Implementation**:
-1. Add `activeTabStorageId` to collection metadata
-2. On `windows.onRemoved`: find tab with max `lastAccessed`, store its ID
-3. On restore: activate the stored tab
-
----
-
 ## Archived
 
 - **[TODO-cleanup.md](./TODO-cleanup.md)** - Architectural remediation phases (Phase 1-4), branching strategy, version history

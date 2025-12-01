@@ -825,54 +825,6 @@ async function executeAllRules() {
 // Tab Event Handling for Immediate Triggers
 // ============================================================================
 
-/**
- * Update the activeTabStorageId for a collection based on the most recently accessed tab.
- * Called on tab add/remove and window close.
- * See: /plans/active-tab-tracking-plan.md
- *
- * @param {string} collectionId - Collection to update
- */
-async function updateCollectionActiveTab(collectionId) {
-  try {
-    const collectionData = await getCompleteCollection(collectionId);
-    if (!collectionData) return;
-
-    // Collect all tabs (from folders + ungrouped)
-    const allTabs = [];
-    for (const folder of collectionData.folders || []) {
-      if (folder.tabs) allTabs.push(...folder.tabs);
-    }
-    if (collectionData.ungroupedTabs) {
-      allTabs.push(...collectionData.ungroupedTabs);
-    }
-
-    // Find tab with most recent access
-    let mostRecentTab = null;
-    let maxAccessed = 0;
-
-    for (const tab of allTabs) {
-      if (!tab.tabId) continue;
-      const timeData = tabTimeData.get(tab.tabId);
-      if (timeData?.lastAccessed > maxAccessed) {
-        maxAccessed = timeData.lastAccessed;
-        mostRecentTab = tab;
-      }
-    }
-
-    if (mostRecentTab) {
-      await CollectionService.updateCollection(collectionId, {
-        metadata: {
-          ...collectionData.metadata,
-          activeTabStorageId: mostRecentTab.id
-        }
-      });
-    }
-  } catch (error) {
-    // Non-fatal - log and continue
-    console.warn('[Active Tab Tracking] Failed to update activeTabStorageId:', error);
-  }
-}
-
 // Handle tab creation for immediate triggers
 chrome.tabs.onCreated.addListener(safeAsyncListener(async (tab) => {
   // Track time
@@ -884,12 +836,6 @@ chrome.tabs.onCreated.addListener(safeAsyncListener(async (tab) => {
 
   // Track history (use 'opened' to match chart expectations)
   await trackTabHistory('opened');
-
-  // Update active tab tracking for collection (if tab is in a bound collection)
-  const collection = await WindowService.getCollectionForWindow(tab.windowId);
-  if (collection) {
-    await updateCollectionActiveTab(collection.id);
-  }
 
   // Check immediate triggers
   await checkImmediateTriggers('tab.created');
@@ -912,18 +858,9 @@ chrome.tabs.onActivated.addListener(safeAsyncListener(async (activeInfo) => {
 }));
 
 // Handle tab removal
-chrome.tabs.onRemoved.addListener(safeAsyncListener(async (tabId, removeInfo) => {
+chrome.tabs.onRemoved.addListener(safeAsyncListener(async (tabId) => {
   tabTimeData.delete(tabId);
   await trackTabHistory('closed');
-
-  // Update active tab tracking for collection (if tab was in a bound collection)
-  // Skip if window is closing (handled by windows.onRemoved)
-  if (!removeInfo.isWindowClosing) {
-    const collection = await WindowService.getCollectionForWindow(removeInfo.windowId);
-    if (collection) {
-      await updateCollectionActiveTab(collection.id);
-    }
-  }
 }));
 
 // ============================================================================
@@ -965,11 +902,6 @@ chrome.windows.onRemoved.addListener(safeAsyncListener(async (windowId) => {
 
     if (boundCollection) {
       console.log(`[Phase 2.7] Window ${windowId} closing, unbinding collection ${boundCollection.id}`);
-
-      // Capture active tab before unbinding (for restore)
-      // See: /plans/active-tab-tracking-plan.md
-      await updateCollectionActiveTab(boundCollection.id);
-
       await WindowService.unbindCollectionFromWindow(boundCollection.id);
       console.log(`[Phase 2.7] Collection ${boundCollection.id} unbound from closed window ${windowId}`);
     } else {

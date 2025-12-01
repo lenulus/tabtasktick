@@ -297,23 +297,9 @@ export async function captureWindow(options) {
     tabs.push(tab);
   }
 
-  // Step 8: Update collection metadata with counts and active tab
-  // See: /plans/active-tab-tracking-plan.md
+  // Step 8: Update collection metadata with counts
   collection.metadata.tabCount = tabs.length;
   collection.metadata.folderCount = folders.length;
-
-  // Find the active Chrome tab and its corresponding storage ID
-  const activeChromeTab = capturableTabs.find(t => t.active);
-  if (activeChromeTab) {
-    // Find the tab entity we created for this Chrome tab (match by URL and index)
-    const activeTabEntity = tabs.find(t =>
-      t.url === activeChromeTab.url && t.position === activeChromeTab.index
-    );
-    if (activeTabEntity) {
-      collection.metadata.activeTabStorageId = activeTabEntity.id;
-    }
-  }
-
   await CollectionService.updateCollection(collection.id, {
     metadata: collection.metadata
   });
