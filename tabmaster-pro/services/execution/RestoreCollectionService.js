@@ -285,6 +285,21 @@ export async function restoreCollection(options) {
     url: tab.url
   }));
 
+  // Step 7: Activate the previously active tab if stored
+  // See: /plans/active-tab-tracking-plan.md
+  const activeStorageId = completeCollectionData.metadata?.activeTabStorageId;
+  if (activeStorageId && restoredTabs.length > 0) {
+    const activeTab = restoredTabs.find(t => t.storageId === activeStorageId);
+    if (activeTab?.chromeTabId) {
+      try {
+        await chrome.tabs.update(activeTab.chromeTabId, { active: true });
+      } catch (error) {
+        // Non-fatal - first tab will remain active
+        console.warn('[RestoreCollection] Failed to activate restored tab:', error);
+      }
+    }
+  }
+
   return {
     collection: updatedCollection, // Include collection for Progressive Sync tracking
     collectionId,
