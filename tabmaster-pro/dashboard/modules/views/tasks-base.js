@@ -13,6 +13,7 @@ import {
 } from '../core/shared-utils.js';
 
 import modalService from '../core/modal-service.js';
+import keyboardShortcuts from '../keyboard-shortcuts.js';
 
 // Import view modules statically (no dynamic imports in Chrome extensions)
 import { loadKanbanView } from './tasks-kanban.js';
