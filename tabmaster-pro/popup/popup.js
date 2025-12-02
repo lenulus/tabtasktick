@@ -1378,7 +1378,7 @@ async function openImportModal() {
 }
 
 function openHelp() {
-  chrome.tabs.create({ url: 'https://github.com/yourusername/tabmaster-pro/wiki' });
+  chrome.tabs.create({ url: 'https://github.com/lenulus/tabtasktick/wiki' });
 }
 
 async function openTestPanel() {
