@@ -53,7 +53,7 @@ function getSampleRules() {
       then: [
         { type: 'close-duplicates', keep: 'oldest', scope: 'global' }
       ],
-      trigger: { type: 'manual' },
+      trigger: { type: 'immediate' },
       priority: 1,
     },
     {
