@@ -613,9 +613,11 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
       state.performanceMetrics[rule.name] = executionTime;
     }
     
-    // Log activity with detailed message
-    const activityMessage = formatRuleActivityMessage(rule.name, results, triggerType);
-    logActivity('rule', activityMessage, triggerType === 'manual' ? 'manual' : 'auto');
+    // Log activity only when there are actual actions (skip no-ops to reduce log noise)
+    if (results.totalActions > 0) {
+      const activityMessage = formatRuleActivityMessage(rule.name, results, triggerType);
+      logActivity('rule', activityMessage, triggerType === 'manual' ? 'manual' : 'auto');
+    }
 
     // Extract detailed action counts for frontend
     const actionCounts = {};
