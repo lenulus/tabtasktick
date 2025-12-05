@@ -398,12 +398,6 @@ function parseDSL(input) {
       }
       break;
       
-    case 'bookmark':
-      if (peek().type === TokenType.IDENTIFIER && peek().value === 'to') {
-        current++;
-        result.folder = consume(TokenType.STRING).value;
-      }
-      break;
     }
 
     return result;
@@ -606,13 +600,7 @@ function serializeAction(action) {
       return `group by ${action.by}`;
     }
     return 'group';
-    
-  case 'bookmark':
-    if (action.folder) {
-      return `bookmark to "${action.folder}"`;
-    }
-    return 'bookmark';
-    
+
   default:
     return action.action;
   }

@@ -145,9 +145,6 @@ export function verifyAction(action, expectedCalls) {
   case 'snooze':
     expect(chromeMock.storage.local.set).toHaveBeenCalled();
     break;
-  case 'bookmark':
-    expect(chromeMock.bookmarks.create).toHaveBeenCalledTimes(expectedCalls);
-    break;
   }
 }
 

@@ -294,42 +294,7 @@ describe('Engine - executeActions', () => {
 
     expect(results[0].success).toBe(true);
   });
-  
-  test('should bookmark tabs', async () => {
-    const tabs = [createTab({ id: 1, url: 'https://example.com', title: 'Example' })];
-    const actions = [{ action: 'bookmark', to: 'Read Later' }];
 
-    chromeMock.tabs.get.mockResolvedValue(tabs[0]);
-    chromeMock.bookmarks.getTree.mockResolvedValue([{
-      id: '0',
-      children: [{
-        id: '1',
-        title: 'Bookmarks Bar'
-      }, {
-        id: '2',
-        title: 'Other Bookmarks'
-      }]
-    }]);
-
-    chromeMock.bookmarks.search.mockResolvedValue([]);
-    chromeMock.bookmarks.create
-      .mockResolvedValueOnce({ id: '100' })  // First call: create folder
-      .mockResolvedValueOnce({ id: '101' }); // Second call: create bookmark
-
-    const results = await executeActions(actions, tabs, {}, false);
-
-    expect(chromeMock.bookmarks.create).toHaveBeenCalledWith({
-      parentId: '2',
-      title: 'Read Later'
-    });
-    expect(chromeMock.bookmarks.create).toHaveBeenCalledWith({
-      parentId: '100',
-      title: 'Example',
-      url: 'https://example.com'
-    });
-    expect(results[0].success).toBe(true);
-  });
-  
   test('should respect action order and skip closed tabs', async () => {
     const tabs = [createTab({ id: 1 }), createTab({ id: 2 })];
     const actions = [

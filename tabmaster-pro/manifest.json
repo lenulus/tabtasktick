@@ -6,7 +6,6 @@
   "permissions": [
     "tabs",
     "tabGroups",
-    "bookmarks",
     "storage",
     "alarms",
     "contextMenus",

@@ -97,18 +97,18 @@ describe('DSL Integration Tests', () => {
     test('converts URL pattern rule', () => {
       const oldRule = {
         name: 'GitHub PRs',
-        conditions: { 
+        conditions: {
           type: 'url_pattern',
           pattern: '^https://github\\.com/.*/pull/\\d+$'
         },
-        actions: { type: 'bookmark', folder: 'GitHub PRs' }
+        actions: { type: 'group', name: 'GitHub PRs' }
       };
 
       const newRule = {
         name: oldRule.name,
         enabled: true,
         when: { regex: ['tab.url', '^https://github\\.com/.*/pull/\\d+$'] },
-        then: [{ action: 'bookmark' }],
+        then: [{ action: 'group', name: 'GitHub PRs' }],
         trigger: {},
         flags: {}
       };

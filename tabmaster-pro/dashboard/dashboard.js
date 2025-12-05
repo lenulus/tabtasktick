@@ -575,12 +575,7 @@ async function executeBulkAction(action) {
     case 'group':
       await groupTabs(selectedIds);
       break;
-        
-    case 'bookmark':
-      await bookmarkTabs(selectedIds);
-      showNotification(`Bookmarked ${count} tabs`, 'success');
-      break;
-        
+
     case 'move':
       await showMoveToWindowDialog(selectedIds);
       // Don't clear selection or refresh here - dialog handles it
@@ -634,16 +629,6 @@ async function groupTabs(tabIds) {
   });
 
   showNotification(`Created group "${name || 'Untitled'}" with ${tabIds.length} tabs`, 'success');
-}
-
-async function bookmarkTabs(tabIds) {
-  // Route through background → engine for single source of truth
-  const folderName = `TabMaster Export - ${new Date().toLocaleString()}`;
-  await chrome.runtime.sendMessage({
-    action: 'bookmarkTabs',
-    tabIds: tabIds,
-    folder: folderName
-  });
 }
 
 async function moveToWindow(tabIds, targetWindowId) {

@@ -163,23 +163,6 @@ function getSampleRules() {
       priority: 6,
     },
     {
-      id: 'sample_7',
-      name: 'Archive old tabs',
-      description: 'Bookmark and close tabs older than 7 days',
-      enabled: false,
-      when: {
-        all: [
-          { subject: 'age', operator: 'gt', value: 7 * 24 * 60 * 60 * 1000 }  // 7 days in ms
-        ]
-      },
-      then: [
-        { type: 'bookmark', to: 'Archived Tabs' },
-        { type: 'close' }
-      ],
-      trigger: { type: 'repeat', repeat_every: '1h' },
-      priority: 7,
-    },
-    {
       id: 'sample_8',
       name: 'Discard memory-heavy video tabs',
       description: 'Discard video streaming tabs after 30 minutes of inactivity',
@@ -653,7 +636,6 @@ function getActionDescription(actions) {
         'close-duplicates': 'Close duplicates',
         group: 'Group tabs',
         snooze: 'Snooze tabs',
-        bookmark: 'Bookmark tabs',
         move_to_window: 'Move to window',
         pin: 'Pin tabs',
         unpin: 'Unpin tabs',
@@ -668,7 +650,6 @@ function getActionDescription(actions) {
       if (action.scope && action.scope !== 'global') desc += ` [${action.scope}]`;
       if (action.group_by) desc += ` by ${action.group_by}`;
       if (action.until) desc += ` for ${action.until}`;
-      if (action.folder) desc += ` to "${action.folder}"`;
 
       return desc;
     });
@@ -679,7 +660,7 @@ function getActionDescription(actions) {
   // Handle old format
   switch (actions.type) {
   case 'close':
-    return `Close tabs ${actions.saveToBookmarks ? '(save to bookmarks)' : ''}`;
+    return 'Close tabs';
   case 'group':
     return `Group tabs by ${actions.groupBy}`;
   case 'snooze':
@@ -1184,7 +1165,6 @@ function convertOldActionToNew(oldAction) {
   
   switch (oldAction.type) {
   case 'close':
-    if (oldAction.saveToBookmarks) action.bookmark_first = true;
     break;
   case 'group':
     action.group_by = oldAction.groupBy || 'domain';
@@ -1261,7 +1241,6 @@ function createActionElement(action, index) {
     'close-duplicates': 'Close duplicates',
     group: 'Group tabs',
     snooze: 'Snooze tabs',
-    bookmark: 'Bookmark tabs',
     move_to_window: 'Move to window',
     pin: 'Pin tabs',
     unpin: 'Unpin tabs',
@@ -1480,7 +1459,6 @@ function createActionModal() {
     'close-duplicates': 'Close duplicates',
     group: 'Group tabs',
     snooze: 'Snooze tabs',
-    bookmark: 'Bookmark tabs',
     move_to_window: 'Move to window',
     pin: 'Pin tabs',
     unpin: 'Unpin tabs',
@@ -2236,11 +2214,8 @@ function convertActionsToNew(actions) {
 
   switch (actions.type) {
   case 'close':
-    if (actions.saveToBookmarks) {
-      result.saveToBookmarks = true;
-    }
     break;
-    
+
   case 'snooze':
     if (actions.snoozeMinutes) {
       result.for = `${actions.snoozeMinutes}m`;
@@ -2317,11 +2292,8 @@ function convertActionsFromNew(action) {
 
   switch (action.action) {
   case 'close':
-    if (action.saveToBookmarks) {
-      result.saveToBookmarks = true;
-    }
     break;
-    
+
   case 'snooze':
     if (action.for) {
       const match = action.for.match(/(\d+)([mhd])/);

@@ -12,7 +12,7 @@ const ACTION_CATEGORIES = {
   terminal: ['close', 'close-duplicates'],
   state: ['pin', 'unpin', 'mute', 'unmute'],
   organizational: ['group', 'move_to_window'],
-  deferral: ['snooze', 'bookmark']
+  deferral: ['snooze']
 };
 
 /**
@@ -22,13 +22,10 @@ const SPECIAL_RULES = {
   // Pin/unpin are mutually exclusive
   pin: { excludes: ['unpin'] },
   unpin: { excludes: ['pin'] },
-  
+
   // Mute/unmute are mutually exclusive
   mute: { excludes: ['unmute'] },
   unmute: { excludes: ['mute'] },
-  
-  // Snooze can bookmark first
-  snooze: { allowsWith: ['bookmark'] },
 
   // Close has no parameters
   close: { allowsWith: [] }
@@ -227,12 +224,6 @@ export function validateActionParams(action) {
   case 'move_to_window':
     if (!action.window_id || !['new', 'current'].includes(action.window_id)) {
       errors.push('Move to window action requires valid window_id');
-    }
-    break;
-      
-  case 'bookmark':
-    if (!action.folder) {
-      errors.push('Bookmark action requires folder name');
     }
     break;
   }

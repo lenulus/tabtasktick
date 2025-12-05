@@ -157,16 +157,13 @@ export function createTestConditions() {
 export function createTestActions() {
   return {
     close: [{ action: 'close' }],
-    closeWithBookmark: [{ action: 'close', saveToBookmarks: true, bookmarkFolder: 'Closed Tabs' }],
     snoozeShort: [{ action: 'snooze', for: '30m', wakeInto: 'same_window' }],
     snoozeLong: [{ action: 'snooze', for: '7d', wakeInto: 'new_window' }],
     groupByDomain: [{ action: 'group', by: 'domain' }],
     groupByOrigin: [{ action: 'group', by: 'origin' }],
     groupNamed: [{ action: 'group', name: 'My Group', createIfMissing: true }],
-    bookmark: [{ action: 'bookmark', folder: 'Rules Archive' }],
     multiAction: [
       { action: 'group', by: 'domain' },
-      { action: 'bookmark', folder: 'Grouped Tabs' },
       { action: 'snooze', for: '1h' }
     ]
   };

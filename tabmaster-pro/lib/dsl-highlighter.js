@@ -33,7 +33,7 @@ const KEYWORDS = new Set([
  * Action keywords
  */
 const ACTIONS = new Set([
-  'close', 'snooze', 'group', 'bookmark'
+  'close', 'snooze', 'group'
 ]);
 
 /**

@@ -12,7 +12,6 @@ import * as SuspensionService from '../services/execution/SuspensionService.js';
 import { validateActionList, sortActionsByPriority } from './action-validator.js';
 import { groupTabs } from '../services/execution/groupTabs.js';
 import { closeTabs, pinTabs, unpinTabs, muteTabs, unmuteTabs, moveTabsToWindow } from '../services/execution/TabActionsService.js';
-import { bookmarkTabs } from '../services/execution/BookmarkService.js';
 import { parseDuration } from './utils/time.js';
 import { deduplicate } from '../services/execution/DeduplicationOrchestrator.js';
 
@@ -233,9 +232,6 @@ async function executeAction(action, tab, context, dryRun) {
       createIfMissing: action.createIfMissing !== false,
       windowId: tab.windowId // Ensure grouping in correct window
     });
-
-  case 'bookmark':
-    return await bookmarkTabs([tab.id], { folder: action.to });
 
   case 'move':
     return await moveTabsToWindow([tab.id], {

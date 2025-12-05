@@ -93,7 +93,7 @@ describe('Issue #1: Disabled Rules Testing', () => {
         ]
       },
       then: [
-        { type: 'bookmark' }
+        { type: 'group', name: 'GitHub' }
       ]
     };
 

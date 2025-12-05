@@ -152,14 +152,7 @@ function migrateActions(oldActions) {
       wakeInto: oldActions.wakeInto || 'same_window'
     });
     break;
-      
-  case 'bookmark':
-    actions.push({
-      action: 'bookmark',
-      to: oldActions.folder || 'TabMaster Rules'
-    });
-    break;
-      
+
   case 'suspend':
     // Suspend is not directly supported in new engine
     // Could be implemented as a custom action
@@ -330,7 +323,7 @@ export function createDefaultRules() {
       flags: { skipPinned: true }
     },
     {
-      id: generateRuleId(), 
+      id: generateRuleId(),
       name: 'Archive Research Explosions',
       enabled: false,
       when: {
@@ -340,8 +333,7 @@ export function createDefaultRules() {
         ]
       },
       then: [
-        { action: 'group', by: 'domain' },
-        { action: 'bookmark', to: 'Research Archive' }
+        { action: 'group', by: 'domain' }
       ],
       trigger: { repeat_every: '2h' },
       flags: { skipPinned: true }

@@ -28,7 +28,7 @@ describe('DSL Syntax Highlighter', () => {
     });
 
     test('highlights action keywords', () => {
-      const actions = ['close', 'snooze', 'group', 'bookmark'];
+      const actions = ['close', 'snooze', 'group'];
       actions.forEach(action => {
         const result = highlightDSL(`then ${action}`);
         expect(result).toContain(`<span class="${HighlightClass.KEYWORD}">${action}</span>`);

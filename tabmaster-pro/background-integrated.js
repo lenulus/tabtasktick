@@ -643,9 +643,6 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
             state.statistics.tabsGrouped++;
             await trackTabHistory('grouped');
             break;
-          case 'bookmark':
-            await trackTabHistory('bookmarked');
-            break;
           }
         }
       }
@@ -1412,13 +1409,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           success: true,
           suspended: suspendResult.totalActions || 0
         });
-        break;
-
-      case 'bookmarkTabs':
-        const bookmarkParams = {};
-        if (request.folder) bookmarkParams.folder = request.folder;
-        const bookmarkResult = await executeActionViaEngine('bookmark', request.tabIds, bookmarkParams);
-        sendResponse({ success: true, result: bookmarkResult });
         break;
 
       case 'moveToWindow':
@@ -2276,58 +2266,6 @@ async function groupCurrentWindowByDomain() {
   }
 
   return result;
-}
-
-async function bookmarkTabs(tabIds, folderName = 'TabMaster Bookmarks') {
-  // Create or find folder
-  const bookmarkTree = await chrome.bookmarks.getTree();
-  let folderId = null;
-  
-  // Search for existing folder
-  function findFolder(nodes, name) {
-    for (const node of nodes) {
-      if (node.title === name && !node.url) {
-        return node.id;
-      }
-      if (node.children) {
-        const found = findFolder(node.children, name);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-  
-  folderId = findFolder(bookmarkTree, folderName);
-  
-  if (!folderId) {
-    // Create in Other Bookmarks
-    const folder = await chrome.bookmarks.create({
-      parentId: '2',
-      title: folderName
-    });
-    folderId = folder.id;
-  }
-  
-  // Bookmark tabs - get tab details for each ID
-  const tabs = [];
-  for (const tabId of tabIds) {
-    try {
-      const tab = await chrome.tabs.get(tabId);
-      tabs.push(tab);
-    } catch (e) {
-      console.error(`Failed to get tab ${tabId}:`, e);
-    }
-  }
-
-  for (const tab of tabs) {
-    await chrome.bookmarks.create({
-      parentId: folderId,
-      title: tab.title,
-      url: tab.url
-    });
-  }
-  
-  logActivity('bookmark', `Bookmarked ${tabIds.length} tabs`, 'manual');
 }
 
 // ============================================================================

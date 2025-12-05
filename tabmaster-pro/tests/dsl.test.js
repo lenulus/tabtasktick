@@ -145,12 +145,12 @@ describe('DSL Parser', () => {
     const dsl = `
       rule "GitHub PRs" {
         when tab.url regex /github\\.com\\/.*\\/pull\\/\\d+/
-        then bookmark to "GitHub PRs"
+        then group name "GitHub PRs"
         trigger onAction
       }
     `;
     const rules = parseDSL(dsl);
-    
+
     expect(rules[0].when).toEqual({
       regex: ['tab.url', '/github\\.com\\/.*\\/pull\\/\\d+/']
     });
@@ -486,12 +486,12 @@ describe('Edge cases', () => {
     const dsl = `
       rule "Complex Regex" {
         when tab.url regex /^https?:\\/\\/(www\\.)?github\\.com\\/[\\w-]+\\/[\\w-]+\\/pull\\/\\d+$/i
-        then bookmark to "GitHub PRs"
+        then group name "GitHub PRs"
         trigger onAction
       }
     `;
     const rules = parseDSL(dsl);
-    
+
     expect(rules[0].when.regex[1]).toBe('/^https?:\\/\\/(www\\.)?github\\.com\\/[\\w-]+\\/[\\w-]+\\/pull\\/\\d+$/i');
   });
 });
