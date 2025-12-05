@@ -69,7 +69,7 @@ function getSampleRules() {
       then: [
         { type: 'close-duplicates', keep: 'newest', scope: 'per-window' }
       ],
-      trigger: { type: 'onCreate' },
+      trigger: { type: 'immediate' },
       priority: 2,
     },
     {
