@@ -253,6 +253,32 @@ await WindowService.deduplicateWindow(123, 'oldest');
 
 ---
 
+#### TabActionsService.js
+
+**Purpose**: Basic tab operations - close, pin, mute, move
+
+**Key Features**:
+- Batch processing with graceful error handling
+- Partial success support (some tabs may fail, others succeed)
+- Group preservation during tab moves
+- Window focus management (prevents unexpected focus changes)
+
+**When to Use**: For basic tab manipulation that forms building blocks for higher-level features
+
+**Example**:
+```javascript
+import * as TabActionsService from './services/execution/TabActionsService.js';
+
+const result = await TabActionsService.closeTabs([123, 456, 789]);
+console.log(`Closed ${result.closed.length}, errors: ${result.errors.length}`);
+```
+
+**Dependencies**: chrome.tabs, chrome.tabGroups, chrome.windows
+
+**Exports**: closeTabs, pinTabs, unpinTabs, muteTabs, unmuteTabs, moveTabsToWindow
+
+---
+
 #### SuspensionService.js
 
 **Purpose**: Tab memory suspension using chrome.tabs.discard
