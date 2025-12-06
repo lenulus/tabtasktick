@@ -180,6 +180,7 @@ export async function snoozeTabs(tabIds, snoozeUntil, options = {}) {
         url: tab.url,
         title: tab.title,
         favIconUrl: tab.favIconUrl,
+        pinned: tab.pinned || false,
         snoozeUntil,
         snoozeReason: reason,
         originalTabId: tab.id,
@@ -286,6 +287,7 @@ export async function wakeTabs(snoozedTabIds, options = {}) {
 
       const newTab = await chrome.tabs.create({
         url: tab.url,
+        pinned: tab.pinned || false,
         active: i === 0 ? makeActive : false, // Only make first tab active
         windowId, // undefined creates new window
       });
