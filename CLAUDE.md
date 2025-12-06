@@ -1,4 +1,4 @@
-# TabMaster Pro - Architecture & Implementation Guide
+# TabTaskTick - Architecture & Implementation Guide
 
 ## ⚠️ CRITICAL: NO SHORTCUTS
 
@@ -95,7 +95,7 @@
 
 ## Service Directory
 
-Comprehensive catalog of all services in TabMaster Pro. See `/docs/service-dependencies.md` for dependency diagram and `/docs/service-usage-examples.md` for real-world workflows.
+Comprehensive catalog of all services in TabTaskTick. See `/docs/service-dependencies.md` for dependency diagram and `/docs/service-usage-examples.md` for real-world workflows.
 
 ### Selection Services (Read-Only Filtering)
 
@@ -594,7 +594,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 ## Project Overview
 
-TabMaster Pro is a Chrome extension for advanced tab management, built with vanilla JavaScript (no frameworks). The extension helps users manage 200+ tabs efficiently with features like snoozing, grouping, bulk operations, and analytics.
+TabTaskTick is a Chrome extension for advanced tab management, built with vanilla JavaScript (no frameworks). The extension helps users manage 200+ tabs efficiently with features like snoozing, grouping, bulk operations, and analytics.
 
 ## Tech Stack & Constraints
 
@@ -790,10 +790,10 @@ export function safeAsyncListener(handler, options = {}) {
 
 ```bash
 # Find violations (should return 0 results)
-grep -rn "\.addListener(async" tabmaster-pro/**/*.js
+grep -rn "\.addListener(async" tabtasktick/**/*.js
 
 # Approved pattern
-grep -rn "safeAsyncListener" tabmaster-pro/**/*.js
+grep -rn "safeAsyncListener" tabtasktick/**/*.js
 ```
 
 ### Reference
@@ -906,7 +906,7 @@ npm run test:coverage
 
 ### E2E Tests with Playwright
 
-**IMPORTANT:** Read `/tabmaster-pro/tests/e2e/README.md` before writing E2E tests.
+**IMPORTANT:** Read `/tabtasktick/tests/e2e/README.md` before writing E2E tests.
 
 Key points:
 - Tests within a file **share the same browser context and IndexedDB**
@@ -925,7 +925,7 @@ npx playwright test tests/e2e/sidepanel-tasks-view.spec.js --headed
 npx playwright test --debug
 ```
 
-See the full E2E testing guide: `/tabmaster-pro/tests/e2e/README.md`
+See the full E2E testing guide: `/tabtasktick/tests/e2e/README.md`
 
 ## Development Workflow
 

@@ -40,7 +40,7 @@ fi
 mkdir -p dist
 
 # Change to the extension directory
-cd tabmaster-pro || { echo "Error: tabmaster-pro directory not found"; exit 1; }
+cd tabtasktick || { echo "Error: tabtasktick directory not found"; exit 1; }
 
 # Function to get current version from manifest.json
 get_version() {
@@ -218,7 +218,7 @@ if [ "$CREATE_TAG" = true ]; then
     cd ..
     git tag -a "v$BUILT_VERSION" -m "Release version $BUILT_VERSION"
     echo "✓ Tagged as v$BUILT_VERSION"
-    cd tabmaster-pro
+    cd tabtasktick
 fi
 
 # Auto-increment version after packaging
@@ -234,10 +234,10 @@ if [ "$AUTO_INCREMENT" = true ]; then
         echo ""
         echo "Committing version bump..."
         cd ..
-        git add tabmaster-pro/manifest.json
+        git add tabtasktick/manifest.json
         git commit -m "Bump version to $NEW_VERSION for next development cycle"
         echo "✓ Committed version bump"
-        cd tabmaster-pro
+        cd tabtasktick
     fi
 fi
 
@@ -253,7 +253,7 @@ if [ "$PUSH_CHANGES" = true ]; then
         git push origin main
         echo "✓ Pushed commits"
     fi
-    cd tabmaster-pro
+    cd tabtasktick
 fi
 
 echo ""
