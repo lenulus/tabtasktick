@@ -77,7 +77,6 @@
   │   ├── SnoozeService.js          # Tab/window snoozing
   │   ├── WindowService.js          # Window-level orchestration
   │   ├── TabActionsService.js      # Basic tab operations
-  │   ├── BookmarkService.js        # Bookmark creation
   │   ├── SuspensionService.js      # Tab suspension (discard)
   │   ├── DeduplicationOrchestrator.js # Duplicate removal
   │   ├── executeSnoozeOperations.js # Snooze orchestration
@@ -85,7 +84,8 @@
   │   ├── ExportImportService.js    # Data export/import
   │   └── ...
   └── utils/             # Utility services
-      └── snoozeFormatters.js # UI text formatting
+      ├── snoozeFormatters.js # UI text formatting
+      └── listeners.js    # Safe async listener wrapper
 
 /popup/                  # THIN presentation layer
 /dashboard/              # THIN presentation layer
@@ -250,35 +250,6 @@ await WindowService.deduplicateWindow(123, 'oldest');
 **Dependencies**: SnoozeService, ExportImportService, selectTabs, DeduplicationOrchestrator
 
 **Exports**: snoozeWindow, restoreWindow, getWindowMetadata, deleteWindowMetadata, getAllWindows, deduplicateWindow, cleanupOrphanedWindowMetadata
-
----
-
-#### BookmarkService.js
-
-**Purpose**: Tab bookmark creation with folder management
-
-**Key Features**:
-- Find-or-create folder pattern (reuses existing folders)
-- Batch bookmark creation with per-tab error tracking
-- Automatic folder creation in "Other Bookmarks"
-- Partial success support
-
-**When to Use**: When bookmarking tabs, typically before closing them
-
-**Example**:
-```javascript
-import { bookmarkTabs } from './services/execution/BookmarkService.js';
-
-const result = await bookmarkTabs([123, 456], {
-  folder: 'Important Work' // Creates if doesn't exist
-});
-
-console.log(`Bookmarked to: ${result.details.folder}`);
-```
-
-**Dependencies**: chrome.bookmarks, chrome.tabs
-
-**Exports**: bookmarkTabs
 
 ---
 
@@ -537,7 +508,6 @@ const description = formatSnoozeDescription({ operations, summary });
 | Close/pin/mute tabs | `TabActionsService` |
 | Snooze tabs | `SnoozeService` → via `executeSnoozeOperations` |
 | Snooze windows | `WindowService` → via `executeSnoozeOperations` |
-| Bookmark tabs | `BookmarkService` |
 | Suspend tabs (free memory) | `SuspensionService` |
 | Group tabs | `groupTabs` |
 | Remove duplicates | `DeduplicationOrchestrator` |

@@ -1,6 +1,6 @@
 # Service Dependencies
 
-Visual map of how TabMaster Pro (14 services) and TabTaskTick (8 services) depend on each other and Chrome/IndexedDB APIs.
+Visual map of how TabMaster Pro (13 services) and TabTaskTick (18 services) depend on each other and Chrome/IndexedDB APIs.
 
 ## Architecture Layers
 
@@ -20,7 +20,6 @@ Services are organized into 5 architectural layers:
 graph TB
     subgraph "Chrome APIs"
         TABS[chrome.tabs]
-        BOOKMARKS[chrome.bookmarks]
         WINDOWS[chrome.windows]
         GROUPS[chrome.tabGroups]
         ALARMS[chrome.alarms]
@@ -31,6 +30,7 @@ graph TB
     subgraph "Utility Layer"
         FORMATTERS[snoozeFormatters]
         SIDEPANELNAV[SidePanelNavigationService]
+        LISTENERS[listeners]
     end
 
     subgraph "Selection Layer"
@@ -40,7 +40,6 @@ graph TB
 
     subgraph "Execution Layer - Basic"
         TABACTIONS[TabActionsService]
-        BOOKMARK[BookmarkService]
         SUSPEND[SuspensionService]
         SNOOZE[SnoozeService]
         GROUP[groupTabs]
@@ -61,8 +60,6 @@ graph TB
     TABACTIONS --> TABS
     TABACTIONS --> GROUPS
     TABACTIONS --> WINDOWS
-    BOOKMARK --> BOOKMARKS
-    BOOKMARK --> TABS
     SUSPEND --> TABS
     SNOOZE --> TABS
     SNOOZE --> STORAGE
@@ -101,11 +98,11 @@ graph TB
     classDef orchLayer fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
     classDef chromeApi fill:#fce4ec,stroke:#880e4f,stroke-width:2px
 
-    class FORMATTERS,SIDEPANELNAV utilLayer
+    class FORMATTERS,SIDEPANELNAV,LISTENERS utilLayer
     class SELECT,DETECT selectLayer
-    class TABACTIONS,BOOKMARK,SUSPEND,SNOOZE,GROUP,EXPORT,DEDUP execLayer
+    class TABACTIONS,SUSPEND,SNOOZE,GROUP,EXPORT,DEDUP execLayer
     class EXECSNOOZE,WINDOW,SCHEDULED orchLayer
-    class TABS,BOOKMARKS,WINDOWS,GROUPS,ALARMS,STORAGE,DOWNLOADS chromeApi
+    class TABS,WINDOWS,GROUPS,ALARMS,STORAGE,DOWNLOADS chromeApi
 ```
 
 ---
@@ -120,6 +117,9 @@ graph TB
 
     subgraph "Chrome APIs"
         CHROME_WINDOWS[chrome.windows]
+        CHROME_TABS[chrome.tabs]
+        CHROME_SIDEPANEL[chrome.sidePanel]
+        CHROME_DOWNLOADS[chrome.downloads]
     end
 
     subgraph "Storage Layer (Utilities)"
@@ -127,26 +127,49 @@ graph TB
         QUERIES[storage-queries.js]
     end
 
+    subgraph "Utility Layer"
+        WINDOWCREATION[windowCreation]
+        DOMAINUTILS[domainUtils]
+        TABSNAPSHOT[tab-snapshot]
+        EXPORTBUILDER[collectionExportBuilder]
+        EMOJI[emoji-suggestions]
+    end
+
     subgraph "Selection Layer"
         SELECTCOL[selectCollections]
         SELECTTASK[selectTasks]
     end
 
-    subgraph "Execution Layer"
+    subgraph "Execution Layer - Basic"
         COLSVC[CollectionService]
         FOLDERSVC[FolderService]
         TABSVC[TabService]
         TASKSVC[TaskService]
+        COLEXPORT[CollectionExportService]
+        COLIMPORT[CollectionImportService]
+        COLFILTER[CollectionFilterService]
+        SIDEPANELSVC[SidePanelService]
+        TESTMODE[TestModeService]
     end
 
-    subgraph "Orchestration Layer (Extended)"
+    subgraph "Execution Layer - Complex"
+        PROGSYNC[ProgressiveSyncService]
+    end
+
+    subgraph "Orchestration Layer"
         WINDOWSVC[WindowService]
+        CAPTURE[CaptureWindowService]
+        RESTORE[RestoreCollectionService]
+        TASKEXEC[TaskExecutionService]
     end
 
     %% Storage Layer Dependencies
     DB --> IDB
     QUERIES --> DB
-    QUERIES --> IDB
+
+    %% Utility Dependencies
+    EXPORTBUILDER --> QUERIES
+    TABSNAPSHOT --> CHROME_TABS
 
     %% Selection Layer Dependencies
     SELECTCOL --> QUERIES
@@ -157,24 +180,46 @@ graph TB
     FOLDERSVC --> QUERIES
     TABSVC --> QUERIES
     TASKSVC --> QUERIES
+    COLEXPORT --> QUERIES
+    COLEXPORT --> EXPORTBUILDER
+    COLEXPORT --> CHROME_DOWNLOADS
+    COLIMPORT --> COLSVC
+    COLIMPORT --> FOLDERSVC
+    COLIMPORT --> TABSVC
+    COLIMPORT --> TASKSVC
+    SIDEPANELSVC --> CHROME_SIDEPANEL
+    PROGSYNC --> QUERIES
+    PROGSYNC --> CHROME_TABS
 
     %% Orchestration Dependencies
     WINDOWSVC --> COLSVC
     WINDOWSVC --> QUERIES
     WINDOWSVC --> CHROME_WINDOWS
+    CAPTURE --> COLSVC
+    CAPTURE --> FOLDERSVC
+    CAPTURE --> TABSVC
+    CAPTURE --> WINDOWSVC
+    RESTORE --> COLSVC
+    RESTORE --> WINDOWSVC
+    RESTORE --> WINDOWCREATION
+    TASKEXEC --> RESTORE
+    TASKEXEC --> QUERIES
+    TASKEXEC --> TABSNAPSHOT
 
     %% Styling
     classDef storageLayer fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef utilLayer fill:#e1f5ff,stroke:#01579b,stroke-width:2px
     classDef selectLayer fill:#fff3e0,stroke:#e65100,stroke-width:2px
     classDef execLayer fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
     classDef orchLayer fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
     classDef dbApi fill:#ffccbc,stroke:#bf360c,stroke-width:2px
 
     class DB,QUERIES storageLayer
+    class WINDOWCREATION,DOMAINUTILS,TABSNAPSHOT,EXPORTBUILDER,EMOJI utilLayer
     class SELECTCOL,SELECTTASK selectLayer
-    class COLSVC,FOLDERSVC,TABSVC,TASKSVC execLayer
-    class WINDOWSVC orchLayer
-    class IDB,CHROME_WINDOWS dbApi
+    class COLSVC,FOLDERSVC,TABSVC,TASKSVC,COLEXPORT,COLIMPORT,COLFILTER,SIDEPANELSVC,TESTMODE,PROGSYNC execLayer
+    class WINDOWSVC,CAPTURE,RESTORE,TASKEXEC orchLayer
+    class IDB,CHROME_WINDOWS,CHROME_TABS,CHROME_SIDEPANEL,CHROME_DOWNLOADS dbApi
 ```
 
 ---
@@ -191,7 +236,6 @@ graph TB
 | **selectTabs** | Selection | chrome.tabs | All orchestrators, rules engine |
 | **detectSnoozeOperations** | Selection | chrome.tabs | executeSnoozeOperations, UI |
 | **TabActionsService** | Execution | chrome.tabs, chrome.tabGroups, chrome.windows | DeduplicationOrchestrator, rules engine |
-| **BookmarkService** | Execution | chrome.bookmarks, chrome.tabs | Rules engine, context menus |
 | **SuspensionService** | Execution | chrome.tabs | Rules engine, bulk actions |
 | **SnoozeService** | Execution | chrome.tabs, chrome.alarms, chrome.storage | WindowService, executeSnoozeOperations |
 | **groupTabs** | Execution | chrome.tabs, chrome.tabGroups, chrome.windows | Rules engine, bulk actions |
@@ -207,13 +251,27 @@ graph TB
 |---------|-------|------------|---------|
 | **db.js** | Storage (Utility) | IndexedDB | storage-queries.js, all services (via queries) |
 | **storage-queries.js** | Storage (Utility) | db.js, IndexedDB | All execution/selection services |
+| **windowCreation** | Utility | chrome.windows, chrome.tabs, chrome.tabGroups | RestoreCollectionService, ExportImportService |
+| **domainUtils** | Utility | None (pure functions) | UI surfaces, grouping logic |
+| **tab-snapshot** | Utility | chrome.tabs | TaskService, TaskExecutionService |
+| **collectionExportBuilder** | Utility | storage-queries.js | CollectionExportService, ExportImportService |
+| **emoji-suggestions** | Utility | None (pure functions) | UI surfaces (collection creation) |
 | **selectCollections** | Selection | storage-queries.js | UI surfaces, WindowService |
 | **selectTasks** | Selection | storage-queries.js | UI surfaces |
-| **CollectionService** | Execution | storage-queries.js | WindowService, background handlers, UI |
-| **FolderService** | Execution | storage-queries.js | Background handlers, UI |
-| **TabService** | Execution | storage-queries.js | Background handlers, UI |
-| **TaskService** | Execution | storage-queries.js | Background handlers, UI |
-| **WindowService (extended)** | Orchestrator | CollectionService, storage-queries.js, chrome.windows | Background event handlers |
+| **CollectionService** | Execution | storage-queries.js | WindowService, CaptureWindowService, background handlers, UI |
+| **FolderService** | Execution | storage-queries.js | CaptureWindowService, CollectionImportService, UI |
+| **TabService** | Execution | storage-queries.js | CaptureWindowService, CollectionImportService, UI |
+| **TaskService** | Execution | storage-queries.js | CollectionImportService, TaskExecutionService, UI |
+| **CollectionExportService** | Execution | storage-queries.js, collectionExportBuilder, chrome.downloads | Background handlers, UI |
+| **CollectionImportService** | Execution | CollectionService, FolderService, TabService, TaskService | Background handlers, UI |
+| **CollectionFilterService** | Execution | None (business logic only) | UI surfaces (filter state management) |
+| **SidePanelService** | Execution | chrome.sidePanel, chrome.windows | Popup, dashboard |
+| **TestModeService** | Execution | chrome.storage | Popup, test panel, background |
+| **ProgressiveSyncService** | Execution | storage-queries.js, chrome.tabs | Background (initialized on startup) |
+| **WindowService (extended)** | Orchestrator | CollectionService, storage-queries.js, chrome.windows | Background event handlers, CaptureWindowService |
+| **CaptureWindowService** | Orchestrator | CollectionService, FolderService, TabService, WindowService | Background handlers, context menus, popup |
+| **RestoreCollectionService** | Orchestrator | CollectionService, WindowService, windowCreation | TaskExecutionService, background handlers, UI |
+| **TaskExecutionService** | Orchestrator | RestoreCollectionService, storage-queries.js, tab-snapshot | Background handlers, UI |
 
 ---
 
@@ -425,11 +483,11 @@ export async function saveCollection(collection) {
 These services have no dependencies on other services (only Chrome APIs):
 
 1. **snoozeFormatters** - Pure utility functions
-2. **SidePanelNavigationService** - Storage-based action handoff (popup ↔ sidepanel)
-3. **selectTabs** - Self-contained selection logic
-4. **detectSnoozeOperations** - Self-contained detection
-5. **TabActionsService** - Thin Chrome API wrappers
-6. **BookmarkService** - Thin Chrome API wrapper
+2. **listeners** - Safe async listener wrapper (pure utility)
+3. **SidePanelNavigationService** - Storage-based action handoff (popup ↔ sidepanel)
+4. **selectTabs** - Self-contained selection logic
+5. **detectSnoozeOperations** - Self-contained detection
+6. **TabActionsService** - Thin Chrome API wrappers
 7. **SuspensionService** - Thin Chrome API wrapper
 8. **groupTabs** - Self-contained grouping logic
 9. **ExportImportService** - Self-contained data management
@@ -488,13 +546,14 @@ These services have no service dependencies (only storage utilities):
 
 #### Frequently Used APIs
 
-1. **chrome.tabs** (10 services)
-   - TabActionsService, BookmarkService, SuspensionService, SnoozeService
+1. **chrome.tabs** (9 services)
+   - TabActionsService, SuspensionService, SnoozeService
    - groupTabs, ExportImportService, selectTabs, detectSnoozeOperations, DEDUP, WINDOW
 
-2. **chrome.storage** (2 services)
+2. **chrome.storage** (3 services)
    - SnoozeService (tab metadata)
    - ScheduledExportService (backup metadata)
+   - SidePanelNavigationService (action handoff)
 
 3. **chrome.alarms** (2 services)
    - SnoozeService (wake-up scheduling)
@@ -509,7 +568,6 @@ These services have no service dependencies (only storage utilities):
 | ExportImportService | tabs, windows, downloads | 3 |
 | SnoozeService | tabs, alarms, storage | 3 |
 | ScheduledExportService | alarms, storage (+ ExportImportService) | 2 |
-| BookmarkService | bookmarks, tabs | 2 |
 | WindowService | windows (via TabTaskTick extension) | 1* |
 | SuspensionService | tabs | 1 |
 | selectTabs | tabs | 1 |
@@ -518,6 +576,7 @@ These services have no service dependencies (only storage utilities):
 | DeduplicationOrchestrator | (via other services) | 0 |
 | executeSnoozeOperations | (via other services) | 0 |
 | snoozeFormatters | None | 0 |
+| listeners | None | 0 |
 
 *WindowService TabTaskTick extension uses chrome.windows directly for event listeners (onRemoved, onFocusChanged)
 
@@ -528,15 +587,27 @@ These services have no service dependencies (only storage utilities):
 **IndexedDB** - Primary storage (via utilities):
 - **db.js** - Direct IndexedDB connection management
 - **storage-queries.js** - All CRUD operations via transactions
-- All 6 execution/selection services - Indirect via storage-queries.js
+- All execution/selection services - Indirect via storage-queries.js
 
-**chrome.windows** - Window lifecycle tracking:
-- WindowService (extended) - For collection binding/unbinding
+**Chrome APIs Used**:
+- **chrome.windows** - WindowService (collection binding/unbinding), CaptureWindowService
+- **chrome.tabs** - ProgressiveSyncService, tab-snapshot utility
+- **chrome.sidePanel** - SidePanelService
+- **chrome.downloads** - CollectionExportService
+- **chrome.storage** - TestModeService
 
 #### API Surface Area
 
 | Service | APIs Used | API Count |
 |---------|-----------|-----------|
+| CaptureWindowService | IndexedDB (via services), chrome.tabs, chrome.windows, chrome.tabGroups | 4 |
+| RestoreCollectionService | IndexedDB (via services), chrome.windows, chrome.tabs, chrome.tabGroups | 4 |
+| ProgressiveSyncService | IndexedDB (via storage-queries), chrome.tabs | 2 |
+| CollectionExportService | IndexedDB (via storage-queries), chrome.downloads | 2 |
+| WindowService (extended) | IndexedDB (via storage-queries), chrome.windows | 2 |
+| SidePanelService | chrome.sidePanel, chrome.windows | 2 |
+| tab-snapshot | chrome.tabs | 1 |
+| TestModeService | chrome.storage | 1 |
 | db.js | IndexedDB | 1 |
 | storage-queries.js | IndexedDB (via db.js) | 1 |
 | selectCollections | IndexedDB (via storage-queries) | 1 |
@@ -545,7 +616,10 @@ These services have no service dependencies (only storage utilities):
 | FolderService | IndexedDB (via storage-queries) | 1 |
 | TabService | IndexedDB (via storage-queries) | 1 |
 | TaskService | IndexedDB (via storage-queries) | 1 |
-| WindowService (extended) | IndexedDB (via storage-queries), chrome.windows | 2 |
+| CollectionImportService | IndexedDB (via services) | 1 |
+| CollectionFilterService | None (pure business logic) | 0 |
+| domainUtils | None (pure functions) | 0 |
+| emoji-suggestions | None (pure functions) | 0 |
 
 **Architecture Note**: No service directly accesses IndexedDB - all go through storage-queries.js → db.js chain.
 
@@ -756,8 +830,8 @@ export async function orchestrateComplex(params) {
 These services can be tested with only Chrome API mocks:
 
 - snoozeFormatters (no mocks needed - pure functions)
+- listeners (no mocks needed - pure functions)
 - TabActionsService
-- BookmarkService
 - SuspensionService
 - groupTabs
 - ExportImportService
@@ -938,15 +1012,16 @@ SnoozeService ↔ WindowService
 ## Quick Reference Summary
 
 ### TabMaster Pro
-- **Total Services**: 14
+- **Total Services**: 13
 - **Circular Dependencies**: 1 (justified)
 - **Storage**: chrome.storage.local
 - **Primary APIs**: chrome.tabs, chrome.windows, chrome.tabGroups
 - **Test Strategy**: Mock Chrome APIs
 
 ### TabTaskTick
-- **Total Services**: 8 (6 services + 2 storage utilities)
+- **Total Services**: 18 (4 orchestrators + 10 execution + 2 selection + 2 storage utilities)
+- **Utility Services**: 5 (windowCreation, domainUtils, tab-snapshot, collectionExportBuilder, emoji-suggestions)
 - **Circular Dependencies**: 0
 - **Storage**: IndexedDB (normalized model)
-- **Primary APIs**: IndexedDB, chrome.windows (events only)
+- **Primary APIs**: IndexedDB, chrome.windows, chrome.tabs, chrome.sidePanel, chrome.downloads
 - **Test Strategy**: fake-indexeddb for unit tests, Playwright for E2E
