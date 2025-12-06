@@ -1,6 +1,6 @@
 # Service Dependencies
 
-Visual map of how TabMaster Pro (13 services) and TabTaskTick (8 services) depend on each other and Chrome/IndexedDB APIs.
+Visual map of how TabMaster Pro (14 services) and TabTaskTick (8 services) depend on each other and Chrome/IndexedDB APIs.
 
 ## Architecture Layers
 
@@ -30,6 +30,7 @@ graph TB
 
     subgraph "Utility Layer"
         FORMATTERS[snoozeFormatters]
+        SIDEPANELNAV[SidePanelNavigationService]
     end
 
     subgraph "Selection Layer"
@@ -73,6 +74,9 @@ graph TB
     EXPORT --> WINDOWS
     EXPORT --> DOWNLOADS
 
+    %% Chrome API Dependencies (Utility → Chrome)
+    SIDEPANELNAV --> STORAGE
+
     %% Chrome API Dependencies (Selection → Chrome)
     SELECT --> TABS
     DETECT --> TABS
@@ -97,7 +101,7 @@ graph TB
     classDef orchLayer fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
     classDef chromeApi fill:#fce4ec,stroke:#880e4f,stroke-width:2px
 
-    class FORMATTERS utilLayer
+    class FORMATTERS,SIDEPANELNAV utilLayer
     class SELECT,DETECT selectLayer
     class TABACTIONS,BOOKMARK,SUSPEND,SNOOZE,GROUP,EXPORT,DEDUP execLayer
     class EXECSNOOZE,WINDOW,SCHEDULED orchLayer
@@ -183,6 +187,7 @@ graph TB
 |---------|-------|------------|---------|
 | **snoozeFormatters** | Utility | None (pure functions) | UI surfaces (popup, dashboard) |
 | **listeners** (safeAsyncListener) | Utility | None | Background event handlers (alarms, tabs, windows, storage) |
+| **SidePanelNavigationService** | Utility | chrome.storage | popup (setPendingAction), sidepanel (consumePendingAction) |
 | **selectTabs** | Selection | chrome.tabs | All orchestrators, rules engine |
 | **detectSnoozeOperations** | Selection | chrome.tabs | executeSnoozeOperations, UI |
 | **TabActionsService** | Execution | chrome.tabs, chrome.tabGroups, chrome.windows | DeduplicationOrchestrator, rules engine |
@@ -420,13 +425,14 @@ export async function saveCollection(collection) {
 These services have no dependencies on other services (only Chrome APIs):
 
 1. **snoozeFormatters** - Pure utility functions
-2. **selectTabs** - Self-contained selection logic
-3. **detectSnoozeOperations** - Self-contained detection
-4. **TabActionsService** - Thin Chrome API wrappers
-5. **BookmarkService** - Thin Chrome API wrapper
-6. **SuspensionService** - Thin Chrome API wrapper
-7. **groupTabs** - Self-contained grouping logic
-8. **ExportImportService** - Self-contained data management
+2. **SidePanelNavigationService** - Storage-based action handoff (popup ↔ sidepanel)
+3. **selectTabs** - Self-contained selection logic
+4. **detectSnoozeOperations** - Self-contained detection
+5. **TabActionsService** - Thin Chrome API wrappers
+6. **BookmarkService** - Thin Chrome API wrapper
+7. **SuspensionService** - Thin Chrome API wrapper
+8. **groupTabs** - Self-contained grouping logic
+9. **ExportImportService** - Self-contained data management
 
 **Benefit**: These services can be tested in isolation with mocked Chrome APIs.
 
@@ -508,6 +514,7 @@ These services have no service dependencies (only storage utilities):
 | SuspensionService | tabs | 1 |
 | selectTabs | tabs | 1 |
 | detectSnoozeOperations | tabs | 1 |
+| SidePanelNavigationService | storage | 1 |
 | DeduplicationOrchestrator | (via other services) | 0 |
 | executeSnoozeOperations | (via other services) | 0 |
 | snoozeFormatters | None | 0 |
@@ -931,7 +938,7 @@ SnoozeService ↔ WindowService
 ## Quick Reference Summary
 
 ### TabMaster Pro
-- **Total Services**: 13
+- **Total Services**: 14
 - **Circular Dependencies**: 1 (justified)
 - **Storage**: chrome.storage.local
 - **Primary APIs**: chrome.tabs, chrome.windows, chrome.tabGroups
