@@ -1232,9 +1232,9 @@ body {
 }
 
 .history-action {
-  width: 80px;
-  font-size: 12px;
-  color: #6c757d;
+  flex: 1;
+  font-size: 13px;
+  color: #212529;
 }
 
 
