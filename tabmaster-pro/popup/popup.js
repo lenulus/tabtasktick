@@ -6,6 +6,7 @@
 
 import { exitTestMode } from '../services/execution/TestModeService.js';
 import { initConsoleCapture } from '../services/utils/console-capture.js';
+import { setPendingAction } from '../services/execution/SidePanelNavigationService.js';
 
 // Initialize console capture immediately
 initConsoleCapture();
@@ -1316,13 +1317,21 @@ async function openSidePanel(options = {}) {
   const { view, action, actionData, closePopup = true } = options;
 
   try {
-    // Open side panel directly (popup has user gesture)
     const currentWindow = await chrome.windows.getCurrent();
+
+    // Store pending action BEFORE opening panel to avoid race condition
+    // The side panel will consume this after initialization
+    if (action) {
+      await setPendingAction(action, actionData);
+    } else if (view) {
+      await setPendingAction('switchView', { view });
+    }
+
+    // Open side panel (popup has user gesture)
     await chrome.sidePanel.open({ windowId: currentWindow.id });
 
-    // Send appropriate message based on options
+    // Also send message as fallback for when panel is already open and listening
     if (action) {
-      // Send action-based message
       chrome.runtime.sendMessage({
         action: 'openSidePanelWithAction',
         data: {
@@ -1331,7 +1340,6 @@ async function openSidePanel(options = {}) {
         }
       });
     } else if (view) {
-      // Send view-based message
       chrome.runtime.sendMessage({
         action: 'openSidePanelView',
         data: { view }

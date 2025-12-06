@@ -24,6 +24,7 @@ import {
 } from '../services/utils/collection-import-export-ui.js';
 import { getCurrentTabSnapshot } from '../services/utils/tab-snapshot.js';
 import { TabChipRenderer } from './components/tab-chip-renderer.js';
+import { consumePendingAction } from '../services/execution/SidePanelNavigationService.js';
 
 // Console capture for logging
 import { initConsoleCapture } from '../services/utils/console-capture.js';
@@ -103,7 +104,55 @@ class SidePanelController {
     // Load initial data
     await this.loadData();
 
+    // Check for pending navigation actions from popup/dashboard
+    // This handles the race condition where a message was sent before we initialized
+    await this.handlePendingAction();
+
     console.log('Side Panel initialized successfully');
+  }
+
+  /**
+   * Handle pending navigation action from popup or dashboard.
+   * Uses storage-based handoff to solve race condition where message
+   * arrives before our listener is registered.
+   */
+  async handlePendingAction() {
+    try {
+      const pending = await consumePendingAction();
+      if (!pending) {
+        return;
+      }
+
+      console.log('[Panel] Processing pending action:', pending.action);
+
+      switch (pending.action) {
+      case 'createCollection':
+        await this.switchView('collections');
+        // Small delay to ensure view is rendered before opening modal
+        setTimeout(() => {
+          this.handleSaveWindow();
+        }, 50);
+        break;
+
+      case 'createTask':
+        await this.switchView('tasks');
+        setTimeout(() => {
+          this.handleCreateTask();
+        }, 50);
+        break;
+
+      case 'switchView':
+        if (pending.data?.view) {
+          await this.switchView(pending.data.view);
+        }
+        break;
+
+      default:
+        console.warn('[Panel] Unknown pending action:', pending.action);
+      }
+    } catch (error) {
+      console.error('[Panel] Failed to handle pending action:', error);
+    }
   }
 
   /**
