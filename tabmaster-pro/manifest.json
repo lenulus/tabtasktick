@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TabTaskTick",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "Intelligent tab and task management with collections, rules engine, auto-grouping, and snoozing",
   "permissions": [
     "tabs",
