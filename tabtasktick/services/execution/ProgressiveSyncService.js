@@ -1066,6 +1066,25 @@ export async function syncCollectionFromWindow(collectionId) {
       };
     }
 
+    // Verify window still exists before syncing
+    // This prevents catastrophic tab deletion if window was closed while SW was suspended
+    try {
+      await chrome.windows.get(collection.windowId);
+    } catch (e) {
+      // Window no longer exists - unbind collection instead of deleting all tabs
+      logAndBuffer('warn', `Window ${collection.windowId} no longer exists for collection ${collectionId}, unbinding`);
+      await WindowService.unbindCollectionFromWindow(collectionId);
+      return {
+        success: false,
+        reason: 'Window no longer exists - collection unbound',
+        tabsAdded: 0,
+        tabsRemoved: 0,
+        tabsUpdated: 0,
+        foldersAdded: 0,
+        foldersRemoved: 0
+      };
+    }
+
     // Get current Chrome tabs
     const chromeTabs = await chrome.tabs.query({ windowId: collection.windowId });
     const chromeTabsMap = new Map(chromeTabs.map(t => [t.id, t]));
