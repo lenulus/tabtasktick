@@ -29,14 +29,13 @@ export async function loadOverviewData(filter = null) {
   try {
     const startTime = Date.now();
     const stats = await sendMessage({ action: 'getStatistics' });
-    const tabInfo = await sendMessage({ action: 'getTabInfo' });
     console.log(`Data fetched in ${Date.now() - startTime}ms`);
-    
+
     // Update stat cards
     document.getElementById('statTotalTabs').textContent = stats.totalTabs;
     document.getElementById('statTabsChange').textContent = '+0 today'; // Would need tracking
-    
-    document.getElementById('statGroups').textContent = tabInfo.groups?.length || 0;
+
+    document.getElementById('statGroups').textContent = stats.groupedTabs;
     document.getElementById('statGroupsInfo').textContent = '0 collapsed'; // Would need tracking
     
     document.getElementById('statSnoozed').textContent = stats.snoozedTabs;
