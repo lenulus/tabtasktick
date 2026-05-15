@@ -108,19 +108,44 @@ async function initializeDashboard() {
 // Navigation
 // ============================================================================
 
+function setActiveNavItem(view) {
+  document.querySelectorAll('.nav-item').forEach(nav => {
+    nav.classList.toggle('active', nav.dataset.view === view);
+  });
+}
+
+function navigateToView(view, filter = null) {
+  switchView(view, filter);
+  setActiveNavItem(view);
+
+  // Sync URL state: hash drives the view, ?filter= persists the filter across
+  // refresh and back/forward. Hash assignment creates the history entry; then
+  // replaceState patches the search params on that same entry so the URL fully
+  // reflects this transition. Assigning the same hash is a no-op.
+  const params = new URLSearchParams(window.location.search);
+  if (filter) {
+    params.set('filter', filter);
+  } else {
+    params.delete('filter');
+  }
+  const newSearch = params.toString() ? `?${params.toString()}` : '';
+
+  if (window.location.hash.substring(1) !== view) {
+    window.location.hash = view;
+  }
+  if (window.location.search !== newSearch) {
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${newSearch}#${view}`);
+  }
+}
+
 function setupNavigation() {
   const navItems = document.querySelectorAll('.nav-item');
 
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
-      const view = item.dataset.view;
       // Pass null to signal nav click - resets filters for tabs view
-      switchView(view, null);
-
-      // Update active state
-      navItems.forEach(nav => nav.classList.remove('active'));
-      item.classList.add('active');
+      navigateToView(item.dataset.view, null);
     });
   });
 
@@ -129,25 +154,24 @@ function setupNavigation() {
   statCards.forEach(card => {
     card.addEventListener('click', () => {
       const navigate = card.dataset.navigate;
-      if (navigate) {
-        // Special case: "duplicates" navigates to tabs view with duplicates filter
-        if (navigate === 'duplicates') {
-          switchView('tabs', 'duplicates');
-          // Update nav active state to show Tabs as active
-          navItems.forEach(nav => {
-            nav.classList.toggle('active', nav.dataset.view === 'tabs');
-          });
-          window.location.hash = 'tabs';
-        } else {
-          switchView(navigate);
-          // Update nav active state
-          navItems.forEach(nav => {
-            nav.classList.toggle('active', nav.dataset.view === navigate);
-          });
-          window.location.hash = navigate;
-        }
+      if (!navigate) return;
+      // Special case: "duplicates" navigates to tabs view with duplicates filter
+      if (navigate === 'duplicates') {
+        navigateToView('tabs', 'duplicates');
+      } else {
+        navigateToView(navigate);
       }
     });
+  });
+
+  // Sync UI when user navigates browser history (back/forward) or hash
+  // is changed externally. No-op if already on the target view.
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.substring(1) || 'overview';
+    if (state.get('currentView') === hash) return;
+    const filter = new URLSearchParams(window.location.search).get('filter');
+    switchView(hash, filter);
+    setActiveNavItem(hash);
   });
 }
 
@@ -163,16 +187,7 @@ function handleDeepLink() {
   if (hash) {
     console.log('Deep link detected - view:', hash, 'filter:', filter);
     switchView(hash, filter);
-
-    // Update nav active state
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(nav => {
-      if (nav.dataset.view === hash) {
-        nav.classList.add('active');
-      } else {
-        nav.classList.remove('active');
-      }
-    });
+    setActiveNavItem(hash);
   }
 }
 
@@ -987,42 +1002,21 @@ async function wakeAllSnoozed() {
 function setupKeyboardShortcuts() {
   // Global Navigation Shortcuts
   keyboardShortcuts.register('g>c', () => {
-    switchView('collections');
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(nav => {
-      if (nav.dataset.view === 'collections') {
-        navItems.forEach(n => n.classList.remove('active'));
-        nav.classList.add('active');
-      }
-    });
+    navigateToView('collections');
   }, {
     category: 'navigation',
     description: 'Go to Collections view'
   });
 
   keyboardShortcuts.register('g>t', () => {
-    switchView('tasks');
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(nav => {
-      if (nav.dataset.view === 'tasks') {
-        navItems.forEach(n => n.classList.remove('active'));
-        nav.classList.add('active');
-      }
-    });
+    navigateToView('tasks');
   }, {
     category: 'navigation',
     description: 'Go to Tasks view'
   });
 
   keyboardShortcuts.register('g>a', () => {
-    switchView('tabs');
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(nav => {
-      if (nav.dataset.view === 'tabs') {
-        navItems.forEach(n => n.classList.remove('active'));
-        nav.classList.add('active');
-      }
-    });
+    navigateToView('tabs');
   }, {
     category: 'navigation',
     description: 'Go to All Tabs view'
@@ -1099,7 +1093,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
       // Switch to rules view if not already there
       if (state.get('currentView') !== 'rules') {
-        switchView('rules');
+        navigateToView('rules');
         await loadRulesView();
       }
 
@@ -1128,7 +1122,7 @@ chrome.runtime.sendMessage({ action: 'dashboardReady' }).catch(() => {
 
     // Switch to rules view
     if (state.get('currentView') !== 'rules') {
-      switchView('rules');
+      navigateToView('rules');
       await loadRulesView();
     }
 
