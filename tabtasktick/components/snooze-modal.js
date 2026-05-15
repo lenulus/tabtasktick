@@ -155,9 +155,12 @@ class SnoozeModal {
       this.modal.classList.add('show');
     });
 
-    // Focus first preset button
+    // Select + focus the first preset so the confirm button is enabled and the
+    // highlighted state matches actual selection (focus ring alone misled users
+    // into thinking the preset was selected when it wasn't).
     const firstButton = this.modal.querySelector('.preset-button');
     if (firstButton) {
+      this.handlePresetSelect(firstButton.dataset.presetId);
       firstButton.focus();
     }
   }
