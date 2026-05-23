@@ -76,6 +76,48 @@ export async function getWindowName(windowId) {
 }
 
 /**
+ * Create a signature from window tabs for identification.
+ *
+ * Window IDs are ephemeral (they change across browser restarts and after
+ * session import), so names keyed by windowId alone would be lost. The
+ * signature, derived from the hostnames of a window's pinned/top tabs, lets
+ * a name be matched back to the same window after its ID changes.
+ *
+ * @param {Array} tabs - Array of tab objects with `url` and `pinned`
+ * @returns {string} Window signature
+ */
+export function getWindowSignature(tabs) {
+  const pinnedUrls = tabs
+    .filter(t => t.pinned)
+    .slice(0, 3)
+    .map(t => {
+      try {
+        return new URL(t.url).hostname;
+      } catch {
+        return '';
+      }
+    })
+    .filter(Boolean)
+    .sort()
+    .join('|');
+
+  const topDomains = tabs
+    .slice(0, 5)
+    .map(t => {
+      try {
+        return new URL(t.url).hostname;
+      } catch {
+        return '';
+      }
+    })
+    .filter(Boolean)
+    .sort()
+    .join('|');
+
+  return pinnedUrls || topDomains;
+}
+
+/**
  * Update multiple window names at once.
  * @param {Object} updates - Map of windowId -> name (null to delete)
  */

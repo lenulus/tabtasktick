@@ -144,42 +144,6 @@ export function getLastAccessText(tab) {
   return `${days}d ago`;
 }
 
-/**
- * Create a signature from window tabs for identification
- * @param {Array} tabs - Array of tab objects
- * @returns {string} Window signature
- */
-export function getWindowSignature(tabs) {
-  // Create a signature from the first few pinned/important tabs
-  const pinnedUrls = tabs
-    .filter(t => t.pinned)
-    .slice(0, 3)
-    .map(t => {
-      try {
-        return new URL(t.url).hostname;
-      } catch {
-        return '';
-      }
-    })
-    .filter(Boolean)
-    .sort()
-    .join('|');
-  
-  const topDomains = tabs
-    .slice(0, 5)
-    .map(t => {
-      try {
-        return new URL(t.url).hostname;
-      } catch {
-        return '';
-      }
-    })
-    .filter(Boolean)
-    .sort()
-    .join('|');
-    
-  return pinnedUrls || topDomains;
-}
 
 /**
  * Generate color using HSL for even distribution
