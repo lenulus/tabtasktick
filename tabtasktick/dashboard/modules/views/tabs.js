@@ -3,7 +3,6 @@
 
 import {
   normalizeUrl,
-  getWindowSignature,
   generateWindowColor,
   getFaviconUrl,
   getGroupColor,
@@ -29,7 +28,8 @@ import {
 
 import {
   getWindowNamesAndSignatures,
-  setWindowNamesAndSignatures
+  setWindowNamesAndSignatures,
+  getWindowSignature
 } from '../../../services/utils/WindowNameService.js';
 
 // Track window filter selection to restore after rename dialog

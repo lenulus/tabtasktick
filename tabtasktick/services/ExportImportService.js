@@ -67,6 +67,11 @@ import { createWindowWithTabsAndGroups } from './utils/windowCreation.js';
 import { getAllCollections } from './utils/storage-queries.js';
 import * as CollectionImportService from './execution/CollectionImportService.js';
 import { buildCollectionExport } from './utils/collectionExportBuilder.js';
+import {
+  getWindowNamesAndSignatures,
+  setWindowNamesAndSignatures,
+  getWindowSignature
+} from './utils/WindowNameService.js';
 
 // Helper functions for human-readable formatting
 function getTimeAgo(timestamp, now) {
@@ -148,16 +153,24 @@ async function buildJSONExport(tabs, windows, groups, options, state, tabTimeDat
   const exportDateReadable = now.toLocaleString();
 
   const windowsArray = Array.isArray(windows) ? windows : [windows];
-  const sessionWindows = windowsArray.map(window => ({
-    id: `w${window.id}`,
-    windowId: window.id,
-    title: `Window ${window.id} - ${tabs.filter(t => t.windowId === window.id).length} tabs`,
-    focused: window.focused,
-    state: window.state,
-    type: window.type,
-    tabCount: tabs.filter(t => t.windowId === window.id).length,
-    tabs: tabs.filter(t => t.windowId === window.id).map(t => `t${t.id}`)
-  }));
+  const { windowNames, windowSignatures } = await getWindowNamesAndSignatures();
+  const sessionWindows = windowsArray.map(window => {
+    const windowTabs = tabs.filter(t => t.windowId === window.id);
+    const signature = getWindowSignature(windowTabs);
+    const customName = windowNames[window.id] || (signature ? windowSignatures[signature] : null) || null;
+    return {
+      id: `w${window.id}`,
+      windowId: window.id,
+      title: `Window ${window.id} - ${windowTabs.length} tabs`,
+      name: customName,
+      signature,
+      focused: window.focused,
+      state: window.state,
+      type: window.type,
+      tabCount: windowTabs.length,
+      tabs: windowTabs.map(t => `t${t.id}`)
+    };
+  });
 
   const currentTime = Date.now();
 
@@ -336,6 +349,7 @@ function buildCSVExport(tabs, groups, tabTimeData) {
 
 async function buildMarkdownExport(tabs, windows, groups, options, state) {
   const windowsArray = Array.isArray(windows) ? windows : [windows];
+  const { windowNames, windowSignatures } = await getWindowNamesAndSignatures();
   let markdown = '# TabMaster Export - ' + new Date().toLocaleDateString() + '\n\n';
 
   markdown += '## Summary\n';
@@ -356,7 +370,10 @@ async function buildMarkdownExport(tabs, windows, groups, options, state) {
     const windowTabs = tabs.filter(t => t.windowId === window.id);
     const windowGroups = groups.filter(g => g.windowId === window.id);
 
-    markdown += `### Window ${window.id} (${windowTabs.length} tabs)\n`;
+    const signature = getWindowSignature(windowTabs);
+    const customName = windowNames[window.id] || (signature ? windowSignatures[signature] : null);
+    const heading = customName || `Window ${window.id}`;
+    markdown += `### ${heading} (${windowTabs.length} tabs)\n`;
 
     if (windowGroups.length > 0) {
       const groupNames = windowGroups.map(g => `${g.title} (${windowTabs.filter(t => t.groupId === g.id).length})`);
@@ -662,11 +679,49 @@ async function importTabsAndGroups(tabs, groups, windows, scope, importGroups) {
         } catch (e) {}
       }
     }
+
+    // Restore custom window names. Only meaningful for 'new-windows', where each
+    // imported window maps to a distinct new window; other scopes flatten tabs
+    // into a single window so per-window names don't apply.
+    if (scope === 'new-windows') {
+      await restoreWindowNames(windows, windowIdMap, tabs);
+    }
   } catch (error) {
     console.error('Failed to import tabs and groups:', error);
     result.errors.push(error.message);
   }
   return result;
+}
+
+async function restoreWindowNames(windows, windowIdMap, tabs) {
+  try {
+    const namedWindows = windows.filter(w => w && w.name);
+    if (namedWindows.length === 0) return;
+
+    const { windowNames, windowSignatures } = await getWindowNamesAndSignatures();
+
+    for (const windowData of namedWindows) {
+      const oldId = windowData.windowId || parseInt(String(windowData.id).replace('w', ''));
+      const newId = windowIdMap.get(oldId);
+      if (newId == null) continue;
+
+      windowNames[newId] = windowData.name;
+
+      // Key the name by signature too, so it survives future window-ID changes.
+      // Prefer the signature from the export; recompute from the imported tabs
+      // for older exports that predate the signature field.
+      let signature = windowData.signature;
+      if (!signature) {
+        const windowTabs = tabs.filter(t => t.windowId === windowData.id);
+        signature = getWindowSignature(windowTabs);
+      }
+      if (signature) windowSignatures[signature] = windowData.name;
+    }
+
+    await setWindowNamesAndSignatures(windowNames, windowSignatures);
+  } catch (error) {
+    console.error('Failed to restore window names:', error);
+  }
 }
 
 async function importRules(rules, state, loadRules, scheduler) {
