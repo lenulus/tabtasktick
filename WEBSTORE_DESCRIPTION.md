@@ -63,5 +63,5 @@ TabTaskTick is a showcase of modern Chrome Extension architecture, built with a 
 
 **Regain control of your browser today.**
 
-*Version 1.4.4*
+*Version 1.4.11*
 *Open Source | Local Storage | Privacy Focused*
