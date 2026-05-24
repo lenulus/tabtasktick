@@ -9,8 +9,8 @@
  *   - el.setAttribute('title'|'aria-label'|'placeholder'|'alt', <text>)
  *   - alert(<text>) / confirm(<text>) / prompt(<text>)
  *
- * "Text" = a string or template literal whose quasis (after stripping HTML
- * tags/entities) contain a run of >= 2 letters. Values already produced by
+ * "Text" = a string or template literal whose content, after stripping HTML
+ * tags/entities, contains a run of >= 2 letters. Values already produced by
  * t()/tPlural() are CallExpressions, not literals, so they never trip the rule.
  *
  * Suppress a deliberate case with: // eslint-disable-next-line local/no-hardcoded-ui-string
@@ -20,18 +20,26 @@ const SINK_PROPS = new Set(['textContent', 'innerText', 'innerHTML', 'title', 'p
 const SINK_ATTRS = new Set(['title', 'aria-label', 'placeholder', 'alt']);
 const SINK_CALLS = new Set(['alert', 'confirm', 'prompt']);
 
+// Marker that stands in for ${} interpolations when joining template quasis, so
+// an HTML tag split across an interpolation (e.g. `<button title="${t(...)}">`)
+// reduces to a complete, strippable tag instead of leaving attribute fragments.
+const INTERP = '';
+
 function hasUserText(raw) {
   if (typeof raw !== 'string') return false;
   const stripped = raw
-    .replace(/<[^>]*>/g, ' ')      // HTML tags
-    .replace(/&[a-zA-Z#0-9]+;/g, ' '); // HTML entities
+    .replace(/<[^>]*>/g, ' ')          // complete HTML tags (markers are not '>')
+    .replace(/&[a-zA-Z#0-9]+;/g, ' ')  // HTML entities
+    .split(INTERP).join(' ');          // drop leftover interpolation markers
   return /[A-Za-z]{2,}/.test(stripped);
 }
 
 function isText(node) {
   if (!node) return false;
   if (node.type === 'Literal') return typeof node.value === 'string' && hasUserText(node.value);
-  if (node.type === 'TemplateLiteral') return node.quasis.some((q) => hasUserText(q.value.cooked));
+  if (node.type === 'TemplateLiteral') {
+    return hasUserText(node.quasis.map((q) => q.value.cooked).join(INTERP));
+  }
   return false;
 }
 

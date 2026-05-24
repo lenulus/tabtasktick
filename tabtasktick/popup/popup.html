@@ -16,7 +16,7 @@
         <img src="../icons/icon-32.png" alt="TabTaskTick">
         <h1>TabTaskTick</h1>
       </div>
-      <button class="settings-btn" id="debugBtn" title="Copy Debug Info" style="margin-right: 8px;">
+      <button class="settings-btn" id="debugBtn" data-i18n-title="popup_debug_title" title="Copy Debug Info" style="margin-right: 8px;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
           <polyline points="14 2 14 8 20 8"></polyline>
@@ -25,7 +25,7 @@
           <polyline points="10 9 9 9 8 9"></polyline>
         </svg>
       </button>
-      <button class="settings-btn" id="settingsBtn" title="Settings">
+      <button class="settings-btn" id="settingsBtn" data-i18n-title="common_settings" title="Settings">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"></path>
@@ -38,11 +38,11 @@
       <div class="banner-content">
         <div class="banner-icon">⚠️</div>
         <div class="banner-text">
-          <strong>Test Mode Active</strong>
-          <p>Production rules are disabled</p>
+          <strong data-i18n="popup_testMode_title">Test Mode Active</strong>
+          <p data-i18n="popup_testMode_body">Production rules are disabled</p>
         </div>
       </div>
-      <button class="banner-action" id="exitTestModeBtn">Exit Test Mode</button>
+      <button class="banner-action" id="exitTestModeBtn" data-i18n="popup_testMode_exit">Exit Test Mode</button>
     </div>
 
     <!-- Collections Banner (Discovery) -->
@@ -50,11 +50,11 @@
       <div class="banner-content">
         <div class="banner-icon">💡</div>
         <div class="banner-text">
-          <strong>Try Collections</strong>
-          <p>Save windows as collections and restore them anytime</p>
+          <strong data-i18n="popup_banner_collections_title">Try Collections</strong>
+          <p data-i18n="popup_banner_collections_body">Save windows as collections and restore them anytime</p>
         </div>
       </div>
-      <button class="banner-close" id="bannerClose" aria-label="Dismiss banner">×</button>
+      <button class="banner-close" id="bannerClose" data-i18n-label="popup_banner_dismiss" aria-label="Dismiss banner">×</button>
     </div>
 
     <!-- Collections & Tasks Counts -->
@@ -65,18 +65,18 @@
           <polyline points="17 21 17 13 7 13 7 21"></polyline>
           <polyline points="7 3 7 8 15 8"></polyline>
         </svg>
-        <span>Save This Window</span>
+        <span data-i18n="popup_saveWindow">Save This Window</span>
       </button>
 
       <div class="counts-grid">
         <div class="count-card collections-card" id="collectionsCard">
           <div class="count-value" id="collectionsCount">-</div>
-          <div class="count-label">Collections</div>
+          <div class="count-label" data-i18n="popup_collections_label">Collections</div>
           <div class="count-detail" id="collectionsDetail">-</div>
         </div>
         <div class="count-card tasks-card" id="tasksCard">
           <div class="count-value" id="tasksCount">-</div>
-          <div class="count-label">Tasks</div>
+          <div class="count-label" data-i18n="popup_tasks_label">Tasks</div>
           <div class="count-detail" id="tasksDetail">-</div>
         </div>
       </div>
@@ -86,35 +86,35 @@
     <div class="stats-grid">
       <div class="stat-card clickable" data-dashboard-view="tabs">
         <div class="stat-value" id="totalTabs">-</div>
-        <div class="stat-label">All Tabs</div>
+        <div class="stat-label" data-i18n="popup_stat_allTabs">All Tabs</div>
       </div>
       <div class="stat-card clickable" data-dashboard-view="groups">
         <div class="stat-value" id="groupedTabs">-</div>
-        <div class="stat-label">Groups</div>
+        <div class="stat-label" data-i18n="popup_stat_groups">Groups</div>
       </div>
       <div class="stat-card clickable" data-dashboard-view="snoozed">
         <div class="stat-value" id="snoozedTabs">-</div>
-        <div class="stat-label">Snoozed</div>
+        <div class="stat-label" data-i18n="popup_stat_snoozed">Snoozed</div>
       </div>
       <div class="stat-card clickable" data-dashboard-view="tabs" data-filter="duplicates">
         <div class="stat-value" id="duplicates">-</div>
-        <div class="stat-label">Duplicates</div>
+        <div class="stat-label" data-i18n="popup_stat_duplicates">Duplicates</div>
       </div>
     </div>
 
     <!-- Quick Actions -->
     <section class="quick-actions">
-      <h2>Quick Actions</h2>
+      <h2 data-i18n="popup_quickActions">Quick Actions</h2>
       <div class="action-buttons">
         <button class="action-btn primary" id="closeDuplicates">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
           </svg>
-          <span>Close Duplicates</span>
+          <span data-i18n="popup_action_closeDuplicates">Close Duplicates</span>
           <span class="badge" id="duplicateBadge"></span>
         </button>
-        
+
         <button class="action-btn" id="groupByDomain">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <rect x="3" y="3" width="7" height="7"></rect>
@@ -122,15 +122,15 @@
             <rect x="14" y="14" width="7" height="7"></rect>
             <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
-          <span>Group by Domain</span>
+          <span data-i18n="popup_action_groupByDomain">Group by Domain</span>
         </button>
-        
+
         <button class="action-btn" id="snoozeCurrent">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M12 2v10l4 2"></path>
             <circle cx="12" cy="12" r="10"></circle>
           </svg>
-          <span>Snooze Current</span>
+          <span data-i18n="popup_action_snoozeCurrent">Snooze Current</span>
         </button>
 
         <button class="action-btn" id="snoozeWindow">
@@ -138,7 +138,7 @@
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <path d="M12 8v6l3 2"></path>
           </svg>
-          <span>Snooze Window</span>
+          <span data-i18n="popup_action_snoozeWindow">Snooze Window</span>
         </button>
 
         <button class="action-btn" id="suspendInactive">
@@ -146,7 +146,7 @@
             <circle cx="12" cy="12" r="10"></circle>
             <path d="M10 9v6m4-6v6"></path>
           </svg>
-          <span>Suspend Inactive</span>
+          <span data-i18n="popup_action_suspendInactive">Suspend Inactive</span>
         </button>
       </div>
     </section>
@@ -155,13 +155,13 @@
     <!-- Active Rules -->
     <section class="active-rules">
       <div class="section-header">
-        <h2>Active Rules</h2>
-        <button class="manage-link" id="manageRulesBtn" title="Manage rules">
+        <h2 data-i18n="popup_activeRules">Active Rules</h2>
+        <button class="manage-link" id="manageRulesBtn" data-i18n-title="popup_manageRules_title" title="Manage rules">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"></path>
           </svg>
-          <span>Manage</span>
+          <span data-i18n="popup_manage">Manage</span>
         </button>
       </div>
       <div class="rules-list" id="rulesList">
@@ -171,7 +171,7 @@
 
     <!-- Top Domains -->
     <section class="top-domains">
-      <h2>Top Domains</h2>
+      <h2 data-i18n="popup_topDomains">Top Domains</h2>
       <div class="domains-list" id="domainsList">
         <!-- Domains will be populated here -->
       </div>
@@ -180,13 +180,13 @@
     <!-- Snoozed Tabs Preview -->
     <section class="snoozed-preview" id="snoozedSection">
       <div class="section-header">
-        <h2>Snoozed Tabs <span class="count" id="snoozedCount"></span></h2>
-        <button class="wake-all-btn" id="wakeAllBtn" title="Wake all snoozed tabs">
+        <h2><span data-i18n="popup_snoozedTabs">Snoozed Tabs</span> <span class="count" id="snoozedCount"></span></h2>
+        <button class="wake-all-btn" id="wakeAllBtn" data-i18n-title="popup_wakeAll_title" title="Wake all snoozed tabs">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
-          Wake All
+          <span data-i18n="popup_wakeAll">Wake All</span>
         </button>
       </div>
       <div class="snoozed-list" id="snoozedList">
@@ -203,31 +203,31 @@
           <rect x="14" y="14" width="7" height="7"></rect>
           <rect x="3" y="14" width="7" height="7"></rect>
         </svg>
-        Dashboard
+        <span data-i18n="popup_dashboard">Dashboard</span>
       </button>
-      <button class="footer-btn" id="export" title="Backup all tabs, settings, rules, and snoozed tabs">
+      <button class="footer-btn" id="export" data-i18n-title="popup_backup_title" title="Backup all tabs, settings, rules, and snoozed tabs">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="7 10 12 15 17 10"></polyline>
           <line x1="12" y1="15" x2="12" y2="3"></line>
         </svg>
-        Backup
+        <span data-i18n="popup_backup">Backup</span>
       </button>
-      <button class="footer-btn" id="import" title="Restore tabs, settings, rules, and snoozed tabs">
+      <button class="footer-btn" id="import" data-i18n-title="popup_restore_title" title="Restore tabs, settings, rules, and snoozed tabs">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="17 8 12 3 7 8"></polyline>
           <line x1="12" y1="3" x2="12" y2="15"></line>
         </svg>
-        Restore
+        <span data-i18n="popup_restore">Restore</span>
       </button>
-      <button class="footer-btn" id="testPanel" title="Open Test Panel">
+      <button class="footer-btn" id="testPanel" data-i18n-title="popup_testPanel_title" title="Open Test Panel">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
           <line x1="8" y1="21" x2="16" y2="21"></line>
           <line x1="12" y1="17" x2="12" y2="21"></line>
         </svg>
-        Test
+        <span data-i18n="popup_test">Test</span>
       </button>
       <button class="footer-btn" id="help">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -235,7 +235,7 @@
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
-        Help
+        <span data-i18n="popup_help">Help</span>
       </button>
     </footer>
   </div>

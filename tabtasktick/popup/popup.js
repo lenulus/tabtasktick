@@ -7,6 +7,7 @@
 import { exitTestMode } from '../services/execution/TestModeService.js';
 import { initConsoleCapture } from '../services/utils/console-capture.js';
 import { setPendingAction } from '../services/execution/SidePanelNavigationService.js';
+import { t, tPlural, localizeDocument } from '../services/utils/i18n.js';
 
 // Initialize console capture immediately
 initConsoleCapture();
@@ -81,6 +82,7 @@ let currentTab = null;
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+  localizeDocument();
   await loadTestModeStatus();
   await loadBannerState();
   await loadCollectionsAndTasks();
@@ -178,7 +180,7 @@ async function loadCollectionsAndTasks() {
     const savedCollections = collections.filter(c => !c.isActive).length;
 
     elements.collectionsCount.textContent = totalCollections;
-    elements.collectionsDetail.textContent = `${activeCollections} active, ${savedCollections} saved`;
+    elements.collectionsDetail.textContent = t('popup_collectionsDetail', [String(activeCollections), String(savedCollections)]);
 
     // Load tasks count
     const tasksResult = await sendMessage({ action: 'getTasks' });
@@ -189,7 +191,7 @@ async function loadCollectionsAndTasks() {
     const activeTasks = tasks.filter(t => t.status === 'active').length;
 
     elements.tasksCount.textContent = totalTasks;
-    elements.tasksDetail.textContent = `${openTasks} open, ${activeTasks} active`;
+    elements.tasksDetail.textContent = t('popup_tasksDetail', [String(openTasks), String(activeTasks)]);
 
     // Progressive discovery: update banner visibility
     if (totalCollections === 0) {
@@ -212,9 +214,9 @@ async function loadCollectionsAndTasks() {
   } catch (error) {
     console.error('Failed to load collections and tasks:', error);
     elements.collectionsCount.textContent = '0';
-    elements.collectionsDetail.textContent = 'Error loading';
+    elements.collectionsDetail.textContent = t('common_errorLoading');
     elements.tasksCount.textContent = '0';
-    elements.tasksDetail.textContent = 'Error loading';
+    elements.tasksDetail.textContent = t('common_errorLoading');
   }
 }
 
@@ -250,7 +252,7 @@ async function loadStatistics() {
     
   } catch (error) {
     console.error('Failed to load statistics:', error);
-    showNotification('Failed to load statistics', 'error');
+    showNotification(t('popup_notify_loadStatsFailed'), 'error');
   }
 }
 
@@ -290,7 +292,7 @@ function updateRulesList(rules) {
   if (rules.length === 0) {
     elements.rulesList.innerHTML = `
       <div class="empty-state">
-        <p>No active rules</p>
+        <p>${t('popup_rules_empty')}</p>
       </div>
     `;
     return;
@@ -324,7 +326,7 @@ function updateDomainsList(domains) {
   if (!domains || domains.length === 0) {
     elements.domainsList.innerHTML = `
       <div class="empty-state">
-        <p>No domains to display</p>
+        <p>${t('popup_domains_empty')}</p>
       </div>
     `;
     return;
@@ -441,17 +443,17 @@ function createWindowSnoozeElement(windowSnooze) {
   windowEl.innerHTML = `
     <div class="snoozed-window-icon">🪟</div>
     <div class="snoozed-info">
-      <div class="snoozed-title">Window (${tabCount} tab${tabCount !== 1 ? 's' : ''})</div>
+      <div class="snoozed-title">${tPlural('popup_snoozed_windowLabel', tabCount)}</div>
       <div class="snoozed-time">${timeRemaining}</div>
     </div>
     <div class="snoozed-actions">
-      <button class="snoozed-action wake-window-btn" data-window-snooze-id="${windowSnooze.windowSnoozeId}" title="Restore window">
+      <button class="snoozed-action wake-window-btn" data-window-snooze-id="${windowSnooze.windowSnoozeId}" title="${t('popup_snoozed_restoreWindow')}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="12" cy="12" r="10"></circle>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
       </button>
-      <button class="snoozed-action delete-window-btn" data-window-snooze-id="${windowSnooze.windowSnoozeId}" title="Delete window">
+      <button class="snoozed-action delete-window-btn" data-window-snooze-id="${windowSnooze.windowSnoozeId}" title="${t('popup_snoozed_deleteWindow')}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -471,7 +473,7 @@ function createWindowSnoozeElement(windowSnooze) {
 
   deleteBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    if (confirm(`Delete snoozed window with ${tabCount} tabs?`)) {
+    if (confirm(tPlural('popup_confirm_deleteWindow', tabCount))) {
       await deleteWindowSnooze(windowSnooze.windowSnoozeId);
     }
   });
@@ -496,19 +498,19 @@ function createSnoozedTabElement(tab) {
       <div class="snoozed-time">${timeRemaining}</div>
     </div>
     <div class="snoozed-actions">
-      <button class="snoozed-action wake-btn" data-tab-id="${tab.id}" title="Wake now">
+      <button class="snoozed-action wake-btn" data-tab-id="${tab.id}" title="${t('popup_snoozed_wakeNow')}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="12" cy="12" r="10"></circle>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
       </button>
-      <button class="snoozed-action reschedule-btn" data-tab-id="${tab.id}" title="Reschedule">
+      <button class="snoozed-action reschedule-btn" data-tab-id="${tab.id}" title="${t('popup_snoozed_reschedule')}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <polyline points="1 4 1 10 7 10"></polyline>
           <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
         </svg>
       </button>
-      <button class="snoozed-action delete-btn" data-tab-id="${tab.id}" title="Delete">
+      <button class="snoozed-action delete-btn" data-tab-id="${tab.id}" title="${t('common_delete')}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -534,7 +536,7 @@ function createSnoozedTabElement(tab) {
 
   deleteBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    if (confirm(`Delete snoozed tab "${tab.title}"?`)) {
+    if (confirm(t('popup_confirm_deleteTab', [tab.title]))) {
       await deleteSnoozedTab(tab.id || tab.url);
     }
   });
@@ -545,10 +547,10 @@ function createSnoozedTabElement(tab) {
 function groupSnoozedTabsByPeriod(items) {
   const now = Date.now();
   const groups = {
-    soon: { title: 'Next Hour', items: [] },
-    today: { title: 'Today', items: [] },
-    tomorrow: { title: 'Tomorrow', items: [] },
-    later: { title: 'Later', items: [] }
+    soon: { title: t('popup_group_nextHour'), items: [] },
+    today: { title: t('popup_group_today'), items: [] },
+    tomorrow: { title: t('popup_group_tomorrow'), items: [] },
+    later: { title: t('popup_group_later'), items: [] }
   };
 
   items.forEach(item => {
@@ -681,7 +683,7 @@ async function handleSaveWindow() {
     });
   } catch (error) {
     console.error('Failed to open save window modal:', error);
-    showNotification('Failed to open side panel', 'error');
+    showNotification(t('popup_notify_sidePanelFailed'), 'error');
   }
 }
 
@@ -697,15 +699,15 @@ async function handleCloseDuplicates() {
     const count = await sendMessage({ action: 'closeDuplicates' });
     
     if (count > 0) {
-      showNotification(`Closed ${count} duplicate tab${count > 1 ? 's' : ''}`, 'success');
+      showNotification(tPlural('popup_notify_closedDuplicates', count), 'success');
     } else {
-      showNotification('No duplicate tabs found', 'info');
+      showNotification(t('popup_notify_noDuplicates'), 'info');
     }
-    
+
     await loadStatistics();
   } catch (error) {
     console.error('Failed to close duplicates:', error);
-    showNotification('Failed to close duplicates', 'error');
+    showNotification(t('popup_notify_closeDuplicatesFailed'), 'error');
   } finally {
     elements.closeDuplicates.disabled = false;
   }
@@ -726,15 +728,15 @@ async function handleGroupByDomain() {
     });
 
     if (count > 0) {
-      showNotification(`Created ${count} group${count > 1 ? 's' : ''}`, 'success');
+      showNotification(tPlural('popup_notify_createdGroups', count), 'success');
     } else {
-      showNotification('No tabs to group', 'info');
+      showNotification(t('popup_notify_noTabsToGroup'), 'info');
     }
 
     await loadStatistics();
   } catch (error) {
     console.error('Failed to group tabs:', error);
-    showNotification('Failed to group tabs', 'error');
+    showNotification(t('popup_notify_groupTabsFailed'), 'error');
   } finally {
     elements.groupByDomain.disabled = false;
   }
@@ -775,8 +777,7 @@ async function handleSnoozeTabs(snoozeData) {
       await sendMessage({ action: 'snoozeTabs', tabIds, minutes });
     }
     
-    const tabText = tabCount === 1 ? 'Tab' : `${tabCount} tabs`;
-    showNotification(`${tabText} snoozed for ${getReadableDuration(minutes)}`, 'success');
+    showNotification(tPlural('popup_notify_tabsSnoozed', tabCount, [getReadableDuration(minutes)]), 'success');
     
     // Clear selection if bulk snooze
     if (tabCount > 1) {
@@ -793,7 +794,7 @@ async function handleSnoozeTabs(snoozeData) {
     }
   } catch (error) {
     console.error('Failed to snooze tabs:', error);
-    showNotification('Failed to snooze tabs', 'error');
+    showNotification(t('popup_notify_snoozeTabsFailed'), 'error');
   }
 }
 
@@ -808,7 +809,7 @@ async function handleSnoozeWindow() {
     const tabIds = currentWindow.tabs.map(t => t.id);
 
     if (tabIds.length === 0) {
-      showNotification('No tabs to snooze', 'warning');
+      showNotification(t('popup_notify_noTabsToSnooze'), 'warning');
       return;
     }
 
@@ -819,7 +820,7 @@ async function handleSnoozeWindow() {
     });
 
     if (operations.length === 0) {
-      showNotification('No tabs to snooze', 'warning');
+      showNotification(t('popup_notify_noTabsToSnooze'), 'warning');
       return;
     }
 
@@ -848,9 +849,9 @@ async function handleSnoozeWindow() {
 
           let message;
           if (windowCount > 0 && individualTabCount === 0) {
-            message = `Snoozed ${windowCount} window${windowCount !== 1 ? 's' : ''} for ${getReadableDuration(minutes)}`;
+            message = tPlural('popup_notify_windowsSnoozed', windowCount, [getReadableDuration(minutes)]);
           } else {
-            message = `Snoozed ${totalTabs} tab${totalTabs !== 1 ? 's' : ''} for ${getReadableDuration(minutes)}`;
+            message = tPlural('popup_notify_totalTabsSnoozed', totalTabs, [getReadableDuration(minutes)]);
           }
 
           showNotification(message, 'success');
@@ -862,11 +863,11 @@ async function handleSnoozeWindow() {
           // Close popup after window snooze
           setTimeout(() => window.close(), 1000);
         } else {
-          showNotification(`Snooze completed with ${result.errors.length} error(s)`, 'warning');
+          showNotification(tPlural('popup_notify_snoozeErrors', result.errors.length), 'warning');
         }
       } catch (error) {
         console.error('Failed to snooze window:', error);
-        showNotification('Failed to snooze window', 'error');
+        showNotification(t('popup_notify_snoozeWindowFailed'), 'error');
       }
     };
 
@@ -875,7 +876,7 @@ async function handleSnoozeWindow() {
     };
   } catch (error) {
     console.error('Failed to prepare window snooze:', error);
-    showNotification('Failed to prepare window snooze', 'error');
+    showNotification(t('popup_notify_prepareSnoozeFailed'), 'error');
   }
 }
 
@@ -899,11 +900,11 @@ async function rescheduleSnoozedTab(tab) {
 
       await sendMessage({ action: 'addSnoozedTab', tab: newSnoozedTab });
 
-      showNotification('Tab rescheduled', 'success');
+      showNotification(t('popup_notify_tabRescheduled'), 'success');
       await loadSnoozedTabs();
     } catch (error) {
       console.error('Failed to reschedule tab:', error);
-      showNotification('Failed to reschedule tab', 'error');
+      showNotification(t('popup_notify_rescheduleFailed'), 'error');
     }
   };
 }
@@ -926,16 +927,16 @@ async function handleWakeAll() {
     const count = result.count || 0;
 
     if (count > 0) {
-      showNotification(`Restored ${count} snoozed tab${count === 1 ? '' : 's'}`, 'success');
+      showNotification(tPlural('popup_notify_restoredTabs', count), 'success');
       // Refresh the snoozed tabs list
       await loadSnoozedTabs();
       await loadStatistics();
     } else {
-      showNotification('No snoozed tabs to restore', 'info');
+      showNotification(t('popup_notify_noSnoozedToRestore'), 'info');
     }
   } catch (error) {
     console.error('Failed to wake all snoozed tabs:', error);
-    showNotification('Failed to wake snoozed tabs', 'error');
+    showNotification(t('popup_notify_wakeAllFailed'), 'error');
   }
 }
 
@@ -954,18 +955,15 @@ async function handleSuspendInactive() {
     });
 
     if (result.suspended > 0) {
-      showNotification(
-        `Suspended ${result.suspended} inactive tab${result.suspended > 1 ? 's' : ''}`,
-        'success'
-      );
+      showNotification(tPlural('popup_notify_suspended', result.suspended), 'success');
     } else {
-      showNotification('No inactive tabs to suspend', 'info');
+      showNotification(t('popup_notify_noInactive'), 'info');
     }
 
     await loadStatistics();
   } catch (error) {
     console.error('Failed to suspend tabs:', error);
-    showNotification('Failed to suspend tabs', 'error');
+    showNotification(t('popup_notify_suspendFailed'), 'error');
   } finally {
     elements.suspendInactive.disabled = false;
   }
@@ -978,7 +976,7 @@ async function toggleRule(ruleId) {
     // Silently update - no notification needed for toggle
   } catch (error) {
     console.error('Failed to toggle rule:', error);
-    showNotification('Failed to update rule', 'error');
+    showNotification(t('popup_notify_toggleRuleFailed'), 'error');
   }
 }
 
@@ -990,14 +988,14 @@ async function wakeSnoozedTab(tabId) {
 
     if (response && response.success) {
       await loadSnoozedTabs();
-      showNotification('Tab restored', 'success');
+      showNotification(t('popup_notify_tabRestored'), 'success');
     } else {
       console.error('Wake failed:', response);
-      showNotification(`Failed to wake tab: ${response?.error || 'Unknown error'}`, 'error');
+      showNotification(t('popup_notify_wakeTabFailedDetail', [response?.error || t('common_unknownError')]), 'error');
     }
   } catch (error) {
     console.error('Failed to wake tab:', error);
-    showNotification('Failed to wake tab', 'error');
+    showNotification(t('popup_notify_wakeTabFailed'), 'error');
   }
 }
 
@@ -1009,14 +1007,14 @@ async function deleteSnoozedTab(tabId) {
 
     if (response && response.success) {
       await loadSnoozedTabs();
-      showNotification('Snoozed tab deleted', 'success');
+      showNotification(t('popup_notify_snoozedTabDeleted'), 'success');
     } else {
       console.error('Delete failed:', response);
-      showNotification(`Failed to delete tab: ${response?.error || 'Unknown error'}`, 'error');
+      showNotification(t('popup_notify_deleteTabFailedDetail', [response?.error || t('common_unknownError')]), 'error');
     }
   } catch (error) {
     console.error('Failed to delete tab:', error);
-    showNotification('Failed to delete tab', 'error');
+    showNotification(t('popup_notify_deleteTabFailed'), 'error');
   }
 }
 
@@ -1031,14 +1029,14 @@ async function restoreWindowSnooze(windowSnoozeId) {
     if (result && result.success) {
       await loadSnoozedTabs();
       await loadStatistics();
-      showNotification('Window restored', 'success');
+      showNotification(t('popup_notify_windowRestored'), 'success');
     } else {
       console.error('Failed to restore window:', result?.error || 'Unknown error');
-      showNotification(`Failed to restore window: ${result?.error || 'Unknown error'}`, 'error');
+      showNotification(t('popup_notify_restoreWindowFailedDetail', [result?.error || t('common_unknownError')]), 'error');
     }
   } catch (error) {
     console.error('Failed to restore window:', error);
-    showNotification('Failed to restore window', 'error');
+    showNotification(t('popup_notify_restoreWindowFailed'), 'error');
   }
 }
 
@@ -1053,14 +1051,14 @@ async function deleteWindowSnooze(windowSnoozeId) {
     if (result && result.success) {
       await loadSnoozedTabs();
       await loadStatistics();
-      showNotification('Snoozed window deleted', 'success');
+      showNotification(t('popup_notify_snoozedWindowDeleted'), 'success');
     } else {
       console.error('Failed to delete window:', result?.error || 'Unknown error');
-      showNotification(`Failed to delete window: ${result?.error || 'Unknown error'}`, 'error');
+      showNotification(t('popup_notify_deleteWindowFailedDetail', [result?.error || t('common_unknownError')]), 'error');
     }
   } catch (error) {
     console.error('Failed to delete window:', error);
-    showNotification('Failed to delete window', 'error');
+    showNotification(t('popup_notify_deleteWindowFailed'), 'error');
   }
 }
 
@@ -1265,12 +1263,12 @@ async function copyDebugInfo() {
     // Copy to clipboard
     await navigator.clipboard.writeText(debugText);
 
-    showNotification('Debug info copied to clipboard', 'success');
+    showNotification(t('popup_notify_debugCopied'), 'success');
     console.log('Debug info:', debugInfo);
 
   } catch (error) {
     console.error('Failed to collect debug info:', error);
-    showNotification('Failed to copy debug info', 'error');
+    showNotification(t('popup_notify_debugFailed'), 'error');
   }
 }
 
@@ -1352,7 +1350,7 @@ async function openSidePanel(options = {}) {
     }
   } catch (error) {
     console.error('Failed to open side panel:', error);
-    showNotification('Failed to open side panel', 'error');
+    showNotification(t('popup_notify_sidePanelFailed'), 'error');
   }
 }
 
@@ -1406,7 +1404,7 @@ async function openTestPanel() {
     await openSidePanel({});
   } catch (error) {
     console.error('Failed to open test panel:', error);
-    showNotification('Failed to open test panel: ' + error.message, 'error');
+    showNotification(t('popup_notify_testPanelFailedDetail', [error.message]), 'error');
   }
 }
 
@@ -1429,25 +1427,25 @@ async function sendMessage(message) {
 function getTimeRemaining(timestamp) {
   const now = Date.now();
   const diff = timestamp - now;
-  
-  if (diff <= 0) return 'now';
-  
+
+  if (diff <= 0) return t('popup_time_now');
+
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  
-  if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
-  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
-  return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+
+  if (days > 0) return tPlural('common_days', days);
+  if (hours > 0) return tPlural('common_hours', hours);
+  return tPlural('common_minutes', minutes);
 }
 
 function getReadableDuration(minutes) {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  
-  if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
-  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
-  return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+
+  if (days > 0) return tPlural('common_days', days);
+  if (hours > 0) return tPlural('common_hours', hours);
+  return tPlural('common_minutes', minutes);
 }
 
 function showNotification(message, type = 'info') {
@@ -1479,5 +1477,5 @@ window.showNotification = showNotification;
 
 window.addEventListener('error', (event) => {
   console.error('Popup error:', event.error);
-  showNotification('An error occurred', 'error');
+  showNotification(t('popup_notify_genericError'), 'error');
 });

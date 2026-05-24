@@ -30,5 +30,219 @@
   "snooze_title_tabs_other": {
     "message": "Snooze $count$ Tabs",
     "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+
+  "popup_debug_title": { "message": "Copy Debug Info" },
+  "popup_testMode_title": { "message": "Test Mode Active" },
+  "popup_testMode_body": { "message": "Production rules are disabled" },
+  "popup_testMode_exit": { "message": "Exit Test Mode" },
+  "popup_banner_collections_title": { "message": "Try Collections" },
+  "popup_banner_collections_body": { "message": "Save windows as collections and restore them anytime" },
+  "popup_banner_dismiss": { "message": "Dismiss banner" },
+  "popup_saveWindow": { "message": "Save This Window" },
+  "popup_collections_label": { "message": "Collections" },
+  "popup_tasks_label": { "message": "Tasks" },
+  "popup_stat_allTabs": { "message": "All Tabs" },
+  "popup_stat_groups": { "message": "Groups" },
+  "popup_stat_snoozed": { "message": "Snoozed" },
+  "popup_stat_duplicates": { "message": "Duplicates" },
+  "popup_quickActions": { "message": "Quick Actions" },
+  "popup_action_closeDuplicates": { "message": "Close Duplicates" },
+  "popup_action_groupByDomain": { "message": "Group by Domain" },
+  "popup_action_snoozeCurrent": { "message": "Snooze Current" },
+  "popup_action_snoozeWindow": { "message": "Snooze Window" },
+  "popup_action_suspendInactive": { "message": "Suspend Inactive" },
+  "popup_activeRules": { "message": "Active Rules" },
+  "popup_manageRules_title": { "message": "Manage rules" },
+  "popup_manage": { "message": "Manage" },
+  "popup_topDomains": { "message": "Top Domains" },
+  "popup_snoozedTabs": { "message": "Snoozed Tabs" },
+  "popup_wakeAll_title": { "message": "Wake all snoozed tabs" },
+  "popup_wakeAll": { "message": "Wake All" },
+  "popup_dashboard": { "message": "Dashboard" },
+  "popup_backup_title": { "message": "Backup all tabs, settings, rules, and snoozed tabs" },
+  "popup_backup": { "message": "Backup" },
+  "popup_restore_title": { "message": "Restore tabs, settings, rules, and snoozed tabs" },
+  "popup_restore": { "message": "Restore" },
+  "popup_testPanel_title": { "message": "Open Test Panel" },
+  "popup_test": { "message": "Test" },
+  "popup_help": { "message": "Help" },
+
+  "popup_tasksDetail": {
+    "message": "$open$ open, $active$ active",
+    "placeholders": {
+      "open": { "content": "$1", "example": "2" },
+      "active": { "content": "$2", "example": "1" }
+    }
+  },
+  "popup_rules_empty": { "message": "No active rules" },
+  "popup_domains_empty": { "message": "No domains to display" },
+  "popup_snoozed_windowLabel_one": {
+    "message": "Window ($count$ tab)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_snoozed_windowLabel_other": {
+    "message": "Window ($count$ tabs)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_snoozed_restoreWindow": { "message": "Restore window" },
+  "popup_snoozed_deleteWindow": { "message": "Delete window" },
+  "popup_snoozed_wakeNow": { "message": "Wake now" },
+  "popup_snoozed_reschedule": { "message": "Reschedule" },
+  "popup_confirm_deleteWindow_one": {
+    "message": "Delete snoozed window with $count$ tab?",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_confirm_deleteWindow_other": {
+    "message": "Delete snoozed window with $count$ tabs?",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_confirm_deleteTab": {
+    "message": "Delete snoozed tab \"$title$\"?",
+    "placeholders": { "title": { "content": "$1" } }
+  },
+  "popup_group_nextHour": { "message": "Next Hour" },
+  "popup_group_today": { "message": "Today" },
+  "popup_group_tomorrow": { "message": "Tomorrow" },
+  "popup_group_later": { "message": "Later" },
+  "popup_time_now": { "message": "now" },
+
+  "popup_notify_loadStatsFailed": { "message": "Failed to load statistics" },
+  "popup_notify_sidePanelFailed": { "message": "Failed to open side panel" },
+  "popup_notify_closedDuplicates_one": {
+    "message": "Closed $count$ duplicate tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_closedDuplicates_other": {
+    "message": "Closed $count$ duplicate tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_noDuplicates": { "message": "No duplicate tabs found" },
+  "popup_notify_closeDuplicatesFailed": { "message": "Failed to close duplicates" },
+  "popup_notify_createdGroups_one": {
+    "message": "Created $count$ group",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_createdGroups_other": {
+    "message": "Created $count$ groups",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_noTabsToGroup": { "message": "No tabs to group" },
+  "popup_notify_groupTabsFailed": { "message": "Failed to group tabs" },
+  "popup_notify_tabsSnoozed_one": {
+    "message": "Tab snoozed for $duration$",
+    "placeholders": { "count": { "content": "$1" }, "duration": { "content": "$2" } }
+  },
+  "popup_notify_tabsSnoozed_other": {
+    "message": "$count$ tabs snoozed for $duration$",
+    "placeholders": { "count": { "content": "$1" }, "duration": { "content": "$2" } }
+  },
+  "popup_notify_snoozeTabsFailed": { "message": "Failed to snooze tabs" },
+  "popup_notify_noTabsToSnooze": { "message": "No tabs to snooze" },
+  "popup_notify_windowsSnoozed_one": {
+    "message": "Snoozed $count$ window for $duration$",
+    "placeholders": { "count": { "content": "$1" }, "duration": { "content": "$2" } }
+  },
+  "popup_notify_windowsSnoozed_other": {
+    "message": "Snoozed $count$ windows for $duration$",
+    "placeholders": { "count": { "content": "$1" }, "duration": { "content": "$2" } }
+  },
+  "popup_notify_totalTabsSnoozed_one": {
+    "message": "Snoozed $count$ tab for $duration$",
+    "placeholders": { "count": { "content": "$1" }, "duration": { "content": "$2" } }
+  },
+  "popup_notify_totalTabsSnoozed_other": {
+    "message": "Snoozed $count$ tabs for $duration$",
+    "placeholders": { "count": { "content": "$1" }, "duration": { "content": "$2" } }
+  },
+  "popup_notify_snoozeErrors_one": {
+    "message": "Snooze completed with $count$ error",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_snoozeErrors_other": {
+    "message": "Snooze completed with $count$ errors",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_snoozeWindowFailed": { "message": "Failed to snooze window" },
+  "popup_notify_prepareSnoozeFailed": { "message": "Failed to prepare window snooze" },
+  "popup_notify_tabRescheduled": { "message": "Tab rescheduled" },
+  "popup_notify_rescheduleFailed": { "message": "Failed to reschedule tab" },
+  "popup_notify_restoredTabs_one": {
+    "message": "Restored $count$ snoozed tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_restoredTabs_other": {
+    "message": "Restored $count$ snoozed tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_noSnoozedToRestore": { "message": "No snoozed tabs to restore" },
+  "popup_notify_wakeAllFailed": { "message": "Failed to wake snoozed tabs" },
+  "popup_notify_suspended_one": {
+    "message": "Suspended $count$ inactive tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_suspended_other": {
+    "message": "Suspended $count$ inactive tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "popup_notify_noInactive": { "message": "No inactive tabs to suspend" },
+  "popup_notify_suspendFailed": { "message": "Failed to suspend tabs" },
+  "popup_notify_toggleRuleFailed": { "message": "Failed to update rule" },
+  "popup_notify_tabRestored": { "message": "Tab restored" },
+  "popup_notify_wakeTabFailedDetail": {
+    "message": "Failed to wake tab: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "popup_notify_wakeTabFailed": { "message": "Failed to wake tab" },
+  "popup_notify_snoozedTabDeleted": { "message": "Snoozed tab deleted" },
+  "popup_notify_deleteTabFailedDetail": {
+    "message": "Failed to delete tab: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "popup_notify_deleteTabFailed": { "message": "Failed to delete tab" },
+  "popup_notify_windowRestored": { "message": "Window restored" },
+  "popup_notify_restoreWindowFailedDetail": {
+    "message": "Failed to restore window: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "popup_notify_restoreWindowFailed": { "message": "Failed to restore window" },
+  "popup_notify_snoozedWindowDeleted": { "message": "Snoozed window deleted" },
+  "popup_notify_deleteWindowFailedDetail": {
+    "message": "Failed to delete window: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "popup_notify_deleteWindowFailed": { "message": "Failed to delete window" },
+  "popup_notify_debugCopied": { "message": "Debug info copied to clipboard" },
+  "popup_notify_debugFailed": { "message": "Failed to copy debug info" },
+  "popup_notify_testPanelFailedDetail": {
+    "message": "Failed to open test panel: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "popup_notify_genericError": { "message": "An error occurred" },
+
+  "common_unknownError": { "message": "Unknown error" },
+  "common_days_one": {
+    "message": "$count$ day",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "common_days_other": {
+    "message": "$count$ days",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "common_hours_one": {
+    "message": "$count$ hour",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "common_hours_other": {
+    "message": "$count$ hours",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "common_minutes_one": {
+    "message": "$count$ minute",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "common_minutes_other": {
+    "message": "$count$ minutes",
+    "placeholders": { "count": { "content": "$1" } }
   }
 }
