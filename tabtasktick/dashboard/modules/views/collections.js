@@ -28,6 +28,8 @@ import {
 
 import keyboardShortcuts from '../keyboard-shortcuts.js';
 
+import { t, tPlural } from '../../../services/utils/i18n.js';
+
 // ============================================================================
 // Main Load Function
 // ============================================================================
@@ -73,7 +75,7 @@ export async function loadCollectionsView() {
 
   } catch (error) {
     console.error('Error loading collections:', error);
-    showNotification('Failed to load collections', 'error');
+    showNotification(t('dashboard_collections_errorTitle'), 'error');
     renderEmptyState('error', error.message);
   }
 }
@@ -115,21 +117,21 @@ function renderCollectionsView(collections, tasks, windowMap) {
         <input type="text"
                class="search-input"
                id="searchCollections"
-               placeholder="Search collections...">
+               placeholder="${t('dashboard_collections_searchPlaceholder')}">
         <select class="filter-select" id="filterCollections">
-          <option value="all">All Collections</option>
-          <option value="active">Active</option>
-          <option value="saved">Saved</option>
-          <option value="archived">Archived</option>
+          <option value="all">${t('dashboard_collections_filterAll')}</option>
+          <option value="active">${t('dashboard_collections_filterActive')}</option>
+          <option value="saved">${t('dashboard_collections_filterSaved')}</option>
+          <option value="archived">${t('dashboard_collections_filterArchived')}</option>
         </select>
         <select class="filter-select" id="sortCollections">
-          <option value="lastAccessed">Last Accessed</option>
-          <option value="name">Name (A-Z)</option>
-          <option value="created">Created Date</option>
-          <option value="tabCount">Tab Count</option>
+          <option value="lastAccessed">${t('dashboard_collections_sortLastAccessed')}</option>
+          <option value="name">${t('dashboard_collections_sortName')}</option>
+          <option value="created">${t('dashboard_collections_sortCreated')}</option>
+          <option value="tabCount">${t('dashboard_collections_sortTabCount')}</option>
         </select>
         <div class="view-toggle" style="display: inline-flex; gap: 2px; background: #f0f0f0; border-radius: 6px; padding: 2px;">
-          <button class="view-toggle-btn active" data-view="grid" title="Grid View">
+          <button class="view-toggle-btn active" data-view="grid" title="${t('dashboard_tabs_gridViewTitle')}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <rect x="3" y="3" width="7" height="7"></rect>
               <rect x="14" y="3" width="7" height="7"></rect>
@@ -137,7 +139,7 @@ function renderCollectionsView(collections, tasks, windowMap) {
               <rect x="3" y="14" width="7" height="7"></rect>
             </svg>
           </button>
-          <button class="view-toggle-btn" data-view="list" title="List View">
+          <button class="view-toggle-btn" data-view="list" title="${t('dashboard_collections_listViewTitle')}">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <line x1="8" y1="6" x2="21" y2="6"></line>
               <line x1="8" y1="12" x2="21" y2="12"></line>
@@ -148,21 +150,21 @@ function renderCollectionsView(collections, tasks, windowMap) {
             </svg>
           </button>
         </div>
-        <button class="btn btn-secondary" id="exportAllCollections" title="Export all collections to JSON">
+        <button class="btn btn-secondary" id="exportAllCollections" title="${t('dashboard_collections_exportAllTitle')}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          Export All
+          ${t('dashboard_collections_exportAll')}
         </button>
-        <button class="btn btn-primary" id="importCollections" title="Import collections from JSON file">
+        <button class="btn btn-primary" id="importCollections" title="${t('dashboard_collections_importTitle')}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="17 8 12 3 7 8"></polyline>
             <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
-          Import
+          ${t('dashboard_collections_import')}
         </button>
         <input type="file" id="importFileInput" accept=".json" style="display: none;">
       </div>
@@ -173,17 +175,17 @@ function renderCollectionsView(collections, tasks, windowMap) {
 
   // Render active collections
   if (active.length > 0) {
-    html += renderCollectionSection('Active Collections', active, taskCounts, windowMap, true);
+    html += renderCollectionSection('active-collections', t('dashboard_collections_sectionActive'), active, taskCounts, windowMap, true);
   }
 
   // Render saved collections
   if (saved.length > 0) {
-    html += renderCollectionSection('Saved Collections', saved, taskCounts, windowMap, false);
+    html += renderCollectionSection('saved-collections', t('dashboard_collections_sectionSaved'), saved, taskCounts, windowMap, false);
   }
 
   // Render archived collections (collapsed by default)
   if (archived.length > 0) {
-    html += renderCollectionSection('Archived', archived, taskCounts, windowMap, false, true);
+    html += renderCollectionSection('archived', t('dashboard_collections_sectionArchived'), archived, taskCounts, windowMap, false, true);
   }
 
   html += '</div>'; // Close collections-content
@@ -191,9 +193,7 @@ function renderCollectionsView(collections, tasks, windowMap) {
   container.innerHTML = html;
 }
 
-function renderCollectionSection(title, collections, taskCounts, windowMap, isActive, isCollapsed = false) {
-  const sectionId = title.toLowerCase().replace(/\s+/g, '-');
-
+function renderCollectionSection(sectionId, title, collections, taskCounts, windowMap, isActive, isCollapsed = false) {
   let html = `
     <div class="collection-section">
       <div class="collection-section-header ${isCollapsed ? 'collapsed' : ''}" data-section="${sectionId}">
@@ -228,14 +228,14 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
   const folderCount = collection.metadata?.folderCount || 0;
   const lastAccessed = collection.metadata?.lastAccessed
     ? getTimeAgo(collection.metadata.lastAccessed)
-    : 'Never';
+    : t('dashboard_collections_never');
 
   // Get window info for active collections
   let windowBadge = '';
   if (isActive && collection.windowId) {
     const window = windowMap.get(collection.windowId);
     if (window) {
-      windowBadge = `<span class="window-badge">Window #${collection.windowId}</span>`;
+      windowBadge = `<span class="window-badge">${t('dashboard_collections_windowBadge', String(collection.windowId))}</span>`;
     }
   }
 
@@ -246,7 +246,7 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
     : '';
 
   const moreTags = collection.tags && collection.tags.length > 3
-    ? `<span class="tag more">+${collection.tags.length - 3} more</span>`
+    ? `<span class="tag more">${t('dashboard_collections_moreTags', String(collection.tags.length - 3))}</span>`
     : '';
 
   return `
@@ -262,7 +262,7 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
             ${windowBadge}
           </h4>
           <p class="collection-description">
-            ${escapeHtml(collection.description || 'No description')}
+            ${escapeHtml(collection.description || t('dashboard_collections_noDescription'))}
           </p>
         </div>
       </div>
@@ -270,31 +270,31 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
       <div class="collection-stats">
         <div class="stat">
           <span class="stat-value">${tabCount}</span>
-          <span class="stat-label">tabs</span>
+          <span class="stat-label">${t('dashboard_collections_statTabs')}</span>
         </div>
         <div class="stat">
           <span class="stat-value">${folderCount}</span>
-          <span class="stat-label">folders</span>
+          <span class="stat-label">${t('dashboard_collections_statFolders')}</span>
         </div>
         <div class="stat">
           <span class="stat-value">${taskCount}</span>
-          <span class="stat-label">tasks</span>
+          <span class="stat-label">${t('dashboard_collections_statTasks')}</span>
         </div>
         <div class="stat">
           <span class="stat-value">${lastAccessed}</span>
-          <span class="stat-label">accessed</span>
+          <span class="stat-label">${t('dashboard_collections_statAccessed')}</span>
         </div>
       </div>
 
       ${isActive ? `
         <div class="sync-status-dashboard" data-sync-status="${collection.id}">
           <div class="sync-stat">
-            <span class="sync-label">Last sync:</span>
-            <span class="sync-value" data-sync-last="${collection.id}">Loading...</span>
+            <span class="sync-label">${t('dashboard_collections_syncLastLabel')}</span>
+            <span class="sync-value" data-sync-last="${collection.id}">${t('dashboard_collections_syncLoading')}</span>
           </div>
           <div class="sync-stat">
-            <span class="sync-label">Pending:</span>
-            <span class="sync-value" data-sync-pending="${collection.id}">...</span>
+            <span class="sync-label">${t('dashboard_collections_syncPendingLabel')}</span>
+            <span class="sync-value" data-sync-pending="${collection.id}">${t('dashboard_collections_syncPendingPlaceholder')}</span>
           </div>
         </div>
       ` : ''}
@@ -309,14 +309,14 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
                 <polyline points="15 3 21 3 21 9"></polyline>
                 <line x1="10" y1="14" x2="21" y2="3"></line>
               </svg>
-              Focus Window
+              ${t('dashboard_collections_focusWindow')}
             </button>
             <button class="btn btn-sm btn-secondary" data-action="close" data-collection-id="${collection.id}">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
-              Close
+              ${t('common_close')}
             </button>`
     : `<button class="btn btn-sm btn-primary" data-action="open" data-collection-id="${collection.id}">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -324,36 +324,36 @@ function renderCollectionCard(collection, taskCount, windowMap, isActive) {
                 <polyline points="15 3 21 3 21 9"></polyline>
                 <line x1="10" y1="14" x2="21" y2="3"></line>
               </svg>
-              Open
+              ${t('dashboard_collections_open')}
             </button>`}
         <button class="btn btn-sm btn-secondary" data-action="view-details" data-collection-id="${collection.id}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
             <circle cx="12" cy="12" r="3"></circle>
           </svg>
-          Details
+          ${t('dashboard_collections_details')}
         </button>
         <button class="btn btn-sm btn-secondary" data-action="edit" data-collection-id="${collection.id}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
-          Edit
+          ${t('common_edit')}
         </button>
         <button class="btn btn-sm btn-secondary" data-action="delete" data-collection-id="${collection.id}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
           </svg>
-          Delete
+          ${t('common_delete')}
         </button>
-        <button class="btn btn-sm btn-secondary" data-action="export" data-collection-id="${collection.id}" title="Export this collection to JSON">
+        <button class="btn btn-sm btn-secondary" data-action="export" data-collection-id="${collection.id}" title="${t('dashboard_collections_exportCardTitle')}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          Export
+          ${t('dashboard_collections_export')}
         </button>
       </div>
     </div>
@@ -372,14 +372,14 @@ function renderEmptyState(type, message = '') {
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
         </svg>
-        <h3>No Collections Yet</h3>
-        <p>Collections help you organize your browser windows and tasks. Create your first collection to get started!</p>
+        <h3>${t('dashboard_collections_emptyTitle')}</h3>
+        <p>${t('dashboard_collections_emptyText')}</p>
         <button class="btn btn-primary" id="createFirstCollection">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          Save Current Window
+          ${t('dashboard_collections_saveCurrentWindow')}
         </button>
       </div>
     `;
@@ -391,9 +391,9 @@ function renderEmptyState(type, message = '') {
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
-        <h3>Failed to Load Collections</h3>
-        <p>${escapeHtml(message || 'An error occurred while loading collections.')}</p>
-        <button class="btn btn-primary" id="retryLoadCollections">Retry</button>
+        <h3>${t('dashboard_collections_errorTitle')}</h3>
+        <p>${escapeHtml(message || t('dashboard_collections_errorDefault'))}</p>
+        <button class="btn btn-primary" id="retryLoadCollections">${t('dashboard_collections_retry')}</button>
       </div>
     `;
   }
@@ -577,13 +577,13 @@ async function handleCollectionAction(action, collectionId) {
     }
   } catch (error) {
     console.error('Error handling collection action:', error);
-    showNotification(`Failed to ${action} collection`, 'error');
+    showNotification(t('dashboard_collections_actionFailed'), 'error');
   }
 }
 
 async function handleOpenCollection(collectionId) {
   try {
-    showNotification('Restoring collection...', 'info');
+    showNotification(t('dashboard_collections_restoring'), 'info');
 
     const result = await chrome.runtime.sendMessage({
       action: 'restoreCollection',
@@ -592,14 +592,14 @@ async function handleOpenCollection(collectionId) {
     });
 
     if (result.success) {
-      showNotification(`Collection opened in window ${result.windowId}`, 'success');
+      showNotification(t('dashboard_collections_openedInWindow', String(result.windowId)), 'success');
       await loadCollectionsView(); // Refresh
     } else {
-      showNotification('Failed to open collection', 'error');
+      showNotification(t('dashboard_collections_openFailed'), 'error');
     }
   } catch (error) {
     console.error('Error opening collection:', error);
-    showNotification('Failed to open collection', 'error');
+    showNotification(t('dashboard_collections_openFailed'), 'error');
   }
 }
 
@@ -609,7 +609,7 @@ async function handleFocusWindow(collectionId) {
     const collection = collections.find(c => c.id === collectionId);
 
     if (!collection || !collection.windowId) {
-      showNotification('Collection is not active', 'error');
+      showNotification(t('dashboard_collections_notActive'), 'error');
       return;
     }
 
@@ -620,13 +620,13 @@ async function handleFocusWindow(collectionId) {
     });
 
     if (result.success) {
-      showNotification('Window focused', 'success');
+      showNotification(t('dashboard_collections_windowFocused'), 'success');
     } else {
-      showNotification('Failed to focus window', 'error');
+      showNotification(t('dashboard_collections_focusFailed'), 'error');
     }
   } catch (error) {
     console.error('Error focusing window:', error);
-    showNotification('Failed to focus window', 'error');
+    showNotification(t('dashboard_collections_focusFailed'), 'error');
   }
 }
 
@@ -636,11 +636,11 @@ async function handleCloseWindow(collectionId) {
     const collection = collections.find(c => c.id === collectionId);
 
     if (!collection || !collection.windowId) {
-      showNotification('Collection is not active', 'error');
+      showNotification(t('dashboard_collections_notActive'), 'error');
       return;
     }
 
-    if (!confirm(`Close window and save collection "${collection.name}"?`)) {
+    if (!confirm(t('dashboard_collections_confirmCloseWindow', collection.name))) {
       return;
     }
 
@@ -651,21 +651,21 @@ async function handleCloseWindow(collectionId) {
     });
 
     if (result.success) {
-      showNotification('Window closed, collection saved', 'success');
+      showNotification(t('dashboard_collections_windowClosedSaved'), 'success');
       // Refresh view
       setTimeout(() => loadCollectionsView(), 500);
     } else {
-      showNotification('Failed to close window', 'error');
+      showNotification(t('dashboard_collections_closeFailed'), 'error');
     }
   } catch (error) {
     console.error('Error closing window:', error);
-    showNotification('Failed to close window', 'error');
+    showNotification(t('dashboard_collections_closeFailed'), 'error');
   }
 }
 
 async function handleViewDetails(collectionId) {
   try {
-    showNotification('Loading collection details...', 'info');
+    showNotification(t('dashboard_collections_loadingDetails'), 'info');
 
     // Get complete collection with all tabs, folders, and tasks
     const response = await chrome.runtime.sendMessage({
@@ -676,11 +676,11 @@ async function handleViewDetails(collectionId) {
     if (response.success && response.collection) {
       showCollectionDetailsModal(response.collection);
     } else {
-      showNotification('Failed to load collection details', 'error');
+      showNotification(t('dashboard_collections_detailsFailed'), 'error');
     }
   } catch (error) {
     console.error('Error loading collection details:', error);
-    showNotification('Failed to load collection details', 'error');
+    showNotification(t('dashboard_collections_detailsFailed'), 'error');
   }
 }
 
@@ -689,10 +689,10 @@ function showCollectionDetailsModal(collection) {
   if (!modalService.exists('collectionDetailsModal')) {
     modalService.create({
       id: 'collectionDetailsModal',
-      title: 'Collection Details',
+      title: t('dashboard_collections_detailsTitle'),
       size: 'lg',
       body: '<!-- Content will be populated dynamically -->',
-      footer: '<button class="btn btn-secondary" id="closeCollectionDetails">Close</button>',
+      footer: `<button class="btn btn-secondary" id="closeCollectionDetails">${t('common_close')}</button>`,
       events: {
         '#closeCollectionDetails': () => modalService.hide('collectionDetailsModal')
       }
@@ -707,10 +707,10 @@ function showCollectionDetailsModal(collection) {
 }
 
 function renderCollectionDetails(collection) {
-  const createdDate = collection.createdAt ? new Date(collection.createdAt).toLocaleString() : 'Unknown';
+  const createdDate = collection.createdAt ? new Date(collection.createdAt).toLocaleString() : t('dashboard_collections_unknown');
   const lastAccessed = collection.metadata?.lastAccessed
     ? getTimeAgo(collection.metadata.lastAccessed)
-    : 'Never';
+    : t('dashboard_collections_never');
 
   const tabs = collection.tabs || [];
   const folders = collection.folders || [];
@@ -731,36 +731,36 @@ function renderCollectionDetails(collection) {
 
       <!-- Metadata Section -->
       <div class="details-section">
-        <h4>Information</h4>
+        <h4>${t('dashboard_collections_information')}</h4>
         <div class="details-grid">
           <div class="detail-item">
-            <span class="detail-label">Status:</span>
-            <span class="detail-value">${collection.isActive ? '🟢 Active' : '💾 Saved'}</span>
+            <span class="detail-label">${t('dashboard_collections_statusLabel')}</span>
+            <span class="detail-value">${collection.isActive ? t('dashboard_collections_statusActive') : t('dashboard_collections_statusSaved')}</span>
           </div>
           ${collection.windowId ? `
             <div class="detail-item">
-              <span class="detail-label">Window:</span>
+              <span class="detail-label">${t('dashboard_collections_windowLabel')}</span>
               <span class="detail-value">#${collection.windowId}</span>
             </div>
           ` : ''}
           <div class="detail-item">
-            <span class="detail-label">Created:</span>
+            <span class="detail-label">${t('dashboard_collections_createdLabel')}</span>
             <span class="detail-value">${createdDate}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Last Accessed:</span>
+            <span class="detail-label">${t('dashboard_collections_lastAccessedLabel')}</span>
             <span class="detail-value">${lastAccessed}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Tabs:</span>
+            <span class="detail-label">${t('dashboard_collections_tabsLabel')}</span>
             <span class="detail-value">${tabs.length}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Folders:</span>
+            <span class="detail-label">${t('dashboard_collections_foldersLabel')}</span>
             <span class="detail-value">${folders.length}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Tasks:</span>
+            <span class="detail-label">${t('dashboard_collections_tasksLabel')}</span>
             <span class="detail-value">${tasks.length}</span>
           </div>
         </div>
@@ -769,7 +769,7 @@ function renderCollectionDetails(collection) {
       <!-- Tags Section -->
       ${collection.tags && collection.tags.length > 0 ? `
         <div class="details-section">
-          <h4>Tags</h4>
+          <h4>${t('dashboard_collections_tags')}</h4>
           <div class="details-tags">
             ${collection.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
           </div>
@@ -779,14 +779,14 @@ function renderCollectionDetails(collection) {
       <!-- Folders & Tabs Section (Hierarchical) -->
       ${folders.length > 0 || collection.ungroupedTabs?.length > 0 ? `
         <div class="details-section">
-          <h4>Folders & Tabs</h4>
+          <h4>${t('dashboard_collections_foldersAndTabs')}</h4>
           <div class="details-list">
             ${folders.map(folder => `
               <div class="folder-section">
                 <div class="folder-header">
                   <span class="folder-icon">📁</span>
-                  <strong>${escapeHtml(folder.name || 'Untitled Folder')}</strong>
-                  <span class="folder-count">(${folder.tabs?.length || 0} tabs)</span>
+                  <strong>${escapeHtml(folder.name || t('dashboard_collections_untitledFolder'))}</strong>
+                  <span class="folder-count">${t('dashboard_collections_folderTabCount', String(folder.tabs?.length || 0))}</span>
                 </div>
                 ${folder.tabs && folder.tabs.length > 0 ? `
                   <div class="folder-tabs">
@@ -796,7 +796,7 @@ function renderCollectionDetails(collection) {
                              width="16" height="16"
                              class="favicon-img">
                         <div class="detail-list-info">
-                          <div class="detail-list-title">${escapeHtml(tab.title || 'Untitled')}</div>
+                          <div class="detail-list-title">${escapeHtml(tab.title || t('dashboard_collections_untitled'))}</div>
                           <div class="detail-list-url">${escapeHtml(tab.url || '')}</div>
                           ${tab.note ? `<div class="detail-list-note">📝 ${escapeHtml(tab.note)}</div>` : ''}
                         </div>
@@ -810,8 +810,8 @@ function renderCollectionDetails(collection) {
               <div class="folder-section">
                 <div class="folder-header">
                   <span class="folder-icon">📄</span>
-                  <strong>Ungrouped</strong>
-                  <span class="folder-count">(${collection.ungroupedTabs.length} tabs)</span>
+                  <strong>${t('dashboard_collections_ungrouped')}</strong>
+                  <span class="folder-count">${t('dashboard_collections_folderTabCount', String(collection.ungroupedTabs.length))}</span>
                 </div>
                 <div class="folder-tabs">
                   ${collection.ungroupedTabs.map(tab => `
@@ -820,7 +820,7 @@ function renderCollectionDetails(collection) {
                            width="16" height="16"
                            class="favicon-img">
                       <div class="detail-list-info">
-                        <div class="detail-list-title">${escapeHtml(tab.title || 'Untitled')}</div>
+                        <div class="detail-list-title">${escapeHtml(tab.title || t('dashboard_collections_untitled'))}</div>
                         <div class="detail-list-url">${escapeHtml(tab.url || '')}</div>
                         ${tab.note ? `<div class="detail-list-note">📝 ${escapeHtml(tab.note)}</div>` : ''}
                       </div>
@@ -836,7 +836,7 @@ function renderCollectionDetails(collection) {
       <!-- Tasks Section -->
       ${tasks.length > 0 ? `
         <div class="details-section">
-          <h4>Tasks (${tasks.length})</h4>
+          <h4>${t('dashboard_collections_tasksHeading', String(tasks.length))}</h4>
           <div class="details-list">
             ${tasks.map(task => {
     const priorityColors = {
@@ -863,7 +863,7 @@ function renderCollectionDetails(collection) {
                         ${task.priority}
                       </span>
                       ${task.tabIds && task.tabIds.length > 0 ? `
-                        <span class="task-meta">${task.tabIds.length} tab${task.tabIds.length !== 1 ? 's' : ''}</span>
+                        <span class="task-meta">${tPlural('dashboard_collections_taskTabCount', task.tabIds.length)}</span>
                       ` : ''}
                     </div>
                   </div>
@@ -884,7 +884,7 @@ async function handleEditCollection(collectionId) {
   const collection = collections.find(c => c.id === collectionId);
 
   if (!collection) {
-    showNotification('Collection not found', 'error');
+    showNotification(t('dashboard_collections_notFound'), 'error');
     return;
   }
 
@@ -898,18 +898,18 @@ function showEditCollectionModal(collection) {
         <input type="hidden" id="editCollectionId">
 
         <div class="form-group">
-          <label for="editCollectionName">Name *</label>
-          <input type="text" id="editCollectionName" class="form-control" placeholder="Collection name" required>
+          <label for="editCollectionName">${t('dashboard_collections_formName')}</label>
+          <input type="text" id="editCollectionName" class="form-control" placeholder="${t('dashboard_collections_formNamePlaceholder')}" required>
         </div>
 
         <div class="form-group">
-          <label for="editCollectionDescription">Description</label>
-          <textarea id="editCollectionDescription" class="form-control" rows="3" placeholder="Optional description"></textarea>
+          <label for="editCollectionDescription">${t('dashboard_collections_formDescription')}</label>
+          <textarea id="editCollectionDescription" class="form-control" rows="3" placeholder="${t('dashboard_collections_formDescriptionPlaceholder')}"></textarea>
         </div>
 
         <div class="form-row">
           <div class="form-group" style="flex: 2;">
-            <label for="editCollectionIcon">Icon</label>
+            <label for="editCollectionIcon">${t('dashboard_collections_formIcon')}</label>
             <input type="hidden" id="editCollectionIcon" value="📁">
             <div class="emoji-picker-container">
               <div class="emoji-current" id="currentEmoji">📁</div>
@@ -928,47 +928,47 @@ function showEditCollectionModal(collection) {
           </div>
 
           <div class="form-group" style="flex: 1;">
-            <label for="editCollectionColor">Color</label>
+            <label for="editCollectionColor">${t('dashboard_collections_formColor')}</label>
             <input type="color" id="editCollectionColor" class="form-control" value="#667eea">
           </div>
         </div>
 
         <div class="form-group">
-          <label for="editCollectionTags">Tags (comma-separated)</label>
-          <input type="text" id="editCollectionTags" class="form-control" placeholder="work, important, project">
+          <label for="editCollectionTags">${t('dashboard_collections_formTags')}</label>
+          <input type="text" id="editCollectionTags" class="form-control" placeholder="${t('dashboard_collections_formTagsPlaceholder')}">
         </div>
 
         <div class="form-group">
-          <label class="section-label">Progressive Sync Settings</label>
+          <label class="section-label">${t('dashboard_collections_syncSettingsLabel')}</label>
           <div class="settings-section">
             <div class="setting-row-dashboard">
               <label class="checkbox-label">
                 <input type="checkbox" id="editTrackingEnabled">
-                <span>Enable real-time tracking</span>
+                <span>${t('dashboard_collections_enableTracking')}</span>
               </label>
-              <small class="setting-help">Automatically track and save tab/group changes</small>
+              <small class="setting-help">${t('dashboard_collections_enableTrackingHelp')}</small>
             </div>
 
             <div class="setting-row-dashboard">
-              <label for="editSyncDebounce">Sync delay (seconds)</label>
+              <label for="editSyncDebounce">${t('dashboard_collections_syncDelay')}</label>
               <div class="slider-row">
                 <input type="range" id="editSyncDebounce" min="0" max="10" step="0.5" value="2" class="sync-slider">
                 <span id="editSyncDebounceValue">2.0s</span>
               </div>
-              <small class="setting-help">Time to wait before saving changes</small>
+              <small class="setting-help">${t('dashboard_collections_syncDelayHelp')}</small>
             </div>
           </div>
         </div>
     `;
 
     const footerHtml = `
-      <button class="btn btn-secondary" id="cancelEditCollection">Cancel</button>
-      <button class="btn btn-primary" id="saveEditCollection">Save Changes</button>
+      <button class="btn btn-secondary" id="cancelEditCollection">${t('common_cancel')}</button>
+      <button class="btn btn-primary" id="saveEditCollection">${t('dashboard_collections_saveChanges')}</button>
     `;
 
     modalService.create({
       id: 'editCollectionModal',
-      title: 'Edit Collection',
+      title: t('dashboard_collections_editTitle'),
       size: 'md',
       body: bodyHtml,
       footer: footerHtml,
@@ -1081,14 +1081,14 @@ async function handleSaveEditCollection() {
   const name = document.getElementById('editCollectionName').value.trim();
 
   if (!name) {
-    showNotification('Collection name is required', 'error');
+    showNotification(t('dashboard_collections_nameRequired'), 'error');
     return;
   }
 
   const tags = document.getElementById('editCollectionTags').value
     .split(',')
-    .map(t => t.trim())
-    .filter(t => t.length > 0);
+    .map(tag => tag.trim())
+    .filter(tag => tag.length > 0);
 
   // Get progressive sync settings
   const trackingEnabled = document.getElementById('editTrackingEnabled').checked;
@@ -1115,15 +1115,15 @@ async function handleSaveEditCollection() {
     });
 
     if (result.success) {
-      showNotification('Collection updated', 'success');
+      showNotification(t('dashboard_collections_updated'), 'success');
       modalService.hide('editCollectionModal');
       await loadCollectionsView(); // Refresh
     } else {
-      showNotification('Failed to update collection', 'error');
+      showNotification(t('dashboard_collections_updateFailed'), 'error');
     }
   } catch (error) {
     console.error('Error updating collection:', error);
-    showNotification('Failed to update collection', 'error');
+    showNotification(t('dashboard_collections_updateFailed'), 'error');
   }
 }
 
@@ -1133,11 +1133,11 @@ async function handleDeleteCollection(collectionId) {
     const collection = collections.find(c => c.id === collectionId);
 
     if (!collection) {
-      showNotification('Collection not found', 'error');
+      showNotification(t('dashboard_collections_notFound'), 'error');
       return;
     }
 
-    if (!confirm(`Delete collection "${collection.name}"? This will also delete all associated tasks.`)) {
+    if (!confirm(t('dashboard_collections_confirmDelete', collection.name))) {
       return;
     }
 
@@ -1147,14 +1147,14 @@ async function handleDeleteCollection(collectionId) {
     });
 
     if (result.success) {
-      showNotification('Collection deleted', 'success');
+      showNotification(t('dashboard_collections_deleted'), 'success');
       await loadCollectionsView(); // Refresh
     } else {
-      showNotification('Failed to delete collection', 'error');
+      showNotification(t('dashboard_collections_deleteFailed'), 'error');
     }
   } catch (error) {
     console.error('Error deleting collection:', error);
-    showNotification('Failed to delete collection', 'error');
+    showNotification(t('dashboard_collections_deleteFailed'), 'error');
   }
 }
 
@@ -1164,7 +1164,7 @@ async function handleCreateCollection() {
     const windowResponse = await chrome.runtime.sendMessage({ action: 'getCurrentWindow' });
     const currentWindow = windowResponse.window;
 
-    showNotification('Saving current window...', 'info');
+    showNotification(t('dashboard_collections_savingWindow'), 'info');
 
     const result = await chrome.runtime.sendMessage({
       action: 'captureWindow',
@@ -1176,31 +1176,31 @@ async function handleCreateCollection() {
     });
 
     if (result.success) {
-      showNotification('Collection created!', 'success');
+      showNotification(t('dashboard_collections_created'), 'success');
       await loadCollectionsView(); // Refresh
     } else {
-      showNotification('Failed to create collection', 'error');
+      showNotification(t('dashboard_collections_createFailed'), 'error');
     }
   } catch (error) {
     console.error('Error creating collection:', error);
-    showNotification('Failed to create collection', 'error');
+    showNotification(t('dashboard_collections_createFailed'), 'error');
   }
 }
 
 async function handleExportCollection(collectionId) {
   try {
-    showNotification('Exporting collection...', 'info');
+    showNotification(t('dashboard_collections_exporting'), 'info');
 
     const result = await exportCollectionService(collectionId);
 
     if (result.success) {
       showNotification(formatExportSuccessMessage(result), 'success');
     } else {
-      showNotification('Failed to export collection', 'error');
+      showNotification(t('dashboard_collections_exportFailed'), 'error');
     }
   } catch (error) {
     console.error('Error exporting collection:', error);
-    showNotification(`Export failed: ${error.message}`, 'error');
+    showNotification(t('dashboard_collections_exportFailedMsg', error.message), 'error');
   }
 }
 
@@ -1209,28 +1209,28 @@ async function handleExportAllCollections() {
     const collections = state.get('collections') || [];
 
     if (collections.length === 0) {
-      showNotification('No collections to export', 'warning');
+      showNotification(t('dashboard_collections_noneToExport'), 'warning');
       return;
     }
 
-    showNotification(`Exporting ${collections.length} collections...`, 'info');
+    showNotification(tPlural('dashboard_collections_exportingCount', collections.length), 'info');
 
     const result = await exportAllCollectionsService();
 
     if (result.success) {
       showNotification(formatExportSuccessMessage(result), 'success');
     } else {
-      showNotification('Failed to export collections', 'error');
+      showNotification(t('dashboard_collections_exportAllFailed'), 'error');
     }
   } catch (error) {
     console.error('Error exporting all collections:', error);
-    showNotification(`Export failed: ${error.message}`, 'error');
+    showNotification(t('dashboard_collections_exportFailedMsg', error.message), 'error');
   }
 }
 
 async function handleImportCollections(file) {
   try {
-    showNotification('Importing collections...', 'info');
+    showNotification(t('dashboard_collections_importing'), 'info');
 
     const result = await importCollectionsService(file);
 
@@ -1257,11 +1257,11 @@ async function handleImportCollections(file) {
         await loadCollectionsView();
       }
     } else {
-      showNotification('Failed to import collections', 'error');
+      showNotification(t('dashboard_collections_importFailed'), 'error');
     }
   } catch (error) {
     console.error('Error importing collections:', error);
-    showNotification(`Import failed: ${error.message}`, 'error');
+    showNotification(t('dashboard_collections_importFailedMsg', error.message), 'error');
   }
 }
 
@@ -1348,7 +1348,7 @@ async function loadSyncStatusForActiveCollections(collections) {
           lastSyncEl.textContent = timeAgo;
           lastSyncEl.title = new Date(response.lastSyncTime).toLocaleString();
         } else {
-          lastSyncEl.textContent = 'Never';
+          lastSyncEl.textContent = t('dashboard_collections_never');
         }
       }
 
@@ -1376,11 +1376,11 @@ function formatSyncTimeAgo(timestamp) {
   const now = Date.now();
   const diff = now - timestamp;
 
-  if (diff < 10000) return 'Just now';
-  if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-  return `${Math.floor(diff / 86400000)}d ago`;
+  if (diff < 10000) return t('dashboard_collections_syncJustNow');
+  if (diff < 60000) return t('dashboard_collections_syncSecondsAgo', String(Math.floor(diff / 1000)));
+  if (diff < 3600000) return t('dashboard_collections_syncMinutesAgo', String(Math.floor(diff / 60000)));
+  if (diff < 86400000) return t('dashboard_collections_syncHoursAgo', String(Math.floor(diff / 3600000)));
+  return t('dashboard_collections_syncDaysAgo', String(Math.floor(diff / 86400000)));
 }
 
 // ============================================================================
@@ -1447,14 +1447,14 @@ function setupCollectionsKeyboardShortcuts() {
             id: collectionId
           });
           if (result.success) {
-            showNotification('Collection opened', 'success');
+            showNotification(t('dashboard_collections_opened'), 'success');
             await loadCollectionsView();
           } else {
-            showNotification('Failed to open collection', 'error');
+            showNotification(t('dashboard_collections_openFailed'), 'error');
           }
         } catch (error) {
           console.error('Error opening collection:', error);
-          showNotification('Failed to open collection', 'error');
+          showNotification(t('dashboard_collections_openFailed'), 'error');
         }
       }
     }
