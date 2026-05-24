@@ -572,5 +572,463 @@
   "activity_verb_move": { "message": "moved" },
   "activity_actionNoun_one": { "message": "action" },
   "activity_actionNoun_other": { "message": "actions" },
-  "activity_noMatching": { "message": "No matching tabs found" }
+  "activity_noMatching": { "message": "No matching tabs found" },
+
+  "sidepanel_docTitle": { "message": "TabTaskTick" },
+  "sidepanel_searchPlaceholder": { "message": "Search collections & tasks..." },
+  "sidepanel_searchLabel": { "message": "Search collections and tasks" },
+  "sidepanel_createCollection_title": { "message": "Create a new collection" },
+  "sidepanel_createCollection_btn": { "message": "📁 Create Collection" },
+  "sidepanel_createTask_title": { "message": "Create a new task" },
+  "sidepanel_createTask_btn": { "message": "✓ Create Task" },
+  "sidepanel_import_title": { "message": "Import collections from JSON file" },
+  "sidepanel_import_btn": { "message": "📥 Import" },
+  "sidepanel_view_collections": { "message": "📁 Collections" },
+  "sidepanel_view_tasks": { "message": "✓ Tasks" },
+  "sidepanel_toggleFilters_label": { "message": "Toggle filters" },
+  "sidepanel_toggleFilters_title": { "message": "Show/Hide Filters" },
+  "sidepanel_toggleFilters_btn": { "message": "🔍 Filters" },
+  "sidepanel_filtersPanel_label": { "message": "Filters" },
+
+  "sidepanel_collections_loading": { "message": "Loading collections..." },
+  "sidepanel_collections_errorTitle": { "message": "Unable to load collections" },
+  "sidepanel_collections_emptyTitle": { "message": "No collections yet" },
+  "sidepanel_collections_emptyDescription": { "message": "Create your first collection to organize and manage groups of tabs. Collections help you keep your work organized and easily accessible." },
+  "sidepanel_collections_emptyAction": { "message": "📁 Create Your First Collection" },
+  "sidepanel_collections_sectionActive": { "message": "Active" },
+  "sidepanel_collections_sectionSaved": { "message": "Saved" },
+  "sidepanel_common_retry": { "message": "Retry" },
+
+  "sidepanel_tasks_loading": { "message": "Loading tasks..." },
+  "sidepanel_tasks_errorTitle": { "message": "Unable to load tasks" },
+  "sidepanel_tasks_emptyTitle": { "message": "No tasks yet" },
+  "sidepanel_tasks_emptyDescription": { "message": "Create tasks to track your work in collections. Tasks help you remember what you're working on." },
+  "sidepanel_tasks_emptyAction": { "message": "✓ Create Your First Task" },
+
+  "sidepanel_panel_saveWindowFailed": { "message": "Failed to save window" },
+  "sidepanel_panel_newCollectionName": { "message": "New Collection" },
+  "sidepanel_panel_saveWindowIntro_oneTab_oneFolder": {
+    "message": "Create a new collection from the current window with $tabs$ tab and $folders$ folder.",
+    "placeholders": { "tabs": { "content": "$1" }, "folders": { "content": "$2" } }
+  },
+  "sidepanel_panel_saveWindowIntro_oneTab_otherFolders": {
+    "message": "Create a new collection from the current window with $tabs$ tab and $folders$ folders.",
+    "placeholders": { "tabs": { "content": "$1" }, "folders": { "content": "$2" } }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_oneFolder": {
+    "message": "Create a new collection from the current window with $tabs$ tabs and $folders$ folder.",
+    "placeholders": { "tabs": { "content": "$1" }, "folders": { "content": "$2" } }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_otherFolders": {
+    "message": "Create a new collection from the current window with $tabs$ tabs and $folders$ folders.",
+    "placeholders": { "tabs": { "content": "$1" }, "folders": { "content": "$2" } }
+  },
+  "sidepanel_form_nameLabel": { "message": "Name *" },
+  "sidepanel_form_namePlaceholder": { "message": "Enter collection name" },
+  "sidepanel_form_descriptionLabel": { "message": "Description" },
+  "sidepanel_form_descriptionPlaceholder": { "message": "What is this collection for?" },
+  "sidepanel_form_iconLabel": { "message": "Icon" },
+  "sidepanel_form_emojiSuggested": { "message": "✨ Suggested" },
+  "sidepanel_form_tagsLabel": { "message": "Tags (comma-separated)" },
+  "sidepanel_form_tagsPlaceholder": { "message": "work, project, research" },
+  "sidepanel_panel_createCollectionTitle": { "message": "Create Collection" },
+  "sidepanel_panel_createCollectionSubmit": { "message": "Create Collection" },
+  "sidepanel_panel_nameRequired": { "message": "Collection name is required" },
+  "sidepanel_panel_savedCollection": {
+    "message": "✓ Saved $name$ ($tabs$ tabs, $folders$ folders)",
+    "placeholders": { "name": { "content": "$1" }, "tabs": { "content": "$2" }, "folders": { "content": "$3" } }
+  },
+  "sidepanel_panel_importing": { "message": "Importing collections..." },
+  "sidepanel_panel_importFailed": { "message": "Failed to import collections" },
+  "sidepanel_panel_createTaskFailed": { "message": "Failed to create task" },
+  "sidepanel_panel_createTaskTitle": { "message": "Create New Task" },
+  "sidepanel_task_summaryLabel": { "message": "Summary *" },
+  "sidepanel_task_summaryPlaceholder": { "message": "What do you need to do?" },
+  "sidepanel_task_contextLabel": { "message": "Context" },
+  "sidepanel_task_contextHelperThis": { "message": "Quick access to this tab" },
+  "sidepanel_task_contextHelper": { "message": "Quick access to tabs" },
+  "sidepanel_task_notesLabel": { "message": "Notes" },
+  "sidepanel_task_notesPlaceholder": { "message": "Additional details..." },
+  "sidepanel_task_priorityLabel": { "message": "Priority" },
+  "sidepanel_task_priorityLow": { "message": "Low" },
+  "sidepanel_task_priorityMedium": { "message": "Medium" },
+  "sidepanel_task_priorityHigh": { "message": "High" },
+  "sidepanel_task_priorityCritical": { "message": "Critical" },
+  "sidepanel_task_collectionLabel": { "message": "Collection" },
+  "sidepanel_task_uncategorized": { "message": "Uncategorized" },
+  "sidepanel_task_unnamed": { "message": "Unnamed" },
+  "sidepanel_task_dueDateLabel": { "message": "Due Date" },
+  "sidepanel_task_tagsLabel": { "message": "Tags (comma-separated)" },
+  "sidepanel_task_tagsPlaceholderUrgent": { "message": "urgent, work, review" },
+  "sidepanel_task_createSubmit": { "message": "Create Task" },
+  "sidepanel_task_statusLabel": { "message": "Status" },
+  "sidepanel_task_statusOpen": { "message": "Open" },
+  "sidepanel_task_statusActive": { "message": "Active" },
+  "sidepanel_task_statusFixed": { "message": "Fixed" },
+  "sidepanel_task_statusAbandoned": { "message": "Abandoned" },
+  "sidepanel_task_summaryRequired": { "message": "Summary is required" },
+  "sidepanel_task_created": { "message": "Task created successfully" },
+  "sidepanel_panel_noResultsTitle_collections": { "message": "No collections found" },
+  "sidepanel_panel_noResultsTitle_tasks": { "message": "No tasks found" },
+  "sidepanel_panel_noResultsDescription_collections": {
+    "message": "No collections match your search query \"$query$\". Try a different search term.",
+    "placeholders": { "query": { "content": "$1" } }
+  },
+  "sidepanel_panel_noResultsDescription_tasks": {
+    "message": "No tasks match your search query \"$query$\". Try a different search term.",
+    "placeholders": { "query": { "content": "$1" } }
+  },
+  "sidepanel_panel_genericError": { "message": "An error occurred" },
+  "sidepanel_panel_initError": { "message": "Initialization Error" },
+
+  "sidepanel_collections_untitled": { "message": "Untitled Collection" },
+  "sidepanel_collections_windowBadge": {
+    "message": "Window #$id$",
+    "placeholders": { "id": { "content": "$1" } }
+  },
+  "sidepanel_collections_metaTabs": { "message": "Tabs" },
+  "sidepanel_collections_metaFolders": { "message": "Folders" },
+  "sidepanel_collections_metaLastAccessed": { "message": "Last accessed" },
+  "sidepanel_collections_moreTags": {
+    "message": "+$count$",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_collections_viewDetails": { "message": "👁️ View Details" },
+  "sidepanel_collections_focusWindow": { "message": "Focus Window" },
+  "sidepanel_collections_open": { "message": "📂 Open" },
+  "sidepanel_collections_edit": { "message": "✏️ Edit" },
+  "sidepanel_collections_close": { "message": "❌ Close" },
+  "sidepanel_collections_delete": { "message": "🗑️ Delete" },
+  "sidepanel_collections_export": { "message": "💾 Export" },
+  "sidepanel_collections_exportTitle": { "message": "Export this collection" },
+  "sidepanel_collections_detailViewUnavailable": { "message": "Detail view not available" },
+  "sidepanel_collections_showDetailsFailed": { "message": "Failed to show collection details" },
+  "sidepanel_collections_windowNotFound": { "message": "Window not found" },
+  "sidepanel_collections_windowFocused": { "message": "Window focused" },
+  "sidepanel_collections_focusFailed": { "message": "Failed to focus window" },
+  "sidepanel_collections_openedNewWindow": { "message": "Collection opened in new window" },
+  "sidepanel_collections_openFailed": { "message": "Failed to open collection" },
+  "sidepanel_collections_viewingTasks": { "message": "Viewing tasks for collection" },
+  "sidepanel_collections_viewTasksFailed": { "message": "Failed to view tasks" },
+  "sidepanel_collections_notFound": { "message": "Collection not found" },
+  "sidepanel_collections_editTitle": { "message": "Edit Collection" },
+  "sidepanel_collections_editFailed": { "message": "Failed to edit collection" },
+  "sidepanel_collections_windowClosedSaved": { "message": "Window closed - collection saved" },
+  "sidepanel_collections_closeWindowFailed": { "message": "Failed to close window" },
+  "sidepanel_collections_deleteTitle": { "message": "Delete Collection" },
+  "sidepanel_collections_deleteFailed": { "message": "Failed to delete collection" },
+  "sidepanel_collections_deleted": {
+    "message": "Collection \"$name$\" deleted",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "sidepanel_collections_deleteWarningActive": { "message": "⚠️ This collection is currently active. The window will remain open but the collection data will be permanently deleted." },
+  "sidepanel_collections_deleteConfirmQuestion": {
+    "message": "Are you sure you want to delete \"$name$\"?",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "sidepanel_collections_deleteWillDelete": { "message": "This will permanently delete:" },
+  "sidepanel_collections_deleteItemFolders": { "message": "All folders and tabs in this collection" },
+  "sidepanel_collections_deleteItemTasks": { "message": "All tasks associated with this collection" },
+  "sidepanel_collections_actionUndone": { "message": "This action cannot be undone." },
+  "sidepanel_collections_nameLabel": { "message": "Name" },
+  "sidepanel_collections_tagsPlaceholder": { "message": "work, research, personal" },
+  "sidepanel_collections_updated": { "message": "Collection updated" },
+  "sidepanel_collections_saveChangesFailed": { "message": "Failed to save changes" },
+  "sidepanel_collections_exporting": { "message": "Exporting collection..." },
+  "sidepanel_collections_exportFailedNotify": { "message": "Failed to export collection" },
+  "sidepanel_collections_exportFailedDetail": {
+    "message": "Export failed: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "sidepanel_time_never": { "message": "Never" },
+  "sidepanel_time_justNow": { "message": "Just now" },
+  "sidepanel_time_minAgo": {
+    "message": "$count$ min ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_time_hoursAgo": {
+    "message": "$count$h ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_time_daysAgo": {
+    "message": "$count$d ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_time_weeksAgo": {
+    "message": "$count$w ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_time_monthsAgo": {
+    "message": "$count$mo ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+
+  "sidepanel_filters_state": { "message": "State" },
+  "sidepanel_filters_stateAll": { "message": "All" },
+  "sidepanel_filters_stateActive": { "message": "Active" },
+  "sidepanel_filters_stateSaved": { "message": "Saved" },
+  "sidepanel_filters_tags": { "message": "Tags" },
+  "sidepanel_filters_sortBy": { "message": "Sort by" },
+  "sidepanel_filters_sortLastAccessed": { "message": "Last Accessed" },
+  "sidepanel_filters_sortCreated": { "message": "Created" },
+  "sidepanel_filters_sortName": { "message": "Name" },
+  "sidepanel_filters_status": { "message": "Status" },
+  "sidepanel_filters_statusOpen": { "message": "Open" },
+  "sidepanel_filters_statusActive": { "message": "Active" },
+  "sidepanel_filters_statusFixed": { "message": "Fixed" },
+  "sidepanel_filters_statusAbandoned": { "message": "Abandoned" },
+  "sidepanel_filters_priority": { "message": "Priority" },
+  "sidepanel_filters_priorityLow": { "message": "Low" },
+  "sidepanel_filters_priorityMedium": { "message": "Medium" },
+  "sidepanel_filters_priorityHigh": { "message": "High" },
+  "sidepanel_filters_priorityCritical": { "message": "Critical" },
+  "sidepanel_filters_collection": { "message": "Collection" },
+  "sidepanel_filters_uncategorized": { "message": "Uncategorized" },
+  "sidepanel_filters_unnamed": { "message": "Unnamed" },
+  "sidepanel_filters_clear": {
+    "message": "Clear Filters ($count$)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+
+  "sidepanel_presentation_groupBy": { "message": "Group By:" },
+  "sidepanel_presentation_groupByLabel": { "message": "Group tasks by" },
+  "sidepanel_presentation_groupCollection": { "message": "Collection" },
+  "sidepanel_presentation_groupPriority": { "message": "Priority" },
+  "sidepanel_presentation_groupStatus": { "message": "Status" },
+  "sidepanel_presentation_groupNone": { "message": "None" },
+  "sidepanel_presentation_sortBy": { "message": "Sort By:" },
+  "sidepanel_presentation_sortByLabel": { "message": "Sort tasks by" },
+  "sidepanel_presentation_sortPriority": { "message": "Priority" },
+  "sidepanel_presentation_sortDueDate": { "message": "Due Date" },
+  "sidepanel_presentation_sortCreated": { "message": "Created" },
+  "sidepanel_presentation_sortAlpha": { "message": "Alpha" },
+  "sidepanel_presentation_directionLabel": { "message": "Toggle sort direction" },
+  "sidepanel_presentation_directionAsc": { "message": "Ascending" },
+  "sidepanel_presentation_directionDesc": { "message": "Descending" },
+
+  "sidepanel_tasks_uncategorized": { "message": "Uncategorized" },
+  "sidepanel_tasks_unnamedCollection": { "message": "Unnamed Collection" },
+  "sidepanel_tasks_unnamed": { "message": "Unnamed" },
+  "sidepanel_tasks_completed": { "message": "Completed" },
+  "sidepanel_tasks_groupCritical": { "message": "Critical" },
+  "sidepanel_tasks_groupHigh": { "message": "High Priority" },
+  "sidepanel_tasks_groupMedium": { "message": "Medium Priority" },
+  "sidepanel_tasks_groupLow": { "message": "Low Priority" },
+  "sidepanel_tasks_groupNoPriority": { "message": "No Priority" },
+  "sidepanel_tasks_statusOpen": { "message": "Open" },
+  "sidepanel_tasks_statusActive": { "message": "Active" },
+  "sidepanel_tasks_statusFixed": { "message": "Fixed" },
+  "sidepanel_tasks_statusAbandoned": { "message": "Abandoned" },
+  "sidepanel_tasks_viewCollection": { "message": "View Collection" },
+  "sidepanel_tasks_delete": { "message": "Delete" },
+  "sidepanel_tasks_openTabs": { "message": "Open Tabs" },
+  "sidepanel_tasks_markFixed": { "message": "Mark Fixed" },
+  "sidepanel_tasks_edit": { "message": "Edit" },
+  "sidepanel_tasks_dueOverdue": {
+    "message": "⚠️ Due $date$",
+    "placeholders": { "date": { "content": "$1" } }
+  },
+  "sidepanel_tasks_due": {
+    "message": "Due $date$",
+    "placeholders": { "date": { "content": "$1" } }
+  },
+  "sidepanel_tasks_openTabsBadge_one": {
+    "message": "$count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_tasks_openTabsBadge_other": {
+    "message": "$count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_one": {
+    "message": "Open $count$ associated tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_other": {
+    "message": "Open $count$ associated tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_tasks_openingTabs": { "message": "Opening task tabs..." },
+  "sidepanel_tasks_openedTabs_one": {
+    "message": "Opened $count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_tasks_openedTabs_other": {
+    "message": "Opened $count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_tasks_openTabsFailed": { "message": "Failed to open task tabs" },
+  "sidepanel_tasks_markedFixed": { "message": "Task marked as fixed" },
+  "sidepanel_tasks_markFixedFailed": { "message": "Failed to mark task as fixed" },
+  "sidepanel_tasks_loadFailed": { "message": "Failed to load task" },
+  "sidepanel_tasks_deleted": {
+    "message": "Task \"$summary$\" deleted",
+    "placeholders": { "summary": { "content": "$1" } }
+  },
+  "sidepanel_tasks_deleteFailed": { "message": "Failed to delete task" },
+  "sidepanel_tasks_deleteTitle": { "message": "Delete Task" },
+  "sidepanel_tasks_deleteQuestion": { "message": "Are you sure you want to delete this task?" },
+  "sidepanel_tasks_deleteCollectionInfo": { "message": "This task is part of the collection. The collection will not be affected." },
+  "sidepanel_tasks_editTitle": { "message": "Edit Task" },
+  "sidepanel_task_saveChanges": { "message": "Save Changes" },
+  "sidepanel_tasks_updated": { "message": "Task updated successfully" },
+  "sidepanel_tasks_saveEditsFailed": { "message": "Failed to save task edits" },
+  "sidepanel_tabchip_closed": { "message": "Closed" },
+  "sidepanel_tabchip_removeLabel": { "message": "Remove tab reference" },
+  "sidepanel_tabchip_removeAssociation": { "message": "Remove tab association" },
+  "sidepanel_tabchip_linkCurrent": { "message": "Link to current tab" },
+  "sidepanel_tabchip_alreadyLinked": { "message": "This tab is already linked" },
+  "sidepanel_tabchip_noActiveTab": { "message": "No active tab found" },
+
+  "sidepanel_detail_back": { "message": "← Back to Collections" },
+  "sidepanel_detail_notFound": { "message": "Collection not found" },
+  "sidepanel_detail_loadFailed": { "message": "Failed to load collection" },
+  "sidepanel_detail_syncNever": { "message": "Never" },
+  "sidepanel_detail_tasksHeader": { "message": "✓ Tasks" },
+  "sidepanel_detail_newTask": { "message": "+ New Task" },
+  "sidepanel_detail_noTasks": { "message": "No tasks yet. Create one to track your work." },
+  "sidepanel_detail_tasksOpen": {
+    "message": "Open ($count$)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_detail_tasksActive": {
+    "message": "Active ($count$)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_detail_tasksCompleted": {
+    "message": "Completed ($count$)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_detail_moreTabs": {
+    "message": ", +$count$ more",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_detail_openTabsTitle": { "message": "Open tabs" },
+  "sidepanel_detail_markFixedTitle": { "message": "Mark as fixed" },
+  "sidepanel_detail_editTaskTitle": { "message": "Edit task" },
+  "sidepanel_detail_foldersHeader": { "message": "📂 Folders & Tabs" },
+  "sidepanel_detail_foldersCount": {
+    "message": "$folders$ folders, $tabs$ tabs",
+    "placeholders": { "folders": { "content": "$1" }, "tabs": { "content": "$2" } }
+  },
+  "sidepanel_detail_noFolders": { "message": "No folders or tabs yet." },
+  "sidepanel_detail_untitledFolder": { "message": "Untitled Folder" },
+  "sidepanel_detail_folderTabsCount": {
+    "message": "$count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_detail_ungroupedTabs": { "message": "Ungrouped Tabs" },
+  "sidepanel_detail_notePlaceholder": { "message": "Add note (255 chars max)..." },
+  "sidepanel_detail_noteChars": {
+    "message": "$count$/255",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_detail_settingsHeader": { "message": "⚙️ Progressive Sync Settings" },
+  "sidepanel_detail_settingsInfo": { "message": "When enabled, changes to tabs and groups sync automatically to preserve your collection's state." },
+  "sidepanel_detail_trackingTitle": { "message": "Enable real-time tracking" },
+  "sidepanel_detail_trackingDesc": { "message": "Automatically track and save tab/group changes" },
+  "sidepanel_detail_syncDelayTitle": { "message": "Sync delay" },
+  "sidepanel_detail_syncDelayDesc": {
+    "message": "Time to wait before saving changes ($value$)",
+    "placeholders": { "value": { "content": "$1" } }
+  },
+  "sidepanel_detail_syncStatus": { "message": "Sync Status" },
+  "sidepanel_detail_lastSynced": { "message": "Last synced:" },
+  "sidepanel_detail_pendingChanges": { "message": "Pending changes:" },
+  "sidepanel_detail_saveSettings": { "message": "Save Settings" },
+  "sidepanel_detail_syncDelayInstant": { "message": "0s (instant)" },
+  "sidepanel_detail_syncDelayMs": {
+    "message": "$ms$ms",
+    "placeholders": { "ms": { "content": "$1" } }
+  },
+  "sidepanel_detail_syncDelaySeconds": {
+    "message": "$seconds$s",
+    "placeholders": { "seconds": { "content": "$1" } }
+  },
+  "sidepanel_detail_refresh": { "message": "🔄 Refresh" },
+  "sidepanel_detail_focusWindow": { "message": "👁️ Focus Window" },
+  "sidepanel_detail_closeWindow": { "message": "❌ Close Window" },
+  "sidepanel_detail_openCollection": { "message": "📂 Open Collection" },
+  "sidepanel_detail_editCollection": { "message": "✏️ Edit Collection" },
+  "sidepanel_detail_createTaskTitle": { "message": "Create Task" },
+  "sidepanel_detail_createTaskFailed": { "message": "Failed to create task" },
+  "sidepanel_detail_create": { "message": "Create" },
+  "sidepanel_detail_taskNotFound": { "message": "Task not found" },
+  "sidepanel_detail_editTaskFailed": { "message": "Failed to edit task" },
+  "sidepanel_detail_form_summaryLabel": { "message": "Summary *" },
+  "sidepanel_detail_form_contextLabel": { "message": "Context" },
+  "sidepanel_detail_form_contextHelper": { "message": "Quick access to tabs" },
+  "sidepanel_detail_form_notesLabel": { "message": "Notes" },
+  "sidepanel_detail_form_priorityLabel": { "message": "Priority" },
+  "sidepanel_detail_form_priorityLow": { "message": "Low" },
+  "sidepanel_detail_form_priorityMedium": { "message": "Medium" },
+  "sidepanel_detail_form_priorityHigh": { "message": "High" },
+  "sidepanel_detail_form_priorityCritical": { "message": "Critical" },
+  "sidepanel_detail_form_statusLabel": { "message": "Status" },
+  "sidepanel_detail_form_statusOpen": { "message": "Open" },
+  "sidepanel_detail_form_statusActive": { "message": "Active" },
+  "sidepanel_detail_form_statusFixed": { "message": "Fixed" },
+  "sidepanel_detail_form_statusAbandoned": { "message": "Abandoned" },
+  "sidepanel_detail_form_dueDateLabel": { "message": "Due Date" },
+  "sidepanel_detail_form_tagsLabel": { "message": "Tags (comma-separated)" },
+  "sidepanel_detail_form_tagsPlaceholder": { "message": "bug, feature, urgent" },
+  "sidepanel_detail_taskUpdated": { "message": "Task updated" },
+  "sidepanel_detail_taskCreated": { "message": "Task created" },
+  "sidepanel_detail_saveTaskFailed": { "message": "Failed to save task" },
+  "sidepanel_detail_openedTabs": {
+    "message": "Opened $count$ tab(s) for task",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "sidepanel_detail_openTaskTabsFailed": { "message": "Failed to open task tabs" },
+  "sidepanel_detail_markedFixed": { "message": "Task marked as fixed" },
+  "sidepanel_detail_updateTaskFailed": { "message": "Failed to update task" },
+  "sidepanel_detail_saveNoteFailed": { "message": "Failed to save note" },
+  "sidepanel_detail_syncing": { "message": "Syncing collection..." },
+  "sidepanel_detail_upToDate": { "message": "Collection is up to date" },
+  "sidepanel_detail_refreshed": {
+    "message": "Refreshed: $added$ added, $updated$ updated, $removed$ removed",
+    "placeholders": { "added": { "content": "$1" }, "updated": { "content": "$2" }, "removed": { "content": "$3" } }
+  },
+  "sidepanel_detail_syncFailed": { "message": "Sync failed" },
+  "sidepanel_detail_syncCollectionFailed": { "message": "Failed to sync collection" },
+  "sidepanel_detail_windowNotFound": { "message": "Window not found" },
+  "sidepanel_detail_windowFocused": { "message": "Window focused" },
+  "sidepanel_detail_focusWindowFailed": { "message": "Failed to focus window" },
+  "sidepanel_detail_windowClosedSaved": { "message": "Window closed - collection saved" },
+  "sidepanel_detail_closeWindowFailed": { "message": "Failed to close window" },
+  "sidepanel_detail_openedNewWindow": { "message": "Collection opened in new window" },
+  "sidepanel_detail_openCollectionFailed": { "message": "Failed to open collection" },
+  "sidepanel_detail_editCollectionTitle": { "message": "Edit Collection" },
+  "sidepanel_detail_editCollectionFailed": { "message": "Failed to edit collection" },
+  "sidepanel_detail_form_nameLabel": { "message": "Name" },
+  "sidepanel_detail_form_descriptionLabel": { "message": "Description" },
+  "sidepanel_detail_form_iconLabel": { "message": "Icon" },
+  "sidepanel_detail_form_collectionTagsLabel": { "message": "Tags (comma-separated)" },
+  "sidepanel_detail_form_collectionTagsPlaceholder": { "message": "work, research, personal" },
+  "sidepanel_detail_collectionUpdated": { "message": "Collection updated" },
+  "sidepanel_detail_saveChangesFailed": { "message": "Failed to save changes" },
+  "sidepanel_detail_settingsSaved": { "message": "Settings saved" },
+  "sidepanel_detail_saveSettingsFailed": { "message": "Failed to save settings" },
+  "sidepanel_detail_untitledCollection": { "message": "Untitled Collection" },
+  "sidepanel_detail_metaCreated": { "message": "Created:" },
+  "sidepanel_detail_metaLastAccessed": { "message": "Last accessed:" },
+  "sidepanel_detail_loading": { "message": "Loading..." },
+  "sidepanel_detail_windowBadge": {
+    "message": "Window #$id$",
+    "placeholders": { "id": { "content": "$1" } }
+  },
+
+  "sidepanel_modal_closeLabel": { "message": "Close dialog" },
+  "sidepanel_notification_closeLabel": { "message": "Close notification" },
+
+  "sidepanel_state_connectionMessage": { "message": "Connection lost. The extension may have restarted." },
+  "sidepanel_state_connectionSuggestion": { "message": "Click Retry to reload data." },
+  "sidepanel_state_quotaMessage": { "message": "Storage full." },
+  "sidepanel_state_quotaSuggestion": { "message": "Delete old collections to free up space." },
+  "sidepanel_state_notFoundMessage": { "message": "Item no longer exists." },
+  "sidepanel_state_notFoundSuggestion": { "message": "It may have been deleted." },
+  "sidepanel_state_permissionMessage": { "message": "Permission denied." },
+  "sidepanel_state_permissionSuggestion": { "message": "Check extension permissions in chrome://extensions" },
+  "sidepanel_state_unknownMessage": { "message": "An error occurred." },
+  "sidepanel_state_unknownSuggestion": { "message": "Click Retry to try again." }
 }

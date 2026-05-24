@@ -25,6 +25,7 @@ import {
 import { getCurrentTabSnapshot } from '../services/utils/tab-snapshot.js';
 import { TabChipRenderer } from './components/tab-chip-renderer.js';
 import { consumePendingAction } from '../services/execution/SidePanelNavigationService.js';
+import { t, localizeDocument } from '../services/utils/i18n.js';
 
 // Console capture for logging
 import { initConsoleCapture } from '../services/utils/console-capture.js';
@@ -49,6 +50,9 @@ class SidePanelController {
    */
   async init() {
     console.log('Initializing TabTaskTick Side Panel...');
+
+    // Apply static translations to the document
+    localizeDocument('sidepanel_docTitle');
 
     // Initialize components
     notifications.init();
@@ -417,7 +421,7 @@ class SidePanelController {
       this.showSaveWindowModal(suggestedName, tabs.length, tabGroups.length);
     } catch (error) {
       console.error('Failed to save window:', error);
-      notifications.error('Failed to save window');
+      notifications.error(t('sidepanel_panel_saveWindowFailed'));
     }
   }
 
@@ -426,7 +430,7 @@ class SidePanelController {
    */
   suggestCollectionName(tabs) {
     if (!tabs || tabs.length === 0) {
-      return 'New Collection';
+      return t('sidepanel_panel_newCollectionName');
     }
 
     // Count domains
@@ -451,7 +455,17 @@ class SidePanelController {
       return name.charAt(0).toUpperCase() + name.slice(1);
     }
 
-    return 'New Collection';
+    return t('sidepanel_panel_newCollectionName');
+  }
+
+  /**
+   * Format the save-window intro line with correct pluralization for tabs and folders
+   */
+  formatSaveWindowIntro(tabCount, folderCount) {
+    const tabsCat = tabCount === 1 ? 'oneTab' : 'otherTabs';
+    const foldersCat = folderCount === 1 ? 'oneFolder' : 'otherFolders';
+    const key = `sidepanel_panel_saveWindowIntro_${tabsCat}_${foldersCat}`;
+    return t(key, [String(tabCount), String(folderCount)]);
   }
 
   /**
@@ -461,11 +475,11 @@ class SidePanelController {
     const formHtml = `
       <form id="save-window-form" class="modal-form">
         <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg);">
-          Create a new collection from the current window with ${tabCount} tab${tabCount !== 1 ? 's' : ''} and ${folderCount} folder${folderCount !== 1 ? 's' : ''}.
+          ${this.escapeHtml(this.formatSaveWindowIntro(tabCount, folderCount))}
         </p>
 
         <div class="form-group">
-          <label for="collection-name">Name *</label>
+          <label for="collection-name">${t('sidepanel_form_nameLabel')}</label>
           <input
             type="text"
             id="collection-name"
@@ -473,50 +487,50 @@ class SidePanelController {
             class="form-control"
             required
             maxlength="255"
-            placeholder="Enter collection name"
+            placeholder="${this.escapeHtml(t('sidepanel_form_namePlaceholder'))}"
             value="${this.escapeHtml(suggestedName)}"
           >
         </div>
 
         <div class="form-group">
-          <label for="collection-description">Description</label>
+          <label for="collection-description">${t('sidepanel_form_descriptionLabel')}</label>
           <textarea
             id="collection-description"
             name="description"
             class="form-control"
             rows="3"
-            placeholder="What is this collection for?"
+            placeholder="${this.escapeHtml(t('sidepanel_form_descriptionPlaceholder'))}"
           ></textarea>
         </div>
 
         <div class="form-group" id="icon-group">
           <label for="collection-icon">
-            Icon
-            <span id="emoji-suggestion-badge" class="emoji-suggestion-badge" style="display: none;">✨ Suggested</span>
+            ${t('sidepanel_form_iconLabel')}
+            <span id="emoji-suggestion-badge" class="emoji-suggestion-badge" style="display: none;">${t('sidepanel_form_emojiSuggested')}</span>
           </label>
           <!-- EmojiPicker will be inserted here -->
         </div>
 
         <div class="form-group">
-          <label for="collection-tags">Tags (comma-separated)</label>
+          <label for="collection-tags">${t('sidepanel_form_tagsLabel')}</label>
           <input
             type="text"
             id="collection-tags"
             name="tags"
             class="form-control"
-            placeholder="work, project, research"
+            placeholder="${this.escapeHtml(t('sidepanel_form_tagsPlaceholder'))}"
           >
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" data-modal-cancel>Cancel</button>
-          <button type="submit" class="btn btn-primary">Create Collection</button>
+          <button type="button" class="btn btn-secondary" data-modal-cancel>${t('common_cancel')}</button>
+          <button type="submit" class="btn btn-primary">${t('sidepanel_panel_createCollectionSubmit')}</button>
         </div>
       </form>
     `;
 
     modal.open({
-      title: 'Create Collection',
+      title: t('sidepanel_panel_createCollectionTitle'),
       content: formHtml
     });
 
@@ -588,7 +602,7 @@ class SidePanelController {
     try {
       const name = formData.get('name')?.trim();
       if (!name) {
-        notifications.show('Collection name is required', 'error');
+        notifications.show(t('sidepanel_panel_nameRequired'), 'error');
         return;
       }
 
@@ -622,7 +636,7 @@ class SidePanelController {
       const tabCount = collection.metadata?.tabCount || 0;
       const folderCount = collection.metadata?.folderCount || 0;
       notifications.show(
-        `✓ Saved ${collection.name} (${tabCount} tabs, ${folderCount} folders)`,
+        t('sidepanel_panel_savedCollection', [collection.name, String(tabCount), String(folderCount)]),
         'success'
       );
 
@@ -636,7 +650,7 @@ class SidePanelController {
     } catch (error) {
       console.error('Error saving window:', error);
       notifications.show(
-        error.message || 'Failed to save window',
+        error.message || t('sidepanel_panel_saveWindowFailed'),
         'error'
       );
     }
@@ -647,7 +661,7 @@ class SidePanelController {
    */
   async handleImportCollections(file) {
     try {
-      notifications.show('Importing collections...', 'info');
+      notifications.show(t('sidepanel_panel_importing'), 'info');
 
       const result = await importCollectionsService(file);
 
@@ -669,12 +683,12 @@ class SidePanelController {
           await this.loadData();
         }
       } else {
-        notifications.show('Failed to import collections', 'error');
+        notifications.show(t('sidepanel_panel_importFailed'), 'error');
       }
     } catch (error) {
       console.error('Error importing collections:', error);
       notifications.show(
-        error.message || 'Failed to import collections',
+        error.message || t('sidepanel_panel_importFailed'),
         'error'
       );
     }
@@ -689,7 +703,7 @@ class SidePanelController {
       this.showCreateTaskModal();
     } catch (error) {
       console.error('Failed to create task:', error);
-      notifications.error('Failed to create task');
+      notifications.error(t('sidepanel_panel_createTaskFailed'));
     }
   }
 
@@ -703,7 +717,7 @@ class SidePanelController {
     const formHtml = `
       <form id="create-task-form" class="modal-form">
         <div class="form-group">
-          <label for="new-task-summary">Summary *</label>
+          <label for="new-task-summary">${t('sidepanel_task_summaryLabel')}</label>
           <input
             type="text"
             id="new-task-summary"
@@ -711,54 +725,54 @@ class SidePanelController {
             class="form-control"
             required
             maxlength="255"
-            placeholder="What do you need to do?"
+            placeholder="${this.escapeHtml(t('sidepanel_task_summaryPlaceholder'))}"
           >
         </div>
 
         <!-- Phase 11: Tab Association Section -->
         <div class="tab-association-section" id="tab-association-section">
-          <label class="section-label">Context</label>
+          <label class="section-label">${t('sidepanel_task_contextLabel')}</label>
           <div class="tab-chip-container" id="tab-chip-container">
             ${currentTabSnapshot ? TabChipRenderer.renderTabChip(currentTabSnapshot, this.escapeHtml.bind(this)) : TabChipRenderer.renderEmptyTabState()}
           </div>
-          <p class="helper-text">Quick access to this tab</p>
+          <p class="helper-text">${t('sidepanel_task_contextHelperThis')}</p>
         </div>
 
         <div class="form-group">
-          <label for="new-task-notes">Notes</label>
+          <label for="new-task-notes">${t('sidepanel_task_notesLabel')}</label>
           <textarea
             id="new-task-notes"
             name="notes"
             class="form-control"
             rows="4"
-            placeholder="Additional details..."
+            placeholder="${this.escapeHtml(t('sidepanel_task_notesPlaceholder'))}"
           ></textarea>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="new-task-priority">Priority</label>
+            <label for="new-task-priority">${t('sidepanel_task_priorityLabel')}</label>
             <select id="new-task-priority" name="priority" class="form-control">
-              <option value="low">Low</option>
-              <option value="medium" selected>Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
+              <option value="low">${t('sidepanel_task_priorityLow')}</option>
+              <option value="medium" selected>${t('sidepanel_task_priorityMedium')}</option>
+              <option value="high">${t('sidepanel_task_priorityHigh')}</option>
+              <option value="critical">${t('sidepanel_task_priorityCritical')}</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="new-task-collection">Collection</label>
+            <label for="new-task-collection">${t('sidepanel_task_collectionLabel')}</label>
             <select id="new-task-collection" name="collectionId" class="form-control">
-              <option value="">Uncategorized</option>
+              <option value="">${t('sidepanel_task_uncategorized')}</option>
               ${(this.collectionsData || []).map(c =>
-    `<option value="${c.id}">${this.escapeHtml(c.name || 'Unnamed')}</option>`
+    `<option value="${c.id}">${this.escapeHtml(c.name || t('sidepanel_task_unnamed'))}</option>`
   ).join('')}
             </select>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="new-task-due-date">Due Date</label>
+          <label for="new-task-due-date">${t('sidepanel_task_dueDateLabel')}</label>
           <input
             type="date"
             id="new-task-due-date"
@@ -768,25 +782,25 @@ class SidePanelController {
         </div>
 
         <div class="form-group">
-          <label for="new-task-tags">Tags (comma-separated)</label>
+          <label for="new-task-tags">${t('sidepanel_task_tagsLabel')}</label>
           <input
             type="text"
             id="new-task-tags"
             name="tags"
             class="form-control"
-            placeholder="urgent, work, review"
+            placeholder="${this.escapeHtml(t('sidepanel_task_tagsPlaceholderUrgent'))}"
           >
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" data-modal-cancel>Cancel</button>
-          <button type="submit" class="btn btn-primary">Create Task</button>
+          <button type="button" class="btn btn-secondary" data-modal-cancel>${t('common_cancel')}</button>
+          <button type="submit" class="btn btn-primary">${t('sidepanel_task_createSubmit')}</button>
         </div>
       </form>
     `;
 
     modal.open({
-      title: 'Create New Task',
+      title: t('sidepanel_panel_createTaskTitle'),
       content: formHtml
     });
 
@@ -821,7 +835,7 @@ class SidePanelController {
     try {
       const summary = formData.get('summary')?.trim();
       if (!summary) {
-        notifications.show('Summary is required', 'error');
+        notifications.show(t('sidepanel_task_summaryRequired'), 'error');
         return;
       }
 
@@ -865,14 +879,14 @@ class SidePanelController {
       }
 
       modal.close();
-      notifications.show('Task created successfully', 'success');
+      notifications.show(t('sidepanel_task_created'), 'success');
 
       // Refresh data
       await this.loadData();
     } catch (error) {
       console.error('Error saving new task:', error);
       notifications.show(
-        error.message || 'Failed to create task',
+        error.message || t('sidepanel_panel_createTaskFailed'),
         'error'
       );
     }
@@ -1293,7 +1307,7 @@ class SidePanelController {
     const errorMessage = error?.querySelector('.error-message');
 
     if (errorMessage) {
-      errorMessage.textContent = message || 'An error occurred';
+      errorMessage.textContent = message || t('sidepanel_panel_genericError');
     }
 
     loading?.classList.add('hidden');
@@ -1324,14 +1338,18 @@ class SidePanelController {
     const contentContainer = document.getElementById(`${view}-content`);
     if (!contentContainer) return;
 
-    const entityName = view === 'collections' ? 'collections' : 'tasks';
+    const titleKey = view === 'collections'
+      ? 'sidepanel_panel_noResultsTitle_collections'
+      : 'sidepanel_panel_noResultsTitle_tasks';
+    const descKey = view === 'collections'
+      ? 'sidepanel_panel_noResultsDescription_collections'
+      : 'sidepanel_panel_noResultsDescription_tasks';
     contentContainer.innerHTML = `
       <div class="empty-state" style="display: flex;">
         <div class="empty-icon">🔍</div>
-        <h3 class="empty-title">No ${entityName} found</h3>
+        <h3 class="empty-title">${t(titleKey)}</h3>
         <p class="empty-description">
-          No ${entityName} match your search query "${this.escapeHtml(this.searchQuery)}".
-          Try a different search term.
+          ${this.escapeHtml(t(descKey, this.searchQuery))}
         </p>
       </div>
     `;
@@ -1399,10 +1417,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.panelController = controller;
   } catch (error) {
     console.error('[Panel] Initialization failed:', error);
-    // Show error in UI
+    // Show error in UI (last-resort diagnostic; t() degrades to the key if i18n is unavailable)
     document.body.innerHTML = `
       <div style="padding: 20px; color: red;">
-        <h2>Initialization Error</h2>
+        <h2>${t('sidepanel_panel_initError')}</h2>
         <pre>${error.message}\n${error.stack}</pre>
       </div>
     `;

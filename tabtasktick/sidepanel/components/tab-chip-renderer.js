@@ -16,6 +16,7 @@ import {
   isTabOpen
 } from '../../services/utils/tab-snapshot.js';
 import { notifications } from './notification.js';
+import { t, tPlural } from '../../services/utils/i18n.js';
 
 export class TabChipRenderer {
   /**
@@ -34,8 +35,8 @@ export class TabChipRenderer {
       <div class="tab-chip ${isActive ? 'active' : 'inactive'}" data-tab-snapshot='${JSON.stringify(tabSnapshot).replace(/'/g, '&#39;')}'>
         <img class="favicon" src="${escapeHtml(favicon)}" width="16" height="16" alt="">
         <span class="tab-title">${escapeHtml(title)}</span>
-        ${!isActive ? '<span class="status-badge">Closed</span>' : ''}
-        <button type="button" class="remove-btn" aria-label="Remove tab association" title="Remove tab association">×</button>
+        ${!isActive ? `<span class="status-badge">${t('sidepanel_tabchip_closed')}</span>` : ''}
+        <button type="button" class="remove-btn" aria-label="${escapeHtml(t('sidepanel_tabchip_removeAssociation'))}" title="${escapeHtml(t('sidepanel_tabchip_removeAssociation'))}">×</button>
       </div>
     `;
   }
@@ -49,7 +50,7 @@ export class TabChipRenderer {
     return `
       <button type="button" class="add-current-tab-btn subtle" id="add-current-tab-btn">
         <span class="icon">🔗</span>
-        <span>Link to current tab</span>
+        <span>${t('sidepanel_tabchip_linkCurrent')}</span>
       </button>
     `;
   }
@@ -148,10 +149,10 @@ export class TabChipRenderer {
             containerEl.dataset.tabReferences = JSON.stringify(currentReferences);
             containerEl.innerHTML = currentReferences.map(ref => this.renderTabChip(ref, escapeHtml)).join('');
           } else {
-            notifications.show('This tab is already linked', 'info');
+            notifications.show(t('sidepanel_tabchip_alreadyLinked'), 'info');
           }
         } else {
-          notifications.show('No active tab found', 'warning');
+          notifications.show(t('sidepanel_tabchip_noActiveTab'), 'warning');
         }
       }
     });
@@ -171,14 +172,15 @@ export class TabChipRenderer {
     }
 
     const tabCount = tabReferences.length;
-    const tabWord = tabCount === 1 ? 'tab' : 'tabs';
     const firstRef = tabReferences[0];
     const favicon = firstRef.favIconUrl || getFallbackFavicon(firstRef.url);
+    const badgeTitle = tPlural('sidepanel_tasks_openTabsBadgeTitle', tabCount);
+    const countLabel = tPlural('sidepanel_tasks_openTabsBadge', tabCount);
 
     return `
-      <button type="button" class="tab-reference-badge" data-action="open-tabs" data-task-id="${taskId}" title="Open ${tabCount} associated ${tabWord}">
+      <button type="button" class="tab-reference-badge" data-action="open-tabs" data-task-id="${taskId}" title="${escapeHtml(badgeTitle)}">
         <img class="favicon" src="${escapeHtml(favicon)}" width="12" height="12" alt="">
-        <span class="tab-count">${tabCount} ${tabWord}</span>
+        <span class="tab-count">${escapeHtml(countLabel)}</span>
       </button>
     `;
   }

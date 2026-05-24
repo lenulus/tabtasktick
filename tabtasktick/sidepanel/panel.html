@@ -16,12 +16,16 @@
           id="global-search"
           class="search-input"
           placeholder="Search collections & tasks..."
+          data-i18n-placeholder="sidepanel_searchPlaceholder"
           aria-label="Search collections and tasks"
+          data-i18n-label="sidepanel_searchLabel"
         >
         <button
           id="save-window-btn"
           class="btn btn-primary save-window-btn"
           title="Create a new collection"
+          data-i18n-title="sidepanel_createCollection_title"
+          data-i18n="sidepanel_createCollection_btn"
         >
           📁 Create Collection
         </button>
@@ -29,6 +33,8 @@
           id="create-task-btn"
           class="btn btn-primary create-task-btn hidden"
           title="Create a new task"
+          data-i18n-title="sidepanel_createTask_title"
+          data-i18n="sidepanel_createTask_btn"
         >
           ✓ Create Task
         </button>
@@ -36,6 +42,8 @@
           id="import-collections-btn"
           class="btn btn-secondary"
           title="Import collections from JSON file"
+          data-i18n-title="sidepanel_import_title"
+          data-i18n="sidepanel_import_btn"
         >
           📥 Import
         </button>
@@ -51,6 +59,7 @@
         role="tab"
         aria-selected="true"
         aria-controls="collections-view"
+        data-i18n="sidepanel_view_collections"
       >
         📁 Collections
       </button>
@@ -60,6 +69,7 @@
         role="tab"
         aria-selected="false"
         aria-controls="tasks-view"
+        data-i18n="sidepanel_view_tasks"
       >
         ✓ Tasks
       </button>
@@ -67,7 +77,10 @@
         id="toggle-filters-btn"
         class="filter-toggle-btn"
         aria-label="Toggle filters"
+        data-i18n-label="sidepanel_toggleFilters_label"
         title="Show/Hide Filters"
+        data-i18n-title="sidepanel_toggleFilters_title"
+        data-i18n="sidepanel_toggleFilters_btn"
       >
         🔍 Filters
       </button>
@@ -75,7 +88,7 @@
   </header>
 
   <!-- Filters Panel (collapsible) -->
-  <aside id="filters-panel" class="filters-panel hidden" aria-label="Filters">
+  <aside id="filters-panel" class="filters-panel hidden" aria-label="Filters" data-i18n-label="sidepanel_filtersPanel_label">
     <div id="collections-filters" class="filters-container hidden"></div>
     <div id="tasks-filters" class="filters-container hidden"></div>
   </aside>
@@ -92,26 +105,26 @@
       <!-- Loading State -->
       <div id="collections-loading" class="loading-state hidden">
         <div class="spinner"></div>
-        <p>Loading collections...</p>
+        <p data-i18n="sidepanel_collections_loading">Loading collections...</p>
       </div>
 
       <!-- Error State -->
       <div id="collections-error" class="error-state hidden">
         <div class="error-icon">⚠️</div>
-        <h3 class="error-title">Unable to load collections</h3>
+        <h3 class="error-title" data-i18n="sidepanel_collections_errorTitle">Unable to load collections</h3>
         <p class="error-message"></p>
-        <button class="btn btn-secondary retry-btn">Retry</button>
+        <button class="btn btn-secondary retry-btn" data-i18n="sidepanel_common_retry">Retry</button>
       </div>
 
       <!-- Empty State -->
       <div id="collections-empty" class="empty-state hidden">
         <div class="empty-icon">📁</div>
-        <h3 class="empty-title">No collections yet</h3>
-        <p class="empty-description">
+        <h3 class="empty-title" data-i18n="sidepanel_collections_emptyTitle">No collections yet</h3>
+        <p class="empty-description" data-i18n="sidepanel_collections_emptyDescription">
           Create your first collection to organize and manage groups of tabs.
           Collections help you keep your work organized and easily accessible.
         </p>
-        <button class="btn btn-primary empty-action-btn">
+        <button class="btn btn-primary empty-action-btn" data-i18n="sidepanel_collections_emptyAction">
           📁 Create Your First Collection
         </button>
       </div>
@@ -121,7 +134,7 @@
         <!-- Active Collections Section -->
         <section class="collections-section">
           <h2 class="section-header">
-            <span class="section-title">Active</span>
+            <span class="section-title" data-i18n="sidepanel_collections_sectionActive">Active</span>
             <span class="section-count" id="active-count">0</span>
           </h2>
           <div id="active-collections" class="collections-grid"></div>
@@ -130,7 +143,7 @@
         <!-- Saved Collections Section -->
         <section class="collections-section">
           <h2 class="section-header">
-            <span class="section-title">Saved</span>
+            <span class="section-title" data-i18n="sidepanel_collections_sectionSaved">Saved</span>
             <span class="section-count" id="saved-count">0</span>
           </h2>
           <div id="saved-collections" class="collections-grid"></div>
@@ -149,26 +162,26 @@
       <!-- Loading State -->
       <div id="tasks-loading" class="loading-state hidden">
         <div class="spinner"></div>
-        <p>Loading tasks...</p>
+        <p data-i18n="sidepanel_tasks_loading">Loading tasks...</p>
       </div>
 
       <!-- Error State -->
       <div id="tasks-error" class="error-state hidden">
         <div class="error-icon">⚠️</div>
-        <h3 class="error-title">Unable to load tasks</h3>
+        <h3 class="error-title" data-i18n="sidepanel_tasks_errorTitle">Unable to load tasks</h3>
         <p class="error-message"></p>
-        <button class="btn btn-secondary retry-btn">Retry</button>
+        <button class="btn btn-secondary retry-btn" data-i18n="sidepanel_common_retry">Retry</button>
       </div>
 
       <!-- Empty State -->
       <div id="tasks-empty" class="empty-state hidden">
         <div class="empty-icon">✓</div>
-        <h3 class="empty-title">No tasks yet</h3>
-        <p class="empty-description">
+        <h3 class="empty-title" data-i18n="sidepanel_tasks_emptyTitle">No tasks yet</h3>
+        <p class="empty-description" data-i18n="sidepanel_tasks_emptyDescription">
           Create tasks to track your work in collections.
           Tasks help you remember what you're working on.
         </p>
-        <button class="btn btn-primary empty-action-btn">
+        <button class="btn btn-primary empty-action-btn" data-i18n="sidepanel_tasks_emptyAction">
           ✓ Create Your First Task
         </button>
       </div>

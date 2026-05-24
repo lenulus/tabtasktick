@@ -17,6 +17,7 @@ import {
   formatExportSuccessMessage
 } from '../services/utils/collection-import-export-ui.js';
 import { handleCollectionOpened, handleCollectionClosed } from '../services/execution/CollectionFilterService.js';
+import { t } from '../services/utils/i18n.js';
 
 export class CollectionsView {
   constructor(controller) {
@@ -110,7 +111,7 @@ export class CollectionsView {
    */
   renderCollectionCard(collection) {
     const icon = collection.icon || '📁';
-    const name = this.escapeHtml(collection.name || 'Untitled Collection');
+    const name = this.escapeHtml(collection.name || t('sidepanel_collections_untitled'));
     const description = collection.description
       ? this.escapeHtml(collection.description)
       : '';
@@ -127,7 +128,7 @@ export class CollectionsView {
 
     // Window info for active collections
     const windowInfo = isActive && collection.windowId
-      ? `<span class="window-badge">Window #${collection.windowId}</span>`
+      ? `<span class="window-badge">${this.escapeHtml(t('sidepanel_collections_windowBadge', String(collection.windowId)))}</span>`
       : '';
 
     return `
@@ -145,15 +146,15 @@ export class CollectionsView {
         </div>
 
         <div class="collection-meta">
-          <span class="meta-item" title="Tabs">
+          <span class="meta-item" title="${this.escapeHtml(t('sidepanel_collections_metaTabs'))}">
             <span class="meta-icon">📄</span>
             <span class="meta-value">${tabCount}</span>
           </span>
-          <span class="meta-item" title="Folders">
+          <span class="meta-item" title="${this.escapeHtml(t('sidepanel_collections_metaFolders'))}">
             <span class="meta-icon">📂</span>
             <span class="meta-value">${folderCount}</span>
           </span>
-          <span class="meta-item meta-time" title="Last accessed">
+          <span class="meta-item meta-time" title="${this.escapeHtml(t('sidepanel_collections_metaLastAccessed'))}">
             <span class="meta-icon">🕒</span>
             <span class="meta-value">${lastAccessed}</span>
           </span>
@@ -164,36 +165,36 @@ export class CollectionsView {
             ${collection.tags.slice(0, 3).map(tag =>
     `<span class="tag">${this.escapeHtml(tag)}</span>`
   ).join('')}
-            ${collection.tags.length > 3 ? `<span class="tag-more">+${collection.tags.length - 3}</span>` : ''}
+            ${collection.tags.length > 3 ? `<span class="tag-more">${this.escapeHtml(t('sidepanel_collections_moreTags', String(collection.tags.length - 3)))}</span>` : ''}
           </div>
         ` : ''}
 
         <div class="collection-actions">
           <button class="btn btn-primary btn-sm action-view-details" data-action="view-details">
-            👁️ View Details
+            ${t('sidepanel_collections_viewDetails')}
           </button>
           ${isActive ? `
             <button class="btn btn-secondary btn-sm action-focus" data-action="focus">
-              Focus Window
+              ${t('sidepanel_collections_focusWindow')}
             </button>
           ` : `
             <button class="btn btn-secondary btn-sm action-open" data-action="open">
-              📂 Open
+              ${t('sidepanel_collections_open')}
             </button>
           `}
           <button class="btn btn-secondary btn-sm action-edit" data-action="edit">
-            ✏️ Edit
+            ${t('sidepanel_collections_edit')}
           </button>
           ${isActive ? `
             <button class="btn btn-secondary btn-sm action-close" data-action="close">
-              ❌ Close
+              ${t('sidepanel_collections_close')}
             </button>
           ` : ''}
           <button class="btn btn-danger btn-sm action-delete" data-action="delete">
-            🗑️ Delete
+            ${t('sidepanel_collections_delete')}
           </button>
-          <button class="btn btn-secondary btn-sm action-export" data-action="export" title="Export this collection">
-            💾 Export
+          <button class="btn btn-secondary btn-sm action-export" data-action="export" title="${this.escapeHtml(t('sidepanel_collections_exportTitle'))}">
+            ${t('sidepanel_collections_export')}
           </button>
         </div>
       </div>
@@ -266,11 +267,11 @@ export class CollectionsView {
       if (this.controller.collectionDetailView) {
         await this.controller.collectionDetailView.show(collectionId);
       } else {
-        notifications.error('Detail view not available');
+        notifications.error(t('sidepanel_collections_detailViewUnavailable'));
       }
     } catch (error) {
       console.error('Failed to show details:', error);
-      notifications.error('Failed to show collection details');
+      notifications.error(t('sidepanel_collections_showDetailsFailed'));
     }
   }
 
@@ -282,16 +283,16 @@ export class CollectionsView {
       // Get collection to find windowId
       const collection = this.controller.collectionsData.find(c => c.id === collectionId);
       if (!collection || !collection.windowId) {
-        notifications.error('Window not found');
+        notifications.error(t('sidepanel_collections_windowNotFound'));
         return;
       }
 
       // Focus the window
       await chrome.windows.update(collection.windowId, { focused: true });
-      notifications.success('Window focused');
+      notifications.success(t('sidepanel_collections_windowFocused'));
     } catch (error) {
       console.error('Failed to focus window:', error);
-      notifications.error('Failed to focus window');
+      notifications.error(t('sidepanel_collections_focusFailed'));
     }
   }
 
@@ -307,7 +308,7 @@ export class CollectionsView {
       });
 
       if (result?.success) {
-        notifications.success('Collection opened in new window');
+        notifications.success(t('sidepanel_collections_openedNewWindow'));
 
         // Handle filter state transition (business logic delegated to service)
         if (this.controller.searchFilter) {
@@ -317,11 +318,11 @@ export class CollectionsView {
         // Refresh to show updated active state
         await this.controller.loadData();
       } else {
-        notifications.error('Failed to open collection');
+        notifications.error(t('sidepanel_collections_openFailed'));
       }
     } catch (error) {
       console.error('Failed to open collection:', error);
-      notifications.error('Failed to open collection');
+      notifications.error(t('sidepanel_collections_openFailed'));
     }
   }
 
@@ -333,10 +334,10 @@ export class CollectionsView {
       // Switch to tasks view and filter by collection
       await this.controller.switchView('tasks');
       // TODO: Phase 3.3 - Implement task filtering by collection
-      notifications.info('Viewing tasks for collection');
+      notifications.info(t('sidepanel_collections_viewingTasks'));
     } catch (error) {
       console.error('Failed to view tasks:', error);
-      notifications.error('Failed to view tasks');
+      notifications.error(t('sidepanel_collections_viewTasksFailed'));
     }
   }
 
@@ -347,7 +348,7 @@ export class CollectionsView {
     try {
       const collection = this.controller.collectionsData.find(c => c.id === collectionId);
       if (!collection) {
-        notifications.error('Collection not found');
+        notifications.error(t('sidepanel_collections_notFound'));
         return;
       }
 
@@ -356,17 +357,17 @@ export class CollectionsView {
 
       // Show modal
       modal.open({
-        title: 'Edit Collection',
+        title: t('sidepanel_collections_editTitle'),
         content: form,
         size: 'medium',
         actions: [
           {
-            label: 'Cancel',
+            label: t('common_cancel'),
             variant: 'secondary',
             autoClose: true
           },
           {
-            label: 'Save',
+            label: t('common_save'),
             variant: 'primary',
             onClick: async () => {
               await this.saveCollectionEdits(collectionId, form);
@@ -376,7 +377,7 @@ export class CollectionsView {
       });
     } catch (error) {
       console.error('Failed to edit collection:', error);
-      notifications.error('Failed to edit collection');
+      notifications.error(t('sidepanel_collections_editFailed'));
     }
   }
 
@@ -387,13 +388,13 @@ export class CollectionsView {
     try {
       const collection = this.controller.collectionsData.find(c => c.id === collectionId);
       if (!collection || !collection.windowId) {
-        notifications.error('Window not found');
+        notifications.error(t('sidepanel_collections_windowNotFound'));
         return;
       }
 
       // Close the window
       await chrome.windows.remove(collection.windowId);
-      notifications.success('Window closed - collection saved');
+      notifications.success(t('sidepanel_collections_windowClosedSaved'));
 
       // Handle filter state transition (business logic delegated to service)
       if (this.controller.searchFilter) {
@@ -404,7 +405,7 @@ export class CollectionsView {
       await this.controller.loadData();
     } catch (error) {
       console.error('Failed to close window:', error);
-      notifications.error('Failed to close window');
+      notifications.error(t('sidepanel_collections_closeWindowFailed'));
     }
   }
 
@@ -415,7 +416,7 @@ export class CollectionsView {
     try {
       const collection = this.controller.collectionsData.find(c => c.id === collectionId);
       if (!collection) {
-        notifications.error('Collection not found');
+        notifications.error(t('sidepanel_collections_notFound'));
         return;
       }
 
@@ -430,7 +431,7 @@ export class CollectionsView {
       });
 
       if (response && response.success) {
-        notifications.success(`Collection "${collection.name}" deleted`);
+        notifications.success(t('sidepanel_collections_deleted', collection.name));
         // Reload data
         await this.controller.loadData();
       } else {
@@ -438,7 +439,7 @@ export class CollectionsView {
       }
     } catch (error) {
       console.error('Failed to delete collection:', error);
-      notifications.error('Failed to delete collection');
+      notifications.error(t('sidepanel_collections_deleteFailed'));
     }
   }
 
@@ -449,24 +450,24 @@ export class CollectionsView {
     return new Promise((resolve) => {
       const isActive = collection.isActive;
       const warningText = isActive
-        ? '<p class="warning-text">⚠️ This collection is currently active. The window will remain open but the collection data will be permanently deleted.</p>'
+        ? `<p class="warning-text">${t('sidepanel_collections_deleteWarningActive')}</p>`
         : '';
 
       modal.open({
-        title: 'Delete Collection',
+        title: t('sidepanel_collections_deleteTitle'),
         content: `
-          <p>Are you sure you want to delete "<strong>${this.escapeHtml(collection.name)}</strong>"?</p>
+          <p>${this.escapeHtml(t('sidepanel_collections_deleteConfirmQuestion', collection.name))}</p>
           ${warningText}
-          <p>This will permanently delete:</p>
+          <p>${t('sidepanel_collections_deleteWillDelete')}</p>
           <ul>
-            <li>All folders and tabs in this collection</li>
-            <li>All tasks associated with this collection</li>
+            <li>${t('sidepanel_collections_deleteItemFolders')}</li>
+            <li>${t('sidepanel_collections_deleteItemTasks')}</li>
           </ul>
-          <p class="danger-text">This action cannot be undone.</p>
+          <p class="danger-text">${t('sidepanel_collections_actionUndone')}</p>
         `,
         actions: [
           {
-            label: 'Cancel',
+            label: t('common_cancel'),
             className: 'btn-secondary',
             onClick: () => {
               modal.close();
@@ -474,7 +475,7 @@ export class CollectionsView {
             }
           },
           {
-            label: 'Delete',
+            label: t('common_delete'),
             className: 'btn-danger',
             onClick: () => {
               modal.close();
@@ -494,7 +495,7 @@ export class CollectionsView {
     form.className = 'collection-edit-form';
     form.innerHTML = `
       <div class="form-group">
-        <label for="edit-name">Name</label>
+        <label for="edit-name">${t('sidepanel_collections_nameLabel')}</label>
         <input
           type="text"
           id="edit-name"
@@ -506,7 +507,7 @@ export class CollectionsView {
       </div>
 
       <div class="form-group">
-        <label for="edit-description">Description</label>
+        <label for="edit-description">${t('sidepanel_form_descriptionLabel')}</label>
         <textarea
           id="edit-description"
           name="description"
@@ -516,18 +517,18 @@ export class CollectionsView {
       </div>
 
       <div class="form-group" id="icon-group">
-        <label for="edit-icon">Icon</label>
+        <label for="edit-icon">${t('sidepanel_form_iconLabel')}</label>
       </div>
 
       <div class="form-group">
-        <label for="edit-tags">Tags (comma-separated)</label>
+        <label for="edit-tags">${t('sidepanel_form_tagsLabel')}</label>
         <input
           type="text"
           id="edit-tags"
           name="tags"
           value="${collection.tags ? collection.tags.join(', ') : ''}"
           class="form-input"
-          placeholder="work, research, personal"
+          placeholder="${this.escapeHtml(t('sidepanel_collections_tagsPlaceholder'))}"
         >
       </div>
     `;
@@ -566,14 +567,14 @@ export class CollectionsView {
       });
 
       if (response?.success) {
-        notifications.success('Collection updated');
+        notifications.success(t('sidepanel_collections_updated'));
         await this.controller.loadData();
       } else {
         throw new Error(response?.error || 'Update failed');
       }
     } catch (error) {
       console.error('Failed to save collection:', error);
-      notifications.error('Failed to save changes');
+      notifications.error(t('sidepanel_collections_saveChangesFailed'));
       throw error; // Re-throw to prevent modal close
     }
   }
@@ -583,18 +584,18 @@ export class CollectionsView {
    */
   async handleExportCollection(collectionId) {
     try {
-      notifications.info('Exporting collection...');
+      notifications.info(t('sidepanel_collections_exporting'));
 
       const result = await exportCollectionService(collectionId);
 
       if (result?.success) {
         notifications.success(formatExportSuccessMessage(result));
       } else {
-        notifications.error('Failed to export collection');
+        notifications.error(t('sidepanel_collections_exportFailedNotify'));
       }
     } catch (error) {
       console.error('Failed to export collection:', error);
-      notifications.error(`Export failed: ${error.message}`);
+      notifications.error(t('sidepanel_collections_exportFailedDetail', error.message));
     }
   }
 
@@ -602,7 +603,7 @@ export class CollectionsView {
    * Format relative time
    */
   formatRelativeTime(timestamp) {
-    if (!timestamp) return 'Never';
+    if (!timestamp) return t('sidepanel_time_never');
 
     const now = Date.now();
     const diff = now - timestamp;
@@ -611,12 +612,12 @@ export class CollectionsView {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (seconds < 60) return 'Just now';
-    if (minutes < 60) return `${minutes} min ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    if (days < 30) return `${Math.floor(days / 7)}w ago`;
-    return `${Math.floor(days / 30)}mo ago`;
+    if (seconds < 60) return t('sidepanel_time_justNow');
+    if (minutes < 60) return t('sidepanel_time_minAgo', String(minutes));
+    if (hours < 24) return t('sidepanel_time_hoursAgo', String(hours));
+    if (days < 7) return t('sidepanel_time_daysAgo', String(days));
+    if (days < 30) return t('sidepanel_time_weeksAgo', String(Math.floor(days / 7)));
+    return t('sidepanel_time_monthsAgo', String(Math.floor(days / 30)));
   }
 
   /**
