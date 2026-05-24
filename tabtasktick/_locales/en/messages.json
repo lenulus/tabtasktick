@@ -1865,5 +1865,312 @@
   "dashboard_snoozed_deleteWindowFailed": {
     "message": "Failed to delete window: $error$",
     "placeholders": { "error": { "content": "$1" } }
+  },
+
+  "dashboard_rules_dragToReorder": { "message": "Drag to reorder" },
+  "dashboard_rules_disableRule": { "message": "Disable rule" },
+  "dashboard_rules_enableRule": { "message": "Enable rule" },
+  "dashboard_rules_testRuleTitle": { "message": "Test this rule (preview only)" },
+  "dashboard_rules_runRuleTitle": { "message": "Run this rule now" },
+  "dashboard_rules_cardWhen": { "message": "When:" },
+  "dashboard_rules_cardThen": { "message": "Then:" },
+  "dashboard_rules_cardRuns": { "message": "Runs:" },
+  "dashboard_rules_runsEvery": {
+    "message": "Every $interval$",
+    "placeholders": { "interval": { "content": "$1" } }
+  },
+  "dashboard_rules_nextRun": {
+    "message": "(next: $time$)",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "dashboard_rules_runsOnceAt": {
+    "message": "Once at $datetime$",
+    "placeholders": { "datetime": { "content": "$1" } }
+  },
+  "dashboard_rules_runsImmediate": { "message": "On tab events (immediate)" },
+  "dashboard_rules_runsOnCreate": { "message": "When tabs are created" },
+
+  "dashboard_rules_interval_minutes_one": { "message": "$count$ minute", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_interval_minutes_other": { "message": "$count$ minutes", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_interval_hours_one": { "message": "$count$ hour", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_interval_hours_other": { "message": "$count$ hours", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_interval_days_one": { "message": "$count$ day", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_interval_days_other": { "message": "$count$ days", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_interval_seconds_one": { "message": "$count$ second", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_interval_seconds_other": { "message": "$count$ seconds", "placeholders": { "count": { "content": "$1" } } },
+
+  "dashboard_rules_nextIn_days_one": { "message": "in $count$ day", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_nextIn_days_other": { "message": "in $count$ days", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_nextIn_hours_one": { "message": "in $count$ hour", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_nextIn_hours_other": { "message": "in $count$ hours", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_nextIn_minutes_one": { "message": "in $count$ minute", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_nextIn_minutes_other": { "message": "in $count$ minutes", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_nextIn_seconds_one": { "message": "in $count$ second", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_nextIn_seconds_other": { "message": "in $count$ seconds", "placeholders": { "count": { "content": "$1" } } },
+  "dashboard_rules_nextOverdue": { "message": "overdue" },
+
+  "dashboard_rules_allTemplatesInstalled": { "message": "All templates installed" },
+
+  "dashboard_rules_condNoConditions": { "message": "No conditions" },
+  "dashboard_rules_condUnknown": { "message": "Unknown condition" },
+  "dashboard_rules_condJunctionOf": {
+    "message": "$junction$ of: $conditions$",
+    "placeholders": { "junction": { "content": "$1" }, "conditions": { "content": "$2" } }
+  },
+  "dashboard_rules_condTriple": {
+    "message": "$subject$ $operator$ $value$",
+    "placeholders": { "subject": { "content": "$1" }, "operator": { "content": "$2" }, "value": { "content": "$3" } }
+  },
+  "dashboard_rules_junctionAll": { "message": "ALL" },
+  "dashboard_rules_junctionAny": { "message": "ANY" },
+  "dashboard_rules_junctionNone": { "message": "NONE" },
+  "dashboard_rules_valueYes": { "message": "yes" },
+  "dashboard_rules_valueNo": { "message": "no" },
+
+  "dashboard_rules_subject_url": { "message": "URL" },
+  "dashboard_rules_subject_title": { "message": "Title" },
+  "dashboard_rules_subject_domain": { "message": "Domain" },
+  "dashboard_rules_subject_domainCount": { "message": "Domain Tab Count" },
+  "dashboard_rules_subject_origin": { "message": "Origin" },
+  "dashboard_rules_subject_age": { "message": "Tab Age" },
+  "dashboard_rules_subject_lastAccess": { "message": "Last Accessed" },
+  "dashboard_rules_subject_pinned": { "message": "Pinned" },
+  "dashboard_rules_subject_audible": { "message": "Playing Audio" },
+  "dashboard_rules_subject_muted": { "message": "Muted" },
+  "dashboard_rules_subject_group": { "message": "In Group" },
+  "dashboard_rules_subject_groupName": { "message": "Group Name" },
+  "dashboard_rules_subject_windowId": { "message": "Window ID" },
+  "dashboard_rules_subject_duplicate": { "message": "Is Duplicate" },
+  "dashboard_rules_subject_category": { "message": "Category" },
+  "dashboard_rules_subject_index": { "message": "Tab Index" },
+  "dashboard_rules_subject_active": { "message": "Is Active" },
+
+  "dashboard_rules_op_eq": { "message": "equals" },
+  "dashboard_rules_op_neq": { "message": "not equals" },
+  "dashboard_rules_op_equals": { "message": "is" },
+  "dashboard_rules_op_gt": { "message": "greater than" },
+  "dashboard_rules_op_gte": { "message": "at least" },
+  "dashboard_rules_op_lt": { "message": "less than" },
+  "dashboard_rules_op_lte": { "message": "at most" },
+  "dashboard_rules_op_greaterThan": { "message": "more than" },
+  "dashboard_rules_op_lessThan": { "message": "less than" },
+  "dashboard_rules_op_contains": { "message": "contains" },
+  "dashboard_rules_op_notContains": { "message": "does not contain" },
+  "dashboard_rules_op_startsWith": { "message": "starts with" },
+  "dashboard_rules_op_endsWith": { "message": "ends with" },
+  "dashboard_rules_op_regex": { "message": "matches" },
+  "dashboard_rules_op_in": { "message": "in" },
+  "dashboard_rules_op_nin": { "message": "not in" },
+  "dashboard_rules_op_is": { "message": "is" },
+
+  "dashboard_rules_condDuplicate": { "message": "Duplicate tabs" },
+  "dashboard_rules_condDomainCount": {
+    "message": "$count$+ tabs from same domain",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_rules_condAllTabs": { "message": "All tabs" },
+  "dashboard_rules_condTabsFrom": {
+    "message": "Tabs from $patterns$",
+    "placeholders": { "patterns": { "content": "$1" } }
+  },
+  "dashboard_rules_condUrlsMatching": {
+    "message": "URLs matching \"$pattern$\"",
+    "placeholders": { "pattern": { "content": "$1" } }
+  },
+  "dashboard_rules_condSitesInCategories": {
+    "message": "Sites in categories: $categories$",
+    "placeholders": { "categories": { "content": "$1" } }
+  },
+  "dashboard_rules_condNoneCategories": { "message": "none" },
+  "dashboard_rules_condInactiveFor": {
+    "message": "inactive for $minutes$ min",
+    "placeholders": { "minutes": { "content": "$1" } }
+  },
+  "dashboard_rules_condOlderThan": {
+    "message": "older than $minutes$ min",
+    "placeholders": { "minutes": { "content": "$1" } }
+  },
+  "dashboard_rules_condNotAccessedFor": {
+    "message": "not accessed for $minutes$ min",
+    "placeholders": { "minutes": { "content": "$1" } }
+  },
+
+  "dashboard_rules_action_close": { "message": "Close tabs" },
+  "dashboard_rules_action_closeDuplicates": { "message": "Close duplicates" },
+  "dashboard_rules_action_group": { "message": "Group tabs" },
+  "dashboard_rules_action_snooze": { "message": "Snooze tabs" },
+  "dashboard_rules_action_moveToWindow": { "message": "Move to window" },
+  "dashboard_rules_action_pin": { "message": "Pin tabs" },
+  "dashboard_rules_action_unpin": { "message": "Unpin tabs" },
+  "dashboard_rules_action_mute": { "message": "Mute tabs" },
+  "dashboard_rules_action_unmute": { "message": "Unmute tabs" },
+  "dashboard_rules_actionNoActions": { "message": "No actions" },
+  "dashboard_rules_actionUnknown": { "message": "Unknown action" },
+  "dashboard_rules_actionKeep": {
+    "message": "(keep $keep$)",
+    "placeholders": { "keep": { "content": "$1" } }
+  },
+  "dashboard_rules_actionScope": {
+    "message": "[$scope$]",
+    "placeholders": { "scope": { "content": "$1" } }
+  },
+  "dashboard_rules_actionBy": {
+    "message": "by $by$",
+    "placeholders": { "by": { "content": "$1" } }
+  },
+  "dashboard_rules_actionFor": {
+    "message": "for $duration$",
+    "placeholders": { "duration": { "content": "$1" } }
+  },
+  "dashboard_rules_actionGroupByOld": {
+    "message": "Group tabs by $by$",
+    "placeholders": { "by": { "content": "$1" } }
+  },
+  "dashboard_rules_actionSnoozeMinutesOld": {
+    "message": "Snooze for $minutes$ minutes",
+    "placeholders": { "minutes": { "content": "$1" } }
+  },
+  "dashboard_rules_actionSuspendOld": {
+    "message": "Suspend tabs $excludePinned$",
+    "placeholders": { "excludePinned": { "content": "$1" } }
+  },
+  "dashboard_rules_actionSuspendExcludePinned": { "message": "(exclude pinned)" },
+
+  "dashboard_rules_confirmDelete": { "message": "Are you sure you want to delete this rule?" },
+  "dashboard_rules_confirmPurge": { "message": "Are you sure you want to delete ALL rules? This action cannot be undone." },
+  "dashboard_rules_templateInstalled": { "message": "Rule template installed successfully" },
+  "dashboard_rules_deleted": { "message": "Rule deleted" },
+  "dashboard_rules_purged": { "message": "All rules have been purged" },
+  "dashboard_rules_purgeFailed": { "message": "Failed to purge rules" },
+  "dashboard_rules_allEnabled": { "message": "All rules enabled" },
+  "dashboard_rules_allDisabled": { "message": "All rules disabled" },
+  "dashboard_rules_updated": { "message": "Rule updated successfully" },
+  "dashboard_rules_created": { "message": "Rule created successfully" },
+  "dashboard_rules_prioritiesUpdated": { "message": "Rule priorities updated" },
+
+  "dashboard_rules_modalTitleEdit": { "message": "Edit Rule" },
+  "dashboard_rules_modalTitleCreate": { "message": "Create New Rule" },
+
+  "dashboard_rules_noActionsDefined": { "message": "No actions defined. Click \"Add Action\" to add one." },
+  "dashboard_rules_closeNotCombinable": { "message": "Close action cannot be combined with other actions" },
+  "dashboard_rules_noMoreCompatible": { "message": "No more compatible actions available" },
+
+  "dashboard_rules_paramKeep": { "message": "Keep:" },
+  "dashboard_rules_paramKeepOldest": { "message": "Oldest tab" },
+  "dashboard_rules_paramKeepNewest": { "message": "Newest tab" },
+  "dashboard_rules_paramKeepNone": { "message": "None (close all)" },
+  "dashboard_rules_paramScope": { "message": "Scope:" },
+  "dashboard_rules_paramScopeGlobal": { "message": "Global (all windows)" },
+  "dashboard_rules_paramScopePerWindow": { "message": "Per-window (each separately)" },
+  "dashboard_rules_paramGroupBy": { "message": "Group by:" },
+  "dashboard_rules_paramGroupByDomain": { "message": "Domain" },
+  "dashboard_rules_paramGroupByCategory": { "message": "Category" },
+  "dashboard_rules_paramGroupByWindow": { "message": "Window" },
+  "dashboard_rules_paramName": { "message": "Name:" },
+  "dashboard_rules_paramNamePlaceholder": { "message": "Auto-generated" },
+  "dashboard_rules_paramSnoozeFor": { "message": "Snooze for:" },
+  "dashboard_rules_paramUnitMinutes": { "message": "minutes" },
+  "dashboard_rules_paramUnitHours": { "message": "hours" },
+  "dashboard_rules_paramUnitDays": { "message": "days" },
+  "dashboard_rules_paramTargetWindow": { "message": "Target window:" },
+  "dashboard_rules_paramTargetNew": { "message": "New window" },
+  "dashboard_rules_paramTargetCurrent": { "message": "Current window" },
+
+  "dashboard_rules_removeAction": { "message": "Remove" },
+
+  "dashboard_rules_triggerRepeatEvery": { "message": "Repeat every:" },
+  "dashboard_rules_triggerRunAt": { "message": "Run at:" },
+  "dashboard_rules_triggerDebounce": { "message": "Debounce" },
+  "dashboard_rules_triggerDebounceHelp": { "message": "When enabled, waits for a pause in tab activity before running the rule. This prevents the rule from running multiple times during burst activities like opening many tabs at once. For example, if you open 10 tabs quickly, the rule runs once after you're done instead of 10 times." },
+  "dashboard_rules_triggerWaitFor": { "message": "Wait for:" },
+  "dashboard_rules_triggerSeconds": { "message": "seconds" },
+
+  "dashboard_rules_addAction": { "message": "Add Action" },
+  "dashboard_rules_noMoreActions": { "message": "No more actions can be added. Current actions are not compatible with additional actions." },
+  "dashboard_rules_closeNotCombinableNote": {
+    "message": "$note$ Close action cannot be combined with other actions.",
+    "placeholders": { "note": { "content": "$1" } }
+  },
+  "dashboard_rules_noteLabel": { "message": "Note:" },
+  "dashboard_rules_actionType": { "message": "Action Type:" },
+  "dashboard_rules_onlyCompatible": { "message": "Only showing actions compatible with existing actions." },
+
+  "dashboard_rules_enterName": { "message": "Please enter a rule name" },
+  "dashboard_rules_conditionsNotInit": { "message": "Conditions not properly initialized" },
+  "dashboard_rules_invalidConditions": {
+    "message": "Invalid conditions: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_rules_addAtLeastOneAction": { "message": "Please add at least one action" },
+  "dashboard_rules_invalidActions": {
+    "message": "Invalid actions: $errors$",
+    "placeholders": { "errors": { "content": "$1" } }
+  },
+
+  "dashboard_rules_ruleExecuted": {
+    "message": "Rule executed: $details$",
+    "placeholders": { "details": { "content": "$1" } }
+  },
+  "dashboard_rules_ruleExecutionFailed": {
+    "message": "Rule execution failed: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_rules_ruleExecutionError": {
+    "message": "Error executing rule: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_rules_previewAffected_one": {
+    "message": "Rule preview: $count$ tab would be affected",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_rules_previewAffected_other": {
+    "message": "Rule preview: $count$ tabs would be affected",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_rules_previewNoMatch": { "message": "Rule preview: No matching tabs found" },
+  "dashboard_rules_testFailed": {
+    "message": "Rule test failed: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_rules_testError": {
+    "message": "Error testing rule: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_rules_unableToPreview": { "message": "Unable to preview rule" },
+  "dashboard_rules_noEnabledToTest": { "message": "No enabled rules to test" },
+  "dashboard_rules_testing": { "message": "Testing..." },
+  "dashboard_rules_testAll": { "message": "Test All Rules" },
+  "dashboard_rules_testCompleteAffected_one": {
+    "message": "Test complete: $count$ total tab would be affected",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_rules_testCompleteAffected_other": {
+    "message": "Test complete: $count$ total tabs would be affected",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_rules_testNoneAffected": { "message": "No tabs would be affected by current rules" },
+
+  "dashboard_rules_testResultsTitle": {
+    "message": "Test Results: $name$",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "dashboard_rules_wouldBeAffected_one": {
+    "message": "$count$ tab would be affected:",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_rules_wouldBeAffected_other": {
+    "message": "$count$ tabs would be affected:",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_rules_untitled": { "message": "Untitled" },
+  "dashboard_rules_duplicateTag": { "message": "[DUPLICATE]" },
+  "dashboard_rules_executeRule": { "message": "Execute Rule" },
+  "dashboard_rules_ruleExecutedActions": {
+    "message": "Rule executed: $count$ actions performed",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_rules_executeFailed": {
+    "message": "Failed to execute rule: $error$",
+    "placeholders": { "error": { "content": "$1" } }
   }
 }
