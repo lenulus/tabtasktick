@@ -1374,5 +1374,340 @@
   "dashboard_state_selectedCount": {
     "message": "$count$ selected",
     "placeholders": { "count": { "content": "$1" } }
+  },
+
+  "dashboard_help_title": { "message": "Keyboard Shortcuts" },
+  "dashboard_help_closeLabel": { "message": "Close keyboard shortcuts help" },
+  "dashboard_help_searchPlaceholder": { "message": "Search shortcuts..." },
+  "dashboard_help_searchLabel": { "message": "Search keyboard shortcuts" },
+  "dashboard_help_listLabel": { "message": "Keyboard shortcuts list" },
+  "dashboard_help_noShortcuts": { "message": "No shortcuts found" },
+  "dashboard_help_noDescription": { "message": "No description" },
+  "dashboard_help_sequenceThen": { "message": "then" },
+  "dashboard_help_catNavigation": { "message": "Navigation" },
+  "dashboard_help_catTasks": { "message": "Tasks" },
+  "dashboard_help_catCollections": { "message": "Collections" },
+  "dashboard_help_catGeneral": { "message": "General" },
+
+  "dashboard_shortcuts_tooltip": { "message": "Press Enter to open • Space to select" },
+
+  "dashboard_backup_exporting": {
+    "message": "Exporting as $format$...",
+    "placeholders": { "format": { "content": "$1" } }
+  },
+  "dashboard_backup_exportedSummary": {
+    "message": "Exported: $summary$",
+    "placeholders": { "summary": { "content": "$1" } }
+  },
+  "dashboard_backup_exportedFormat": {
+    "message": "Exported as $format$",
+    "placeholders": { "format": { "content": "$1" } }
+  },
+  "dashboard_backup_exportFailed": {
+    "message": "Export failed: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_backup_summaryTabs_one": {
+    "message": "$count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_summaryTabs_other": {
+    "message": "$count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_summaryRules_one": {
+    "message": "$count$ rule",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_summaryRules_other": {
+    "message": "$count$ rules",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_summarySnoozed_one": {
+    "message": "$count$ snoozed tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_summarySnoozed_other": {
+    "message": "$count$ snoozed tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_summaryWindows_one": {
+    "message": "$count$ window",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_summaryWindows_other": {
+    "message": "$count$ windows",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_summaryGroups_one": {
+    "message": "$count$ group",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_summaryGroups_other": {
+    "message": "$count$ groups",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_selectJsonFile": { "message": "Please select a JSON file" },
+  "dashboard_backup_fileTooLarge": { "message": "File too large (max 10MB)" },
+  "dashboard_backup_invalidFile": { "message": "Invalid TabMaster export file" },
+  "dashboard_backup_fileSizeKB": {
+    "message": "$size$ KB",
+    "placeholders": { "size": { "content": "$1" } }
+  },
+  "dashboard_backup_formatUnknown": { "message": "Unknown" },
+  "dashboard_backup_previewTabs_one": {
+    "message": "$count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_previewTabs_other": {
+    "message": "$count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_previewTabsInWindows": {
+    "message": "$tabs$ in $windows$",
+    "placeholders": { "tabs": { "content": "$1" }, "windows": { "content": "$2" } }
+  },
+  "dashboard_backup_previewWindowCount_one": {
+    "message": "$count$ window",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_previewWindowCount_other": {
+    "message": "$count$ windows",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_previewRestricted": {
+    "message": "$base$ ($count$ restricted URLs excluded)",
+    "placeholders": { "base": { "content": "$1" }, "count": { "content": "$2" } }
+  },
+  "dashboard_backup_previewGroups_one": {
+    "message": "$count$ tab group",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_previewGroups_other": {
+    "message": "$count$ tab groups",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_previewRules_one": {
+    "message": "$count$ rule",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_previewRules_other": {
+    "message": "$count$ rules",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_previewSnoozed_one": {
+    "message": "$count$ snoozed tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_previewSnoozed_other": {
+    "message": "$count$ snoozed tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_warnManyTabs_one": {
+    "message": "⚠️ This will open $count$ tab. Consider importing in smaller batches.",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_warnManyTabs_other": {
+    "message": "⚠️ This will open $count$ tabs. Consider importing in smaller batches.",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_warnOpenTabs_one": {
+    "message": "This will open $count$ tab.",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_warnOpenTabs_other": {
+    "message": "This will open $count$ tabs.",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_warnAllRestricted_one": {
+    "message": "⚠️ The $count$ tab has a restricted URL and cannot be imported.",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_warnAllRestricted_other": {
+    "message": "⚠️ All $count$ tabs have restricted URLs and cannot be imported.",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_fileReadFailed": {
+    "message": "Failed to read file: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_backup_noFileSelected": { "message": "No file selected" },
+  "dashboard_backup_importing": { "message": "Importing data..." },
+  "dashboard_backup_importSuccess": {
+    "message": "Successfully imported: $summary$",
+    "placeholders": { "summary": { "content": "$1" } }
+  },
+  "dashboard_backup_importNoItems": { "message": "Import completed but no items were imported" },
+  "dashboard_backup_importFailed": {
+    "message": "Import failed: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_backup_nextEveryHour": { "message": "Every hour" },
+  "dashboard_backup_nextEveryDay": { "message": "Every day" },
+  "dashboard_backup_nextEveryWeek": { "message": "Every week" },
+  "dashboard_backup_nextInHM": {
+    "message": "Next backup in $hours$h $minutes$m",
+    "placeholders": { "hours": { "content": "$1" }, "minutes": { "content": "$2" } }
+  },
+  "dashboard_backup_nextInM": {
+    "message": "Next backup in $minutes$m",
+    "placeholders": { "minutes": { "content": "$1" } }
+  },
+  "dashboard_backup_nextSoon": { "message": "Next backup soon" },
+  "dashboard_backup_enabledFirstBackup": { "message": "Automatic backups enabled - first backup created" },
+  "dashboard_backup_enabled": { "message": "Automatic backups enabled" },
+  "dashboard_backup_disabled": { "message": "Automatic backups disabled" },
+  "dashboard_backup_updateSettingsFailed": { "message": "Failed to update backup settings" },
+  "dashboard_backup_scheduleUpdated": { "message": "Backup schedule updated" },
+  "dashboard_backup_saveSettingsFailed": { "message": "Failed to save settings" },
+  "dashboard_backup_noBackups": { "message": "No backups yet" },
+  "dashboard_backup_noBackupsHint": { "message": "Click \"Backup Now\" or enable automatic backups" },
+  "dashboard_backup_badgeAuto": { "message": "AUTO" },
+  "dashboard_backup_badgeManual": { "message": "MANUAL" },
+  "dashboard_backup_itemDetails": {
+    "message": "$date$ • $tabs$ • $windows$ • $size$ MB",
+    "placeholders": { "date": { "content": "$1" }, "tabs": { "content": "$2" }, "windows": { "content": "$3" }, "size": { "content": "$4" } }
+  },
+  "dashboard_backup_showFileTitle": { "message": "Show file in Downloads folder" },
+  "dashboard_backup_showFile": { "message": "📁 Show" },
+  "dashboard_backup_fileMoved": { "message": "Backup file may have been moved. Check Downloads folder for files starting with \"tabmaster-backup-\"" },
+  "dashboard_backup_openFolderFailed": { "message": "Could not open Downloads folder" },
+  "dashboard_backup_scopeCurrent_one": {
+    "message": "Current Window ($count$ tab)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_scopeCurrent_other": {
+    "message": "Current Window ($count$ tabs)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_scopeAll_one": {
+    "message": "All Windows ($count$ tab)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_backup_scopeAll_other": {
+    "message": "All Windows ($count$ tabs)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+
+  "dashboard_overview_tabsChange": {
+    "message": "+$count$ today",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_overview_collapsed_one": {
+    "message": "$count$ collapsed",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_overview_collapsed_other": {
+    "message": "$count$ collapsed",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_overview_nextInHours": {
+    "message": "Next in $hours$h",
+    "placeholders": { "hours": { "content": "$1" } }
+  },
+  "dashboard_overview_noneScheduled": { "message": "None scheduled" },
+  "dashboard_overview_clickToCleanup": { "message": "Click to clean up" },
+  "dashboard_overview_noneFound": { "message": "None found" },
+  "dashboard_overview_chartTabsOpened": { "message": "Tabs Opened" },
+  "dashboard_overview_chartTabsClosed": { "message": "Tabs Closed" },
+  "dashboard_overview_filterAll": { "message": "All" },
+  "dashboard_overview_filterManual": { "message": "Manual" },
+  "dashboard_overview_filterAuto": { "message": "Auto" },
+  "dashboard_overview_filterRules": { "message": "Rules" },
+  "dashboard_overview_noActivity": { "message": "No recent activity" },
+
+  "dashboard_history_today": { "message": "Today" },
+  "dashboard_history_yesterday": { "message": "Yesterday" },
+  "dashboard_history_daysAgo_one": {
+    "message": "$count$ day ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_history_daysAgo_other": {
+    "message": "$count$ days ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_history_emptyTitle": { "message": "No tab history" },
+  "dashboard_history_emptyText": { "message": "Your tab management activity will appear here as you use TabMaster Pro" },
+  "dashboard_history_badgeAuto": { "message": "Auto" },
+  "dashboard_history_badgeRule": { "message": "Rule" },
+  "dashboard_history_confirmClear": { "message": "Are you sure you want to clear all history? This cannot be undone." },
+  "dashboard_history_cleared": { "message": "History cleared successfully" },
+  "dashboard_history_clearFailed": { "message": "Failed to clear history. Please try again." },
+
+  "dashboard_groups_noGroupedTabs": { "message": "No grouped tabs to ungroup" },
+  "dashboard_groups_ungroupedTabs_one": {
+    "message": "Ungrouped $count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_groups_ungroupedTabs_other": {
+    "message": "Ungrouped $count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_groups_ungroupFailed": { "message": "Failed to ungroup tabs" },
+  "dashboard_groups_emptyTitle": { "message": "No tab groups" },
+  "dashboard_groups_emptyText": { "message": "Create groups to organize your tabs better" },
+  "dashboard_groups_groupByDomainBtn": { "message": "Group by Domain" },
+  "dashboard_groups_untitled": { "message": "Untitled Group" },
+  "dashboard_groups_tabCount_one": {
+    "message": "$count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_groups_tabCount_other": {
+    "message": "$count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_groups_groupedResult": {
+    "message": "Created $created$ new groups, reused $reused$ existing groups",
+    "placeholders": { "created": { "content": "$1" }, "reused": { "content": "$2" } }
+  },
+  "dashboard_groups_noTabsToGroup": { "message": "No tabs to group by domain" },
+  "dashboard_groups_groupByDomainFailed": { "message": "Failed to group tabs by domain" },
+
+  "dashboard_snoozed_emptyTitle": { "message": "No snoozed tabs" },
+  "dashboard_snoozed_emptyText": { "message": "Snooze tabs to temporarily hide them and have them reopen later" },
+  "dashboard_snoozed_window_one": {
+    "message": "Snoozed Window ($count$ tab)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_snoozed_window_other": {
+    "message": "Snoozed Window ($count$ tabs)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_snoozed_moreTabs": {
+    "message": "+$count$ more",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_snoozed_restoreWindow": { "message": "Restore Window" },
+  "dashboard_snoozed_deleteAll": { "message": "Delete All" },
+  "dashboard_snoozed_grouped": { "message": "📁 Grouped" },
+  "dashboard_snoozed_reasonManual": { "message": "manual" },
+  "dashboard_snoozed_wakeNow": { "message": "Wake Now" },
+  "dashboard_snoozed_deleteTitle": { "message": "Delete snoozed tab" },
+  "dashboard_snoozed_within1Hour": { "message": "Within 1 hour" },
+  "dashboard_snoozed_today": { "message": "Today" },
+  "dashboard_snoozed_tomorrow": { "message": "Tomorrow" },
+  "dashboard_snoozed_thisWeek": { "message": "This week" },
+  "dashboard_snoozed_later": { "message": "Later" },
+  "dashboard_snoozed_wakeAtToday": {
+    "message": "Today at $time$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "dashboard_snoozed_wakeAtTomorrow": {
+    "message": "Tomorrow at $time$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "dashboard_snoozed_wakeTabFailed": {
+    "message": "Failed to wake tab: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_snoozed_confirmDeleteTab": { "message": "Delete this snoozed tab?" },
+  "dashboard_snoozed_confirmDeleteWindow": { "message": "Delete all tabs in this snoozed window?" },
+  "dashboard_snoozed_restoreWindowFailed": {
+    "message": "Failed to restore window: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+  "dashboard_snoozed_deleteWindowFailed": {
+    "message": "Failed to delete window: $error$",
+    "placeholders": { "error": { "content": "$1" } }
   }
 }

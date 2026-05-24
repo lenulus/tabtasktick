@@ -5,6 +5,8 @@
  * Provides modal-aware and input-aware shortcut handling.
  */
 
+import { t } from '../../services/utils/i18n.js';
+
 class KeyboardShortcutsManager {
   constructor() {
     this.shortcuts = new Map();
@@ -342,7 +344,7 @@ class KeyboardShortcutsManager {
 
     const tooltip = document.createElement('div');
     tooltip.className = 'keyboard-tooltip';
-    tooltip.textContent = 'Press Enter to open • Space to select';
+    tooltip.textContent = t('dashboard_shortcuts_tooltip');
     item.style.position = 'relative';
     item.appendChild(tooltip);
   }

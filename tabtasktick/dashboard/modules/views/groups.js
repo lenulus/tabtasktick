@@ -3,6 +3,7 @@
 
 import { showNotification } from '../core/shared-utils.js';
 import { getFaviconUrl } from '../core/utils.js';
+import { t, tPlural } from '../../../services/utils/i18n.js';
 
 // Store UI collapsed state for groups
 const collapsedGroups = new Set();
@@ -16,7 +17,7 @@ export async function ungroupAllTabs() {
     const groupedTabs = tabs.filter(tab => tab.groupId && tab.groupId !== -1);
 
     if (groupedTabs.length === 0) {
-      showNotification('No grouped tabs to ungroup', 'info');
+      showNotification(t('dashboard_groups_noGroupedTabs'), 'info');
       return;
     }
 
@@ -27,11 +28,11 @@ export async function ungroupAllTabs() {
       tabIds: tabIds
     });
 
-    showNotification(`Ungrouped ${groupedTabs.length} tabs`, 'success');
+    showNotification(tPlural('dashboard_groups_ungroupedTabs', groupedTabs.length), 'success');
     await loadGroupsView(); // Refresh the view
   } catch (error) {
     console.error('Failed to ungroup tabs:', error);
-    showNotification('Failed to ungroup tabs', 'error');
+    showNotification(t('dashboard_groups_ungroupFailed'), 'error');
   }
 }
 
@@ -73,9 +74,9 @@ export function renderGroups(groups) {
   if (groups.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <h3>No tab groups</h3>
-        <p>Create groups to organize your tabs better</p>
-        <button class="btn btn-primary" id="groupByDomainBtn">Group by Domain</button>
+        <h3>${t('dashboard_groups_emptyTitle')}</h3>
+        <p>${t('dashboard_groups_emptyText')}</p>
+        <button class="btn btn-primary" id="groupByDomainBtn">${t('dashboard_groups_groupByDomainBtn')}</button>
       </div>
     `;
     // Add event listener after creating the button
@@ -93,8 +94,8 @@ export function renderGroups(groups) {
     card.innerHTML = `
       <div class="group-header" data-group-id="${group.id}">
         <div class="group-title">
-          <h3>${group.title || 'Untitled Group'}</h3>
-          <span class="group-count">${group.tabs.length} tabs</span>
+          <h3>${group.title || t('dashboard_groups_untitled')}</h3>
+          <span class="group-count">${tPlural('dashboard_groups_tabCount', group.tabs.length)}</span>
         </div>
         <div class="group-actions">
           <button class="group-action-btn" data-action="collapse" data-group-id="${group.id}">
@@ -226,17 +227,17 @@ export async function groupTabsByDomain() {
       const groupsReused = result.summary?.groupsReused || 0;
 
       if (groupsCreated > 0 || groupsReused > 0) {
-        const message = `Created ${groupsCreated} new groups, reused ${groupsReused} existing groups`;
+        const message = t('dashboard_groups_groupedResult', [String(groupsCreated), String(groupsReused)]);
         showNotification(message, 'success');
       } else {
-        showNotification('No tabs to group by domain', 'info');
+        showNotification(t('dashboard_groups_noTabsToGroup'), 'info');
       }
     } else {
-      showNotification(result.error || 'Failed to group tabs by domain', 'error');
+      showNotification(result.error || t('dashboard_groups_groupByDomainFailed'), 'error');
     }
   } catch (error) {
     console.error('Failed to group tabs by domain:', error);
-    showNotification('Failed to group tabs by domain', 'error');
+    showNotification(t('dashboard_groups_groupByDomainFailed'), 'error');
   }
 }
 

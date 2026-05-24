@@ -1,6 +1,8 @@
 // Snoozed View Module
 // Handles the snoozed tabs timeline view
 
+import { t, tPlural } from '../../../services/utils/i18n.js';
+
 // Track if event listeners are already set up
 let listenersInitialized = false;
 
@@ -29,8 +31,8 @@ function renderSnoozedTimeline(snoozedTabs) {
   if (snoozedTabs.length === 0) {
     timeline.innerHTML = `
       <div class="empty-state">
-        <h3>No snoozed tabs</h3>
-        <p>Snooze tabs to temporarily hide them and have them reopen later</p>
+        <h3>${t('dashboard_snoozed_emptyTitle')}</h3>
+        <p>${t('dashboard_snoozed_emptyText')}</p>
       </div>
     `;
     return;
@@ -63,7 +65,7 @@ function renderSnoozedTimeline(snoozedTabs) {
                 <div class="window-snooze-header">
                   <div class="window-icon">🪟</div>
                   <div class="window-info">
-                    <div class="window-title">Snoozed Window (${item.tabs.length} tabs)</div>
+                    <div class="window-title">${tPlural('dashboard_snoozed_window', item.tabs.length)}</div>
                     <div class="window-meta">
                       <span class="wake-time">🕐 ${getExactWakeTime(item.snoozeUntil)}</span>
                     </div>
@@ -76,11 +78,11 @@ function renderSnoozedTimeline(snoozedTabs) {
                       <span class="tab-title-small">${tab.title || tab.url}</span>
                     </div>
                   `).join('')}
-                  ${item.tabs.length > 3 ? `<div class="more-tabs">+${item.tabs.length - 3} more</div>` : ''}
+                  ${item.tabs.length > 3 ? `<div class="more-tabs">${t('dashboard_snoozed_moreTabs', String(item.tabs.length - 3))}</div>` : ''}
                 </div>
                 <div class="window-actions">
-                  <button class="btn-small restore-window-btn" data-window-snooze-id="${item.windowSnoozeId}">Restore Window</button>
-                  <button class="btn-small delete-window-btn" data-window-snooze-id="${item.windowSnoozeId}">Delete All</button>
+                  <button class="btn-small restore-window-btn" data-window-snooze-id="${item.windowSnoozeId}">${t('dashboard_snoozed_restoreWindow')}</button>
+                  <button class="btn-small delete-window-btn" data-window-snooze-id="${item.windowSnoozeId}">${t('dashboard_snoozed_deleteAll')}</button>
                 </div>
               </div>
             `;
@@ -95,12 +97,12 @@ function renderSnoozedTimeline(snoozedTabs) {
                 <div class="tab-url">${item.url}</div>
                 <div class="tab-meta">
                   <span class="wake-time">🕐 ${getExactWakeTime(item.snoozeUntil || item.wakeTime)}</span>
-                  ${item.groupId ? '<span class="group-indicator">📁 Grouped</span>' : ''}
-                  <span class="snooze-reason">${item.snoozeReason || 'manual'}</span>
+                  ${item.groupId ? `<span class="group-indicator">${t('dashboard_snoozed_grouped')}</span>` : ''}
+                  <span class="snooze-reason">${item.snoozeReason || t('dashboard_snoozed_reasonManual')}</span>
                 </div>
                 <div class="tab-actions">
-                  <button class="btn-small wake-btn" data-tab-id="${item.id}">Wake Now</button>
-                  <button class="btn-small delete-btn" data-tab-id="${item.id}" data-tab-url="${item.url}" title="Delete snoozed tab">Delete</button>
+                  <button class="btn-small wake-btn" data-tab-id="${item.id}">${t('dashboard_snoozed_wakeNow')}</button>
+                  <button class="btn-small delete-btn" data-tab-id="${item.id}" data-tab-url="${item.url}" title="${t('dashboard_snoozed_deleteTitle')}">${t('common_delete')}</button>
                 </div>
               </div>
             `;
@@ -153,15 +155,15 @@ function groupSnoozedByTime(items) {
     let label;
 
     if (diff <= 3600000) { // 1 hour
-      label = 'Within 1 hour';
+      label = t('dashboard_snoozed_within1Hour');
     } else if (diff <= 86400000) { // 1 day
-      label = 'Today';
+      label = t('dashboard_snoozed_today');
     } else if (diff <= 172800000) { // 2 days
-      label = 'Tomorrow';
+      label = t('dashboard_snoozed_tomorrow');
     } else if (diff <= 604800000) { // 1 week
-      label = 'This week';
+      label = t('dashboard_snoozed_thisWeek');
     } else {
-      label = 'Later';
+      label = t('dashboard_snoozed_later');
     }
 
     if (!groups[label]) {
@@ -195,9 +197,9 @@ function getExactWakeTime(timestamp) {
   dayAfter.setDate(dayAfter.getDate() + 1);
   
   if (date < tomorrow) {
-    return `Today at ${date.toLocaleTimeString('en-US', timeOptions)}`;
+    return t('dashboard_snoozed_wakeAtToday', date.toLocaleTimeString('en-US', timeOptions));
   } else if (date < dayAfter) {
-    return `Tomorrow at ${date.toLocaleTimeString('en-US', timeOptions)}`;
+    return t('dashboard_snoozed_wakeAtTomorrow', date.toLocaleTimeString('en-US', timeOptions));
   } else {
     const dateOptions = { 
       weekday: 'short', 
@@ -221,11 +223,11 @@ async function wakeTab(tabId) {
       await loadSnoozedView();
     } else {
       console.error('Failed to wake tab:', result?.error || 'Unknown error');
-      alert(`Failed to wake tab: ${result?.error || 'Unknown error'}`);
+      alert(t('dashboard_snoozed_wakeTabFailed', result?.error || t('common_unknownError')));
     }
   } catch (error) {
     console.error('Failed to wake tab:', error);
-    alert(`Failed to wake tab: ${error.message}`);
+    alert(t('dashboard_snoozed_wakeTabFailed', error.message));
   }
 }
 
@@ -264,7 +266,7 @@ function setupSnoozedEventListeners() {
     } else if (e.target.classList.contains('delete-btn')) {
       const tabId = e.target.dataset.tabId;
       const tabUrl = e.target.dataset.tabUrl;
-      if (confirm('Delete this snoozed tab?')) {
+      if (confirm(t('dashboard_snoozed_confirmDeleteTab'))) {
         await deleteTab(tabId, tabUrl);
       }
     } else if (e.target.classList.contains('restore-window-btn')) {
@@ -274,7 +276,7 @@ function setupSnoozedEventListeners() {
       }
     } else if (e.target.classList.contains('delete-window-btn')) {
       const windowSnoozeId = e.target.dataset.windowSnoozeId;
-      if (windowSnoozeId && confirm('Delete all tabs in this snoozed window?')) {
+      if (windowSnoozeId && confirm(t('dashboard_snoozed_confirmDeleteWindow'))) {
         await deleteWindow(windowSnoozeId);
       }
     }
@@ -296,11 +298,11 @@ async function restoreWindow(windowSnoozeId) {
       await loadSnoozedView();
     } else {
       console.error('Failed to restore window:', result?.error || 'Unknown error');
-      alert(`Failed to restore window: ${result?.error || 'Unknown error'}`);
+      alert(t('dashboard_snoozed_restoreWindowFailed', result?.error || t('common_unknownError')));
     }
   } catch (error) {
     console.error('Failed to restore window:', error);
-    alert(`Failed to restore window: ${error.message}`);
+    alert(t('dashboard_snoozed_restoreWindowFailed', error.message));
   }
 }
 
@@ -316,11 +318,11 @@ async function deleteWindow(windowSnoozeId) {
       await loadSnoozedView();
     } else {
       console.error('Failed to delete window:', result?.error || 'Unknown error');
-      alert(`Failed to delete window: ${result?.error || 'Unknown error'}`);
+      alert(t('dashboard_snoozed_deleteWindowFailed', result?.error || t('common_unknownError')));
     }
   } catch (error) {
     console.error('Failed to delete window:', error);
-    alert(`Failed to delete window: ${error.message}`);
+    alert(t('dashboard_snoozed_deleteWindowFailed', error.message));
   }
 }
 

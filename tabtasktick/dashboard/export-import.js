@@ -1,5 +1,7 @@
 // Export/Import functionality for the dashboard
 
+import { t, tPlural } from '../services/utils/i18n.js';
+
 let importedData = null;
 
 // Initialize export/import functionality
@@ -68,11 +70,15 @@ async function updateTabCounts() {
     const currentWindowTabs = await chrome.tabs.query({ windowId: currentWindow.id });
     const allTabs = await chrome.tabs.query({});
 
-    const currentWindowCount = document.getElementById('currentWindowTabCount');
-    const allWindowsCount = document.getElementById('allWindowsTabCount');
+    const currentWindowLabel = document.getElementById('currentWindowScopeLabel');
+    const allWindowsLabel = document.getElementById('allWindowsScopeLabel');
 
-    if (currentWindowCount) currentWindowCount.textContent = currentWindowTabs.length;
-    if (allWindowsCount) allWindowsCount.textContent = allTabs.length;
+    if (currentWindowLabel) {
+      currentWindowLabel.textContent = tPlural('dashboard_backup_scopeCurrent', currentWindowTabs.length);
+    }
+    if (allWindowsLabel) {
+      allWindowsLabel.textContent = tPlural('dashboard_backup_scopeAll', allTabs.length);
+    }
   } catch (error) {
     console.error('Failed to update tab counts:', error);
   }
@@ -104,7 +110,7 @@ async function handleExport() {
       includeCollections: document.getElementById('includeCollections')?.checked ?? true
     };
 
-    showNotification(`Exporting as ${format.toUpperCase()}...`, 'info');
+    showNotification(t('dashboard_backup_exporting', format.toUpperCase()), 'info');
 
     const response = await chrome.runtime.sendMessage({
       action: 'exportData',
@@ -154,22 +160,22 @@ async function handleExport() {
     if (format === 'json') {
       const summary = [];
       if (data.session) {
-        summary.push(`${data.session.tabs.length} tabs`);
+        summary.push(tPlural('dashboard_backup_summaryTabs', data.session.tabs.length));
       }
       if (data.extensionData && data.extensionData.rules) {
-        summary.push(`${data.extensionData.rules.length} rules`);
+        summary.push(tPlural('dashboard_backup_summaryRules', data.extensionData.rules.length));
       }
       if (data.extensionData && data.extensionData.snoozedTabs) {
-        summary.push(`${data.extensionData.snoozedTabs.length} snoozed tabs`);
+        summary.push(tPlural('dashboard_backup_summarySnoozed', data.extensionData.snoozedTabs.length));
       }
-      showNotification(`Exported: ${summary.join(', ')}`, 'success');
+      showNotification(t('dashboard_backup_exportedSummary', summary.join(', ')), 'success');
     } else {
-      showNotification(`Exported as ${format.toUpperCase()}`, 'success');
+      showNotification(t('dashboard_backup_exportedFormat', format.toUpperCase()), 'success');
     }
 
   } catch (error) {
     console.error('Failed to export data:', error);
-    showNotification('Export failed: ' + (error.message || 'Unknown error'), 'error');
+    showNotification(t('dashboard_backup_exportFailed', error.message || t('common_unknownError')), 'error');
   }
 }
 
@@ -178,14 +184,14 @@ async function handleFileSelect(file) {
   try {
     // Validate file type
     if (!file.name.endsWith('.json')) {
-      showNotification('Please select a JSON file', 'error');
+      showNotification(t('dashboard_backup_selectJsonFile'), 'error');
       return;
     }
 
     // Check file size (10MB limit)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      showNotification('File too large (max 10MB)', 'error');
+      showNotification(t('dashboard_backup_fileTooLarge'), 'error');
       return;
     }
 
@@ -195,7 +201,7 @@ async function handleFileSelect(file) {
 
     // Validate structure
     if (!data.format || !data.session) {
-      showNotification('Invalid TabMaster export file', 'error');
+      showNotification(t('dashboard_backup_invalidFile'), 'error');
       return;
     }
 
@@ -203,8 +209,8 @@ async function handleFileSelect(file) {
 
     // Display file info
     document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
-    document.getElementById('fileFormat').textContent = data.format || 'Unknown';
+    document.getElementById('fileSize').textContent = t('dashboard_backup_fileSizeKB', (file.size / 1024).toFixed(1));
+    document.getElementById('fileFormat').textContent = data.format || t('dashboard_backup_formatUnknown');
     document.getElementById('fileInfo').style.display = 'block';
 
     // Display preview
@@ -235,20 +241,23 @@ async function handleFileSelect(file) {
 
       // Show importable tabs count with restricted note if needed
       if (data.session.tabs) {
-        let tabInfo = `${importableTabCount} tabs`;
+        let tabInfo = tPlural('dashboard_backup_previewTabs', importableTabCount);
         if (data.session.windows && data.session.windows.length > 1) {
-          tabInfo += ` in ${data.session.windows.length} window(s)`;
+          tabInfo = t('dashboard_backup_previewTabsInWindows', [
+            tabInfo,
+            tPlural('dashboard_backup_previewWindowCount', data.session.windows.length)
+          ]);
         }
         if (restrictedTabCount > 0) {
-          tabInfo += ` (${restrictedTabCount} restricted URLs excluded)`;
+          tabInfo = t('dashboard_backup_previewRestricted', [tabInfo, String(restrictedTabCount)]);
         }
         items.push(tabInfo);
       }
 
-      if (data.session.groups) items.push(`${data.session.groups.length} tab groups`);
+      if (data.session.groups) items.push(tPlural('dashboard_backup_previewGroups', data.session.groups.length));
       if (data.extensionData) {
-        if (data.extensionData.rules) items.push(`${data.extensionData.rules.length} rules`);
-        if (data.extensionData.snoozedTabs) items.push(`${data.extensionData.snoozedTabs.length} snoozed tabs`);
+        if (data.extensionData.rules) items.push(tPlural('dashboard_backup_previewRules', data.extensionData.rules.length));
+        if (data.extensionData.snoozedTabs) items.push(tPlural('dashboard_backup_previewSnoozed', data.extensionData.snoozedTabs.length));
       }
 
       items.forEach(item => {
@@ -264,13 +273,13 @@ async function handleFileSelect(file) {
     // Update warning based on importable tabs only
     const warning = document.getElementById('importWarning');
     if (importableTabCount > 50) {
-      warning.textContent = `⚠️ This will open ${importableTabCount} tabs. Consider importing in smaller batches.`;
+      warning.textContent = tPlural('dashboard_backup_warnManyTabs', importableTabCount);
       warning.style.display = 'block';
     } else if (importableTabCount > 0) {
-      warning.textContent = `This will open ${importableTabCount} tabs.`;
+      warning.textContent = tPlural('dashboard_backup_warnOpenTabs', importableTabCount);
       warning.style.display = 'block';
     } else if (importableTabCount === 0 && restrictedTabCount > 0) {
-      warning.textContent = `⚠️ All ${restrictedTabCount} tabs have restricted URLs and cannot be imported.`;
+      warning.textContent = tPlural('dashboard_backup_warnAllRestricted', restrictedTabCount);
       warning.className = 'import-warning error';
       warning.style.display = 'block';
     } else {
@@ -282,14 +291,14 @@ async function handleFileSelect(file) {
 
   } catch (error) {
     console.error('Failed to process file:', error);
-    showNotification('Failed to read file: ' + error.message, 'error');
+    showNotification(t('dashboard_backup_fileReadFailed', error.message), 'error');
   }
 }
 
 // Handle import
 async function handleImport() {
   if (!importedData) {
-    showNotification('No file selected', 'error');
+    showNotification(t('dashboard_backup_noFileSelected'), 'error');
     return;
   }
 
@@ -303,7 +312,7 @@ async function handleImport() {
       shouldImportCollections: document.getElementById('importCollections')?.checked ?? true
     };
 
-    showNotification('Importing data...', 'info');
+    showNotification(t('dashboard_backup_importing'), 'info');
 
     const result = await chrome.runtime.sendMessage({
       action: 'importData',
@@ -314,27 +323,27 @@ async function handleImport() {
     if (result.success) {
       const imported = result.imported || {};
       const summary = [];
-      if (imported.windows) summary.push(`${imported.windows} window${imported.windows !== 1 ? 's' : ''}`);
-      if (imported.tabs) summary.push(`${imported.tabs} tabs`);
-      if (imported.groups) summary.push(`${imported.groups} groups`);
-      if (imported.rules) summary.push(`${imported.rules} rules`);
-      if (imported.snoozed) summary.push(`${imported.snoozed} snoozed tabs`);
+      if (imported.windows) summary.push(tPlural('dashboard_backup_summaryWindows', imported.windows));
+      if (imported.tabs) summary.push(tPlural('dashboard_backup_summaryTabs', imported.tabs));
+      if (imported.groups) summary.push(tPlural('dashboard_backup_summaryGroups', imported.groups));
+      if (imported.rules) summary.push(tPlural('dashboard_backup_summaryRules', imported.rules));
+      if (imported.snoozed) summary.push(tPlural('dashboard_backup_summarySnoozed', imported.snoozed));
 
       if (summary.length > 0) {
-        showNotification(`Successfully imported: ${summary.join(', ')}`, 'success');
+        showNotification(t('dashboard_backup_importSuccess', summary.join(', ')), 'success');
       } else {
-        showNotification('Import completed but no items were imported', 'warning');
+        showNotification(t('dashboard_backup_importNoItems'), 'warning');
       }
 
       // Reset the import form
       resetImport();
     } else {
-      showNotification('Import failed: ' + (result.error || 'Unknown error'), 'error');
+      showNotification(t('dashboard_backup_importFailed', result.error || t('common_unknownError')), 'error');
     }
 
   } catch (error) {
     console.error('Failed to import data:', error);
-    showNotification('Import failed: ' + error.message, 'error');
+    showNotification(t('dashboard_backup_importFailed', error.message), 'error');
   }
 }
 
@@ -497,8 +506,12 @@ function updateBackupStatus(config) {
       if (config.lastRun && periodMinutes) {
         nextRun = new Date(config.lastRun + (periodMinutes * 60 * 1000));
       } else {
-        const periodName = { hourly: 'hour', daily: 'day', weekly: 'week' }[config.frequency];
-        nextBackupText.textContent = `Every ${periodName}`;
+        const periodKey = {
+          hourly: 'dashboard_backup_nextEveryHour',
+          daily: 'dashboard_backup_nextEveryDay',
+          weekly: 'dashboard_backup_nextEveryWeek'
+        }[config.frequency];
+        nextBackupText.textContent = t(periodKey);
         return;
       }
     }
@@ -510,12 +523,12 @@ function updateBackupStatus(config) {
       const minutesUntil = Math.floor(msUntil / (1000 * 60)) % 60;
 
       if (hoursUntil > 0) {
-        nextBackupText.textContent = `Next backup in ${hoursUntil}h ${minutesUntil}m`;
+        nextBackupText.textContent = t('dashboard_backup_nextInHM', [String(hoursUntil), String(minutesUntil)]);
       } else {
-        nextBackupText.textContent = `Next backup in ${minutesUntil}m`;
+        nextBackupText.textContent = t('dashboard_backup_nextInM', String(minutesUntil));
       }
     } else {
-      nextBackupText.textContent = 'Next backup soon';
+      nextBackupText.textContent = t('dashboard_backup_nextSoon');
     }
   } else {
     nextBackupText.textContent = '';
@@ -548,10 +561,10 @@ async function handleToggleBackups(event) {
       });
 
       if (backupResult.success) {
-        showNotification('Automatic backups enabled - first backup created', 'success');
+        showNotification(t('dashboard_backup_enabledFirstBackup'), 'success');
         await loadBackupHistory(); // Refresh history to show new backup
       } else {
-        showNotification('Automatic backups enabled', 'success');
+        showNotification(t('dashboard_backup_enabled'), 'success');
       }
 
       // Small delay to ensure config is saved with lastRun
@@ -560,14 +573,14 @@ async function handleToggleBackups(event) {
       await chrome.runtime.sendMessage({
         action: 'disableScheduledExports'
       });
-      showNotification('Automatic backups disabled', 'success');
+      showNotification(t('dashboard_backup_disabled'), 'success');
     }
 
     await loadBackupConfiguration();
 
   } catch (error) {
     console.error('Failed to toggle backups:', error);
-    showNotification('Failed to update backup settings', 'error');
+    showNotification(t('dashboard_backup_updateSettingsFailed'), 'error');
     event.target.checked = !enabled;
   }
 }
@@ -585,7 +598,7 @@ async function handleTimeChange() {
   // Save configuration and update alarms
   await saveBackupConfiguration();
 
-  showNotification('Backup schedule updated', 'success');
+  showNotification(t('dashboard_backup_scheduleUpdated'), 'success');
 }
 
 async function saveBackupConfiguration() {
@@ -611,7 +624,7 @@ async function saveBackupConfiguration() {
 
   } catch (error) {
     console.error('Failed to save backup configuration:', error);
-    showNotification('Failed to save settings', 'error');
+    showNotification(t('dashboard_backup_saveSettingsFailed'), 'error');
   }
 }
 
@@ -657,8 +670,8 @@ function renderBackupHistory(backups) {
   if (backups.length === 0) {
     historyContainer.innerHTML = `
       <div class="empty-state">
-        <p>No backups yet</p>
-        <p class="empty-state-hint">Click "Backup Now" or enable automatic backups</p>
+        <p>${t('dashboard_backup_noBackups')}</p>
+        <p class="empty-state-hint">${t('dashboard_backup_noBackupsHint')}</p>
       </div>
     `;
     return;
@@ -676,7 +689,15 @@ function renderBackupGroup(backups) {
     const date = new Date(backup.timestamp);
     const dateString = date.toLocaleString();
     const sizeInMB = (backup.size / (1024 * 1024)).toFixed(1);
-    const badge = backup.automatic ? '<span class="backup-badge auto">AUTO</span>' : '<span class="backup-badge manual">MANUAL</span>';
+    const badge = backup.automatic
+      ? `<span class="backup-badge auto">${t('dashboard_backup_badgeAuto')}</span>`
+      : `<span class="backup-badge manual">${t('dashboard_backup_badgeManual')}</span>`;
+    const details = t('dashboard_backup_itemDetails', [
+      dateString,
+      tPlural('dashboard_backup_summaryTabs', backup.tabCount),
+      tPlural('dashboard_backup_summaryWindows', backup.windowCount),
+      sizeInMB
+    ]);
 
     return `
       <div class="backup-item" data-download-id="${backup.downloadId}">
@@ -686,12 +707,12 @@ function renderBackupGroup(backups) {
             ${badge}
           </div>
           <div class="backup-details">
-            ${dateString} • ${backup.tabCount} tabs • ${backup.windowCount} windows • ${sizeInMB} MB
+            ${details}
           </div>
         </div>
         <div class="backup-actions">
-          <button class="btn-action btn-show" data-action="show" data-download-id="${backup.downloadId}" title="Show file in Downloads folder">
-            📁 Show
+          <button class="btn-action btn-show" data-action="show" data-download-id="${backup.downloadId}" title="${t('dashboard_backup_showFileTitle')}">
+            ${t('dashboard_backup_showFile')}
           </button>
         </div>
       </div>
@@ -705,9 +726,9 @@ async function showBackupInFolder(downloadId) {
   } catch (error) {
     try {
       await chrome.downloads.showDefaultFolder();
-      showNotification('Backup file may have been moved. Check Downloads folder for files starting with "tabmaster-backup-"', 'info');
+      showNotification(t('dashboard_backup_fileMoved'), 'info');
     } catch (e) {
-      showNotification('Could not open Downloads folder', 'error');
+      showNotification(t('dashboard_backup_openFolderFailed'), 'error');
     }
   }
 }
