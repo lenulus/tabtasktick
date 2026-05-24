@@ -246,6 +246,121 @@
     "placeholders": { "count": { "content": "$1" } }
   },
 
+  "modal_collection_docTitle": { "message": "Add to Collection" },
+  "modal_collection_title": { "message": "Add to Collection" },
+  "modal_collection_searchPlaceholder": { "message": "Search collections..." },
+  "modal_collection_nameLabel": { "message": "Collection Name" },
+  "modal_collection_namePlaceholder": { "message": "e.g., Project X" },
+  "modal_collection_create": { "message": "Create" },
+  "modal_collection_creating": { "message": "Creating..." },
+  "modal_collection_emptyTitle": { "message": "No collections yet" },
+  "modal_collection_emptyHint": { "message": "Create your first collection below" },
+  "modal_collection_noMatch": { "message": "No collections match your search" },
+  "modal_collection_createNew": { "message": "+ Create New Collection" },
+  "modal_collection_active": { "message": "Active" },
+  "modal_collection_moreCount_one": {
+    "message": "+ $count$ more collection (refine your search)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "modal_collection_moreCount_other": {
+    "message": "+ $count$ more collections (refine your search)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "modal_collection_tabCount_one": {
+    "message": "$count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "modal_collection_tabCount_other": {
+    "message": "$count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "modal_collection_loadFailed": { "message": "Failed to load collections" },
+  "modal_collection_loadError": { "message": "Error loading collections" },
+  "modal_collection_nameRequired": { "message": "Please enter a collection name" },
+  "modal_collection_createFailed": { "message": "Failed to create collection" },
+  "modal_collection_createdTitle": { "message": "Collection Created" },
+  "modal_collection_createdMessage": {
+    "message": "Created collection \"$name$\" and added tab",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "modal_collection_addedTitle": { "message": "Tab Added" },
+  "modal_collection_addedMessage": {
+    "message": "Added to $name$",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "modal_collection_fallbackName": { "message": "collection" },
+  "modal_collection_noTabData": { "message": "No tab data available" },
+  "modal_collection_loadCollectionFailed": { "message": "Failed to load collection" },
+  "modal_collection_createFolderFailed": { "message": "Failed to create folder" },
+  "modal_collection_addTabFailed": { "message": "Failed to add tab" },
+  "modal_collection_errorMessage": {
+    "message": "Error: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+
+  "modal_note_docTitle": { "message": "Add Note to Tab" },
+  "modal_note_title": { "message": "Add Note to Tab" },
+  "modal_note_placeholder": { "message": "Add your note here (max 255 characters)..." },
+  "modal_note_charCount": {
+    "message": "$current$ / 255",
+    "placeholders": { "current": { "content": "$1" } }
+  },
+  "modal_note_save": { "message": "Save Note" },
+  "modal_note_saving": { "message": "Saving..." },
+  "modal_note_noTab": { "message": "No tab specified" },
+  "modal_note_notFound": { "message": "Tab not found" },
+  "modal_note_notInCollection": { "message": "This tab is not in a collection. Use \"Add to Collection\" first." },
+  "modal_note_saveFailed": { "message": "Failed to save note" },
+  "modal_note_savedTitle": { "message": "Note Saved" },
+  "modal_note_savedAdded": { "message": "Note added to tab" },
+  "modal_note_savedRemoved": { "message": "Note removed from tab" },
+  "modal_note_errorMessage": {
+    "message": "Error: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+
+  "modal_task_docTitle": { "message": "Create Task" },
+  "modal_task_title": { "message": "Create Task" },
+  "modal_task_summaryLabel": { "message": "Summary" },
+  "modal_task_summaryPlaceholder": { "message": "e.g., Review PR #234" },
+  "modal_task_summaryError": { "message": "Summary is required" },
+  "modal_task_notesLabel": { "message": "Notes" },
+  "modal_task_notesPlaceholder": { "message": "Additional details..." },
+  "modal_task_collectionLabel": { "message": "Collection" },
+  "modal_task_uncategorized": { "message": "Uncategorized" },
+  "modal_task_collectionActive": {
+    "message": "$name$ (Active)",
+    "placeholders": { "name": { "content": "$1" } }
+  },
+  "modal_task_priorityLabel": { "message": "Priority" },
+  "modal_task_priorityLow": { "message": "Low" },
+  "modal_task_priorityMedium": { "message": "Medium" },
+  "modal_task_priorityHigh": { "message": "High" },
+  "modal_task_priorityCritical": { "message": "Critical" },
+  "modal_task_statusLabel": { "message": "Status" },
+  "modal_task_statusOpen": { "message": "Open" },
+  "modal_task_statusActive": { "message": "Active" },
+  "modal_task_dueDateLabel": { "message": "Due Date" },
+  "modal_task_tagsLabel": { "message": "Tags" },
+  "modal_task_tagPlaceholder": { "message": "Enter tag..." },
+  "modal_task_addTag": { "message": "Add Tag" },
+  "modal_task_referencedTabs": { "message": "Referenced Tabs" },
+  "modal_task_selectCollection": { "message": "Select a collection to see tabs" },
+  "modal_task_create": { "message": "Create Task" },
+  "modal_task_creating": { "message": "Creating..." },
+  "modal_task_errorLoadingTabs": { "message": "Error loading tabs" },
+  "modal_task_noTabsInCollection": { "message": "No tabs in this collection" },
+  "modal_task_createFailed": { "message": "Failed to create task" },
+  "modal_task_createdTitle": { "message": "Task Created" },
+  "modal_task_createdMessage": {
+    "message": "Created task: $summary$",
+    "placeholders": { "summary": { "content": "$1" } }
+  },
+  "modal_task_errorCreating": {
+    "message": "Error creating task: $error$",
+    "placeholders": { "error": { "content": "$1" } }
+  },
+
   "options_docTitle": { "message": "TabTaskTick - Settings" },
   "options_title": { "message": "TabTaskTick Settings" },
   "options_subtitle": { "message": "Configure your tab and task management preferences" },

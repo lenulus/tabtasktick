@@ -5,6 +5,8 @@
  * Communicates with background script via chrome.runtime.sendMessage().
  */
 
+import { t, localizeDocument } from '../../services/utils/i18n.js';
+
 class NoteModalController {
   constructor() {
     this.tabData = null;
@@ -16,7 +18,7 @@ class NoteModalController {
     this.tabData = this.parseUrlParams();
 
     if (!this.tabData || !this.tabData.tabId) {
-      alert('No tab specified');
+      alert(t('modal_note_noTab'));
       window.close();
       return;
     }
@@ -60,7 +62,7 @@ class NoteModalController {
 
     textarea.addEventListener('input', () => {
       const length = textarea.value.length;
-      charCount.textContent = `${length} / 255`;
+      charCount.textContent = t('modal_note_charCount', String(length));
 
       if (length > 250) {
         charCount.classList.add('warning');
@@ -99,14 +101,14 @@ class NoteModalController {
       });
 
       if (!response || !response.success) {
-        throw new Error(response?.error || 'Tab not found');
+        throw new Error(response?.error || t('modal_note_notFound'));
       }
 
       const tab = response.tab;
 
       // Check if tab exists in storage (must be in a collection)
       if (!tab) {
-        throw new Error('This tab is not in a collection. Use "Add to Collection" first.');
+        throw new Error(t('modal_note_notInCollection'));
       }
 
       // Display tab info
@@ -120,14 +122,14 @@ class NoteModalController {
 
         // Update character count
         const charCount = document.getElementById('char-count');
-        charCount.textContent = `${tab.note.length} / 255`;
+        charCount.textContent = t('modal_note_charCount', String(tab.note.length));
       }
 
       // Focus textarea
       document.getElementById('note-textarea').focus();
     } catch (error) {
       console.error('Error loading tab:', error);
-      alert(`Error: ${error.message}`);
+      alert(t('modal_note_errorMessage', error.message));
       window.close();
     }
   }
@@ -138,7 +140,7 @@ class NoteModalController {
 
     const saveBtn = document.getElementById('save-btn');
     saveBtn.disabled = true;
-    saveBtn.textContent = 'Saving...';
+    saveBtn.textContent = t('modal_note_saving');
 
     try {
       const response = await chrome.runtime.sendMessage({
@@ -148,14 +150,14 @@ class NoteModalController {
       });
 
       if (!response || !response.success) {
-        throw new Error(response?.error || 'Failed to save note');
+        throw new Error(response?.error || t('modal_note_saveFailed'));
       }
 
       // Show success notification
       await chrome.runtime.sendMessage({
         action: 'showNotification',
-        title: 'Note Saved',
-        message: note ? 'Note added to tab' : 'Note removed from tab'
+        title: t('modal_note_savedTitle'),
+        message: note ? t('modal_note_savedAdded') : t('modal_note_savedRemoved')
       });
 
       // Close window after brief delay
@@ -164,15 +166,16 @@ class NoteModalController {
       }, 300);
     } catch (error) {
       console.error('Error saving note:', error);
-      alert(`Error: ${error.message}`);
+      alert(t('modal_note_errorMessage', error.message));
       saveBtn.disabled = false;
-      saveBtn.textContent = 'Save Note';
+      saveBtn.textContent = t('modal_note_save');
     }
   }
 }
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+  localizeDocument('modal_note_docTitle');
   const controller = new NoteModalController();
   controller.init();
 });

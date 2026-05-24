@@ -248,75 +248,75 @@
 </head>
 <body>
   <div id="loading" class="loading">
-    <p>Loading...</p>
+    <p data-i18n="common_loading">Loading...</p>
   </div>
 
   <div id="form-container" class="hidden">
     <div class="modal-header">
-      <h1 class="modal-title">Create Task</h1>
+      <h1 class="modal-title" data-i18n="modal_task_title">Create Task</h1>
     </div>
 
     <form id="task-form">
       <div class="form-group">
-        <label for="summary">Summary <span class="required">*</span></label>
-        <input type="text" id="summary" name="summary" required placeholder="e.g., Review PR #234">
-        <div class="error-message" id="summary-error">Summary is required</div>
+        <label for="summary"><span data-i18n="modal_task_summaryLabel">Summary</span> <span class="required">*</span></label>
+        <input type="text" id="summary" name="summary" required data-i18n-placeholder="modal_task_summaryPlaceholder" placeholder="e.g., Review PR #234">
+        <div class="error-message" id="summary-error" data-i18n="modal_task_summaryError">Summary is required</div>
       </div>
 
       <div class="form-group">
-        <label for="notes">Notes</label>
-        <textarea id="notes" name="notes" placeholder="Additional details..."></textarea>
+        <label for="notes" data-i18n="modal_task_notesLabel">Notes</label>
+        <textarea id="notes" name="notes" data-i18n-placeholder="modal_task_notesPlaceholder" placeholder="Additional details..."></textarea>
       </div>
 
       <div class="form-group">
-        <label for="collection">Collection</label>
+        <label for="collection" data-i18n="modal_task_collectionLabel">Collection</label>
         <select id="collection" name="collection">
-          <option value="">Uncategorized</option>
+          <option value="" data-i18n="modal_task_uncategorized">Uncategorized</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label for="priority">Priority</label>
+        <label for="priority" data-i18n="modal_task_priorityLabel">Priority</label>
         <select id="priority" name="priority">
-          <option value="low">Low</option>
-          <option value="medium" selected>Medium</option>
-          <option value="high">High</option>
-          <option value="critical">Critical</option>
+          <option value="low" data-i18n="modal_task_priorityLow">Low</option>
+          <option value="medium" selected data-i18n="modal_task_priorityMedium">Medium</option>
+          <option value="high" data-i18n="modal_task_priorityHigh">High</option>
+          <option value="critical" data-i18n="modal_task_priorityCritical">Critical</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label for="status">Status</label>
+        <label for="status" data-i18n="modal_task_statusLabel">Status</label>
         <select id="status" name="status">
-          <option value="open" selected>Open</option>
-          <option value="active">Active</option>
+          <option value="open" selected data-i18n="modal_task_statusOpen">Open</option>
+          <option value="active" data-i18n="modal_task_statusActive">Active</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label for="dueDate">Due Date</label>
+        <label for="dueDate" data-i18n="modal_task_dueDateLabel">Due Date</label>
         <input type="date" id="dueDate" name="dueDate">
       </div>
 
       <div class="form-group">
-        <label for="tags">Tags</label>
+        <label for="tags" data-i18n="modal_task_tagsLabel">Tags</label>
         <div class="tag-input-container">
-          <input type="text" id="tag-input" placeholder="Enter tag...">
-          <button type="button" id="add-tag-btn">Add Tag</button>
+          <input type="text" id="tag-input" data-i18n-placeholder="modal_task_tagPlaceholder" placeholder="Enter tag...">
+          <button type="button" id="add-tag-btn" data-i18n="modal_task_addTag">Add Tag</button>
         </div>
         <div class="tags-display" id="tags-display"></div>
       </div>
 
       <div class="form-group">
-        <label>Referenced Tabs</label>
+        <label data-i18n="modal_task_referencedTabs">Referenced Tabs</label>
         <div class="tab-references" id="tab-references">
-          <div class="empty-state">Select a collection to see tabs</div>
+          <div class="empty-state" data-i18n="modal_task_selectCollection">Select a collection to see tabs</div>
         </div>
       </div>
 
       <div class="actions">
-        <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="create-btn">Create Task</button>
+        <button type="button" class="btn btn-secondary" id="cancel-btn" data-i18n="common_cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="create-btn" data-i18n="modal_task_create">Create Task</button>
       </div>
     </form>
   </div>

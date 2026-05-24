@@ -185,26 +185,26 @@
 </head>
 <body>
   <div id="loading" class="loading">
-    <p>Loading...</p>
+    <p data-i18n="common_loading">Loading...</p>
   </div>
 
   <div id="main-container" class="hidden">
     <div class="modal-header">
-      <h1 class="modal-title">Add to Collection</h1>
+      <h1 class="modal-title" data-i18n="modal_collection_title">Add to Collection</h1>
     </div>
 
     <div class="search-box">
-      <input type="text" id="search-input" placeholder="Search collections...">
+      <input type="text" id="search-input" data-i18n-placeholder="modal_collection_searchPlaceholder" placeholder="Search collections...">
     </div>
 
     <div id="new-collection-form" class="new-collection-form">
       <div class="form-group">
-        <label for="new-collection-name">Collection Name</label>
-        <input type="text" id="new-collection-name" placeholder="e.g., Project X">
+        <label for="new-collection-name" data-i18n="modal_collection_nameLabel">Collection Name</label>
+        <input type="text" id="new-collection-name" data-i18n-placeholder="modal_collection_namePlaceholder" placeholder="e.g., Project X">
       </div>
       <div class="actions">
-        <button type="button" class="btn btn-secondary" id="cancel-new-btn">Cancel</button>
-        <button type="button" class="btn btn-primary" id="create-new-btn">Create</button>
+        <button type="button" class="btn btn-secondary" id="cancel-new-btn" data-i18n="common_cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="create-new-btn" data-i18n="modal_collection_create">Create</button>
       </div>
     </div>
 
@@ -213,7 +213,7 @@
     </div>
 
     <div class="actions">
-      <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+      <button type="button" class="btn btn-secondary" id="cancel-btn" data-i18n="common_cancel">Cancel</button>
     </div>
   </div>
 

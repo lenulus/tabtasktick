@@ -5,6 +5,8 @@
  * Communicates with background script via chrome.runtime.sendMessage().
  */
 
+import { t, localizeDocument } from '../../services/utils/i18n.js';
+
 class TaskModalController {
   constructor() {
     this.collections = [];
@@ -129,11 +131,11 @@ class TaskModalController {
     this.collections.forEach(collection => {
       const option = document.createElement('option');
       option.value = collection.id;
-      option.textContent = collection.name;
-
       // Mark active collections
       if (collection.isActive) {
-        option.textContent += ' (Active)';
+        option.textContent = t('modal_task_collectionActive', collection.name);
+      } else {
+        option.textContent = collection.name;
       }
 
       select.appendChild(option);
@@ -145,7 +147,7 @@ class TaskModalController {
 
     if (!collectionId) {
       // Uncategorized selected
-      tabRefsContainer.innerHTML = '<div class="empty-state">Select a collection to see tabs</div>';
+      tabRefsContainer.innerHTML = `<div class="empty-state">${t('modal_task_selectCollection')}</div>`;
       this.currentCollectionTabs = [];
       this.selectedTabIds.clear();
       return;
@@ -160,7 +162,7 @@ class TaskModalController {
 
       if (!response || !response.success) {
         console.error('Failed to load collection:', response?.error);
-        tabRefsContainer.innerHTML = '<div class="empty-state">Error loading tabs</div>';
+        tabRefsContainer.innerHTML = `<div class="empty-state">${t('modal_task_errorLoadingTabs')}</div>`;
         return;
       }
 
@@ -184,7 +186,7 @@ class TaskModalController {
       this.renderTabReferences();
     } catch (error) {
       console.error('Error loading collection tabs:', error);
-      tabRefsContainer.innerHTML = '<div class="empty-state">Error loading tabs</div>';
+      tabRefsContainer.innerHTML = `<div class="empty-state">${t('modal_task_errorLoadingTabs')}</div>`;
     }
   }
 
@@ -192,7 +194,7 @@ class TaskModalController {
     const container = document.getElementById('tab-references');
 
     if (this.currentCollectionTabs.length === 0) {
-      container.innerHTML = '<div class="empty-state">No tabs in this collection</div>';
+      container.innerHTML = `<div class="empty-state">${t('modal_task_noTabsInCollection')}</div>`;
       return;
     }
 
@@ -296,7 +298,7 @@ class TaskModalController {
 
     const createBtn = document.getElementById('create-btn');
     createBtn.disabled = true;
-    createBtn.textContent = 'Creating...';
+    createBtn.textContent = t('modal_task_creating');
 
     try {
       const formData = {
@@ -316,14 +318,14 @@ class TaskModalController {
       });
 
       if (!response || !response.success) {
-        throw new Error(response?.error || 'Failed to create task');
+        throw new Error(response?.error || t('modal_task_createFailed'));
       }
 
       // Show success notification (via background script)
       await chrome.runtime.sendMessage({
         action: 'showNotification',
-        title: 'Task Created',
-        message: `Created task: ${formData.summary}`
+        title: t('modal_task_createdTitle'),
+        message: t('modal_task_createdMessage', formData.summary)
       });
 
       // Close window after brief delay
@@ -332,9 +334,9 @@ class TaskModalController {
       }, 500);
     } catch (error) {
       console.error('Error creating task:', error);
-      alert(`Error creating task: ${error.message}`);
+      alert(t('modal_task_errorCreating', error.message));
       createBtn.disabled = false;
-      createBtn.textContent = 'Create Task';
+      createBtn.textContent = t('modal_task_create');
     }
   }
 
@@ -358,6 +360,7 @@ class TaskModalController {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+  localizeDocument('modal_task_docTitle');
   const controller = new TaskModalController();
   controller.init();
 });

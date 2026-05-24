@@ -5,6 +5,8 @@
  * Communicates with background script via chrome.runtime.sendMessage().
  */
 
+import { t, tPlural, localizeDocument } from '../../services/utils/i18n.js';
+
 class CollectionSelectorController {
   constructor() {
     this.collections = [];
@@ -90,7 +92,7 @@ class CollectionSelectorController {
 
       if (!response || !response.success) {
         console.error('Failed to load collections:', response?.error);
-        this.renderError('Failed to load collections');
+        this.renderError(t('modal_collection_loadFailed'));
         return;
       }
 
@@ -107,7 +109,7 @@ class CollectionSelectorController {
       this.renderCollections();
     } catch (error) {
       console.error('Error loading collections:', error);
-      this.renderError('Error loading collections');
+      this.renderError(t('modal_collection_loadError'));
     }
   }
 
@@ -135,14 +137,14 @@ class CollectionSelectorController {
     if (this.filteredCollections.length === 0 && this.collections.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
-          <p>No collections yet</p>
-          <p style="margin-top: 8px; font-size: 12px;">Create your first collection below</p>
+          <p>${t('modal_collection_emptyTitle')}</p>
+          <p style="margin-top: 8px; font-size: 12px;">${t('modal_collection_emptyHint')}</p>
         </div>
       `;
     } else if (this.filteredCollections.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
-          <p>No collections match your search</p>
+          <p>${t('modal_collection_noMatch')}</p>
         </div>
       `;
     } else {
@@ -164,7 +166,7 @@ class CollectionSelectorController {
         moreItem.className = 'collection-item';
         moreItem.style.fontStyle = 'italic';
         moreItem.style.color = 'var(--text-secondary)';
-        moreItem.textContent = `+ ${this.filteredCollections.length - 10} more collections (refine your search)`;
+        moreItem.textContent = tPlural('modal_collection_moreCount', this.filteredCollections.length - 10);
         container.appendChild(moreItem);
       }
     }
@@ -176,7 +178,7 @@ class CollectionSelectorController {
 
     const name = document.createElement('div');
     name.className = 'collection-name';
-    name.textContent = '+ Create New Collection';
+    name.textContent = t('modal_collection_createNew');
 
     item.appendChild(name);
     item.addEventListener('click', () => {
@@ -199,7 +201,7 @@ class CollectionSelectorController {
 
     const parts = [];
     if (collection.isActive) {
-      parts.push('Active');
+      parts.push(t('modal_collection_active'));
     }
 
     // Count tabs (from folders)
@@ -212,7 +214,7 @@ class CollectionSelectorController {
       });
     }
     if (tabCount > 0) {
-      parts.push(`${tabCount} tab${tabCount !== 1 ? 's' : ''}`);
+      parts.push(tPlural('modal_collection_tabCount', tabCount));
     }
 
     if (parts.length > 0) {
@@ -253,14 +255,14 @@ class CollectionSelectorController {
     const name = nameInput.value.trim();
 
     if (!name) {
-      alert('Please enter a collection name');
+      alert(t('modal_collection_nameRequired'));
       nameInput.focus();
       return;
     }
 
     const createBtn = document.getElementById('create-new-btn');
     createBtn.disabled = true;
-    createBtn.textContent = 'Creating...';
+    createBtn.textContent = t('modal_collection_creating');
 
     try {
       // Create collection
@@ -270,7 +272,7 @@ class CollectionSelectorController {
       });
 
       if (!createResponse || !createResponse.success) {
-        throw new Error(createResponse?.error || 'Failed to create collection');
+        throw new Error(createResponse?.error || t('modal_collection_createFailed'));
       }
 
       const collectionId = createResponse.collection.id;
@@ -281,8 +283,8 @@ class CollectionSelectorController {
       // Show success notification
       await chrome.runtime.sendMessage({
         action: 'showNotification',
-        title: 'Collection Created',
-        message: `Created collection "${name}" and added tab`
+        title: t('modal_collection_createdTitle'),
+        message: t('modal_collection_createdMessage', name)
       });
 
       // Close window after brief delay
@@ -291,9 +293,9 @@ class CollectionSelectorController {
       }, 500);
     } catch (error) {
       console.error('Error creating collection:', error);
-      alert(`Error: ${error.message}`);
+      alert(t('modal_collection_errorMessage', error.message));
       createBtn.disabled = false;
-      createBtn.textContent = 'Create';
+      createBtn.textContent = t('modal_collection_create');
     }
   }
 
@@ -303,13 +305,13 @@ class CollectionSelectorController {
 
       // Get collection name for notification
       const collection = this.collections.find(c => c.id === collectionId);
-      const collectionName = collection?.name || 'collection';
+      const collectionName = collection?.name || t('modal_collection_fallbackName');
 
       // Show success notification
       await chrome.runtime.sendMessage({
         action: 'showNotification',
-        title: 'Tab Added',
-        message: `Added to ${collectionName}`
+        title: t('modal_collection_addedTitle'),
+        message: t('modal_collection_addedMessage', collectionName)
       });
 
       // Close window after brief delay
@@ -318,13 +320,13 @@ class CollectionSelectorController {
       }, 500);
     } catch (error) {
       console.error('Error adding tab to collection:', error);
-      alert(`Error: ${error.message}`);
+      alert(t('modal_collection_errorMessage', error.message));
     }
   }
 
   async addTabToCollection(collectionId) {
     if (!this.tabData || !this.tabData.url) {
-      throw new Error('No tab data available');
+      throw new Error(t('modal_collection_noTabData'));
     }
 
     // Get collection with folders to find where to add tab
@@ -334,7 +336,7 @@ class CollectionSelectorController {
     });
 
     if (!collectionResponse || !collectionResponse.success) {
-      throw new Error('Failed to load collection');
+      throw new Error(t('modal_collection_loadCollectionFailed'));
     }
 
     const collection = collectionResponse.collection;
@@ -360,7 +362,7 @@ class CollectionSelectorController {
       });
 
       if (!folderResponse || !folderResponse.success) {
-        throw new Error('Failed to create folder');
+        throw new Error(t('modal_collection_createFolderFailed'));
       }
 
       folderId = folderResponse.folder.id;
@@ -378,7 +380,7 @@ class CollectionSelectorController {
     });
 
     if (!tabResponse || !tabResponse.success) {
-      throw new Error('Failed to add tab');
+      throw new Error(t('modal_collection_addTabFailed'));
     }
 
     return tabResponse.tab;
@@ -402,6 +404,7 @@ class CollectionSelectorController {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+  localizeDocument('modal_collection_docTitle');
   const controller = new CollectionSelectorController();
   controller.init();
 });
