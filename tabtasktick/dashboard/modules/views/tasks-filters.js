@@ -3,6 +3,7 @@
 
 import { debounce } from '../core/utils.js';
 import state from '../core/state.js';
+import { t } from '../../../services/utils/i18n.js';
 
 export class TasksFilters {
   constructor() {
@@ -149,13 +150,13 @@ export class TasksFilters {
     if (!collectionSelect) return;
 
     // Keep "Uncategorized" option, add collections
-    const options = ['<option value="">Uncategorized</option>'];
+    const options = [`<option value="">${t('dashboard_tasks_uncategorized')}</option>`];
 
     collections.forEach(collection => {
       const isSelected = this.filters.collection.includes(collection.id);
       options.push(`
         <option value="${this.escapeHtml(collection.id)}" ${isSelected ? 'selected' : ''}>
-          ${this.escapeHtml(collection.name || 'Unnamed')}
+          ${this.escapeHtml(collection.name || t('sidepanel_tasks_unnamed'))}
         </option>
       `);
     });

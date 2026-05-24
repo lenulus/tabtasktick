@@ -16,13 +16,15 @@ import {
 } from './tasks-base.js';
 import keyboardShortcuts from '../keyboard-shortcuts.js';
 import { getSharedFiltersInstance } from './tasks-filters-shared.js';
+import { t, tPlural } from '../../../services/utils/i18n.js';
 
-// Kanban columns
+// Kanban columns (titleKey resolved via t() at render time so the label follows
+// the active UI language)
 const KANBAN_COLUMNS = [
-  { id: 'open', title: 'Open', color: '#667eea' },
-  { id: 'active', title: 'Active', color: '#4facfe' },
-  { id: 'fixed', title: 'Fixed', color: '#43e97b' },
-  { id: 'abandoned', title: 'Abandoned', color: '#999' }
+  { id: 'open', titleKey: 'dashboard_tasks_statusOpen', color: '#667eea' },
+  { id: 'active', titleKey: 'dashboard_tasks_statusActive', color: '#4facfe' },
+  { id: 'fixed', titleKey: 'dashboard_tasks_statusFixed', color: '#43e97b' },
+  { id: 'abandoned', titleKey: 'dashboard_tasks_statusAbandoned', color: '#999' }
 ];
 
 // ============================================================================
@@ -79,7 +81,7 @@ export async function loadKanbanView(filters = {}) {
 
   } catch (error) {
     console.error('Error loading Kanban view:', error);
-    showNotification('Failed to load tasks', 'error');
+    showNotification(t('dashboard_tasks_loadFailed'), 'error');
     renderKanbanError(error.message);
   }
 }
@@ -97,7 +99,7 @@ function renderKanbanBoard(tasks, collections) {
 
   // Group tasks by status
   const tasksByStatus = KANBAN_COLUMNS.reduce((acc, column) => {
-    acc[column.id] = tasks.filter(t => t.status === column.id);
+    acc[column.id] = tasks.filter(task => task.status === column.id);
     return acc;
   }, {});
 
@@ -106,11 +108,12 @@ function renderKanbanBoard(tasks, collections) {
 
   KANBAN_COLUMNS.forEach(column => {
     const columnTasks = tasksByStatus[column.id] || [];
+    const columnTitle = t(column.titleKey);
 
     html += `
       <div class="kanban-column" data-status="${column.id}">
         <div class="kanban-column-header" style="background-color: ${column.color}">
-          <h3>${column.title}</h3>
+          <h3>${columnTitle}</h3>
           <span class="kanban-column-count">${columnTasks.length}</span>
         </div>
         <div class="kanban-column-content" data-status="${column.id}">
@@ -119,7 +122,7 @@ function renderKanbanBoard(tasks, collections) {
     if (columnTasks.length === 0) {
       html += `
         <div class="kanban-empty-state">
-          <p>No ${column.title.toLowerCase()} tasks</p>
+          <p>${t('dashboard_tasks_columnEmpty', columnTitle.toLowerCase())}</p>
         </div>
       `;
     } else {
@@ -164,17 +167,17 @@ function renderKanbanCard(task, collections) {
       <div class="kanban-card-footer">
         ${dueDateHtml}
         ${task.tabIds && task.tabIds.length > 0
-    ? `<span class="tab-count">${task.tabIds.length} tab${task.tabIds.length !== 1 ? 's' : ''}</span>`
+    ? `<span class="tab-count">${tPlural('dashboard_tasks_tabCount', task.tabIds.length)}</span>`
     : ''}
       </div>
       <div class="kanban-card-actions">
-        <button class="btn-icon" data-action="edit" data-task-id="${task.id}" title="Edit">
+        <button class="btn-icon" data-action="edit" data-task-id="${task.id}" title="${t('dashboard_tasks_actionEdit')}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
         </button>
-        <button class="btn-icon" data-action="open-tabs" data-task-id="${task.id}" title="Open Tabs">
+        <button class="btn-icon" data-action="open-tabs" data-task-id="${task.id}" title="${t('dashboard_tasks_actionOpenTabs')}">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
             <polyline points="15 3 21 3 21 9"></polyline>
@@ -309,17 +312,23 @@ async function handleDrop(e) {
     });
 
     if (result.success) {
-      showNotification(`Task moved to ${newStatus}`, 'success');
+      const statusLabels = {
+        open: t('dashboard_tasks_statusOpen'),
+        active: t('dashboard_tasks_statusActive'),
+        fixed: t('dashboard_tasks_statusFixed'),
+        abandoned: t('dashboard_tasks_statusAbandoned')
+      };
+      showNotification(t('dashboard_tasks_movedTo', statusLabels[newStatus] || newStatus), 'success');
     } else {
       // Rollback on error
       await rollbackCardMove(draggedTaskId, originalStatus);
-      showNotification('Failed to update task status', 'error');
+      showNotification(t('dashboard_tasks_statusUpdateFailed'), 'error');
     }
   } catch (error) {
     console.error('Error updating task status:', error);
     // Rollback on error
     await rollbackCardMove(draggedTaskId, originalStatus);
-    showNotification('Failed to update task status', 'error');
+    showNotification(t('dashboard_tasks_statusUpdateFailed'), 'error');
   }
 
   return false;
@@ -339,9 +348,16 @@ function updateColumnCounts() {
     // Show/hide empty state
     const emptyState = content.querySelector('.kanban-empty-state');
     if (count === 0 && !emptyState) {
+      const statusLabels = {
+        open: t('dashboard_tasks_statusOpen'),
+        active: t('dashboard_tasks_statusActive'),
+        fixed: t('dashboard_tasks_statusFixed'),
+        abandoned: t('dashboard_tasks_statusAbandoned')
+      };
+      const statusLabel = (statusLabels[status] || status).toLowerCase();
       content.innerHTML = `
         <div class="kanban-empty-state">
-          <p>No ${status} tasks</p>
+          <p>${t('dashboard_tasks_columnEmpty', statusLabel)}</p>
         </div>
       `;
     } else if (count > 0 && emptyState) {
@@ -445,10 +461,10 @@ function setupKanbanEventListeners(collections) {
 
 async function handleKanbanAction(action, taskId, collections) {
   const tasks = state.get('tasks') || [];
-  const task = tasks.find(t => t.id === taskId);
+  const task = tasks.find(tk => tk.id === taskId);
 
   if (!task) {
-    showNotification('Task not found', 'error');
+    showNotification(t('dashboard_tasks_notFound'), 'error');
     return;
   }
 
@@ -467,7 +483,7 @@ async function handleKanbanAction(action, taskId, collections) {
     }
   } catch (error) {
     console.error('Error handling Kanban action:', error);
-    showNotification(`Failed to ${action} task`, 'error');
+    showNotification(t('dashboard_tasks_actionFailed'), 'error');
   }
 }
 
@@ -479,12 +495,12 @@ async function handleOpenTaskTabs(taskId) {
     });
 
     if (result.success) {
-      showNotification(`Opened ${result.opened || 0} tab(s)`, 'success');
+      showNotification(tPlural('dashboard_tasks_openedTabs', result.opened || 0), 'success');
     } else {
-      showNotification('Failed to open task tabs', 'error');
+      showNotification(t('dashboard_tasks_openTabsFailed'), 'error');
     }
   } catch (error) {
     console.error('Error opening task tabs:', error);
-    showNotification('Failed to open task tabs', 'error');
+    showNotification(t('dashboard_tasks_openTabsFailed'), 'error');
   }
 }

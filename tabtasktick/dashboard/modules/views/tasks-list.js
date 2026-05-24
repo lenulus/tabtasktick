@@ -16,6 +16,7 @@ import {
 } from './tasks-base.js';
 import keyboardShortcuts from '../keyboard-shortcuts.js';
 import { getSharedFiltersInstance } from './tasks-filters-shared.js';
+import { t, tPlural } from '../../../services/utils/i18n.js';
 
 // ============================================================================
 // Main Load Function
@@ -82,7 +83,7 @@ export async function loadListView(filters = {}, sortConfig = {}) {
 
   } catch (error) {
     console.error('Error loading List view:', error);
-    showNotification('Failed to load tasks', 'error');
+    showNotification(t('dashboard_tasks_loadFailed'), 'error');
     renderListError(error.message);
   }
 }
@@ -115,7 +116,7 @@ function renderListView(tasks, collections) {
         <thead class="tasks-list-header">
           <tr>
             <th class="col-checkbox">
-              <input type="checkbox" id="selectAllTasks" title="Select All">
+              <input type="checkbox" id="selectAllTasks" title="${t('dashboard_tasks_selectAll')}">
             </th>
             <th class="col-drag">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -125,23 +126,23 @@ function renderListView(tasks, collections) {
               </svg>
             </th>
             <th class="col-task sortable ${sortConfig.sortBy === 'alpha' ? 'sorted' : ''}" data-sort="alpha">
-              Task
+              ${t('dashboard_tasks_colTask')}
               ${renderSortIndicator('alpha', sortConfig)}
             </th>
             <th class="col-collection sortable" data-sort="collection">
-              Collection
+              ${t('dashboard_tasks_colCollection')}
               ${renderSortIndicator('collection', sortConfig)}
             </th>
             <th class="col-priority sortable ${sortConfig.sortBy === 'priority' ? 'sorted' : ''}" data-sort="priority">
-              Priority
+              ${t('dashboard_tasks_colPriority')}
               ${renderSortIndicator('priority', sortConfig)}
             </th>
-            <th class="col-status">Status</th>
+            <th class="col-status">${t('dashboard_tasks_colStatus')}</th>
             <th class="col-due-date sortable ${sortConfig.sortBy === 'dueDate' ? 'sorted' : ''}" data-sort="dueDate">
-              Due Date
+              ${t('dashboard_tasks_colDueDate')}
               ${renderSortIndicator('dueDate', sortConfig)}
             </th>
-            <th class="col-actions">Actions</th>
+            <th class="col-actions">${t('dashboard_tasks_colActions')}</th>
           </tr>
         </thead>
         <tbody class="tasks-list-body">
@@ -176,7 +177,7 @@ function renderListRow(task, collectionMap, index) {
   const collection = collectionMap.get(task.collectionId);
   const collectionName = collection
     ? `${collection.isActive ? '🟢 ' : ''}${escapeHtml(collection.name)}`
-    : '<span style="color: #999;">Uncategorized</span>';
+    : `<span style="color: #999;">${t('dashboard_tasks_uncategorized')}</span>`;
 
   const dueDate = task.dueDate
     ? new Date(task.dueDate).toLocaleDateString()
@@ -194,6 +195,22 @@ function renderListRow(task, collectionMap, index) {
 
   const priorityColor = priorityColors[task.priority] || priorityColors.medium;
 
+  const priorityLabels = {
+    critical: t('dashboard_tasks_priorityCritical'),
+    high: t('dashboard_tasks_priorityHigh'),
+    medium: t('dashboard_tasks_priorityMedium'),
+    low: t('dashboard_tasks_priorityLow')
+  };
+  const priorityLabel = priorityLabels[task.priority] || task.priority;
+
+  const statusLabels = {
+    open: t('dashboard_tasks_statusOpen'),
+    active: t('dashboard_tasks_statusActive'),
+    fixed: t('dashboard_tasks_statusFixed'),
+    abandoned: t('dashboard_tasks_statusAbandoned')
+  };
+  const statusLabel = statusLabels[task.status] || task.status;
+
   return `
     <tr class="task-row"
         data-task-id="${task.id}"
@@ -206,12 +223,12 @@ function renderListRow(task, collectionMap, index) {
                data-task-id="${task.id}">
       </td>
       <td class="col-drag">
-        <span class="drag-handle" title="Drag to reorder">⋮</span>
+        <span class="drag-handle" title="${t('dashboard_tasks_dragReorder')}">⋮</span>
       </td>
       <td class="col-task" data-field="summary">
         <span class="task-summary">${escapeHtml(task.summary)}</span>
         ${task.tabIds && task.tabIds.length > 0
-    ? `<span class="tab-count-badge">${task.tabIds.length} tab${task.tabIds.length !== 1 ? 's' : ''}</span>`
+    ? `<span class="tab-count-badge">${tPlural('dashboard_tasks_tabCount', task.tabIds.length)}</span>`
     : ''}
       </td>
       <td class="col-collection">
@@ -219,12 +236,12 @@ function renderListRow(task, collectionMap, index) {
       </td>
       <td class="col-priority" data-field="priority">
         <span class="priority-badge-small" style="background-color: ${priorityColor}">
-          ${task.priority}
+          ${priorityLabel}
         </span>
       </td>
       <td class="col-status" data-field="status">
         <span class="status-badge-small">
-          ${task.status}
+          ${statusLabel}
         </span>
       </td>
       <td class="col-due-date ${dueDateClass}" data-field="dueDate">
@@ -232,19 +249,19 @@ function renderListRow(task, collectionMap, index) {
       </td>
       <td class="col-actions">
         <div class="row-actions">
-          <button class="btn-icon" data-action="edit" data-task-id="${task.id}" title="Edit">
+          <button class="btn-icon" data-action="edit" data-task-id="${task.id}" title="${t('dashboard_tasks_actionEdit')}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
           </button>
-          <button class="btn-icon" data-action="delete" data-task-id="${task.id}" title="Delete">
+          <button class="btn-icon" data-action="delete" data-task-id="${task.id}" title="${t('dashboard_tasks_actionDelete')}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
           </button>
-          <button class="btn-icon" data-action="open-tabs" data-task-id="${task.id}" title="Open Tabs">
+          <button class="btn-icon" data-action="open-tabs" data-task-id="${task.id}" title="${t('dashboard_tasks_actionOpenTabs')}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
               <polyline points="15 3 21 3 21 9"></polyline>
@@ -395,7 +412,7 @@ function handleColumnSort(sortBy) {
 
 function handleInlineEdit(cell, field, taskId) {
   const tasks = state.get('tasks') || [];
-  const task = tasks.find(t => t.id === taskId);
+  const task = tasks.find(tk => tk.id === taskId);
   if (!task) return;
 
   const currentValue = task[field];
@@ -412,20 +429,20 @@ function handleInlineEdit(cell, field, taskId) {
   case 'priority':
     input = document.createElement('select');
     input.innerHTML = `
-        <option value="low" ${currentValue === 'low' ? 'selected' : ''}>Low</option>
-        <option value="medium" ${currentValue === 'medium' ? 'selected' : ''}>Medium</option>
-        <option value="high" ${currentValue === 'high' ? 'selected' : ''}>High</option>
-        <option value="critical" ${currentValue === 'critical' ? 'selected' : ''}>Critical</option>
+        <option value="low" ${currentValue === 'low' ? 'selected' : ''}>${t('dashboard_tasks_priorityLow')}</option>
+        <option value="medium" ${currentValue === 'medium' ? 'selected' : ''}>${t('dashboard_tasks_priorityMedium')}</option>
+        <option value="high" ${currentValue === 'high' ? 'selected' : ''}>${t('dashboard_tasks_priorityHigh')}</option>
+        <option value="critical" ${currentValue === 'critical' ? 'selected' : ''}>${t('dashboard_tasks_priorityCritical')}</option>
       `;
     break;
 
   case 'status':
     input = document.createElement('select');
     input.innerHTML = `
-        <option value="open" ${currentValue === 'open' ? 'selected' : ''}>Open</option>
-        <option value="active" ${currentValue === 'active' ? 'selected' : ''}>Active</option>
-        <option value="fixed" ${currentValue === 'fixed' ? 'selected' : ''}>Fixed</option>
-        <option value="abandoned" ${currentValue === 'abandoned' ? 'selected' : ''}>Abandoned</option>
+        <option value="open" ${currentValue === 'open' ? 'selected' : ''}>${t('dashboard_tasks_statusOpen')}</option>
+        <option value="active" ${currentValue === 'active' ? 'selected' : ''}>${t('dashboard_tasks_statusActive')}</option>
+        <option value="fixed" ${currentValue === 'fixed' ? 'selected' : ''}>${t('dashboard_tasks_statusFixed')}</option>
+        <option value="abandoned" ${currentValue === 'abandoned' ? 'selected' : ''}>${t('dashboard_tasks_statusAbandoned')}</option>
       `;
     break;
 
@@ -469,18 +486,18 @@ function handleInlineEdit(cell, field, taskId) {
       });
 
       if (result.success) {
-        showNotification('Task updated', 'success');
+        showNotification(t('dashboard_tasks_updated'), 'success');
 
         // Trigger refresh
         const event = new CustomEvent('taskUpdated', { detail: { taskId } });
         window.dispatchEvent(event);
       } else {
-        showNotification('Failed to update task', 'error');
+        showNotification(t('dashboard_tasks_updateFailed'), 'error');
         cell.innerHTML = originalContent;
       }
     } catch (error) {
       console.error('Error updating task:', error);
-      showNotification('Failed to update task', 'error');
+      showNotification(t('dashboard_tasks_updateFailed'), 'error');
       cell.innerHTML = originalContent;
     }
   };
@@ -609,10 +626,10 @@ function handleRowDragEnd(e) {
 
 async function handleRowAction(action, taskId, collections) {
   const tasks = state.get('tasks') || [];
-  const task = tasks.find(t => t.id === taskId);
+  const task = tasks.find(tk => tk.id === taskId);
 
   if (!task) {
-    showNotification('Task not found', 'error');
+    showNotification(t('dashboard_tasks_notFound'), 'error');
     return;
   }
 
@@ -623,7 +640,7 @@ async function handleRowAction(action, taskId, collections) {
       break;
 
     case 'delete':
-      if (!confirm(`Delete task "${task.summary}"?`)) return;
+      if (!confirm(t('dashboard_tasks_deleteConfirm', task.summary))) return;
 
       const result = await chrome.runtime.sendMessage({
         action: 'deleteTask',
@@ -631,13 +648,13 @@ async function handleRowAction(action, taskId, collections) {
       });
 
       if (result.success) {
-        showNotification('Task deleted', 'success');
+        showNotification(t('dashboard_tasks_deleted'), 'success');
 
         // Trigger refresh
         const event = new CustomEvent('taskDeleted', { detail: { taskId } });
         window.dispatchEvent(event);
       } else {
-        showNotification('Failed to delete task', 'error');
+        showNotification(t('dashboard_tasks_deleteFailed'), 'error');
       }
       break;
 
@@ -648,9 +665,9 @@ async function handleRowAction(action, taskId, collections) {
       });
 
       if (openResult.success) {
-        showNotification(`Opened ${openResult.opened || 0} tab(s)`, 'success');
+        showNotification(tPlural('dashboard_tasks_openedTabs', openResult.opened || 0), 'success');
       } else {
-        showNotification('Failed to open task tabs', 'error');
+        showNotification(t('dashboard_tasks_openTabsFailed'), 'error');
       }
       break;
 
@@ -659,6 +676,6 @@ async function handleRowAction(action, taskId, collections) {
     }
   } catch (error) {
     console.error('Error handling row action:', error);
-    showNotification(`Failed to ${action} task`, 'error');
+    showNotification(t('dashboard_tasks_actionFailed'), 'error');
   }
 }

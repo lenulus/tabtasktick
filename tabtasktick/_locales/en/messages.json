@@ -1362,6 +1362,125 @@
   "dashboard_tasks_bulkChangePriority": { "message": "Change Priority" },
   "dashboard_tasks_bulkDelete": { "message": "Delete Selected" },
 
+  "dashboard_tasks_detailTitle": { "message": "Task Details" },
+  "dashboard_tasks_fieldSummary": { "message": "Summary" },
+  "dashboard_tasks_summaryPlaceholder": { "message": "Task summary" },
+  "dashboard_tasks_fieldNotes": { "message": "Notes" },
+  "dashboard_tasks_notesPlaceholder": { "message": "Task notes" },
+  "dashboard_tasks_fieldStatus": { "message": "Status" },
+  "dashboard_tasks_fieldPriority": { "message": "Priority" },
+  "dashboard_tasks_fieldDueDate": { "message": "Due Date" },
+  "dashboard_tasks_fieldCollection": { "message": "Collection" },
+  "dashboard_tasks_fieldTags": { "message": "Tags (comma-separated)" },
+  "dashboard_tasks_tagsPlaceholder": { "message": "tag1, tag2, tag3" },
+  "dashboard_tasks_summaryRequired": { "message": "Summary is required" },
+  "dashboard_tasks_created": { "message": "Task created" },
+  "dashboard_tasks_updated": { "message": "Task updated" },
+  "dashboard_tasks_createFailed": { "message": "Failed to create task" },
+  "dashboard_tasks_updateFailed": { "message": "Failed to update task" },
+  "dashboard_tasks_deleteConfirm": {
+    "message": "Delete task \"$summary$\"?",
+    "placeholders": { "summary": { "content": "$1" } }
+  },
+  "dashboard_tasks_deleted": { "message": "Task deleted" },
+  "dashboard_tasks_deleteFailed": { "message": "Failed to delete task" },
+  "dashboard_tasks_noneSelected": { "message": "No tasks selected" },
+  "dashboard_tasks_actionFailed": { "message": "Action failed" },
+  "dashboard_tasks_promptStatus": { "message": "Enter status (open/active/fixed/abandoned):" },
+  "dashboard_tasks_promptPriority": { "message": "Enter priority (low/medium/high/critical):" },
+  "dashboard_tasks_bulkDeleteConfirm_one": {
+    "message": "Delete $count$ task?",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_tasks_bulkDeleteConfirm_other": {
+    "message": "Delete $count$ tasks?",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_tasks_unknownAction": {
+    "message": "Unknown action: $action$",
+    "placeholders": { "action": { "content": "$1" } }
+  },
+  "dashboard_tasks_bulkUpdated": {
+    "message": "Updated $done$ of $total$ tasks",
+    "placeholders": { "done": { "content": "$1" }, "total": { "content": "$2" } }
+  },
+  "dashboard_tasks_bulkDeleted": {
+    "message": "Deleted $done$ of $total$ tasks",
+    "placeholders": { "done": { "content": "$1" }, "total": { "content": "$2" } }
+  },
+  "dashboard_tasks_selectedCount_one": {
+    "message": "$count$ task selected",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_tasks_selectedCount_other": {
+    "message": "$count$ tasks selected",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_tasks_tabCount_one": {
+    "message": "$count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_tasks_tabCount_other": {
+    "message": "$count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_tasks_emptyTitle": { "message": "No Tasks Yet" },
+  "dashboard_tasks_emptyDescription": { "message": "Create tasks to track your work in collections." },
+  "dashboard_tasks_emptyAction": { "message": "Create Your First Task" },
+  "dashboard_tasks_errorTitle": { "message": "Failed to Load Tasks" },
+  "dashboard_tasks_errorDescription": { "message": "An error occurred while loading tasks." },
+  "dashboard_tasks_retry": { "message": "Retry" },
+  "dashboard_tasks_noResultsTitle": { "message": "No Results Found" },
+  "dashboard_tasks_noResultsDescription": { "message": "Try adjusting your search or filter criteria." },
+  "dashboard_tasks_loadFailed": { "message": "Failed to load tasks" },
+  "dashboard_tasks_notFound": { "message": "Task not found" },
+  "dashboard_tasks_openTabsFailed": { "message": "Failed to open task tabs" },
+  "dashboard_tasks_openedTabs_one": {
+    "message": "Opened $count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_tasks_openedTabs_other": {
+    "message": "Opened $count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_tasks_colTask": { "message": "Task" },
+  "dashboard_tasks_colCollection": { "message": "Collection" },
+  "dashboard_tasks_colPriority": { "message": "Priority" },
+  "dashboard_tasks_colStatus": { "message": "Status" },
+  "dashboard_tasks_colDueDate": { "message": "Due Date" },
+  "dashboard_tasks_colActions": { "message": "Actions" },
+  "dashboard_tasks_dragReorder": { "message": "Drag to reorder" },
+  "dashboard_tasks_actionEdit": { "message": "Edit" },
+  "dashboard_tasks_actionDelete": { "message": "Delete" },
+  "dashboard_tasks_actionOpenTabs": { "message": "Open Tabs" },
+  "dashboard_tasks_columnEmpty": {
+    "message": "No $status$ tasks",
+    "placeholders": { "status": { "content": "$1" } }
+  },
+  "dashboard_tasks_movedTo": {
+    "message": "Task moved to $status$",
+    "placeholders": { "status": { "content": "$1" } }
+  },
+  "dashboard_tasks_statusUpdateFailed": { "message": "Failed to update task status" },
+  "dashboard_tasks_toastCreate": { "message": "Create new task (n)" },
+  "dashboard_tasks_deleteConfirmGeneric": { "message": "Are you sure you want to delete this task?" },
+  "dashboard_tasks_updatePriorityFailed": { "message": "Failed to update priority" },
+  "dashboard_tasks_prioritySet": {
+    "message": "Priority set to $priority$",
+    "placeholders": { "priority": { "content": "$1" } }
+  },
+  "dashboard_tasks_statusChanged": {
+    "message": "Status changed to $status$",
+    "placeholders": { "status": { "content": "$1" } }
+  },
+  "dashboard_tasks_openedTabsForTask": { "message": "Opened tabs for task" },
+  "dashboard_tasks_openTabsActionFailed": { "message": "Failed to open tabs" },
+  "dashboard_tasks_noTabsForTask": { "message": "No tabs associated with this task" },
+  "dashboard_tasks_filteringByStatus": {
+    "message": "Filtering by status: $status$",
+    "placeholders": { "status": { "content": "$1" } }
+  },
+
   "dashboard_modal_confirmTitle": { "message": "Confirm Action" },
   "dashboard_modal_proceed": { "message": "Proceed" },
   "dashboard_modal_processing": { "message": "Processing..." },
