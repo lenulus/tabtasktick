@@ -191,12 +191,14 @@ zip -r "$OUTPUT_FILE" \
     lib/ \
     components/ \
     test-panel/ \
+    _locales/ \
     -x "*.DS_Store" \
     -x "*/.DS_Store" \
     -x "*/tests/*" \
     -x "dashboard/test-*.html" \
     -x "dashboard/verify-*.html" \
     -x "dashboard/package.json" \
+    -x "_locales/en_XA/*" \
     -x "*.backup*" \
     -x "*/node_modules/*"
 

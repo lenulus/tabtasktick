@@ -1,0 +1,34 @@
+{
+  "appName": { "message": "TabTaskTick" },
+  "appDesc": { "message": "Intelligent tab and task management with collections, rules engine, auto-grouping, and snoozing" },
+
+  "cmd_quickSnooze": { "message": "Quick snooze current tab" },
+  "cmd_groupByDomain": { "message": "Group all tabs by domain" },
+  "cmd_closeDuplicates": { "message": "Close duplicate tabs" },
+
+  "common_cancel": { "message": "Cancel" },
+  "common_save": { "message": "Save" },
+  "common_close": { "message": "Close" },
+  "common_delete": { "message": "Delete" },
+  "common_edit": { "message": "Edit" },
+  "common_loading": { "message": "Loading..." },
+  "common_errorLoading": { "message": "Error loading" },
+  "common_settings": { "message": "Settings" },
+
+  "popup_collectionsDetail": {
+    "message": "$active$ active, $saved$ saved",
+    "placeholders": {
+      "active": { "content": "$1", "example": "3" },
+      "saved": { "content": "$2", "example": "12" }
+    }
+  },
+
+  "snooze_title_tabs_one": {
+    "message": "Snooze $count$ Tab",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "snooze_title_tabs_other": {
+    "message": "Snooze $count$ Tabs",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  }
+}
