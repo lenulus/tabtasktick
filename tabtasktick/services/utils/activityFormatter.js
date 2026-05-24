@@ -1,5 +1,8 @@
 // services/utils/activityFormatter.js
-// Pure function service for formatting activity messages from rule execution results
+// Locale-aware formatting of activity messages from rule execution results.
+// Output depends only on the active locale (via the i18n helper).
+
+import { t, tPlural } from './i18n.js';
 
 /**
  * Format activity message from rule execution results
@@ -10,7 +13,7 @@
  */
 export function formatRuleActivityMessage(ruleName, results, triggerType) {
   if (!results || !results.rules || results.rules.length === 0) {
-    return `${ruleName}: No actions taken (${triggerType})`;
+    return t('activity_noActions', [ruleName, triggerType]);
   }
 
   const ruleResult = results.rules[0];
@@ -28,39 +31,37 @@ export function formatRuleActivityMessage(ruleName, results, triggerType) {
   // Build detailed message
   const actionParts = [];
   for (const [type, count] of Object.entries(actionCounts)) {
-    const verb = formatActionType(type, count);
-    actionParts.push(`${verb} ${count} ${count === 1 ? 'tab' : 'tabs'}`);
+    actionParts.push(tPlural('activity_actionPart', count, [formatActionType(type)]));
   }
 
   if (actionParts.length === 0) {
-    return `${ruleName}: No successful actions (${triggerType})`;
+    return t('activity_noSuccess', [ruleName, triggerType]);
   }
 
-  return `${ruleName}: ${actionParts.join(', ')} (${triggerType})`;
+  return t('activity_summary', [ruleName, actionParts.join(t('activity_join')), triggerType]);
 }
 
 /**
  * Format action type for display with proper grammar
  * @param {string} type - Action type
- * @param {number} count - Number of items affected (unused but kept for API consistency)
  * @returns {string} Formatted action description
  */
-function formatActionType(type, count) {
-  const actionVerbs = {
-    'close': 'closed',
-    'close-duplicates': 'closed duplicate',
-    'group': 'grouped',
-    'snooze': 'snoozed',
-    'bookmark': 'bookmarked',
-    'pin': 'pinned',
-    'unpin': 'unpinned',
-    'mute': 'muted',
-    'unmute': 'unmuted',
-    'discard': 'suspended',
-    'move_to_window': 'moved'
+function formatActionType(type) {
+  const verbKeys = {
+    'close': 'activity_verb_close',
+    'close-duplicates': 'activity_verb_closeDuplicate',
+    'group': 'activity_verb_group',
+    'snooze': 'activity_verb_snooze',
+    'bookmark': 'activity_verb_bookmark',
+    'pin': 'activity_verb_pin',
+    'unpin': 'activity_verb_unpin',
+    'mute': 'activity_verb_mute',
+    'unmute': 'activity_verb_unmute',
+    'discard': 'activity_verb_discard',
+    'move_to_window': 'activity_verb_move'
   };
 
-  return actionVerbs[type] || type;
+  return verbKeys[type] ? t(verbKeys[type]) : type;
 }
 
 /**
@@ -69,7 +70,7 @@ function formatActionType(type, count) {
  * @returns {string} "action" or "actions"
  */
 export function pluralizeAction(count) {
-  return count === 1 ? 'action' : 'actions';
+  return tPlural('activity_actionNoun', count);
 }
 
 /**
@@ -79,14 +80,13 @@ export function pluralizeAction(count) {
  */
 export function formatActionCounts(actionCounts) {
   if (!actionCounts || Object.keys(actionCounts).length === 0) {
-    return 'No matching tabs found';
+    return t('activity_noMatching');
   }
 
   const actionParts = [];
   for (const [type, count] of Object.entries(actionCounts)) {
-    const verb = formatActionType(type, count);
-    actionParts.push(`${verb} ${count} ${count === 1 ? 'tab' : 'tabs'}`);
+    actionParts.push(tPlural('activity_actionPart', count, [formatActionType(type)]));
   }
 
-  return actionParts.join(', ');
+  return actionParts.join(t('activity_join'));
 }

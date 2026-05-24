@@ -1,9 +1,13 @@
+import { t, tPlural } from './i18n.js';
+
 /**
  * @file snoozeFormatters - UI text formatting for snooze operations
  *
  * @description
- * The snoozeFormatters service provides pure formatting functions for snooze-related
- * UI text. These functions convert operation data (from detectSnoozeOperations) into
+ * The snoozeFormatters service provides locale-aware formatting functions for
+ * snooze-related UI text. Output depends only on the active locale (via the i18n
+ * helper); functions remain side-effect free and deterministic for a given locale.
+ * These functions convert operation data (from detectSnoozeOperations) into
  * human-readable strings for display in confirmation dialogs, modal titles, button labels,
  * and status messages.
  *
@@ -89,35 +93,35 @@
  * // → "Snooze Window 1 and 2 Other Tabs"
  */
 export function formatSnoozeTitle({ operations, summary }) {
-  const { windowCount, individualTabCount, isSingleWindow, isMixed } = summary;
+  const { windowCount, individualTabCount, isSingleWindow } = summary;
 
   // Scenario 1: Single complete window
   if (isSingleWindow && windowCount === 1 && individualTabCount === 0) {
     const windowOp = operations.find(op => op.type === 'window');
-    return `Snooze Window: ${windowOp.windowTitle}`;
+    return t('snooze_title_window', [windowOp.windowTitle]);
   }
 
   // Scenario 2: Single window, partial tabs
   if (isSingleWindow && individualTabCount > 0) {
-    return `Snooze ${individualTabCount} Tab${individualTabCount !== 1 ? 's' : ''}`;
+    return tPlural('snooze_title_tabs', individualTabCount);
   }
 
   // Scenario 3: Multiple complete windows, no individual tabs
   if (windowCount > 1 && individualTabCount === 0) {
-    return `Snooze ${windowCount} Windows`;
+    return tPlural('snooze_title_windows', windowCount);
   }
 
   // Scenario 4: Multiple complete windows + individual tabs
   if (windowCount > 0 && individualTabCount > 0) {
     const windowPart = windowCount === 1
-      ? 'Window 1'
-      : `${windowCount} Windows`;
-    const tabPart = `${individualTabCount} Other Tab${individualTabCount !== 1 ? 's' : ''}`;
-    return `Snooze ${windowPart} and ${tabPart}`;
+      ? t('snooze_part_windowOne')
+      : tPlural('snooze_part_windows', windowCount);
+    const tabPart = tPlural('snooze_part_otherTabs', individualTabCount);
+    return t('snooze_title_mixed', [windowPart, tabPart]);
   }
 
   // Scenario 5: Only individual tabs from multiple windows
-  return `Snooze ${individualTabCount} Tab${individualTabCount !== 1 ? 's' : ''}`;
+  return tPlural('snooze_title_tabs', individualTabCount);
 }
 
 /**
@@ -159,29 +163,28 @@ export function formatSnoozeTitle({ operations, summary }) {
  * // → "This will snooze 2 windows (12 tabs) and 3 other tabs"
  */
 export function formatSnoozeDescription({ operations, summary }) {
-  const { windowCount, individualTabCount, totalTabs, isSingleWindow } = summary;
+  const { windowCount, individualTabCount, isSingleWindow } = summary;
 
   const parts = [];
 
   if (windowCount > 0) {
-    const windowLabel = windowCount === 1 ? '1 window' : `${windowCount} windows`;
+    const windowLabel = tPlural('snooze_desc_windows', windowCount);
     const windowTabs = operations
       .filter(op => op.type === 'window')
       .reduce((sum, op) => sum + op.tabCount, 0);
-    parts.push(`${windowLabel} (${windowTabs} tab${windowTabs !== 1 ? 's' : ''})`);
+    parts.push(t('snooze_desc_windowPart', [windowLabel, tPlural('snooze_desc_tabCount', windowTabs)]));
   }
 
   if (individualTabCount > 0) {
-    const tabLabel = `${individualTabCount} tab${individualTabCount !== 1 ? 's' : ''}`;
     if (windowCount > 0) {
-      parts.push(`${individualTabCount} other tab${individualTabCount !== 1 ? 's' : ''}`);
+      parts.push(tPlural('snooze_desc_otherTabs', individualTabCount));
     } else {
-      const fromWindow = isSingleWindow ? ' from the current window' : '';
-      parts.push(`${tabLabel}${fromWindow}`);
+      const tabLabel = tPlural('snooze_desc_tabCount', individualTabCount);
+      parts.push(isSingleWindow ? t('snooze_desc_tabsFromCurrent', [tabLabel]) : tabLabel);
     }
   }
 
-  return `This will snooze ${parts.join(' and ')}`;
+  return t('snooze_desc_prefix', [parts.join(t('snooze_desc_join'))]);
 }
 
 /**
@@ -210,14 +213,17 @@ export function formatOperationCount(summary) {
   const { windowCount, individualTabCount } = summary;
 
   if (windowCount > 0 && individualTabCount > 0) {
-    return `${windowCount} Window${windowCount !== 1 ? 's' : ''} + ${individualTabCount} Tab${individualTabCount !== 1 ? 's' : ''}`;
+    return t('snooze_count_mixed', [
+      tPlural('snooze_count_windows', windowCount),
+      tPlural('snooze_count_tabs', individualTabCount)
+    ]);
   }
 
   if (windowCount > 0) {
-    return `${windowCount} Window${windowCount !== 1 ? 's' : ''}`;
+    return tPlural('snooze_count_windows', windowCount);
   }
 
-  return `${individualTabCount} Tab${individualTabCount !== 1 ? 's' : ''}`;
+  return tPlural('snooze_count_tabs', individualTabCount);
 }
 
 /**
@@ -243,10 +249,10 @@ export function formatOperationCount(summary) {
  * // → "In new window"
  */
 export function formatRestorationMode(mode) {
-  const descriptions = {
-    'original': 'Back to original window',
-    'current': 'To current window',
-    'new': 'In new window'
+  const keys = {
+    'original': 'snooze_restoration_original',
+    'current': 'snooze_restoration_current',
+    'new': 'snooze_restoration_new'
   };
-  return descriptions[mode] || mode;
+  return keys[mode] ? t(keys[mode]) : mode;
 }

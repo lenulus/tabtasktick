@@ -327,5 +327,135 @@
     "placeholders": { "level": { "content": "$1", "example": "WARN" } }
   },
   "options_notify_urlCopied": { "message": "URL copied! Paste in address bar." },
-  "options_notify_openManually": { "message": "Open chrome://extensions/shortcuts manually" }
+  "options_notify_openManually": { "message": "Open chrome://extensions/shortcuts manually" },
+
+  "snooze_title_window": {
+    "message": "Snooze Window: $title$",
+    "placeholders": { "title": { "content": "$1" } }
+  },
+  "snooze_title_windows_one": {
+    "message": "Snooze $count$ Window",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_title_windows_other": {
+    "message": "Snooze $count$ Windows",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_part_windowOne": { "message": "Window 1" },
+  "snooze_part_windows_one": {
+    "message": "$count$ Window",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_part_windows_other": {
+    "message": "$count$ Windows",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_part_otherTabs_one": {
+    "message": "$count$ Other Tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_part_otherTabs_other": {
+    "message": "$count$ Other Tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_title_mixed": {
+    "message": "Snooze $windows$ and $tabs$",
+    "placeholders": { "windows": { "content": "$1" }, "tabs": { "content": "$2" } }
+  },
+  "snooze_desc_windows_one": {
+    "message": "$count$ window",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_desc_windows_other": {
+    "message": "$count$ windows",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_desc_tabCount_one": {
+    "message": "$count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_desc_tabCount_other": {
+    "message": "$count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_desc_windowPart": {
+    "message": "$windows$ ($tabs$)",
+    "placeholders": { "windows": { "content": "$1" }, "tabs": { "content": "$2" } }
+  },
+  "snooze_desc_otherTabs_one": {
+    "message": "$count$ other tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_desc_otherTabs_other": {
+    "message": "$count$ other tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_desc_tabsFromCurrent": {
+    "message": "$tabs$ from the current window",
+    "placeholders": { "tabs": { "content": "$1" } }
+  },
+  "snooze_desc_join": { "message": " and " },
+  "snooze_desc_prefix": {
+    "message": "This will snooze $parts$",
+    "placeholders": { "parts": { "content": "$1" } }
+  },
+  "snooze_count_windows_one": {
+    "message": "$count$ Window",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_count_windows_other": {
+    "message": "$count$ Windows",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_count_tabs_one": {
+    "message": "$count$ Tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_count_tabs_other": {
+    "message": "$count$ Tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "snooze_count_mixed": {
+    "message": "$windows$ + $tabs$",
+    "placeholders": { "windows": { "content": "$1" }, "tabs": { "content": "$2" } }
+  },
+  "snooze_restoration_original": { "message": "Back to original window" },
+  "snooze_restoration_current": { "message": "To current window" },
+  "snooze_restoration_new": { "message": "In new window" },
+
+  "activity_noActions": {
+    "message": "$rule$: No actions taken ($trigger$)",
+    "placeholders": { "rule": { "content": "$1" }, "trigger": { "content": "$2" } }
+  },
+  "activity_noSuccess": {
+    "message": "$rule$: No successful actions ($trigger$)",
+    "placeholders": { "rule": { "content": "$1" }, "trigger": { "content": "$2" } }
+  },
+  "activity_summary": {
+    "message": "$rule$: $actions$ ($trigger$)",
+    "placeholders": { "rule": { "content": "$1" }, "actions": { "content": "$2" }, "trigger": { "content": "$3" } }
+  },
+  "activity_join": { "message": ", " },
+  "activity_actionPart_one": {
+    "message": "$verb$ $count$ tab",
+    "placeholders": { "count": { "content": "$1" }, "verb": { "content": "$2" } }
+  },
+  "activity_actionPart_other": {
+    "message": "$verb$ $count$ tabs",
+    "placeholders": { "count": { "content": "$1" }, "verb": { "content": "$2" } }
+  },
+  "activity_verb_close": { "message": "closed" },
+  "activity_verb_closeDuplicate": { "message": "closed duplicate" },
+  "activity_verb_group": { "message": "grouped" },
+  "activity_verb_snooze": { "message": "snoozed" },
+  "activity_verb_bookmark": { "message": "bookmarked" },
+  "activity_verb_pin": { "message": "pinned" },
+  "activity_verb_unpin": { "message": "unpinned" },
+  "activity_verb_mute": { "message": "muted" },
+  "activity_verb_unmute": { "message": "unmuted" },
+  "activity_verb_discard": { "message": "suspended" },
+  "activity_verb_move": { "message": "moved" },
+  "activity_actionNoun_one": { "message": "action" },
+  "activity_actionNoun_other": { "message": "actions" },
+  "activity_noMatching": { "message": "No matching tabs found" }
 }
