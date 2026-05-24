@@ -1,0 +1,6621 @@
+{
+  "appName": {
+    "message": "TabTaskTick"
+  },
+  "appDesc": {
+    "message": "Gestion intelligente des onglets et des tâches avec collections, moteur de règles, regroupement automatique et report"
+  },
+  "cmd_quickSnooze": {
+    "message": "Reporter rapidement l'onglet actuel"
+  },
+  "cmd_groupByDomain": {
+    "message": "Regrouper tous les onglets par domaine"
+  },
+  "cmd_closeDuplicates": {
+    "message": "Fermer les onglets en double"
+  },
+  "common_cancel": {
+    "message": "Annuler"
+  },
+  "common_save": {
+    "message": "Enregistrer"
+  },
+  "common_close": {
+    "message": "Fermer"
+  },
+  "common_delete": {
+    "message": "Supprimer"
+  },
+  "common_edit": {
+    "message": "Modifier"
+  },
+  "common_loading": {
+    "message": "Chargement..."
+  },
+  "common_errorLoading": {
+    "message": "Erreur de chargement"
+  },
+  "common_settings": {
+    "message": "Paramètres"
+  },
+  "popup_collectionsDetail": {
+    "message": "$active$ actives, $saved$ enregistrées",
+    "placeholders": {
+      "active": {
+        "content": "$1",
+        "example": "3"
+      },
+      "saved": {
+        "content": "$2",
+        "example": "12"
+      }
+    }
+  },
+  "snooze_title_tabs_one": {
+    "message": "Reporter $count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "snooze_title_tabs_other": {
+    "message": "Reporter $count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "snooze_title_tabs_many": {
+    "message": "Reporter $count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "popup_debug_title": {
+    "message": "Copier les infos de débogage"
+  },
+  "popup_testMode_title": {
+    "message": "Mode test actif"
+  },
+  "popup_testMode_body": {
+    "message": "Les règles de production sont désactivées"
+  },
+  "popup_testMode_exit": {
+    "message": "Quitter le mode test"
+  },
+  "popup_banner_collections_title": {
+    "message": "Essayer les collections"
+  },
+  "popup_banner_collections_body": {
+    "message": "Enregistrez des fenêtres comme collections et restaurez-les à tout moment"
+  },
+  "popup_banner_dismiss": {
+    "message": "Masquer la bannière"
+  },
+  "popup_saveWindow": {
+    "message": "Enregistrer cette fenêtre"
+  },
+  "popup_collections_label": {
+    "message": "Collections"
+  },
+  "popup_tasks_label": {
+    "message": "Tâches"
+  },
+  "popup_stat_allTabs": {
+    "message": "Tous les onglets"
+  },
+  "popup_stat_groups": {
+    "message": "Groupes"
+  },
+  "popup_stat_snoozed": {
+    "message": "Reportés"
+  },
+  "popup_stat_duplicates": {
+    "message": "Doublons"
+  },
+  "popup_quickActions": {
+    "message": "Actions rapides"
+  },
+  "popup_action_closeDuplicates": {
+    "message": "Fermer les doublons"
+  },
+  "popup_action_groupByDomain": {
+    "message": "Regrouper par domaine"
+  },
+  "popup_action_snoozeCurrent": {
+    "message": "Reporter l'actuel"
+  },
+  "popup_action_snoozeWindow": {
+    "message": "Reporter la fenêtre"
+  },
+  "popup_action_suspendInactive": {
+    "message": "Suspendre les inactifs"
+  },
+  "popup_activeRules": {
+    "message": "Règles actives"
+  },
+  "popup_manageRules_title": {
+    "message": "Gérer les règles"
+  },
+  "popup_manage": {
+    "message": "Gérer"
+  },
+  "popup_topDomains": {
+    "message": "Principaux domaines"
+  },
+  "popup_snoozedTabs": {
+    "message": "Onglets reportés"
+  },
+  "popup_wakeAll_title": {
+    "message": "Réveiller tous les onglets reportés"
+  },
+  "popup_wakeAll": {
+    "message": "Tout réveiller"
+  },
+  "popup_dashboard": {
+    "message": "Tableau de bord"
+  },
+  "popup_backup_title": {
+    "message": "Sauvegarder tous les onglets, paramètres, règles et onglets reportés"
+  },
+  "popup_backup": {
+    "message": "Sauvegarder"
+  },
+  "popup_restore_title": {
+    "message": "Restaurer les onglets, paramètres, règles et onglets reportés"
+  },
+  "popup_restore": {
+    "message": "Restaurer"
+  },
+  "popup_testPanel_title": {
+    "message": "Ouvrir le panneau de test"
+  },
+  "popup_test": {
+    "message": "Test"
+  },
+  "popup_help": {
+    "message": "Aide"
+  },
+  "popup_tasksDetail": {
+    "message": "$open$ ouvertes, $active$ actives",
+    "placeholders": {
+      "open": {
+        "content": "$1",
+        "example": "2"
+      },
+      "active": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "popup_rules_empty": {
+    "message": "Aucune règle active"
+  },
+  "popup_domains_empty": {
+    "message": "Aucun domaine à afficher"
+  },
+  "popup_snoozed_windowLabel_one": {
+    "message": "Fenêtre ($count$ onglet)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_snoozed_windowLabel_other": {
+    "message": "Fenêtre ($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_snoozed_windowLabel_many": {
+    "message": "Fenêtre ($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_snoozed_restoreWindow": {
+    "message": "Restaurer la fenêtre"
+  },
+  "popup_snoozed_deleteWindow": {
+    "message": "Supprimer la fenêtre"
+  },
+  "popup_snoozed_wakeNow": {
+    "message": "Réveiller maintenant"
+  },
+  "popup_snoozed_reschedule": {
+    "message": "Replanifier"
+  },
+  "popup_confirm_deleteWindow_one": {
+    "message": "Supprimer la fenêtre reportée avec $count$ onglet ?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_confirm_deleteWindow_other": {
+    "message": "Supprimer la fenêtre reportée avec $count$ onglets ?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_confirm_deleteWindow_many": {
+    "message": "Supprimer la fenêtre reportée avec $count$ onglets ?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_confirm_deleteTab": {
+    "message": "Supprimer l'onglet reporté « $title$ » ?",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_group_nextHour": {
+    "message": "Prochaine heure"
+  },
+  "popup_group_today": {
+    "message": "Aujourd'hui"
+  },
+  "popup_group_tomorrow": {
+    "message": "Demain"
+  },
+  "popup_group_later": {
+    "message": "Plus tard"
+  },
+  "popup_time_now": {
+    "message": "maintenant"
+  },
+  "popup_notify_loadStatsFailed": {
+    "message": "Échec du chargement des statistiques"
+  },
+  "popup_notify_sidePanelFailed": {
+    "message": "Échec de l'ouverture du panneau latéral"
+  },
+  "popup_notify_closedDuplicates_one": {
+    "message": "$count$ onglet en double fermé",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_closedDuplicates_other": {
+    "message": "$count$ onglets en double fermés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_closedDuplicates_many": {
+    "message": "$count$ onglets en double fermés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noDuplicates": {
+    "message": "Aucun onglet en double trouvé"
+  },
+  "popup_notify_closeDuplicatesFailed": {
+    "message": "Échec de la fermeture des doublons"
+  },
+  "popup_notify_createdGroups_one": {
+    "message": "$count$ groupe créé",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_createdGroups_other": {
+    "message": "$count$ groupes créés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_createdGroups_many": {
+    "message": "$count$ groupes créés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noTabsToGroup": {
+    "message": "Aucun onglet à regrouper"
+  },
+  "popup_notify_groupTabsFailed": {
+    "message": "Échec du regroupement des onglets"
+  },
+  "popup_notify_tabsSnoozed_one": {
+    "message": "Onglet reporté pendant $duration$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_tabsSnoozed_other": {
+    "message": "$count$ onglets reportés pendant $duration$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_tabsSnoozed_many": {
+    "message": "$count$ onglets reportés pendant $duration$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_snoozeTabsFailed": {
+    "message": "Échec du report des onglets"
+  },
+  "popup_notify_noTabsToSnooze": {
+    "message": "Aucun onglet à reporter"
+  },
+  "popup_notify_windowsSnoozed_one": {
+    "message": "$count$ fenêtre reportée pendant $duration$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_windowsSnoozed_other": {
+    "message": "$count$ fenêtres reportées pendant $duration$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_windowsSnoozed_many": {
+    "message": "$count$ fenêtres reportées pendant $duration$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_totalTabsSnoozed_one": {
+    "message": "$count$ onglet reporté pendant $duration$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_totalTabsSnoozed_other": {
+    "message": "$count$ onglets reportés pendant $duration$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_totalTabsSnoozed_many": {
+    "message": "$count$ onglets reportés pendant $duration$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_snoozeErrors_one": {
+    "message": "Report terminé avec $count$ erreur",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_snoozeErrors_other": {
+    "message": "Report terminé avec $count$ erreurs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_snoozeErrors_many": {
+    "message": "Report terminé avec $count$ erreurs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_snoozeWindowFailed": {
+    "message": "Échec du report de la fenêtre"
+  },
+  "popup_notify_prepareSnoozeFailed": {
+    "message": "Échec de la préparation du report de la fenêtre"
+  },
+  "popup_notify_tabRescheduled": {
+    "message": "Onglet replanifié"
+  },
+  "popup_notify_rescheduleFailed": {
+    "message": "Échec de la replanification de l'onglet"
+  },
+  "popup_notify_restoredTabs_one": {
+    "message": "$count$ onglet reporté restauré",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_restoredTabs_other": {
+    "message": "$count$ onglets reportés restaurés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_restoredTabs_many": {
+    "message": "$count$ onglets reportés restaurés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noSnoozedToRestore": {
+    "message": "Aucun onglet reporté à restaurer"
+  },
+  "popup_notify_wakeAllFailed": {
+    "message": "Échec du réveil des onglets reportés"
+  },
+  "popup_notify_suspended_one": {
+    "message": "$count$ onglet inactif suspendu",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_suspended_other": {
+    "message": "$count$ onglets inactifs suspendus",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_suspended_many": {
+    "message": "$count$ onglets inactifs suspendus",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noInactive": {
+    "message": "Aucun onglet inactif à suspendre"
+  },
+  "popup_notify_suspendFailed": {
+    "message": "Échec de la suspension des onglets"
+  },
+  "popup_notify_toggleRuleFailed": {
+    "message": "Échec de la mise à jour de la règle"
+  },
+  "popup_notify_tabRestored": {
+    "message": "Onglet restauré"
+  },
+  "popup_notify_wakeTabFailedDetail": {
+    "message": "Échec du réveil de l'onglet : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_wakeTabFailed": {
+    "message": "Échec du réveil de l'onglet"
+  },
+  "popup_notify_snoozedTabDeleted": {
+    "message": "Onglet reporté supprimé"
+  },
+  "popup_notify_deleteTabFailedDetail": {
+    "message": "Échec de la suppression de l'onglet : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_deleteTabFailed": {
+    "message": "Échec de la suppression de l'onglet"
+  },
+  "popup_notify_windowRestored": {
+    "message": "Fenêtre restaurée"
+  },
+  "popup_notify_restoreWindowFailedDetail": {
+    "message": "Échec de la restauration de la fenêtre : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_restoreWindowFailed": {
+    "message": "Échec de la restauration de la fenêtre"
+  },
+  "popup_notify_snoozedWindowDeleted": {
+    "message": "Fenêtre reportée supprimée"
+  },
+  "popup_notify_deleteWindowFailedDetail": {
+    "message": "Échec de la suppression de la fenêtre : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_deleteWindowFailed": {
+    "message": "Échec de la suppression de la fenêtre"
+  },
+  "popup_notify_debugCopied": {
+    "message": "Infos de débogage copiées dans le presse-papiers"
+  },
+  "popup_notify_debugFailed": {
+    "message": "Échec de la copie des infos de débogage"
+  },
+  "popup_notify_testPanelFailedDetail": {
+    "message": "Échec de l'ouverture du panneau de test : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_genericError": {
+    "message": "Une erreur s'est produite"
+  },
+  "common_unknownError": {
+    "message": "Erreur inconnue"
+  },
+  "common_days_one": {
+    "message": "$count$ jour",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_days_other": {
+    "message": "$count$ jours",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_days_many": {
+    "message": "$count$ jours",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_hours_one": {
+    "message": "$count$ heure",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_hours_other": {
+    "message": "$count$ heures",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_hours_many": {
+    "message": "$count$ heures",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_minutes_one": {
+    "message": "$count$ minute",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_minutes_other": {
+    "message": "$count$ minutes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_minutes_many": {
+    "message": "$count$ minutes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_docTitle": {
+    "message": "Ajouter à la collection"
+  },
+  "modal_collection_title": {
+    "message": "Ajouter à la collection"
+  },
+  "modal_collection_searchPlaceholder": {
+    "message": "Rechercher des collections..."
+  },
+  "modal_collection_nameLabel": {
+    "message": "Nom de la collection"
+  },
+  "modal_collection_namePlaceholder": {
+    "message": "ex. : Projet X"
+  },
+  "modal_collection_create": {
+    "message": "Créer"
+  },
+  "modal_collection_creating": {
+    "message": "Création..."
+  },
+  "modal_collection_emptyTitle": {
+    "message": "Aucune collection pour le moment"
+  },
+  "modal_collection_emptyHint": {
+    "message": "Créez votre première collection ci-dessous"
+  },
+  "modal_collection_noMatch": {
+    "message": "Aucune collection ne correspond à votre recherche"
+  },
+  "modal_collection_createNew": {
+    "message": "+ Créer une nouvelle collection"
+  },
+  "modal_collection_active": {
+    "message": "Active"
+  },
+  "modal_collection_moreCount_one": {
+    "message": "+ $count$ collection supplémentaire (affinez votre recherche)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_moreCount_other": {
+    "message": "+ $count$ collections supplémentaires (affinez votre recherche)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_moreCount_many": {
+    "message": "+ $count$ collections supplémentaires (affinez votre recherche)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_tabCount_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_tabCount_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_tabCount_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_loadFailed": {
+    "message": "Échec du chargement des collections"
+  },
+  "modal_collection_loadError": {
+    "message": "Erreur de chargement des collections"
+  },
+  "modal_collection_nameRequired": {
+    "message": "Veuillez saisir un nom de collection"
+  },
+  "modal_collection_createFailed": {
+    "message": "Échec de la création de la collection"
+  },
+  "modal_collection_createdTitle": {
+    "message": "Collection créée"
+  },
+  "modal_collection_createdMessage": {
+    "message": "Collection « $name$ » créée et onglet ajouté",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_addedTitle": {
+    "message": "Onglet ajouté"
+  },
+  "modal_collection_addedMessage": {
+    "message": "Ajouté à $name$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_fallbackName": {
+    "message": "collection"
+  },
+  "modal_collection_noTabData": {
+    "message": "Aucune donnée d'onglet disponible"
+  },
+  "modal_collection_loadCollectionFailed": {
+    "message": "Échec du chargement de la collection"
+  },
+  "modal_collection_createFolderFailed": {
+    "message": "Échec de la création du dossier"
+  },
+  "modal_collection_addTabFailed": {
+    "message": "Échec de l'ajout de l'onglet"
+  },
+  "modal_collection_errorMessage": {
+    "message": "Erreur : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_note_docTitle": {
+    "message": "Ajouter une note à l'onglet"
+  },
+  "modal_note_title": {
+    "message": "Ajouter une note à l'onglet"
+  },
+  "modal_note_placeholder": {
+    "message": "Ajoutez votre note ici (255 caractères max)..."
+  },
+  "modal_note_charCount": {
+    "message": "$current$ / 255",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_note_save": {
+    "message": "Enregistrer la note"
+  },
+  "modal_note_saving": {
+    "message": "Enregistrement..."
+  },
+  "modal_note_noTab": {
+    "message": "Aucun onglet spécifié"
+  },
+  "modal_note_notFound": {
+    "message": "Onglet introuvable"
+  },
+  "modal_note_notInCollection": {
+    "message": "Cet onglet n'est pas dans une collection. Utilisez d'abord « Ajouter à la collection »."
+  },
+  "modal_note_saveFailed": {
+    "message": "Échec de l'enregistrement de la note"
+  },
+  "modal_note_savedTitle": {
+    "message": "Note enregistrée"
+  },
+  "modal_note_savedAdded": {
+    "message": "Note ajoutée à l'onglet"
+  },
+  "modal_note_savedRemoved": {
+    "message": "Note retirée de l'onglet"
+  },
+  "modal_note_errorMessage": {
+    "message": "Erreur : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_docTitle": {
+    "message": "Créer une tâche"
+  },
+  "modal_task_title": {
+    "message": "Créer une tâche"
+  },
+  "modal_task_summaryLabel": {
+    "message": "Résumé"
+  },
+  "modal_task_summaryPlaceholder": {
+    "message": "ex. : Relire la PR n°234"
+  },
+  "modal_task_summaryError": {
+    "message": "Le résumé est obligatoire"
+  },
+  "modal_task_notesLabel": {
+    "message": "Notes"
+  },
+  "modal_task_notesPlaceholder": {
+    "message": "Détails supplémentaires..."
+  },
+  "modal_task_collectionLabel": {
+    "message": "Collection"
+  },
+  "modal_task_uncategorized": {
+    "message": "Non catégorisé"
+  },
+  "modal_task_collectionActive": {
+    "message": "$name$ (Active)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_priorityLabel": {
+    "message": "Priorité"
+  },
+  "modal_task_priorityLow": {
+    "message": "Basse"
+  },
+  "modal_task_priorityMedium": {
+    "message": "Moyenne"
+  },
+  "modal_task_priorityHigh": {
+    "message": "Haute"
+  },
+  "modal_task_priorityCritical": {
+    "message": "Critique"
+  },
+  "modal_task_statusLabel": {
+    "message": "Statut"
+  },
+  "modal_task_statusOpen": {
+    "message": "Ouvrir"
+  },
+  "modal_task_statusActive": {
+    "message": "Active"
+  },
+  "modal_task_dueDateLabel": {
+    "message": "Échéance"
+  },
+  "modal_task_tagsLabel": {
+    "message": "Étiquettes"
+  },
+  "modal_task_tagPlaceholder": {
+    "message": "Saisir une étiquette..."
+  },
+  "modal_task_addTag": {
+    "message": "Ajouter une étiquette"
+  },
+  "modal_task_referencedTabs": {
+    "message": "Onglets référencés"
+  },
+  "modal_task_selectCollection": {
+    "message": "Sélectionnez une collection pour voir les onglets"
+  },
+  "modal_task_create": {
+    "message": "Créer une tâche"
+  },
+  "modal_task_creating": {
+    "message": "Création..."
+  },
+  "modal_task_errorLoadingTabs": {
+    "message": "Erreur de chargement des onglets"
+  },
+  "modal_task_noTabsInCollection": {
+    "message": "Aucun onglet dans cette collection"
+  },
+  "modal_task_createFailed": {
+    "message": "Échec de la création de la tâche"
+  },
+  "modal_task_createdTitle": {
+    "message": "Tâche créée"
+  },
+  "modal_task_createdMessage": {
+    "message": "Tâche créée : $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_errorCreating": {
+    "message": "Erreur lors de la création de la tâche : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_docTitle": {
+    "message": "TabTaskTick - Paramètres"
+  },
+  "options_title": {
+    "message": "Paramètres TabTaskTick"
+  },
+  "options_subtitle": {
+    "message": "Configurez vos préférences de gestion des onglets et des tâches"
+  },
+  "options_tab_general": {
+    "message": "Général"
+  },
+  "options_tab_keybinds": {
+    "message": "Raccourcis clavier"
+  },
+  "options_tab_data": {
+    "message": "Gestion des données"
+  },
+  "options_tab_about": {
+    "message": "À propos"
+  },
+  "options_section_tabBehavior": {
+    "message": "Comportement des onglets"
+  },
+  "options_protectPinned_label": {
+    "message": "Protéger les onglets épinglés"
+  },
+  "options_protectPinned_desc": {
+    "message": "Ignorer automatiquement les onglets épinglés lors de l'exécution des règles (évite les fermetures accidentelles)"
+  },
+  "options_section_snooze": {
+    "message": "Comportement du report"
+  },
+  "options_restoration_label": {
+    "message": "Emplacement de restauration des onglets"
+  },
+  "options_restoration_desc": {
+    "message": "Où les onglets reportés individuels doivent s'ouvrir à leur réveil"
+  },
+  "options_restoration_original": {
+    "message": "Retour à la fenêtre d'origine (par défaut)"
+  },
+  "options_restoration_current": {
+    "message": "Dans la fenêtre actuelle"
+  },
+  "options_restoration_new": {
+    "message": "Dans une nouvelle fenêtre"
+  },
+  "options_section_developer": {
+    "message": "Options pour développeurs"
+  },
+  "options_devMode_label": {
+    "message": "Mode développeur"
+  },
+  "options_devMode_desc": {
+    "message": "Activer les fonctions de débogage et la journalisation détaillée"
+  },
+  "options_logLevel_label": {
+    "message": "Niveau de journalisation"
+  },
+  "options_logLevel_desc": {
+    "message": "Contrôle quels messages de journal sont capturés pour le débogage"
+  },
+  "options_logLevel_debug": {
+    "message": "DEBUG (détaillé)"
+  },
+  "options_logLevel_info": {
+    "message": "INFO"
+  },
+  "options_logLevel_warn": {
+    "message": "WARN (par défaut)"
+  },
+  "options_logLevel_error": {
+    "message": "ERROR (minimal)"
+  },
+  "options_testLog_label": {
+    "message": "Tester le filtrage des journaux"
+  },
+  "options_testLog_desc": {
+    "message": "Émettre un journal de test à chaque niveau pour vérifier le filtrage (voir la console du navigateur)"
+  },
+  "options_testLog_btn": {
+    "message": "Tester les niveaux de journalisation"
+  },
+  "options_section_keybinds": {
+    "message": "Raccourcis clavier"
+  },
+  "options_keybinds_howto_title": {
+    "message": "Comment modifier les raccourcis"
+  },
+  "options_keybinds_howto_p1": {
+    "message": "Les raccourcis des extensions Chrome ne peuvent être modifiés que via les paramètres intégrés de Chrome. Rendez-vous sur "
+  },
+  "options_keybinds_howto_p2": {
+    "message": " pour personnaliser ces raccourcis."
+  },
+  "options_shortcut_popup_title": {
+    "message": "Ouvrir la fenêtre contextuelle"
+  },
+  "options_shortcut_popup_desc": {
+    "message": "Ouvrir la fenêtre contextuelle de TabTaskTick"
+  },
+  "options_shortcut_snooze_title": {
+    "message": "Report rapide"
+  },
+  "options_shortcut_snooze_desc": {
+    "message": "Reporter l'onglet actuel avec une boîte de dialogue"
+  },
+  "options_shortcut_group_title": {
+    "message": "Regrouper par domaine"
+  },
+  "options_shortcut_group_desc": {
+    "message": "Organiser tous les onglets en groupes par domaine"
+  },
+  "options_shortcut_dupes_title": {
+    "message": "Fermer les doublons"
+  },
+  "options_shortcut_dupes_desc": {
+    "message": "Supprimer tous les onglets en double"
+  },
+  "options_section_data": {
+    "message": "Gestion des données"
+  },
+  "options_data_desc": {
+    "message": "Gérez les données de l'extension et réinitialisez les paramètres"
+  },
+  "options_clearHistory_label": {
+    "message": "Effacer l'historique d'activité"
+  },
+  "options_clearHistory_desc": {
+    "message": "Supprimer tout l'historique d'activité des onglets enregistré"
+  },
+  "options_clearHistory_btn": {
+    "message": "Effacer l'historique"
+  },
+  "options_clearData_label": {
+    "message": "Effacer toutes les données"
+  },
+  "options_clearData_desc": {
+    "message": "Supprimer toutes les données de l'extension, y compris les onglets reportés, les règles et les paramètres"
+  },
+  "options_clearData_btn": {
+    "message": "Effacer toutes les données"
+  },
+  "options_reset_label": {
+    "message": "Réinitialiser par défaut"
+  },
+  "options_reset_desc": {
+    "message": "Restaurer tous les paramètres à leurs valeurs par défaut"
+  },
+  "options_reset_btn": {
+    "message": "Réinitialiser par défaut"
+  },
+  "options_section_importExport": {
+    "message": "Importer et exporter"
+  },
+  "options_importExport_desc": {
+    "message": "Pour l'export/import complet des données, y compris les sauvegardes planifiées, utilisez le tableau de bord"
+  },
+  "options_openDashboard_label": {
+    "message": "Ouvrir le tableau de bord"
+  },
+  "options_openDashboard_desc": {
+    "message": "Accédez aux fonctions avancées d'export/import avec plusieurs formats et la planification"
+  },
+  "options_openDashboard_btn": {
+    "message": "Ouvrir le tableau de bord"
+  },
+  "options_version_loading": {
+    "message": "Chargement de la version..."
+  },
+  "options_about_desc": {
+    "message": "Extension avancée de gestion des onglets et des favoris avec automatisation intelligente."
+  },
+  "options_link_github": {
+    "message": "GitHub"
+  },
+  "options_link_reportIssue": {
+    "message": "Signaler un problème"
+  },
+  "options_saved": {
+    "message": "Paramètres enregistrés avec succès !"
+  },
+  "options_version": {
+    "message": "Version $version$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "1.4.11"
+      }
+    }
+  },
+  "options_notify_loadFailed": {
+    "message": "Échec du chargement des paramètres"
+  },
+  "options_notify_saveFailed": {
+    "message": "Échec de l'enregistrement du paramètre"
+  },
+  "options_confirm_clearHistory": {
+    "message": "Voulez-vous vraiment effacer tout l'historique ?"
+  },
+  "options_notify_historyCleared": {
+    "message": "Historique effacé avec succès"
+  },
+  "options_notify_clearHistoryFailed": {
+    "message": "Échec de l'effacement de l'historique"
+  },
+  "options_confirm_clearData": {
+    "message": "Voulez-vous vraiment effacer toutes les données ? Cette action est irréversible."
+  },
+  "options_notify_dataCleared": {
+    "message": "Toutes les données ont été effacées avec succès"
+  },
+  "options_notify_clearDataFailed": {
+    "message": "Échec de l'effacement des données"
+  },
+  "options_confirm_reset": {
+    "message": "Voulez-vous vraiment réinitialiser tous les paramètres par défaut ?"
+  },
+  "options_notify_reset": {
+    "message": "Paramètres réinitialisés par défaut"
+  },
+  "options_notify_resetFailed": {
+    "message": "Échec de la réinitialisation des paramètres"
+  },
+  "options_notify_logLevel": {
+    "message": "Niveau : $level$",
+    "placeholders": {
+      "level": {
+        "content": "$1",
+        "example": "WARN"
+      }
+    }
+  },
+  "options_notify_urlCopied": {
+    "message": "URL copiée ! Collez-la dans la barre d'adresse."
+  },
+  "options_notify_openManually": {
+    "message": "Ouvrez chrome://extensions/shortcuts manuellement"
+  },
+  "snooze_title_window": {
+    "message": "Reporter la fenêtre : $title$",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_windows_one": {
+    "message": "Reporter $count$ fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_windows_other": {
+    "message": "Reporter $count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_windows_many": {
+    "message": "Reporter $count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_windowOne": {
+    "message": "Fenêtre 1"
+  },
+  "snooze_part_windows_one": {
+    "message": "$count$ fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_windows_other": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_windows_many": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_otherTabs_one": {
+    "message": "$count$ autre onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_otherTabs_other": {
+    "message": "$count$ autres onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_otherTabs_many": {
+    "message": "$count$ autres onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_mixed": {
+    "message": "Reporter $windows$ et $tabs$",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_desc_windows_one": {
+    "message": "$count$ fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_windows_other": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_windows_many": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabCount_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabCount_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabCount_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_windowPart": {
+    "message": "$windows$ ($tabs$)",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_desc_otherTabs_one": {
+    "message": "$count$ autre onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_otherTabs_other": {
+    "message": "$count$ autres onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_otherTabs_many": {
+    "message": "$count$ autres onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabsFromCurrent": {
+    "message": "$tabs$ de la fenêtre actuelle",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_join": {
+    "message": " et "
+  },
+  "snooze_desc_prefix": {
+    "message": "Cela reportera $parts$",
+    "placeholders": {
+      "parts": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_windows_one": {
+    "message": "$count$ fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_windows_other": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_windows_many": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_tabs_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_tabs_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_tabs_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_mixed": {
+    "message": "$windows$ + $tabs$",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_restoration_original": {
+    "message": "Retour à la fenêtre d'origine"
+  },
+  "snooze_restoration_current": {
+    "message": "Vers la fenêtre actuelle"
+  },
+  "snooze_restoration_new": {
+    "message": "Dans une nouvelle fenêtre"
+  },
+  "activity_noActions": {
+    "message": "$rule$ : aucune action effectuée ($trigger$)",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "trigger": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_noSuccess": {
+    "message": "$rule$ : aucune action réussie ($trigger$)",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "trigger": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_summary": {
+    "message": "$rule$ : $actions$ ($trigger$)",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "actions": {
+        "content": "$2"
+      },
+      "trigger": {
+        "content": "$3"
+      }
+    }
+  },
+  "activity_join": {
+    "message": ", "
+  },
+  "activity_actionPart_one": {
+    "message": "$verb$ $count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "verb": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_actionPart_other": {
+    "message": "$verb$ $count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "verb": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_actionPart_many": {
+    "message": "$verb$ $count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "verb": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_verb_close": {
+    "message": "fermé"
+  },
+  "activity_verb_closeDuplicate": {
+    "message": "doublon fermé"
+  },
+  "activity_verb_group": {
+    "message": "regroupé"
+  },
+  "activity_verb_snooze": {
+    "message": "reporté"
+  },
+  "activity_verb_bookmark": {
+    "message": "ajouté aux favoris"
+  },
+  "activity_verb_pin": {
+    "message": "épinglé"
+  },
+  "activity_verb_unpin": {
+    "message": "désépinglé"
+  },
+  "activity_verb_mute": {
+    "message": "mis en sourdine"
+  },
+  "activity_verb_unmute": {
+    "message": "réactivé"
+  },
+  "activity_verb_discard": {
+    "message": "suspendu"
+  },
+  "activity_verb_move": {
+    "message": "déplacé"
+  },
+  "activity_actionNoun_one": {
+    "message": "action"
+  },
+  "activity_actionNoun_other": {
+    "message": "actions"
+  },
+  "activity_actionNoun_many": {
+    "message": "actions"
+  },
+  "activity_noMatching": {
+    "message": "Aucun onglet correspondant trouvé"
+  },
+  "sidepanel_docTitle": {
+    "message": "TabTaskTick"
+  },
+  "sidepanel_searchPlaceholder": {
+    "message": "Rechercher collections et tâches..."
+  },
+  "sidepanel_searchLabel": {
+    "message": "Rechercher des collections et des tâches"
+  },
+  "sidepanel_createCollection_title": {
+    "message": "Créer une nouvelle collection"
+  },
+  "sidepanel_createCollection_btn": {
+    "message": "📁 Créer une collection"
+  },
+  "sidepanel_createTask_title": {
+    "message": "Créer une nouvelle tâche"
+  },
+  "sidepanel_createTask_btn": {
+    "message": "✓ Créer une tâche"
+  },
+  "sidepanel_import_title": {
+    "message": "Importer des collections depuis un fichier JSON"
+  },
+  "sidepanel_import_btn": {
+    "message": "📥 Importer"
+  },
+  "sidepanel_view_collections": {
+    "message": "📁 Collections"
+  },
+  "sidepanel_view_tasks": {
+    "message": "✓ Tâches"
+  },
+  "sidepanel_toggleFilters_label": {
+    "message": "Afficher/masquer les filtres"
+  },
+  "sidepanel_toggleFilters_title": {
+    "message": "Afficher/Masquer les filtres"
+  },
+  "sidepanel_toggleFilters_btn": {
+    "message": "🔍 Filtres"
+  },
+  "sidepanel_filtersPanel_label": {
+    "message": "Filtres"
+  },
+  "sidepanel_collections_loading": {
+    "message": "Chargement des collections..."
+  },
+  "sidepanel_collections_errorTitle": {
+    "message": "Impossible de charger les collections"
+  },
+  "sidepanel_collections_emptyTitle": {
+    "message": "Aucune collection pour le moment"
+  },
+  "sidepanel_collections_emptyDescription": {
+    "message": "Créez votre première collection pour organiser et gérer des groupes d'onglets. Les collections vous aident à garder votre travail organisé et facilement accessible."
+  },
+  "sidepanel_collections_emptyAction": {
+    "message": "📁 Créer votre première collection"
+  },
+  "sidepanel_collections_sectionActive": {
+    "message": "Active"
+  },
+  "sidepanel_collections_sectionSaved": {
+    "message": "Enregistrées"
+  },
+  "sidepanel_common_retry": {
+    "message": "Réessayer"
+  },
+  "sidepanel_tasks_loading": {
+    "message": "Chargement des tâches..."
+  },
+  "sidepanel_tasks_errorTitle": {
+    "message": "Impossible de charger les tâches"
+  },
+  "sidepanel_tasks_emptyTitle": {
+    "message": "Aucune tâche pour le moment"
+  },
+  "sidepanel_tasks_emptyDescription": {
+    "message": "Créez des tâches pour suivre votre travail dans les collections. Les tâches vous aident à vous souvenir de ce sur quoi vous travaillez."
+  },
+  "sidepanel_tasks_emptyAction": {
+    "message": "✓ Créer votre première tâche"
+  },
+  "sidepanel_panel_saveWindowFailed": {
+    "message": "Échec de l'enregistrement de la fenêtre"
+  },
+  "sidepanel_panel_newCollectionName": {
+    "message": "Nouvelle collection"
+  },
+  "sidepanel_panel_saveWindowIntro_oneTab_oneFolder": {
+    "message": "Créer une nouvelle collection à partir de la fenêtre actuelle avec $tabs$ onglet et $folders$ dossier.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_oneTab_otherFolders": {
+    "message": "Créer une nouvelle collection à partir de la fenêtre actuelle avec $tabs$ onglet et $folders$ dossiers.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_oneFolder": {
+    "message": "Créer une nouvelle collection à partir de la fenêtre actuelle avec $tabs$ onglets et $folders$ dossier.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_otherFolders": {
+    "message": "Créer une nouvelle collection à partir de la fenêtre actuelle avec $tabs$ onglets et $folders$ dossiers.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_form_nameLabel": {
+    "message": "Nom *"
+  },
+  "sidepanel_form_namePlaceholder": {
+    "message": "Saisir le nom de la collection"
+  },
+  "sidepanel_form_descriptionLabel": {
+    "message": "Description"
+  },
+  "sidepanel_form_descriptionPlaceholder": {
+    "message": "À quoi sert cette collection ?"
+  },
+  "sidepanel_form_iconLabel": {
+    "message": "Icône"
+  },
+  "sidepanel_form_emojiSuggested": {
+    "message": "✨ Suggéré"
+  },
+  "sidepanel_form_tagsLabel": {
+    "message": "Étiquettes (séparées par des virgules)"
+  },
+  "sidepanel_form_tagsPlaceholder": {
+    "message": "travail, projet, recherche"
+  },
+  "sidepanel_panel_createCollectionTitle": {
+    "message": "Créer une collection"
+  },
+  "sidepanel_panel_createCollectionSubmit": {
+    "message": "Créer une collection"
+  },
+  "sidepanel_panel_nameRequired": {
+    "message": "Le nom de la collection est obligatoire"
+  },
+  "sidepanel_panel_savedCollection": {
+    "message": "✓ $name$ enregistré ($tabs$ onglets, $folders$ dossiers)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      },
+      "folders": {
+        "content": "$3"
+      }
+    }
+  },
+  "sidepanel_panel_importing": {
+    "message": "Importation des collections..."
+  },
+  "sidepanel_panel_importFailed": {
+    "message": "Échec de l'importation des collections"
+  },
+  "sidepanel_panel_createTaskFailed": {
+    "message": "Échec de la création de la tâche"
+  },
+  "sidepanel_panel_createTaskTitle": {
+    "message": "Créer une nouvelle tâche"
+  },
+  "sidepanel_task_summaryLabel": {
+    "message": "Résumé *"
+  },
+  "sidepanel_task_summaryPlaceholder": {
+    "message": "Que devez-vous faire ?"
+  },
+  "sidepanel_task_contextLabel": {
+    "message": "Contexte"
+  },
+  "sidepanel_task_contextHelperThis": {
+    "message": "Accès rapide à cet onglet"
+  },
+  "sidepanel_task_contextHelper": {
+    "message": "Accès rapide aux onglets"
+  },
+  "sidepanel_task_notesLabel": {
+    "message": "Notes"
+  },
+  "sidepanel_task_notesPlaceholder": {
+    "message": "Détails supplémentaires..."
+  },
+  "sidepanel_task_priorityLabel": {
+    "message": "Priorité"
+  },
+  "sidepanel_task_priorityLow": {
+    "message": "Basse"
+  },
+  "sidepanel_task_priorityMedium": {
+    "message": "Moyenne"
+  },
+  "sidepanel_task_priorityHigh": {
+    "message": "Haute"
+  },
+  "sidepanel_task_priorityCritical": {
+    "message": "Critique"
+  },
+  "sidepanel_task_collectionLabel": {
+    "message": "Collection"
+  },
+  "sidepanel_task_uncategorized": {
+    "message": "Non catégorisé"
+  },
+  "sidepanel_task_unnamed": {
+    "message": "Sans nom"
+  },
+  "sidepanel_task_dueDateLabel": {
+    "message": "Échéance"
+  },
+  "sidepanel_task_tagsLabel": {
+    "message": "Étiquettes (séparées par des virgules)"
+  },
+  "sidepanel_task_tagsPlaceholderUrgent": {
+    "message": "urgent, travail, relecture"
+  },
+  "sidepanel_task_createSubmit": {
+    "message": "Créer une tâche"
+  },
+  "sidepanel_task_statusLabel": {
+    "message": "Statut"
+  },
+  "sidepanel_task_statusOpen": {
+    "message": "Ouvrir"
+  },
+  "sidepanel_task_statusActive": {
+    "message": "Active"
+  },
+  "sidepanel_task_statusFixed": {
+    "message": "Résolu"
+  },
+  "sidepanel_task_statusAbandoned": {
+    "message": "Abandonné"
+  },
+  "sidepanel_task_summaryRequired": {
+    "message": "Le résumé est obligatoire"
+  },
+  "sidepanel_task_created": {
+    "message": "Tâche créée avec succès"
+  },
+  "sidepanel_panel_noResultsTitle_collections": {
+    "message": "Aucune collection trouvée"
+  },
+  "sidepanel_panel_noResultsTitle_tasks": {
+    "message": "Aucune tâche trouvée"
+  },
+  "sidepanel_panel_noResultsDescription_collections": {
+    "message": "Aucune collection ne correspond à votre recherche « $query$ ». Essayez un autre terme.",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_panel_noResultsDescription_tasks": {
+    "message": "Aucune tâche ne correspond à votre recherche « $query$ ». Essayez un autre terme.",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_panel_genericError": {
+    "message": "Une erreur s'est produite"
+  },
+  "sidepanel_panel_initError": {
+    "message": "Erreur d'initialisation"
+  },
+  "sidepanel_collections_untitled": {
+    "message": "Collection sans titre"
+  },
+  "sidepanel_collections_windowBadge": {
+    "message": "Fenêtre n°$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_metaTabs": {
+    "message": "Onglets"
+  },
+  "sidepanel_collections_metaFolders": {
+    "message": "Dossiers"
+  },
+  "sidepanel_collections_metaLastAccessed": {
+    "message": "Dernier accès"
+  },
+  "sidepanel_collections_moreTags": {
+    "message": "+$count$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_viewDetails": {
+    "message": "👁️ Voir les détails"
+  },
+  "sidepanel_collections_focusWindow": {
+    "message": "Mettre la fenêtre au premier plan"
+  },
+  "sidepanel_collections_open": {
+    "message": "📂 Ouvrir"
+  },
+  "sidepanel_collections_edit": {
+    "message": "✏️ Modifier"
+  },
+  "sidepanel_collections_close": {
+    "message": "❌ Fermer"
+  },
+  "sidepanel_collections_delete": {
+    "message": "🗑️ Supprimer"
+  },
+  "sidepanel_collections_export": {
+    "message": "💾 Exporter"
+  },
+  "sidepanel_collections_exportTitle": {
+    "message": "Exporter cette collection"
+  },
+  "sidepanel_collections_detailViewUnavailable": {
+    "message": "Vue détaillée non disponible"
+  },
+  "sidepanel_collections_showDetailsFailed": {
+    "message": "Échec de l'affichage des détails de la collection"
+  },
+  "sidepanel_collections_windowNotFound": {
+    "message": "Fenêtre introuvable"
+  },
+  "sidepanel_collections_windowFocused": {
+    "message": "Fenêtre mise au premier plan"
+  },
+  "sidepanel_collections_focusFailed": {
+    "message": "Échec de la mise au premier plan de la fenêtre"
+  },
+  "sidepanel_collections_openedNewWindow": {
+    "message": "Collection ouverte dans une nouvelle fenêtre"
+  },
+  "sidepanel_collections_openFailed": {
+    "message": "Échec de l'ouverture de la collection"
+  },
+  "sidepanel_collections_viewingTasks": {
+    "message": "Affichage des tâches de la collection"
+  },
+  "sidepanel_collections_viewTasksFailed": {
+    "message": "Échec de l'affichage des tâches"
+  },
+  "sidepanel_collections_notFound": {
+    "message": "Collection introuvable"
+  },
+  "sidepanel_collections_editTitle": {
+    "message": "Modifier la collection"
+  },
+  "sidepanel_collections_editFailed": {
+    "message": "Échec de la modification de la collection"
+  },
+  "sidepanel_collections_windowClosedSaved": {
+    "message": "Fenêtre fermée - collection enregistrée"
+  },
+  "sidepanel_collections_closeWindowFailed": {
+    "message": "Échec de la fermeture de la fenêtre"
+  },
+  "sidepanel_collections_deleteTitle": {
+    "message": "Supprimer la collection"
+  },
+  "sidepanel_collections_deleteFailed": {
+    "message": "Échec de la suppression de la collection"
+  },
+  "sidepanel_collections_deleted": {
+    "message": "Collection « $name$ » supprimée",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_deleteWarningActive": {
+    "message": "⚠️ Cette collection est actuellement active. La fenêtre restera ouverte mais les données de la collection seront définitivement supprimées."
+  },
+  "sidepanel_collections_deleteConfirmQuestion": {
+    "message": "Voulez-vous vraiment supprimer « $name$ » ?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_deleteWillDelete": {
+    "message": "Cela supprimera définitivement :"
+  },
+  "sidepanel_collections_deleteItemFolders": {
+    "message": "Tous les dossiers et onglets de cette collection"
+  },
+  "sidepanel_collections_deleteItemTasks": {
+    "message": "Toutes les tâches associées à cette collection"
+  },
+  "sidepanel_collections_actionUndone": {
+    "message": "Cette action est irréversible."
+  },
+  "sidepanel_collections_nameLabel": {
+    "message": "Nom"
+  },
+  "sidepanel_collections_tagsPlaceholder": {
+    "message": "travail, recherche, personnel"
+  },
+  "sidepanel_collections_updated": {
+    "message": "Collection mise à jour"
+  },
+  "sidepanel_collections_saveChangesFailed": {
+    "message": "Échec de l'enregistrement des modifications"
+  },
+  "sidepanel_collections_exporting": {
+    "message": "Exportation de la collection..."
+  },
+  "sidepanel_collections_exportFailedNotify": {
+    "message": "Échec de l'exportation de la collection"
+  },
+  "sidepanel_collections_exportFailedDetail": {
+    "message": "Échec de l'exportation : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_never": {
+    "message": "Jamais"
+  },
+  "sidepanel_time_justNow": {
+    "message": "À l'instant"
+  },
+  "sidepanel_time_minAgo": {
+    "message": "il y a $count$ min",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_hoursAgo": {
+    "message": "il y a $count$ h",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_daysAgo": {
+    "message": "il y a $count$ j",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_weeksAgo": {
+    "message": "il y a $count$ sem",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_monthsAgo": {
+    "message": "il y a $count$ mois",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_filters_state": {
+    "message": "État"
+  },
+  "sidepanel_filters_stateAll": {
+    "message": "Tous"
+  },
+  "sidepanel_filters_stateActive": {
+    "message": "Active"
+  },
+  "sidepanel_filters_stateSaved": {
+    "message": "Enregistrées"
+  },
+  "sidepanel_filters_tags": {
+    "message": "Étiquettes"
+  },
+  "sidepanel_filters_sortBy": {
+    "message": "Trier par"
+  },
+  "sidepanel_filters_sortLastAccessed": {
+    "message": "Dernier accès"
+  },
+  "sidepanel_filters_sortCreated": {
+    "message": "Créé"
+  },
+  "sidepanel_filters_sortName": {
+    "message": "Nom"
+  },
+  "sidepanel_filters_status": {
+    "message": "Statut"
+  },
+  "sidepanel_filters_statusOpen": {
+    "message": "Ouvrir"
+  },
+  "sidepanel_filters_statusActive": {
+    "message": "Active"
+  },
+  "sidepanel_filters_statusFixed": {
+    "message": "Résolu"
+  },
+  "sidepanel_filters_statusAbandoned": {
+    "message": "Abandonné"
+  },
+  "sidepanel_filters_priority": {
+    "message": "Priorité"
+  },
+  "sidepanel_filters_priorityLow": {
+    "message": "Basse"
+  },
+  "sidepanel_filters_priorityMedium": {
+    "message": "Moyenne"
+  },
+  "sidepanel_filters_priorityHigh": {
+    "message": "Haute"
+  },
+  "sidepanel_filters_priorityCritical": {
+    "message": "Critique"
+  },
+  "sidepanel_filters_collection": {
+    "message": "Collection"
+  },
+  "sidepanel_filters_uncategorized": {
+    "message": "Non catégorisé"
+  },
+  "sidepanel_filters_unnamed": {
+    "message": "Sans nom"
+  },
+  "sidepanel_filters_clear": {
+    "message": "Effacer les filtres ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_presentation_groupBy": {
+    "message": "Grouper par :"
+  },
+  "sidepanel_presentation_groupByLabel": {
+    "message": "Grouper les tâches par"
+  },
+  "sidepanel_presentation_groupCollection": {
+    "message": "Collection"
+  },
+  "sidepanel_presentation_groupPriority": {
+    "message": "Priorité"
+  },
+  "sidepanel_presentation_groupStatus": {
+    "message": "Statut"
+  },
+  "sidepanel_presentation_groupNone": {
+    "message": "Aucun"
+  },
+  "sidepanel_presentation_sortBy": {
+    "message": "Trier par :"
+  },
+  "sidepanel_presentation_sortByLabel": {
+    "message": "Trier les tâches par"
+  },
+  "sidepanel_presentation_sortPriority": {
+    "message": "Priorité"
+  },
+  "sidepanel_presentation_sortDueDate": {
+    "message": "Échéance"
+  },
+  "sidepanel_presentation_sortCreated": {
+    "message": "Créé"
+  },
+  "sidepanel_presentation_sortAlpha": {
+    "message": "Alpha"
+  },
+  "sidepanel_presentation_directionLabel": {
+    "message": "Inverser le sens du tri"
+  },
+  "sidepanel_presentation_directionAsc": {
+    "message": "Croissant"
+  },
+  "sidepanel_presentation_directionDesc": {
+    "message": "Décroissant"
+  },
+  "sidepanel_tasks_uncategorized": {
+    "message": "Non catégorisé"
+  },
+  "sidepanel_tasks_unnamedCollection": {
+    "message": "Collection sans nom"
+  },
+  "sidepanel_tasks_unnamed": {
+    "message": "Sans nom"
+  },
+  "sidepanel_tasks_completed": {
+    "message": "Terminé"
+  },
+  "sidepanel_tasks_groupCritical": {
+    "message": "Critique"
+  },
+  "sidepanel_tasks_groupHigh": {
+    "message": "Priorité haute"
+  },
+  "sidepanel_tasks_groupMedium": {
+    "message": "Priorité moyenne"
+  },
+  "sidepanel_tasks_groupLow": {
+    "message": "Priorité basse"
+  },
+  "sidepanel_tasks_groupNoPriority": {
+    "message": "Sans priorité"
+  },
+  "sidepanel_tasks_statusOpen": {
+    "message": "Ouvrir"
+  },
+  "sidepanel_tasks_statusActive": {
+    "message": "Active"
+  },
+  "sidepanel_tasks_statusFixed": {
+    "message": "Résolu"
+  },
+  "sidepanel_tasks_statusAbandoned": {
+    "message": "Abandonné"
+  },
+  "sidepanel_tasks_viewCollection": {
+    "message": "Voir la collection"
+  },
+  "sidepanel_tasks_delete": {
+    "message": "Supprimer"
+  },
+  "sidepanel_tasks_openTabs": {
+    "message": "Ouvrir les onglets"
+  },
+  "sidepanel_tasks_markFixed": {
+    "message": "Marquer comme résolu"
+  },
+  "sidepanel_tasks_edit": {
+    "message": "Modifier"
+  },
+  "sidepanel_tasks_dueOverdue": {
+    "message": "⚠️ Échéance $date$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_due": {
+    "message": "Échéance $date$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadge_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadge_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadge_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_one": {
+    "message": "Ouvrir $count$ onglet associé",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_other": {
+    "message": "Ouvrir $count$ onglets associés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_many": {
+    "message": "Ouvrir $count$ onglets associés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openingTabs": {
+    "message": "Ouverture des onglets de la tâche..."
+  },
+  "sidepanel_tasks_openedTabs_one": {
+    "message": "$count$ onglet ouvert",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openedTabs_other": {
+    "message": "$count$ onglets ouverts",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openedTabs_many": {
+    "message": "$count$ onglets ouverts",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsFailed": {
+    "message": "Échec de l'ouverture des onglets de la tâche"
+  },
+  "sidepanel_tasks_markedFixed": {
+    "message": "Tâche marquée comme résolue"
+  },
+  "sidepanel_tasks_markFixedFailed": {
+    "message": "Échec du marquage de la tâche comme résolue"
+  },
+  "sidepanel_tasks_loadFailed": {
+    "message": "Échec du chargement de la tâche"
+  },
+  "sidepanel_tasks_deleted": {
+    "message": "Tâche « $summary$ » supprimée",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_deleteFailed": {
+    "message": "Échec de la suppression de la tâche"
+  },
+  "sidepanel_tasks_deleteTitle": {
+    "message": "Supprimer la tâche"
+  },
+  "sidepanel_tasks_deleteQuestion": {
+    "message": "Voulez-vous vraiment supprimer cette tâche ?"
+  },
+  "sidepanel_tasks_deleteCollectionInfo": {
+    "message": "Cette tâche fait partie de la collection. La collection ne sera pas affectée."
+  },
+  "sidepanel_tasks_editTitle": {
+    "message": "Modifier la tâche"
+  },
+  "sidepanel_task_saveChanges": {
+    "message": "Enregistrer les modifications"
+  },
+  "sidepanel_tasks_updated": {
+    "message": "Tâche mise à jour avec succès"
+  },
+  "sidepanel_tasks_saveEditsFailed": {
+    "message": "Échec de l'enregistrement des modifications de la tâche"
+  },
+  "sidepanel_tabchip_closed": {
+    "message": "Fermé"
+  },
+  "sidepanel_tabchip_removeLabel": {
+    "message": "Retirer la référence à l'onglet"
+  },
+  "sidepanel_tabchip_removeAssociation": {
+    "message": "Retirer l'association d'onglet"
+  },
+  "sidepanel_tabchip_linkCurrent": {
+    "message": "Associer à l'onglet actuel"
+  },
+  "sidepanel_tabchip_alreadyLinked": {
+    "message": "Cet onglet est déjà associé"
+  },
+  "sidepanel_tabchip_noActiveTab": {
+    "message": "Aucun onglet actif trouvé"
+  },
+  "sidepanel_detail_back": {
+    "message": "← Retour aux collections"
+  },
+  "sidepanel_detail_notFound": {
+    "message": "Collection introuvable"
+  },
+  "sidepanel_detail_loadFailed": {
+    "message": "Échec du chargement de la collection"
+  },
+  "sidepanel_detail_syncNever": {
+    "message": "Jamais"
+  },
+  "sidepanel_detail_tasksHeader": {
+    "message": "✓ Tâches"
+  },
+  "sidepanel_detail_newTask": {
+    "message": "+ Nouvelle tâche"
+  },
+  "sidepanel_detail_noTasks": {
+    "message": "Aucune tâche pour le moment. Créez-en une pour suivre votre travail."
+  },
+  "sidepanel_detail_tasksOpen": {
+    "message": "Ouvertes ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_tasksActive": {
+    "message": "Actives ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_tasksCompleted": {
+    "message": "Terminées ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_moreTabs": {
+    "message": ", +$count$ de plus",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_openTabsTitle": {
+    "message": "Ouvrir les onglets"
+  },
+  "sidepanel_detail_markFixedTitle": {
+    "message": "Marquer comme résolu"
+  },
+  "sidepanel_detail_editTaskTitle": {
+    "message": "Modifier la tâche"
+  },
+  "sidepanel_detail_foldersHeader": {
+    "message": "📂 Dossiers et onglets"
+  },
+  "sidepanel_detail_foldersCount": {
+    "message": "$folders$ dossiers, $tabs$ onglets",
+    "placeholders": {
+      "folders": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_detail_noFolders": {
+    "message": "Aucun dossier ni onglet pour le moment."
+  },
+  "sidepanel_detail_untitledFolder": {
+    "message": "Dossier sans titre"
+  },
+  "sidepanel_detail_folderTabsCount": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_ungroupedTabs": {
+    "message": "Onglets non groupés"
+  },
+  "sidepanel_detail_notePlaceholder": {
+    "message": "Ajouter une note (255 caractères max)..."
+  },
+  "sidepanel_detail_noteChars": {
+    "message": "$count$/255",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_settingsHeader": {
+    "message": "⚙️ Paramètres de synchronisation progressive"
+  },
+  "sidepanel_detail_settingsInfo": {
+    "message": "Lorsque cette option est activée, les modifications des onglets et des groupes se synchronisent automatiquement pour préserver l'état de votre collection."
+  },
+  "sidepanel_detail_trackingTitle": {
+    "message": "Activer le suivi en temps réel"
+  },
+  "sidepanel_detail_trackingDesc": {
+    "message": "Suivre et enregistrer automatiquement les modifications d'onglets/groupes"
+  },
+  "sidepanel_detail_syncDelayTitle": {
+    "message": "Délai de synchronisation"
+  },
+  "sidepanel_detail_syncDelayDesc": {
+    "message": "Temps d'attente avant l'enregistrement des modifications ($value$)",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_syncStatus": {
+    "message": "État de synchronisation"
+  },
+  "sidepanel_detail_lastSynced": {
+    "message": "Dernière synchronisation :"
+  },
+  "sidepanel_detail_pendingChanges": {
+    "message": "Modifications en attente :"
+  },
+  "sidepanel_detail_saveSettings": {
+    "message": "Enregistrer les paramètres"
+  },
+  "sidepanel_detail_syncDelayInstant": {
+    "message": "0 s (instantané)"
+  },
+  "sidepanel_detail_syncDelayMs": {
+    "message": "$ms$ ms",
+    "placeholders": {
+      "ms": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_syncDelaySeconds": {
+    "message": "$seconds$ s",
+    "placeholders": {
+      "seconds": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_refresh": {
+    "message": "🔄 Actualiser"
+  },
+  "sidepanel_detail_focusWindow": {
+    "message": "👁️ Mettre la fenêtre au premier plan"
+  },
+  "sidepanel_detail_closeWindow": {
+    "message": "❌ Fermer la fenêtre"
+  },
+  "sidepanel_detail_openCollection": {
+    "message": "📂 Ouvrir la collection"
+  },
+  "sidepanel_detail_editCollection": {
+    "message": "✏️ Modifier la collection"
+  },
+  "sidepanel_detail_createTaskTitle": {
+    "message": "Créer une tâche"
+  },
+  "sidepanel_detail_createTaskFailed": {
+    "message": "Échec de la création de la tâche"
+  },
+  "sidepanel_detail_create": {
+    "message": "Créer"
+  },
+  "sidepanel_detail_taskNotFound": {
+    "message": "Tâche introuvable"
+  },
+  "sidepanel_detail_editTaskFailed": {
+    "message": "Échec de la modification de la tâche"
+  },
+  "sidepanel_detail_form_summaryLabel": {
+    "message": "Résumé *"
+  },
+  "sidepanel_detail_form_contextLabel": {
+    "message": "Contexte"
+  },
+  "sidepanel_detail_form_contextHelper": {
+    "message": "Accès rapide aux onglets"
+  },
+  "sidepanel_detail_form_notesLabel": {
+    "message": "Notes"
+  },
+  "sidepanel_detail_form_priorityLabel": {
+    "message": "Priorité"
+  },
+  "sidepanel_detail_form_priorityLow": {
+    "message": "Basse"
+  },
+  "sidepanel_detail_form_priorityMedium": {
+    "message": "Moyenne"
+  },
+  "sidepanel_detail_form_priorityHigh": {
+    "message": "Haute"
+  },
+  "sidepanel_detail_form_priorityCritical": {
+    "message": "Critique"
+  },
+  "sidepanel_detail_form_statusLabel": {
+    "message": "Statut"
+  },
+  "sidepanel_detail_form_statusOpen": {
+    "message": "Ouvrir"
+  },
+  "sidepanel_detail_form_statusActive": {
+    "message": "Active"
+  },
+  "sidepanel_detail_form_statusFixed": {
+    "message": "Résolu"
+  },
+  "sidepanel_detail_form_statusAbandoned": {
+    "message": "Abandonné"
+  },
+  "sidepanel_detail_form_dueDateLabel": {
+    "message": "Échéance"
+  },
+  "sidepanel_detail_form_tagsLabel": {
+    "message": "Étiquettes (séparées par des virgules)"
+  },
+  "sidepanel_detail_form_tagsPlaceholder": {
+    "message": "bug, fonctionnalité, urgent"
+  },
+  "sidepanel_detail_taskUpdated": {
+    "message": "Tâche mise à jour"
+  },
+  "sidepanel_detail_taskCreated": {
+    "message": "Tâche créée"
+  },
+  "sidepanel_detail_saveTaskFailed": {
+    "message": "Échec de l'enregistrement de la tâche"
+  },
+  "sidepanel_detail_openedTabs": {
+    "message": "$count$ onglet(s) ouvert(s) pour la tâche",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_openTaskTabsFailed": {
+    "message": "Échec de l'ouverture des onglets de la tâche"
+  },
+  "sidepanel_detail_markedFixed": {
+    "message": "Tâche marquée comme résolue"
+  },
+  "sidepanel_detail_updateTaskFailed": {
+    "message": "Échec de la mise à jour de la tâche"
+  },
+  "sidepanel_detail_saveNoteFailed": {
+    "message": "Échec de l'enregistrement de la note"
+  },
+  "sidepanel_detail_syncing": {
+    "message": "Synchronisation de la collection..."
+  },
+  "sidepanel_detail_upToDate": {
+    "message": "La collection est à jour"
+  },
+  "sidepanel_detail_refreshed": {
+    "message": "Actualisé : $added$ ajoutés, $updated$ mis à jour, $removed$ supprimés",
+    "placeholders": {
+      "added": {
+        "content": "$1"
+      },
+      "updated": {
+        "content": "$2"
+      },
+      "removed": {
+        "content": "$3"
+      }
+    }
+  },
+  "sidepanel_detail_syncFailed": {
+    "message": "Échec de la synchronisation"
+  },
+  "sidepanel_detail_syncCollectionFailed": {
+    "message": "Échec de la synchronisation de la collection"
+  },
+  "sidepanel_detail_windowNotFound": {
+    "message": "Fenêtre introuvable"
+  },
+  "sidepanel_detail_windowFocused": {
+    "message": "Fenêtre mise au premier plan"
+  },
+  "sidepanel_detail_focusWindowFailed": {
+    "message": "Échec de la mise au premier plan de la fenêtre"
+  },
+  "sidepanel_detail_windowClosedSaved": {
+    "message": "Fenêtre fermée - collection enregistrée"
+  },
+  "sidepanel_detail_closeWindowFailed": {
+    "message": "Échec de la fermeture de la fenêtre"
+  },
+  "sidepanel_detail_openedNewWindow": {
+    "message": "Collection ouverte dans une nouvelle fenêtre"
+  },
+  "sidepanel_detail_openCollectionFailed": {
+    "message": "Échec de l'ouverture de la collection"
+  },
+  "sidepanel_detail_editCollectionTitle": {
+    "message": "Modifier la collection"
+  },
+  "sidepanel_detail_editCollectionFailed": {
+    "message": "Échec de la modification de la collection"
+  },
+  "sidepanel_detail_form_nameLabel": {
+    "message": "Nom"
+  },
+  "sidepanel_detail_form_descriptionLabel": {
+    "message": "Description"
+  },
+  "sidepanel_detail_form_iconLabel": {
+    "message": "Icône"
+  },
+  "sidepanel_detail_form_collectionTagsLabel": {
+    "message": "Étiquettes (séparées par des virgules)"
+  },
+  "sidepanel_detail_form_collectionTagsPlaceholder": {
+    "message": "travail, recherche, personnel"
+  },
+  "sidepanel_detail_collectionUpdated": {
+    "message": "Collection mise à jour"
+  },
+  "sidepanel_detail_saveChangesFailed": {
+    "message": "Échec de l'enregistrement des modifications"
+  },
+  "sidepanel_detail_settingsSaved": {
+    "message": "Paramètres enregistrés"
+  },
+  "sidepanel_detail_saveSettingsFailed": {
+    "message": "Échec de l'enregistrement des paramètres"
+  },
+  "sidepanel_detail_untitledCollection": {
+    "message": "Collection sans titre"
+  },
+  "sidepanel_detail_metaCreated": {
+    "message": "Créé :"
+  },
+  "sidepanel_detail_metaLastAccessed": {
+    "message": "Dernier accès :"
+  },
+  "sidepanel_detail_loading": {
+    "message": "Chargement..."
+  },
+  "sidepanel_detail_windowBadge": {
+    "message": "Fenêtre n°$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_modal_closeLabel": {
+    "message": "Fermer la boîte de dialogue"
+  },
+  "sidepanel_notification_closeLabel": {
+    "message": "Fermer la notification"
+  },
+  "sidepanel_state_connectionMessage": {
+    "message": "Connexion perdue. L'extension a peut-être redémarré."
+  },
+  "sidepanel_state_connectionSuggestion": {
+    "message": "Cliquez sur Réessayer pour recharger les données."
+  },
+  "sidepanel_state_quotaMessage": {
+    "message": "Stockage plein."
+  },
+  "sidepanel_state_quotaSuggestion": {
+    "message": "Supprimez d'anciennes collections pour libérer de l'espace."
+  },
+  "sidepanel_state_notFoundMessage": {
+    "message": "L'élément n'existe plus."
+  },
+  "sidepanel_state_notFoundSuggestion": {
+    "message": "Il a peut-être été supprimé."
+  },
+  "sidepanel_state_permissionMessage": {
+    "message": "Autorisation refusée."
+  },
+  "sidepanel_state_permissionSuggestion": {
+    "message": "Vérifiez les autorisations de l'extension dans chrome://extensions"
+  },
+  "sidepanel_state_unknownMessage": {
+    "message": "Une erreur s'est produite."
+  },
+  "sidepanel_state_unknownSuggestion": {
+    "message": "Cliquez sur Réessayer pour recommencer."
+  },
+  "dashboard_docTitle": {
+    "message": "TabTaskTick - Tableau de bord"
+  },
+  "dashboard_nav_overview": {
+    "message": "Aperçu"
+  },
+  "dashboard_nav_allTabs": {
+    "message": "Tous les onglets"
+  },
+  "dashboard_nav_groups": {
+    "message": "Groupes"
+  },
+  "dashboard_nav_snoozed": {
+    "message": "Reportés"
+  },
+  "dashboard_nav_history": {
+    "message": "Historique"
+  },
+  "dashboard_nav_collections": {
+    "message": "Collections"
+  },
+  "dashboard_nav_tasks": {
+    "message": "Tâches"
+  },
+  "dashboard_nav_rulesEngine": {
+    "message": "Moteur de règles"
+  },
+  "dashboard_nav_backupRestore": {
+    "message": "Sauvegarde et restauration"
+  },
+  "dashboard_footer_shortcuts": {
+    "message": "Raccourcis"
+  },
+  "dashboard_footer_shortcutsTitle": {
+    "message": "Raccourcis clavier (Maj+?)"
+  },
+  "dashboard_footer_settings": {
+    "message": "Paramètres"
+  },
+  "dashboard_overview_title": {
+    "message": "Aperçu du tableau de bord"
+  },
+  "dashboard_overview_quickOrganize": {
+    "message": "Organisation rapide"
+  },
+  "dashboard_overview_refresh": {
+    "message": "Actualiser"
+  },
+  "dashboard_overview_statTotalTabs": {
+    "message": "Total des onglets"
+  },
+  "dashboard_overview_statTotalTabsTitle": {
+    "message": "Voir tous les onglets"
+  },
+  "dashboard_overview_statTabsChange": {
+    "message": "+0 aujourd'hui"
+  },
+  "dashboard_overview_statTabGroups": {
+    "message": "Groupes d'onglets"
+  },
+  "dashboard_overview_statTabGroupsTitle": {
+    "message": "Voir les groupes d'onglets"
+  },
+  "dashboard_overview_statGroupsInfo": {
+    "message": "0 réduit"
+  },
+  "dashboard_overview_statSnoozed": {
+    "message": "Reportés"
+  },
+  "dashboard_overview_statSnoozedTitle": {
+    "message": "Voir les onglets reportés"
+  },
+  "dashboard_overview_statNextWake": {
+    "message": "Prochain dans --"
+  },
+  "dashboard_overview_statDuplicates": {
+    "message": "Doublons"
+  },
+  "dashboard_overview_statDuplicatesTitle": {
+    "message": "Voir les onglets en double"
+  },
+  "dashboard_overview_statDuplicatesInfo": {
+    "message": "Cliquez pour nettoyer"
+  },
+  "dashboard_overview_chartActivity": {
+    "message": "Activité des onglets (7 derniers jours)"
+  },
+  "dashboard_overview_chartTopDomains": {
+    "message": "Principaux domaines"
+  },
+  "dashboard_overview_recentActivity": {
+    "message": "Activité récente"
+  },
+  "dashboard_tabs_title": {
+    "message": "Tous les onglets"
+  },
+  "dashboard_tabs_searchPlaceholder": {
+    "message": "Rechercher des onglets..."
+  },
+  "dashboard_tabs_filterAll": {
+    "message": "Tous les onglets"
+  },
+  "dashboard_tabs_filterActive": {
+    "message": "Active"
+  },
+  "dashboard_tabs_filterSuspended": {
+    "message": "Suspendus"
+  },
+  "dashboard_tabs_filterPinned": {
+    "message": "Épinglés"
+  },
+  "dashboard_tabs_filterAudible": {
+    "message": "Audio en cours"
+  },
+  "dashboard_tabs_filterMuted": {
+    "message": "En sourdine"
+  },
+  "dashboard_tabs_filterGrouped": {
+    "message": "Dans des groupes"
+  },
+  "dashboard_tabs_filterUngrouped": {
+    "message": "Non groupés"
+  },
+  "dashboard_tabs_filterDuplicates": {
+    "message": "Doublons"
+  },
+  "dashboard_tabs_windowAll": {
+    "message": "Toutes les fenêtres"
+  },
+  "dashboard_tabs_sortDefault": {
+    "message": "Ordre par défaut"
+  },
+  "dashboard_tabs_sortWindow": {
+    "message": "Grouper par fenêtre"
+  },
+  "dashboard_tabs_sortRecent": {
+    "message": "Utilisés le plus récemment"
+  },
+  "dashboard_tabs_sortOldest": {
+    "message": "Utilisés le moins récemment"
+  },
+  "dashboard_tabs_sortSuspended": {
+    "message": "Suspendus d'abord"
+  },
+  "dashboard_tabs_sortActive": {
+    "message": "Actifs d'abord"
+  },
+  "dashboard_tabs_sortTitle": {
+    "message": "Titre (A-Z)"
+  },
+  "dashboard_tabs_sortDomain": {
+    "message": "Domaine (A-Z)"
+  },
+  "dashboard_tabs_sortCategory": {
+    "message": "Catégorie (A-Z)"
+  },
+  "dashboard_tabs_gridViewTitle": {
+    "message": "Vue en grille"
+  },
+  "dashboard_tabs_treeViewTitle": {
+    "message": "Vue arborescente"
+  },
+  "dashboard_tabs_selected": {
+    "message": "onglets sélectionnés"
+  },
+  "dashboard_tabs_selectAll": {
+    "message": "Tout sélectionner"
+  },
+  "dashboard_tabs_clear": {
+    "message": "Effacer"
+  },
+  "dashboard_tabs_bulkClose": {
+    "message": "Fermer"
+  },
+  "dashboard_tabs_bulkSnooze": {
+    "message": "Reporter"
+  },
+  "dashboard_tabs_bulkGroup": {
+    "message": "Grouper"
+  },
+  "dashboard_tabs_bulkMove": {
+    "message": "Déplacer"
+  },
+  "dashboard_tabs_smartWindowName": {
+    "message": "Fenêtre $name$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_defaultWindowName": {
+    "message": "Fenêtre $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_defaultGroupName": {
+    "message": "Groupe $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_countOfTotal": {
+    "message": "($displayed$ sur $total$)",
+    "placeholders": {
+      "displayed": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tabs_noTabsTitle": {
+    "message": "Aucun onglet trouvé"
+  },
+  "dashboard_tabs_noTabsText": {
+    "message": "Aucun onglet ne correspond à votre filtre actuel"
+  },
+  "dashboard_tabs_badgePinned": {
+    "message": "Épinglés"
+  },
+  "dashboard_tabs_badgePlaying": {
+    "message": "En lecture"
+  },
+  "dashboard_tabs_unknownWindow": {
+    "message": "Fenêtre inconnue"
+  },
+  "dashboard_tabs_lastAccessed": {
+    "message": "• Dernier accès : $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_selectAllInWindow": {
+    "message": "Sélectionner tous les onglets de la fenêtre"
+  },
+  "dashboard_tabs_closeWindowTitle": {
+    "message": "Fermer la fenêtre"
+  },
+  "dashboard_tabs_selectAllInGroup": {
+    "message": "Sélectionner tous les onglets du groupe"
+  },
+  "dashboard_tabs_renameGroupTitle": {
+    "message": "Renommer le groupe"
+  },
+  "dashboard_tabs_closeGroupTitle": {
+    "message": "Fermer le groupe"
+  },
+  "dashboard_tabs_windowTabCount_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowTabCount_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowTabCount_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_ungroupedTabs": {
+    "message": "Onglets non groupés"
+  },
+  "dashboard_tabs_confirmCloseWindow": {
+    "message": "Fermer cette fenêtre et tous ses onglets ?"
+  },
+  "dashboard_tabs_confirmCloseGroup": {
+    "message": "Fermer tous les onglets de ce groupe ?"
+  },
+  "dashboard_tabs_removedFromGroup_one": {
+    "message": "$count$ onglet retiré du groupe",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_removedFromGroup_other": {
+    "message": "$count$ onglets retirés du groupe",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_removedFromGroup_many": {
+    "message": "$count$ onglets retirés du groupe",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_ungroupFailed": {
+    "message": "Échec du dégroupement des onglets"
+  },
+  "dashboard_tabs_movedToWindow_one": {
+    "message": "$count$ onglet déplacé vers la fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_movedToWindow_other": {
+    "message": "$count$ onglets déplacés vers la fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_movedToWindow_many": {
+    "message": "$count$ onglets déplacés vers la fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_addedToGroup_one": {
+    "message": "$count$ onglet ajouté au groupe",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_addedToGroup_other": {
+    "message": "$count$ onglets ajoutés au groupe",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_addedToGroup_many": {
+    "message": "$count$ onglets ajoutés au groupe",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_moveToGroupFailed": {
+    "message": "Échec du déplacement des onglets vers le groupe"
+  },
+  "dashboard_tabs_treeBadgePin": {
+    "message": "Épingler"
+  },
+  "dashboard_tabs_treeBadgeAudio": {
+    "message": "Audio"
+  },
+  "dashboard_tabs_detailsBtnTitle": {
+    "message": "Afficher les détails de l'état de l'onglet pour le débogage"
+  },
+  "dashboard_tabs_gotoTabTitle": {
+    "message": "Aller à l'onglet"
+  },
+  "dashboard_tabs_windowOptionCurrent_one": {
+    "message": "$name$ (actuelle, $count$ onglet)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOptionCurrent_other": {
+    "message": "$name$ (actuelle, $count$ onglets)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOptionCurrent_many": {
+    "message": "$name$ (actuelle, $count$ onglets)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOption_one": {
+    "message": "$name$ ($count$ onglet)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOption_other": {
+    "message": "$name$ ($count$ onglets)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOption_many": {
+    "message": "$name$ ($count$ onglets)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_renameWindowsOption": {
+    "message": "✏️ Renommer les fenêtres..."
+  },
+  "dashboard_tabs_detailsTitle": {
+    "message": "Détails de l'état de l'onglet"
+  },
+  "dashboard_tabs_detailsAttribute": {
+    "message": "Attribut"
+  },
+  "dashboard_tabs_detailsValue": {
+    "message": "Valeur"
+  },
+  "dashboard_tabs_copyJson": {
+    "message": "Copier en JSON"
+  },
+  "dashboard_tabs_copied": {
+    "message": "Copié !"
+  },
+  "dashboard_groups_title": {
+    "message": "Groupes d'onglets"
+  },
+  "dashboard_groups_ungroupAll": {
+    "message": "Tout dégrouper"
+  },
+  "dashboard_groups_groupByDomain": {
+    "message": "Regrouper par domaine"
+  },
+  "dashboard_snoozed_title": {
+    "message": "Onglets reportés"
+  },
+  "dashboard_snoozed_wakeAll": {
+    "message": "Tout réveiller"
+  },
+  "dashboard_history_title": {
+    "message": "Historique des onglets"
+  },
+  "dashboard_history_clear": {
+    "message": "Effacer l'historique"
+  },
+  "dashboard_rules_title": {
+    "message": "Moteur de règles"
+  },
+  "dashboard_rules_runNow": {
+    "message": "Exécuter les règles maintenant"
+  },
+  "dashboard_rules_purgeAll": {
+    "message": "Tout purger"
+  },
+  "dashboard_rules_purgeAllTitle": {
+    "message": "Supprimer toutes les règles"
+  },
+  "dashboard_rules_addRule": {
+    "message": "Ajouter une règle"
+  },
+  "dashboard_rules_createCustom": {
+    "message": "Créer une règle personnalisée"
+  },
+  "dashboard_rules_startFromTemplate": {
+    "message": "Partir d'un modèle :"
+  },
+  "dashboard_rules_description": {
+    "message": "Créez des règles automatisées pour gérer vos onglets. Les règles s'exécutent dans l'ordre, de haut en bas. Glissez pour réorganiser."
+  },
+  "dashboard_rules_warning": {
+    "message": "Les règles peuvent fermer ou modifier automatiquement des onglets. Testez-les soigneusement avant de les activer."
+  },
+  "dashboard_rules_disableAll": {
+    "message": "Tout désactiver"
+  },
+  "dashboard_rules_enableAll": {
+    "message": "Tout activer"
+  },
+  "dashboard_rules_emptyTitle": {
+    "message": "Aucune règle créée"
+  },
+  "dashboard_rules_emptyText": {
+    "message": "Créez votre première règle pour automatiser la gestion des onglets, ou partez d'un modèle."
+  },
+  "dashboard_rules_addFirst": {
+    "message": "Ajouter votre première règle"
+  },
+  "dashboard_backup_title": {
+    "message": "Sauvegarde et restauration"
+  },
+  "dashboard_backup_createTitle": {
+    "message": "Créer une sauvegarde"
+  },
+  "dashboard_backup_createDesc": {
+    "message": "Enregistrez vos onglets, groupes, règles et paramètres."
+  },
+  "dashboard_backup_scope": {
+    "message": "Portée"
+  },
+  "dashboard_backup_include": {
+    "message": "Inclure"
+  },
+  "dashboard_backup_includeGroups": {
+    "message": "Groupes d'onglets et organisation"
+  },
+  "dashboard_backup_includeRules": {
+    "message": "Règles et automatisation"
+  },
+  "dashboard_backup_includeSnoozed": {
+    "message": "Onglets reportés"
+  },
+  "dashboard_backup_includeSettings": {
+    "message": "Paramètres et préférences"
+  },
+  "dashboard_backup_includeStatistics": {
+    "message": "Statistiques d'utilisation"
+  },
+  "dashboard_backup_includeCollections": {
+    "message": "Collections et tâches"
+  },
+  "dashboard_backup_format": {
+    "message": "Format"
+  },
+  "dashboard_backup_formatJSON": {
+    "message": "Sauvegarde complète (.json)"
+  },
+  "dashboard_backup_formatJSONHint": {
+    "message": "Sauvegarde complète - restaurable"
+  },
+  "dashboard_backup_formatCSV": {
+    "message": "Feuille de calcul (.csv)"
+  },
+  "dashboard_backup_formatCSVHint": {
+    "message": "Pour analyse dans Excel/Google Sheets"
+  },
+  "dashboard_backup_formatMarkdown": {
+    "message": "Document (.md)"
+  },
+  "dashboard_backup_formatMarkdownHint": {
+    "message": "Liste lisible par l'utilisateur"
+  },
+  "dashboard_backup_backupNow": {
+    "message": "Sauvegarder maintenant"
+  },
+  "dashboard_backup_restoreTitle": {
+    "message": "Restaurer à partir d'une sauvegarde"
+  },
+  "dashboard_backup_restoreDesc": {
+    "message": "Restaurer les onglets, groupes, règles et paramètres à partir d'une sauvegarde précédente."
+  },
+  "dashboard_backup_dropFile": {
+    "message": "Déposez un fichier ici ou cliquez pour parcourir"
+  },
+  "dashboard_backup_dropHint": {
+    "message": "Accepte les fichiers .json exportés depuis TabTaskTick"
+  },
+  "dashboard_backup_fileInfo": {
+    "message": "Informations sur le fichier"
+  },
+  "dashboard_backup_fileLabel": {
+    "message": "Fichier :"
+  },
+  "dashboard_backup_sizeLabel": {
+    "message": "Taille :"
+  },
+  "dashboard_backup_formatLabel": {
+    "message": "Format :"
+  },
+  "dashboard_backup_importPreview": {
+    "message": "Aperçu de l'importation"
+  },
+  "dashboard_backup_importTo": {
+    "message": "Importer vers"
+  },
+  "dashboard_backup_importNewWindows": {
+    "message": "Nouvelle(s) fenêtre(s)"
+  },
+  "dashboard_backup_importNewWindowsHint": {
+    "message": "Le plus sûr - Crée de nouvelles fenêtres"
+  },
+  "dashboard_backup_importCurrentWindow": {
+    "message": "Fenêtre actuelle"
+  },
+  "dashboard_backup_importCurrentWindowHint": {
+    "message": "Ajouter à la fenêtre actuelle"
+  },
+  "dashboard_backup_importReplaceAll": {
+    "message": "Remplacer toutes les fenêtres"
+  },
+  "dashboard_backup_importReplaceAllHint": {
+    "message": "⚠️ Ferme toutes les fenêtres existantes"
+  },
+  "dashboard_backup_options": {
+    "message": "Options"
+  },
+  "dashboard_backup_importGroups": {
+    "message": "Importer les groupes d'onglets"
+  },
+  "dashboard_backup_importRules": {
+    "message": "Importer les règles (fusion)"
+  },
+  "dashboard_backup_importSnoozed": {
+    "message": "Importer les onglets reportés"
+  },
+  "dashboard_backup_importSettings": {
+    "message": "Importer les paramètres (remplacement)"
+  },
+  "dashboard_backup_importCollections": {
+    "message": "Importer les collections et tâches"
+  },
+  "dashboard_backup_restoreBackup": {
+    "message": "Restaurer la sauvegarde"
+  },
+  "dashboard_backup_scheduledTitle": {
+    "message": "Sauvegardes planifiées"
+  },
+  "dashboard_backup_scheduledDesc": {
+    "message": "Créer automatiquement des sauvegardes complètes selon un calendrier pour la reprise après sinistre."
+  },
+  "dashboard_backup_enableAuto": {
+    "message": "Activer les sauvegardes automatiques"
+  },
+  "dashboard_backup_frequency": {
+    "message": "Fréquence :"
+  },
+  "dashboard_backup_freqHourly": {
+    "message": "Toutes les heures"
+  },
+  "dashboard_backup_freqDaily": {
+    "message": "Quotidienne"
+  },
+  "dashboard_backup_freqWeekly": {
+    "message": "Hebdomadaire"
+  },
+  "dashboard_backup_time": {
+    "message": "Heure :"
+  },
+  "dashboard_backup_recentBackups": {
+    "message": "Sauvegardes récentes"
+  },
+  "dashboard_backup_loadingHistory": {
+    "message": "Chargement de l'historique des sauvegardes..."
+  },
+  "dashboard_collections_title": {
+    "message": "Collections"
+  },
+  "dashboard_collections_saveWindow": {
+    "message": "Enregistrer la fenêtre"
+  },
+  "dashboard_collections_searchPlaceholder": {
+    "message": "Rechercher des collections..."
+  },
+  "dashboard_collections_filterAll": {
+    "message": "Toutes les collections"
+  },
+  "dashboard_collections_filterActive": {
+    "message": "Active"
+  },
+  "dashboard_collections_filterSaved": {
+    "message": "Enregistrées"
+  },
+  "dashboard_collections_filterArchived": {
+    "message": "Archivées"
+  },
+  "dashboard_collections_sortLastAccessed": {
+    "message": "Dernier accès"
+  },
+  "dashboard_collections_sortName": {
+    "message": "Nom (A-Z)"
+  },
+  "dashboard_collections_sortCreated": {
+    "message": "Date de création"
+  },
+  "dashboard_collections_sortTabCount": {
+    "message": "Nombre d'onglets"
+  },
+  "dashboard_collections_listViewTitle": {
+    "message": "Vue en liste"
+  },
+  "dashboard_collections_exportAllTitle": {
+    "message": "Exporter toutes les collections en JSON"
+  },
+  "dashboard_collections_exportAll": {
+    "message": "Tout exporter"
+  },
+  "dashboard_collections_importTitle": {
+    "message": "Importer des collections depuis un fichier JSON"
+  },
+  "dashboard_collections_import": {
+    "message": "Importer"
+  },
+  "dashboard_collections_sectionActive": {
+    "message": "Collections actives"
+  },
+  "dashboard_collections_sectionSaved": {
+    "message": "Collections enregistrées"
+  },
+  "dashboard_collections_sectionArchived": {
+    "message": "Archivées"
+  },
+  "dashboard_collections_never": {
+    "message": "Jamais"
+  },
+  "dashboard_collections_windowBadge": {
+    "message": "Fenêtre n°$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_moreTags": {
+    "message": "+$count$ de plus",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_noDescription": {
+    "message": "Aucune description"
+  },
+  "dashboard_collections_statTabs": {
+    "message": "onglets"
+  },
+  "dashboard_collections_statFolders": {
+    "message": "dossiers"
+  },
+  "dashboard_collections_statTasks": {
+    "message": "tâches"
+  },
+  "dashboard_collections_statAccessed": {
+    "message": "consulté"
+  },
+  "dashboard_collections_syncLastLabel": {
+    "message": "Dernière synchronisation :"
+  },
+  "dashboard_collections_syncLoading": {
+    "message": "Chargement..."
+  },
+  "dashboard_collections_syncPendingLabel": {
+    "message": "En attente :"
+  },
+  "dashboard_collections_syncPendingPlaceholder": {
+    "message": "..."
+  },
+  "dashboard_collections_focusWindow": {
+    "message": "Mettre la fenêtre au premier plan"
+  },
+  "dashboard_collections_open": {
+    "message": "Ouvrir"
+  },
+  "dashboard_collections_details": {
+    "message": "Détails"
+  },
+  "dashboard_collections_exportCardTitle": {
+    "message": "Exporter cette collection en JSON"
+  },
+  "dashboard_collections_export": {
+    "message": "Exporter"
+  },
+  "dashboard_collections_emptyTitle": {
+    "message": "Aucune collection pour le moment"
+  },
+  "dashboard_collections_emptyText": {
+    "message": "Les collections vous aident à organiser vos fenêtres de navigateur et vos tâches. Créez votre première collection pour commencer !"
+  },
+  "dashboard_collections_saveCurrentWindow": {
+    "message": "Enregistrer la fenêtre actuelle"
+  },
+  "dashboard_collections_errorTitle": {
+    "message": "Échec du chargement des collections"
+  },
+  "dashboard_collections_errorDefault": {
+    "message": "Une erreur s'est produite lors du chargement des collections."
+  },
+  "dashboard_collections_retry": {
+    "message": "Réessayer"
+  },
+  "dashboard_collections_actionFailed": {
+    "message": "L'action sur la collection a échoué"
+  },
+  "dashboard_collections_restoring": {
+    "message": "Restauration de la collection..."
+  },
+  "dashboard_collections_openedInWindow": {
+    "message": "Collection ouverte dans la fenêtre $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_openFailed": {
+    "message": "Échec de l'ouverture de la collection"
+  },
+  "dashboard_collections_notActive": {
+    "message": "La collection n'est pas active"
+  },
+  "dashboard_collections_windowFocused": {
+    "message": "Fenêtre mise au premier plan"
+  },
+  "dashboard_collections_focusFailed": {
+    "message": "Échec de la mise au premier plan de la fenêtre"
+  },
+  "dashboard_collections_confirmCloseWindow": {
+    "message": "Fermer la fenêtre et enregistrer la collection « $name$ » ?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_windowClosedSaved": {
+    "message": "Fenêtre fermée, collection enregistrée"
+  },
+  "dashboard_collections_closeFailed": {
+    "message": "Échec de la fermeture de la fenêtre"
+  },
+  "dashboard_collections_loadingDetails": {
+    "message": "Chargement des détails de la collection..."
+  },
+  "dashboard_collections_detailsFailed": {
+    "message": "Échec du chargement des détails de la collection"
+  },
+  "dashboard_collections_detailsTitle": {
+    "message": "Détails de la collection"
+  },
+  "dashboard_collections_unknown": {
+    "message": "Inconnu"
+  },
+  "dashboard_collections_information": {
+    "message": "Informations"
+  },
+  "dashboard_collections_statusLabel": {
+    "message": "Statut :"
+  },
+  "dashboard_collections_statusActive": {
+    "message": "🟢 Active"
+  },
+  "dashboard_collections_statusSaved": {
+    "message": "💾 Enregistrée"
+  },
+  "dashboard_collections_windowLabel": {
+    "message": "Fenêtre :"
+  },
+  "dashboard_collections_createdLabel": {
+    "message": "Créé :"
+  },
+  "dashboard_collections_lastAccessedLabel": {
+    "message": "Dernier accès :"
+  },
+  "dashboard_collections_tabsLabel": {
+    "message": "Onglets :"
+  },
+  "dashboard_collections_foldersLabel": {
+    "message": "Dossiers :"
+  },
+  "dashboard_collections_tasksLabel": {
+    "message": "Tâches :"
+  },
+  "dashboard_collections_tags": {
+    "message": "Étiquettes"
+  },
+  "dashboard_collections_foldersAndTabs": {
+    "message": "Dossiers et onglets"
+  },
+  "dashboard_collections_untitledFolder": {
+    "message": "Dossier sans titre"
+  },
+  "dashboard_collections_folderTabCount": {
+    "message": "($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_untitled": {
+    "message": "Sans titre"
+  },
+  "dashboard_collections_ungrouped": {
+    "message": "Non groupés"
+  },
+  "dashboard_collections_tasksHeading": {
+    "message": "Tâches ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_taskTabCount_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_taskTabCount_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_taskTabCount_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_notFound": {
+    "message": "Collection introuvable"
+  },
+  "dashboard_collections_formName": {
+    "message": "Nom *"
+  },
+  "dashboard_collections_formNamePlaceholder": {
+    "message": "Nom de la collection"
+  },
+  "dashboard_collections_formDescription": {
+    "message": "Description"
+  },
+  "dashboard_collections_formDescriptionPlaceholder": {
+    "message": "Description facultative"
+  },
+  "dashboard_collections_formIcon": {
+    "message": "Icône"
+  },
+  "dashboard_collections_formColor": {
+    "message": "Couleur"
+  },
+  "dashboard_collections_formTags": {
+    "message": "Étiquettes (séparées par des virgules)"
+  },
+  "dashboard_collections_formTagsPlaceholder": {
+    "message": "travail, important, projet"
+  },
+  "dashboard_collections_syncSettingsLabel": {
+    "message": "Paramètres de synchronisation progressive"
+  },
+  "dashboard_collections_enableTracking": {
+    "message": "Activer le suivi en temps réel"
+  },
+  "dashboard_collections_enableTrackingHelp": {
+    "message": "Suivre et enregistrer automatiquement les modifications d'onglets/groupes"
+  },
+  "dashboard_collections_syncDelay": {
+    "message": "Délai de synchronisation (secondes)"
+  },
+  "dashboard_collections_syncDelayHelp": {
+    "message": "Temps d'attente avant l'enregistrement des modifications"
+  },
+  "dashboard_collections_saveChanges": {
+    "message": "Enregistrer les modifications"
+  },
+  "dashboard_collections_editTitle": {
+    "message": "Modifier la collection"
+  },
+  "dashboard_collections_nameRequired": {
+    "message": "Le nom de la collection est obligatoire"
+  },
+  "dashboard_collections_updated": {
+    "message": "Collection mise à jour"
+  },
+  "dashboard_collections_updateFailed": {
+    "message": "Échec de la mise à jour de la collection"
+  },
+  "dashboard_collections_confirmDelete": {
+    "message": "Supprimer la collection « $name$ » ? Cela supprimera également toutes les tâches associées.",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_deleted": {
+    "message": "Collection supprimée"
+  },
+  "dashboard_collections_deleteFailed": {
+    "message": "Échec de la suppression de la collection"
+  },
+  "dashboard_collections_savingWindow": {
+    "message": "Enregistrement de la fenêtre actuelle..."
+  },
+  "dashboard_collections_created": {
+    "message": "Collection créée !"
+  },
+  "dashboard_collections_createFailed": {
+    "message": "Échec de la création de la collection"
+  },
+  "dashboard_collections_exporting": {
+    "message": "Exportation de la collection..."
+  },
+  "dashboard_collections_exportFailed": {
+    "message": "Échec de l'exportation de la collection"
+  },
+  "dashboard_collections_exportFailedMsg": {
+    "message": "Échec de l'exportation : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_noneToExport": {
+    "message": "Aucune collection à exporter"
+  },
+  "dashboard_collections_exportingCount_one": {
+    "message": "Exportation de $count$ collection...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_exportingCount_other": {
+    "message": "Exportation de $count$ collections...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_exportingCount_many": {
+    "message": "Exportation de $count$ collections...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_exportAllFailed": {
+    "message": "Échec de l'exportation des collections"
+  },
+  "dashboard_collections_importing": {
+    "message": "Importation des collections..."
+  },
+  "dashboard_collections_importFailed": {
+    "message": "Échec de l'importation des collections"
+  },
+  "dashboard_collections_importFailedMsg": {
+    "message": "Échec de l'importation : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_opened": {
+    "message": "Collection ouverte"
+  },
+  "dashboard_collections_syncJustNow": {
+    "message": "À l'instant"
+  },
+  "dashboard_collections_syncSecondsAgo": {
+    "message": "il y a $count$ s",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncMinutesAgo": {
+    "message": "il y a $count$ min",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncHoursAgo": {
+    "message": "il y a $count$ h",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncDaysAgo": {
+    "message": "il y a $count$ j",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_title": {
+    "message": "Tâches"
+  },
+  "dashboard_tasks_kanban": {
+    "message": "Kanban"
+  },
+  "dashboard_tasks_kanbanTitle": {
+    "message": "Vue Kanban"
+  },
+  "dashboard_tasks_list": {
+    "message": "Liste"
+  },
+  "dashboard_tasks_listTitle": {
+    "message": "Vue en liste"
+  },
+  "dashboard_tasks_newTask": {
+    "message": "Nouvelle tâche"
+  },
+  "dashboard_tasks_searchPlaceholder": {
+    "message": "Rechercher des tâches..."
+  },
+  "dashboard_tasks_filters": {
+    "message": "Filtres"
+  },
+  "dashboard_tasks_filtersTitle": {
+    "message": "Afficher/masquer les filtres"
+  },
+  "dashboard_tasks_clear": {
+    "message": "Effacer"
+  },
+  "dashboard_tasks_filterStatus": {
+    "message": "Statut"
+  },
+  "dashboard_tasks_statusOpen": {
+    "message": "Ouvrir"
+  },
+  "dashboard_tasks_statusActive": {
+    "message": "Active"
+  },
+  "dashboard_tasks_statusFixed": {
+    "message": "Résolu"
+  },
+  "dashboard_tasks_statusAbandoned": {
+    "message": "Abandonné"
+  },
+  "dashboard_tasks_filterPriority": {
+    "message": "Priorité"
+  },
+  "dashboard_tasks_priorityLow": {
+    "message": "Basse"
+  },
+  "dashboard_tasks_priorityMedium": {
+    "message": "Moyenne"
+  },
+  "dashboard_tasks_priorityHigh": {
+    "message": "Haute"
+  },
+  "dashboard_tasks_priorityCritical": {
+    "message": "Critique"
+  },
+  "dashboard_tasks_filterCollection": {
+    "message": "Collection"
+  },
+  "dashboard_tasks_uncategorized": {
+    "message": "Non catégorisé"
+  },
+  "dashboard_tasks_bulkSelected": {
+    "message": "0 tâche sélectionnée"
+  },
+  "dashboard_tasks_selectAll": {
+    "message": "Tout sélectionner"
+  },
+  "dashboard_tasks_bulkChangeStatus": {
+    "message": "Changer le statut"
+  },
+  "dashboard_tasks_bulkChangePriority": {
+    "message": "Changer la priorité"
+  },
+  "dashboard_tasks_bulkDelete": {
+    "message": "Supprimer la sélection"
+  },
+  "dashboard_tasks_detailTitle": {
+    "message": "Détails de la tâche"
+  },
+  "dashboard_tasks_fieldSummary": {
+    "message": "Résumé"
+  },
+  "dashboard_tasks_summaryPlaceholder": {
+    "message": "Résumé de la tâche"
+  },
+  "dashboard_tasks_fieldNotes": {
+    "message": "Notes"
+  },
+  "dashboard_tasks_notesPlaceholder": {
+    "message": "Notes de la tâche"
+  },
+  "dashboard_tasks_fieldStatus": {
+    "message": "Statut"
+  },
+  "dashboard_tasks_fieldPriority": {
+    "message": "Priorité"
+  },
+  "dashboard_tasks_fieldDueDate": {
+    "message": "Échéance"
+  },
+  "dashboard_tasks_fieldCollection": {
+    "message": "Collection"
+  },
+  "dashboard_tasks_fieldTags": {
+    "message": "Étiquettes (séparées par des virgules)"
+  },
+  "dashboard_tasks_tagsPlaceholder": {
+    "message": "étiquette1, étiquette2, étiquette3"
+  },
+  "dashboard_tasks_summaryRequired": {
+    "message": "Le résumé est obligatoire"
+  },
+  "dashboard_tasks_created": {
+    "message": "Tâche créée"
+  },
+  "dashboard_tasks_updated": {
+    "message": "Tâche mise à jour"
+  },
+  "dashboard_tasks_createFailed": {
+    "message": "Échec de la création de la tâche"
+  },
+  "dashboard_tasks_updateFailed": {
+    "message": "Échec de la mise à jour de la tâche"
+  },
+  "dashboard_tasks_deleteConfirm": {
+    "message": "Supprimer la tâche « $summary$ » ?",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_deleted": {
+    "message": "Tâche supprimée"
+  },
+  "dashboard_tasks_deleteFailed": {
+    "message": "Échec de la suppression de la tâche"
+  },
+  "dashboard_tasks_noneSelected": {
+    "message": "Aucune tâche sélectionnée"
+  },
+  "dashboard_tasks_actionFailed": {
+    "message": "L'action a échoué"
+  },
+  "dashboard_tasks_promptStatus": {
+    "message": "Saisir le statut (open/active/fixed/abandoned) :"
+  },
+  "dashboard_tasks_promptPriority": {
+    "message": "Saisir la priorité (low/medium/high/critical) :"
+  },
+  "dashboard_tasks_bulkDeleteConfirm_one": {
+    "message": "Supprimer $count$ tâche ?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_bulkDeleteConfirm_other": {
+    "message": "Supprimer $count$ tâches ?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_bulkDeleteConfirm_many": {
+    "message": "Supprimer $count$ tâches ?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_unknownAction": {
+    "message": "Action inconnue : $action$",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_bulkUpdated": {
+    "message": "$done$ tâches sur $total$ mises à jour",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tasks_bulkDeleted": {
+    "message": "$done$ tâches sur $total$ supprimées",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tasks_selectedCount_one": {
+    "message": "$count$ tâche sélectionnée",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_selectedCount_other": {
+    "message": "$count$ tâches sélectionnées",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_selectedCount_many": {
+    "message": "$count$ tâches sélectionnées",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_tabCount_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_tabCount_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_tabCount_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_emptyTitle": {
+    "message": "Aucune tâche pour le moment"
+  },
+  "dashboard_tasks_emptyDescription": {
+    "message": "Créez des tâches pour suivre votre travail dans les collections."
+  },
+  "dashboard_tasks_emptyAction": {
+    "message": "Créer votre première tâche"
+  },
+  "dashboard_tasks_errorTitle": {
+    "message": "Échec du chargement des tâches"
+  },
+  "dashboard_tasks_errorDescription": {
+    "message": "Une erreur s'est produite lors du chargement des tâches."
+  },
+  "dashboard_tasks_retry": {
+    "message": "Réessayer"
+  },
+  "dashboard_tasks_noResultsTitle": {
+    "message": "Aucun résultat trouvé"
+  },
+  "dashboard_tasks_noResultsDescription": {
+    "message": "Essayez de modifier vos critères de recherche ou de filtrage."
+  },
+  "dashboard_tasks_loadFailed": {
+    "message": "Échec du chargement des tâches"
+  },
+  "dashboard_tasks_notFound": {
+    "message": "Tâche introuvable"
+  },
+  "dashboard_tasks_openTabsFailed": {
+    "message": "Échec de l'ouverture des onglets de la tâche"
+  },
+  "dashboard_tasks_openedTabs_one": {
+    "message": "$count$ onglet ouvert",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_openedTabs_other": {
+    "message": "$count$ onglets ouverts",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_openedTabs_many": {
+    "message": "$count$ onglets ouverts",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_colTask": {
+    "message": "Tâche"
+  },
+  "dashboard_tasks_colCollection": {
+    "message": "Collection"
+  },
+  "dashboard_tasks_colPriority": {
+    "message": "Priorité"
+  },
+  "dashboard_tasks_colStatus": {
+    "message": "Statut"
+  },
+  "dashboard_tasks_colDueDate": {
+    "message": "Échéance"
+  },
+  "dashboard_tasks_colActions": {
+    "message": "Actions"
+  },
+  "dashboard_tasks_dragReorder": {
+    "message": "Glissez pour réorganiser"
+  },
+  "dashboard_tasks_actionEdit": {
+    "message": "Modifier"
+  },
+  "dashboard_tasks_actionDelete": {
+    "message": "Supprimer"
+  },
+  "dashboard_tasks_actionOpenTabs": {
+    "message": "Ouvrir les onglets"
+  },
+  "dashboard_tasks_columnEmpty": {
+    "message": "Aucune tâche $status$",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_movedTo": {
+    "message": "Tâche déplacée vers $status$",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_statusUpdateFailed": {
+    "message": "Échec de la mise à jour du statut de la tâche"
+  },
+  "dashboard_tasks_toastCreate": {
+    "message": "Créer une nouvelle tâche (n)"
+  },
+  "dashboard_tasks_deleteConfirmGeneric": {
+    "message": "Voulez-vous vraiment supprimer cette tâche ?"
+  },
+  "dashboard_tasks_updatePriorityFailed": {
+    "message": "Échec de la mise à jour de la priorité"
+  },
+  "dashboard_tasks_prioritySet": {
+    "message": "Priorité définie sur $priority$",
+    "placeholders": {
+      "priority": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_statusChanged": {
+    "message": "Statut changé en $status$",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_openedTabsForTask": {
+    "message": "Onglets ouverts pour la tâche"
+  },
+  "dashboard_tasks_openTabsActionFailed": {
+    "message": "Échec de l'ouverture des onglets"
+  },
+  "dashboard_tasks_noTabsForTask": {
+    "message": "Aucun onglet associé à cette tâche"
+  },
+  "dashboard_tasks_filteringByStatus": {
+    "message": "Filtrage par statut : $status$",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_modal_confirmTitle": {
+    "message": "Confirmer l'action"
+  },
+  "dashboard_modal_proceed": {
+    "message": "Continuer"
+  },
+  "dashboard_modal_processing": {
+    "message": "Traitement..."
+  },
+  "dashboard_modal_confirmMessage": {
+    "message": "Voulez-vous vraiment continuer ?"
+  },
+  "dashboard_organize_title": {
+    "message": "Organisation rapide"
+  },
+  "dashboard_organize_closeDupes": {
+    "message": "Fermer les onglets en double"
+  },
+  "dashboard_organize_dupeCount": {
+    "message": "($count$ trouvés)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_groupDomains": {
+    "message": "Regrouper les onglets par domaine"
+  },
+  "dashboard_organize_groupCount": {
+    "message": "($count$ groupes)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_snoozeInactive": {
+    "message": "Reporter les onglets inactifs"
+  },
+  "dashboard_organize_inactiveCount": {
+    "message": "($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_suspendHeavy": {
+    "message": "Suspendre les onglets gourmands en mémoire"
+  },
+  "dashboard_organize_heavyCount": {
+    "message": "($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_organizeNow": {
+    "message": "Organiser maintenant"
+  },
+  "dashboard_rule_addNew": {
+    "message": "Ajouter une nouvelle règle"
+  },
+  "dashboard_rule_name": {
+    "message": "Nom de la règle"
+  },
+  "dashboard_rule_namePlaceholder": {
+    "message": "Saisissez un nom descriptif pour cette règle"
+  },
+  "dashboard_rule_conditions": {
+    "message": "Conditions"
+  },
+  "dashboard_rule_preview": {
+    "message": "Aperçu"
+  },
+  "dashboard_rule_previewDefault": {
+    "message": "Correspondre à TOUS les onglets dont l'URL contient « example.com »"
+  },
+  "dashboard_rule_actions": {
+    "message": "Actions (dans l'ordre)"
+  },
+  "dashboard_rule_addAction": {
+    "message": "+ Ajouter une action"
+  },
+  "dashboard_rule_whenToApply": {
+    "message": "Quand appliquer"
+  },
+  "dashboard_rule_triggerImmediate": {
+    "message": "Lors des événements d'onglet (immédiat)"
+  },
+  "dashboard_rule_triggerRepeat": {
+    "message": "Répéter périodiquement"
+  },
+  "dashboard_rule_triggerOnce": {
+    "message": "Une fois à une heure précise"
+  },
+  "dashboard_rule_triggerManual": {
+    "message": "Manuel uniquement"
+  },
+  "dashboard_rule_enableNow": {
+    "message": "Activer la règle immédiatement"
+  },
+  "dashboard_rule_enableHelp": {
+    "message": "Vous pouvez tester la règle avant de l'activer"
+  },
+  "dashboard_rule_save": {
+    "message": "Enregistrer la règle"
+  },
+  "dashboard_emoji_catFolders": {
+    "message": "Dossiers et fichiers"
+  },
+  "dashboard_emoji_catWork": {
+    "message": "Travail et productivité"
+  },
+  "dashboard_emoji_catDev": {
+    "message": "Développement et technologie"
+  },
+  "dashboard_emoji_catMisc": {
+    "message": "Divers"
+  },
+  "dashboard_time_justNow": {
+    "message": "À l'instant"
+  },
+  "dashboard_time_minutesAgo": {
+    "message": "il y a $count$ min",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_hoursAgo": {
+    "message": "il y a $count$ h",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_daysAgo": {
+    "message": "il y a $count$ j",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_now": {
+    "message": "Maintenant"
+  },
+  "dashboard_time_unknown": {
+    "message": "Inconnu"
+  },
+  "dashboard_tabState_suspended": {
+    "message": "💤 Suspendu"
+  },
+  "dashboard_tabState_active": {
+    "message": "👁 Actif"
+  },
+  "dashboard_tabState_playing": {
+    "message": "🔊 En lecture"
+  },
+  "dashboard_tabState_pinned": {
+    "message": "📌 Épinglé"
+  },
+  "dashboard_tabState_loaded": {
+    "message": "Chargé"
+  },
+  "dashboard_notify_savingWindow": {
+    "message": "Enregistrement de la fenêtre actuelle..."
+  },
+  "dashboard_notify_collectionCreated": {
+    "message": "Collection créée !"
+  },
+  "dashboard_notify_collectionFailed": {
+    "message": "Échec de la création de la collection"
+  },
+  "dashboard_notify_closedTabs": {
+    "message": "$count$ onglets fermés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_notify_groupCreated": {
+    "message": "Groupe « $name$ » créé avec $count$ onglets",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_actionFailed": {
+    "message": "Échec de l'action $action$ sur les onglets : $error$",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      },
+      "error": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_noTabsToSnooze": {
+    "message": "Aucun onglet à reporter"
+  },
+  "dashboard_notify_snoozeUnavailable": {
+    "message": "La fonction de report n'est pas disponible"
+  },
+  "dashboard_notify_snoozedWindows": {
+    "message": "$windows$ reportée(s) pendant $duration$",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_snoozedTabs": {
+    "message": "$tabs$ reporté(s) pendant $duration$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_snoozeErrors": {
+    "message": "Report terminé avec $count$ erreur(s)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_notify_snoozeFailed": {
+    "message": "Échec du report"
+  },
+  "dashboard_notify_prepareSnoozeFailed": {
+    "message": "Échec de la préparation du report"
+  },
+  "dashboard_notify_movedTabs": {
+    "message": "$tabs$ déplacé(s) vers $window$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "window": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_moveTabsFailed": {
+    "message": "Échec du déplacement des onglets"
+  },
+  "dashboard_notify_wakeAllSuccess": {
+    "message": "Tous les onglets reportés ont été restaurés"
+  },
+  "dashboard_notify_wakeAllFailed": {
+    "message": "Échec du réveil des onglets reportés"
+  },
+  "dashboard_notify_windowNamesSaved": {
+    "message": "Noms des fenêtres enregistrés"
+  },
+  "dashboard_progress_processingTabs": {
+    "message": "Traitement de $count$ onglets...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_confirm_actionTitle": {
+    "message": "Confirmer $action$",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_confirm_actionMessage": {
+    "message": "Voulez-vous vraiment $action$ $count$ onglets ? Cette action est irréversible.",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_prompt_groupName": {
+    "message": "Saisissez un nom pour le groupe :"
+  },
+  "dashboard_group_untitled": {
+    "message": "Sans titre"
+  },
+  "dashboard_moveDialog_title": {
+    "message": "Déplacer $count$ vers...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_moveDialog_currentWindow": {
+    "message": "Fenêtre actuelle"
+  },
+  "dashboard_moveDialog_windowName": {
+    "message": "Fenêtre $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_moveDialog_currentLocation": {
+    "message": "(emplacement actuel)"
+  },
+  "dashboard_moveDialog_createNew": {
+    "message": "Créer une nouvelle fenêtre"
+  },
+  "dashboard_moveDialog_newWindow": {
+    "message": "nouvelle fenêtre"
+  },
+  "dashboard_count_tabs_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_tabs_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_tabs_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_windows_one": {
+    "message": "$count$ fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_windows_other": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_windows_many": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rename_title": {
+    "message": "Renommer les fenêtres"
+  },
+  "dashboard_rename_windowLabel": {
+    "message": "Fenêtre $index$",
+    "placeholders": {
+      "index": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rename_placeholder": {
+    "message": "Saisir un nom..."
+  },
+  "dashboard_rename_save": {
+    "message": "Enregistrer les noms"
+  },
+  "dashboard_state_selectedCount": {
+    "message": "$count$ sélectionné(s)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_help_title": {
+    "message": "Raccourcis clavier"
+  },
+  "dashboard_help_closeLabel": {
+    "message": "Fermer l'aide des raccourcis clavier"
+  },
+  "dashboard_help_searchPlaceholder": {
+    "message": "Rechercher des raccourcis..."
+  },
+  "dashboard_help_searchLabel": {
+    "message": "Rechercher des raccourcis clavier"
+  },
+  "dashboard_help_listLabel": {
+    "message": "Liste des raccourcis clavier"
+  },
+  "dashboard_help_noShortcuts": {
+    "message": "Aucun raccourci trouvé"
+  },
+  "dashboard_help_noDescription": {
+    "message": "Aucune description"
+  },
+  "dashboard_help_sequenceThen": {
+    "message": "puis"
+  },
+  "dashboard_help_catNavigation": {
+    "message": "Navigation"
+  },
+  "dashboard_help_catTasks": {
+    "message": "Tâches"
+  },
+  "dashboard_help_catCollections": {
+    "message": "Collections"
+  },
+  "dashboard_help_catGeneral": {
+    "message": "Général"
+  },
+  "dashboard_shortcuts_tooltip": {
+    "message": "Appuyez sur Entrée pour ouvrir • Espace pour sélectionner"
+  },
+  "dashboard_backup_exporting": {
+    "message": "Exportation en $format$...",
+    "placeholders": {
+      "format": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportedSummary": {
+    "message": "Exporté : $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportedFormat": {
+    "message": "Exporté en $format$",
+    "placeholders": {
+      "format": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportFailed": {
+    "message": "Échec de l'exportation : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryTabs_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryTabs_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryTabs_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryRules_one": {
+    "message": "$count$ règle",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryRules_other": {
+    "message": "$count$ règles",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryRules_many": {
+    "message": "$count$ règles",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summarySnoozed_one": {
+    "message": "$count$ onglet reporté",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summarySnoozed_other": {
+    "message": "$count$ onglets reportés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summarySnoozed_many": {
+    "message": "$count$ onglets reportés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryWindows_one": {
+    "message": "$count$ fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryWindows_other": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryWindows_many": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryGroups_one": {
+    "message": "$count$ groupe",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryGroups_other": {
+    "message": "$count$ groupes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryGroups_many": {
+    "message": "$count$ groupes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_selectJsonFile": {
+    "message": "Veuillez sélectionner un fichier JSON"
+  },
+  "dashboard_backup_fileTooLarge": {
+    "message": "Fichier trop volumineux (10 Mo max)"
+  },
+  "dashboard_backup_invalidFile": {
+    "message": "Fichier d'export TabMaster non valide"
+  },
+  "dashboard_backup_fileSizeKB": {
+    "message": "$size$ Ko",
+    "placeholders": {
+      "size": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_formatUnknown": {
+    "message": "Inconnu"
+  },
+  "dashboard_backup_previewTabs_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewTabs_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewTabs_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewTabsInWindows": {
+    "message": "$tabs$ dans $windows$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "windows": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_previewWindowCount_one": {
+    "message": "$count$ fenêtre",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewWindowCount_other": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewWindowCount_many": {
+    "message": "$count$ fenêtres",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRestricted": {
+    "message": "$base$ ($count$ URL restreintes exclues)",
+    "placeholders": {
+      "base": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_previewGroups_one": {
+    "message": "$count$ groupe d'onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewGroups_other": {
+    "message": "$count$ groupes d'onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewGroups_many": {
+    "message": "$count$ groupes d'onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRules_one": {
+    "message": "$count$ règle",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRules_other": {
+    "message": "$count$ règles",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRules_many": {
+    "message": "$count$ règles",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewSnoozed_one": {
+    "message": "$count$ onglet reporté",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewSnoozed_other": {
+    "message": "$count$ onglets reportés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewSnoozed_many": {
+    "message": "$count$ onglets reportés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnManyTabs_one": {
+    "message": "⚠️ Cela ouvrira $count$ onglet. Envisagez d'importer par lots plus petits.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnManyTabs_other": {
+    "message": "⚠️ Cela ouvrira $count$ onglets. Envisagez d'importer par lots plus petits.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnManyTabs_many": {
+    "message": "⚠️ Cela ouvrira $count$ onglets. Envisagez d'importer par lots plus petits.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnOpenTabs_one": {
+    "message": "Cela ouvrira $count$ onglet.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnOpenTabs_other": {
+    "message": "Cela ouvrira $count$ onglets.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnOpenTabs_many": {
+    "message": "Cela ouvrira $count$ onglets.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnAllRestricted_one": {
+    "message": "⚠️ Le $count$ onglet a une URL restreinte et ne peut pas être importé.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnAllRestricted_other": {
+    "message": "⚠️ Les $count$ onglets ont des URL restreintes et ne peuvent pas être importés.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnAllRestricted_many": {
+    "message": "⚠️ Les $count$ onglets ont des URL restreintes et ne peuvent pas être importés.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_fileReadFailed": {
+    "message": "Échec de la lecture du fichier : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_noFileSelected": {
+    "message": "Aucun fichier sélectionné"
+  },
+  "dashboard_backup_importing": {
+    "message": "Importation des données..."
+  },
+  "dashboard_backup_importSuccess": {
+    "message": "Importé avec succès : $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_importNoItems": {
+    "message": "Importation terminée mais aucun élément n'a été importé"
+  },
+  "dashboard_backup_importFailed": {
+    "message": "Échec de l'importation : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_nextEveryHour": {
+    "message": "Toutes les heures"
+  },
+  "dashboard_backup_nextEveryDay": {
+    "message": "Tous les jours"
+  },
+  "dashboard_backup_nextEveryWeek": {
+    "message": "Toutes les semaines"
+  },
+  "dashboard_backup_nextInHM": {
+    "message": "Prochaine sauvegarde dans $hours$ h $minutes$ min",
+    "placeholders": {
+      "hours": {
+        "content": "$1"
+      },
+      "minutes": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_nextInM": {
+    "message": "Prochaine sauvegarde dans $minutes$ min",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_nextSoon": {
+    "message": "Prochaine sauvegarde bientôt"
+  },
+  "dashboard_backup_enabledFirstBackup": {
+    "message": "Sauvegardes automatiques activées - première sauvegarde créée"
+  },
+  "dashboard_backup_enabled": {
+    "message": "Sauvegardes automatiques activées"
+  },
+  "dashboard_backup_disabled": {
+    "message": "Sauvegardes automatiques désactivées"
+  },
+  "dashboard_backup_updateSettingsFailed": {
+    "message": "Échec de la mise à jour des paramètres de sauvegarde"
+  },
+  "dashboard_backup_scheduleUpdated": {
+    "message": "Calendrier de sauvegarde mis à jour"
+  },
+  "dashboard_backup_saveSettingsFailed": {
+    "message": "Échec de l'enregistrement des paramètres"
+  },
+  "dashboard_backup_noBackups": {
+    "message": "Aucune sauvegarde pour le moment"
+  },
+  "dashboard_backup_noBackupsHint": {
+    "message": "Cliquez sur « Sauvegarder maintenant » ou activez les sauvegardes automatiques"
+  },
+  "dashboard_backup_badgeAuto": {
+    "message": "AUTO"
+  },
+  "dashboard_backup_badgeManual": {
+    "message": "MANUEL"
+  },
+  "dashboard_backup_itemDetails": {
+    "message": "$date$ • $tabs$ • $windows$ • $size$ Mo",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      },
+      "windows": {
+        "content": "$3"
+      },
+      "size": {
+        "content": "$4"
+      }
+    }
+  },
+  "dashboard_backup_showFileTitle": {
+    "message": "Afficher le fichier dans le dossier Téléchargements"
+  },
+  "dashboard_backup_showFile": {
+    "message": "📁 Afficher"
+  },
+  "dashboard_backup_fileMoved": {
+    "message": "Le fichier de sauvegarde a peut-être été déplacé. Vérifiez le dossier Téléchargements pour les fichiers commençant par « tabmaster-backup- »"
+  },
+  "dashboard_backup_openFolderFailed": {
+    "message": "Impossible d'ouvrir le dossier Téléchargements"
+  },
+  "dashboard_backup_scopeCurrent_one": {
+    "message": "Fenêtre actuelle ($count$ onglet)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeCurrent_other": {
+    "message": "Fenêtre actuelle ($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeCurrent_many": {
+    "message": "Fenêtre actuelle ($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeAll_one": {
+    "message": "Toutes les fenêtres ($count$ onglet)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeAll_other": {
+    "message": "Toutes les fenêtres ($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeAll_many": {
+    "message": "Toutes les fenêtres ($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_tabsChange": {
+    "message": "+$count$ aujourd'hui",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_collapsed_one": {
+    "message": "$count$ réduit",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_collapsed_other": {
+    "message": "$count$ réduit",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_collapsed_many": {
+    "message": "$count$ réduit",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_nextInHours": {
+    "message": "Prochain dans $hours$ h",
+    "placeholders": {
+      "hours": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_noneScheduled": {
+    "message": "Aucune planifiée"
+  },
+  "dashboard_overview_clickToCleanup": {
+    "message": "Cliquez pour nettoyer"
+  },
+  "dashboard_overview_noneFound": {
+    "message": "Aucun trouvé"
+  },
+  "dashboard_overview_chartTabsOpened": {
+    "message": "Onglets ouverts"
+  },
+  "dashboard_overview_chartTabsClosed": {
+    "message": "Onglets fermés"
+  },
+  "dashboard_overview_filterAll": {
+    "message": "Tous"
+  },
+  "dashboard_overview_filterManual": {
+    "message": "Manuel"
+  },
+  "dashboard_overview_filterAuto": {
+    "message": "Auto"
+  },
+  "dashboard_overview_filterRules": {
+    "message": "Règles"
+  },
+  "dashboard_overview_noActivity": {
+    "message": "Aucune activité récente"
+  },
+  "dashboard_history_today": {
+    "message": "Aujourd'hui"
+  },
+  "dashboard_history_yesterday": {
+    "message": "Hier"
+  },
+  "dashboard_history_daysAgo_one": {
+    "message": "il y a $count$ jour",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_history_daysAgo_other": {
+    "message": "il y a $count$ jours",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_history_daysAgo_many": {
+    "message": "il y a $count$ jours",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_history_emptyTitle": {
+    "message": "Aucun historique d'onglets"
+  },
+  "dashboard_history_emptyText": {
+    "message": "Votre activité de gestion des onglets apparaîtra ici au fur et à mesure que vous utilisez TabMaster Pro"
+  },
+  "dashboard_history_badgeAuto": {
+    "message": "Auto"
+  },
+  "dashboard_history_badgeRule": {
+    "message": "Règle"
+  },
+  "dashboard_history_confirmClear": {
+    "message": "Voulez-vous vraiment effacer tout l'historique ? Cette action est irréversible."
+  },
+  "dashboard_history_cleared": {
+    "message": "Historique effacé avec succès"
+  },
+  "dashboard_history_clearFailed": {
+    "message": "Échec de l'effacement de l'historique. Veuillez réessayer."
+  },
+  "dashboard_groups_noGroupedTabs": {
+    "message": "Aucun onglet groupé à dégrouper"
+  },
+  "dashboard_groups_ungroupedTabs_one": {
+    "message": "$count$ onglet dégroupé",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_ungroupedTabs_other": {
+    "message": "$count$ onglets dégroupés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_ungroupedTabs_many": {
+    "message": "$count$ onglets dégroupés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_ungroupFailed": {
+    "message": "Échec du dégroupement des onglets"
+  },
+  "dashboard_groups_emptyTitle": {
+    "message": "Aucun groupe d'onglets"
+  },
+  "dashboard_groups_emptyText": {
+    "message": "Créez des groupes pour mieux organiser vos onglets"
+  },
+  "dashboard_groups_groupByDomainBtn": {
+    "message": "Regrouper par domaine"
+  },
+  "dashboard_groups_untitled": {
+    "message": "Groupe sans titre"
+  },
+  "dashboard_groups_tabCount_one": {
+    "message": "$count$ onglet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_tabCount_other": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_tabCount_many": {
+    "message": "$count$ onglets",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_groupedResult": {
+    "message": "$created$ nouveaux groupes créés, $reused$ groupes existants réutilisés",
+    "placeholders": {
+      "created": {
+        "content": "$1"
+      },
+      "reused": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_groups_noTabsToGroup": {
+    "message": "Aucun onglet à regrouper par domaine"
+  },
+  "dashboard_groups_groupByDomainFailed": {
+    "message": "Échec du regroupement des onglets par domaine"
+  },
+  "dashboard_snoozed_emptyTitle": {
+    "message": "Aucun onglet reporté"
+  },
+  "dashboard_snoozed_emptyText": {
+    "message": "Reportez des onglets pour les masquer temporairement et les rouvrir plus tard"
+  },
+  "dashboard_snoozed_window_one": {
+    "message": "Fenêtre reportée ($count$ onglet)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_window_other": {
+    "message": "Fenêtre reportée ($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_window_many": {
+    "message": "Fenêtre reportée ($count$ onglets)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_moreTabs": {
+    "message": "+$count$ de plus",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_restoreWindow": {
+    "message": "Restaurer la fenêtre"
+  },
+  "dashboard_snoozed_deleteAll": {
+    "message": "Tout supprimer"
+  },
+  "dashboard_snoozed_grouped": {
+    "message": "📁 Groupé"
+  },
+  "dashboard_snoozed_reasonManual": {
+    "message": "manuel"
+  },
+  "dashboard_snoozed_wakeNow": {
+    "message": "Réveiller maintenant"
+  },
+  "dashboard_snoozed_deleteTitle": {
+    "message": "Supprimer l'onglet reporté"
+  },
+  "dashboard_snoozed_within1Hour": {
+    "message": "Dans l'heure"
+  },
+  "dashboard_snoozed_today": {
+    "message": "Aujourd'hui"
+  },
+  "dashboard_snoozed_tomorrow": {
+    "message": "Demain"
+  },
+  "dashboard_snoozed_thisWeek": {
+    "message": "Cette semaine"
+  },
+  "dashboard_snoozed_later": {
+    "message": "Plus tard"
+  },
+  "dashboard_snoozed_wakeAtToday": {
+    "message": "Aujourd'hui à $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_wakeAtTomorrow": {
+    "message": "Demain à $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_wakeTabFailed": {
+    "message": "Échec du réveil de l'onglet : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_confirmDeleteTab": {
+    "message": "Supprimer cet onglet reporté ?"
+  },
+  "dashboard_snoozed_confirmDeleteWindow": {
+    "message": "Supprimer tous les onglets de cette fenêtre reportée ?"
+  },
+  "dashboard_snoozed_restoreWindowFailed": {
+    "message": "Échec de la restauration de la fenêtre : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_deleteWindowFailed": {
+    "message": "Échec de la suppression de la fenêtre : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_dragToReorder": {
+    "message": "Glissez pour réorganiser"
+  },
+  "dashboard_rules_disableRule": {
+    "message": "Désactiver la règle"
+  },
+  "dashboard_rules_enableRule": {
+    "message": "Activer la règle"
+  },
+  "dashboard_rules_testRuleTitle": {
+    "message": "Tester cette règle (aperçu uniquement)"
+  },
+  "dashboard_rules_runRuleTitle": {
+    "message": "Exécuter cette règle maintenant"
+  },
+  "dashboard_rules_cardWhen": {
+    "message": "Quand :"
+  },
+  "dashboard_rules_cardThen": {
+    "message": "Alors :"
+  },
+  "dashboard_rules_cardRuns": {
+    "message": "Exécutions :"
+  },
+  "dashboard_rules_runsEvery": {
+    "message": "Tous les $interval$",
+    "placeholders": {
+      "interval": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextRun": {
+    "message": "(prochaine : $time$)",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_runsOnceAt": {
+    "message": "Une fois le $datetime$",
+    "placeholders": {
+      "datetime": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_runsImmediate": {
+    "message": "Lors des événements d'onglet (immédiat)"
+  },
+  "dashboard_rules_runsOnCreate": {
+    "message": "Lorsque des onglets sont créés"
+  },
+  "dashboard_rules_interval_minutes_one": {
+    "message": "$count$ minute",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_minutes_other": {
+    "message": "$count$ minutes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_minutes_many": {
+    "message": "$count$ minutes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_hours_one": {
+    "message": "$count$ heure",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_hours_other": {
+    "message": "$count$ heures",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_hours_many": {
+    "message": "$count$ heures",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_days_one": {
+    "message": "$count$ jour",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_days_other": {
+    "message": "$count$ jours",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_days_many": {
+    "message": "$count$ jours",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_seconds_one": {
+    "message": "$count$ seconde",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_seconds_other": {
+    "message": "$count$ secondes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_seconds_many": {
+    "message": "$count$ secondes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_days_one": {
+    "message": "dans $count$ jour",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_days_other": {
+    "message": "dans $count$ jours",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_days_many": {
+    "message": "dans $count$ jours",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_hours_one": {
+    "message": "dans $count$ heure",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_hours_other": {
+    "message": "dans $count$ heures",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_hours_many": {
+    "message": "dans $count$ heures",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_minutes_one": {
+    "message": "dans $count$ minute",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_minutes_other": {
+    "message": "dans $count$ minutes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_minutes_many": {
+    "message": "dans $count$ minutes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_seconds_one": {
+    "message": "dans $count$ seconde",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_seconds_other": {
+    "message": "dans $count$ secondes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_seconds_many": {
+    "message": "dans $count$ secondes",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextOverdue": {
+    "message": "en retard"
+  },
+  "dashboard_rules_allTemplatesInstalled": {
+    "message": "Tous les modèles installés"
+  },
+  "dashboard_rules_condNoConditions": {
+    "message": "Aucune condition"
+  },
+  "dashboard_rules_condUnknown": {
+    "message": "Condition inconnue"
+  },
+  "dashboard_rules_condJunctionOf": {
+    "message": "$junction$ de : $conditions$",
+    "placeholders": {
+      "junction": {
+        "content": "$1"
+      },
+      "conditions": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_rules_condTriple": {
+    "message": "$subject$ $operator$ $value$",
+    "placeholders": {
+      "subject": {
+        "content": "$1"
+      },
+      "operator": {
+        "content": "$2"
+      },
+      "value": {
+        "content": "$3"
+      }
+    }
+  },
+  "dashboard_rules_junctionAll": {
+    "message": "TOUTES"
+  },
+  "dashboard_rules_junctionAny": {
+    "message": "N'IMPORTE"
+  },
+  "dashboard_rules_junctionNone": {
+    "message": "AUCUNE"
+  },
+  "dashboard_rules_valueYes": {
+    "message": "oui"
+  },
+  "dashboard_rules_valueNo": {
+    "message": "non"
+  },
+  "dashboard_rules_subject_url": {
+    "message": "URL"
+  },
+  "dashboard_rules_subject_title": {
+    "message": "Titre"
+  },
+  "dashboard_rules_subject_domain": {
+    "message": "Domaine"
+  },
+  "dashboard_rules_subject_domainCount": {
+    "message": "Nombre d'onglets du domaine"
+  },
+  "dashboard_rules_subject_origin": {
+    "message": "Origine"
+  },
+  "dashboard_rules_subject_age": {
+    "message": "Âge de l'onglet"
+  },
+  "dashboard_rules_subject_lastAccess": {
+    "message": "Dernier accès"
+  },
+  "dashboard_rules_subject_pinned": {
+    "message": "Épinglés"
+  },
+  "dashboard_rules_subject_audible": {
+    "message": "Audio en cours"
+  },
+  "dashboard_rules_subject_muted": {
+    "message": "En sourdine"
+  },
+  "dashboard_rules_subject_group": {
+    "message": "Dans un groupe"
+  },
+  "dashboard_rules_subject_groupName": {
+    "message": "Nom du groupe"
+  },
+  "dashboard_rules_subject_windowId": {
+    "message": "ID de fenêtre"
+  },
+  "dashboard_rules_subject_duplicate": {
+    "message": "Est un doublon"
+  },
+  "dashboard_rules_subject_category": {
+    "message": "Catégorie"
+  },
+  "dashboard_rules_subject_index": {
+    "message": "Index de l'onglet"
+  },
+  "dashboard_rules_subject_active": {
+    "message": "Est actif"
+  },
+  "dashboard_rules_op_eq": {
+    "message": "est égal à"
+  },
+  "dashboard_rules_op_neq": {
+    "message": "n'est pas égal à"
+  },
+  "dashboard_rules_op_equals": {
+    "message": "est"
+  },
+  "dashboard_rules_op_gt": {
+    "message": "supérieur à"
+  },
+  "dashboard_rules_op_gte": {
+    "message": "au moins"
+  },
+  "dashboard_rules_op_lt": {
+    "message": "inférieur à"
+  },
+  "dashboard_rules_op_lte": {
+    "message": "au plus"
+  },
+  "dashboard_rules_op_greaterThan": {
+    "message": "plus de"
+  },
+  "dashboard_rules_op_lessThan": {
+    "message": "inférieur à"
+  },
+  "dashboard_rules_op_contains": {
+    "message": "contient"
+  },
+  "dashboard_rules_op_notContains": {
+    "message": "ne contient pas"
+  },
+  "dashboard_rules_op_startsWith": {
+    "message": "commence par"
+  },
+  "dashboard_rules_op_endsWith": {
+    "message": "se termine par"
+  },
+  "dashboard_rules_op_regex": {
+    "message": "correspond à"
+  },
+  "dashboard_rules_op_in": {
+    "message": "dans"
+  },
+  "dashboard_rules_op_nin": {
+    "message": "pas dans"
+  },
+  "dashboard_rules_op_is": {
+    "message": "est"
+  },
+  "dashboard_rules_condDuplicate": {
+    "message": "Onglets en double"
+  },
+  "dashboard_rules_condDomainCount": {
+    "message": "$count$+ onglets du même domaine",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condAllTabs": {
+    "message": "Tous les onglets"
+  },
+  "dashboard_rules_condTabsFrom": {
+    "message": "Onglets de $patterns$",
+    "placeholders": {
+      "patterns": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condUrlsMatching": {
+    "message": "URL correspondant à « $pattern$ »",
+    "placeholders": {
+      "pattern": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condSitesInCategories": {
+    "message": "Sites dans les catégories : $categories$",
+    "placeholders": {
+      "categories": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condNoneCategories": {
+    "message": "aucune"
+  },
+  "dashboard_rules_condInactiveFor": {
+    "message": "inactif depuis $minutes$ min",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condOlderThan": {
+    "message": "plus ancien que $minutes$ min",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condNotAccessedFor": {
+    "message": "non consulté depuis $minutes$ min",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_action_close": {
+    "message": "Fermer les onglets"
+  },
+  "dashboard_rules_action_closeDuplicates": {
+    "message": "Fermer les doublons"
+  },
+  "dashboard_rules_action_group": {
+    "message": "Regrouper les onglets"
+  },
+  "dashboard_rules_action_snooze": {
+    "message": "Reporter les onglets"
+  },
+  "dashboard_rules_action_moveToWindow": {
+    "message": "Déplacer vers la fenêtre"
+  },
+  "dashboard_rules_action_pin": {
+    "message": "Épingler les onglets"
+  },
+  "dashboard_rules_action_unpin": {
+    "message": "Désépingler les onglets"
+  },
+  "dashboard_rules_action_mute": {
+    "message": "Mettre les onglets en sourdine"
+  },
+  "dashboard_rules_action_unmute": {
+    "message": "Réactiver le son des onglets"
+  },
+  "dashboard_rules_actionNoActions": {
+    "message": "Aucune action"
+  },
+  "dashboard_rules_actionUnknown": {
+    "message": "Action inconnue"
+  },
+  "dashboard_rules_actionKeep": {
+    "message": "(garder $keep$)",
+    "placeholders": {
+      "keep": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionScope": {
+    "message": "[$scope$]",
+    "placeholders": {
+      "scope": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionBy": {
+    "message": "par $by$",
+    "placeholders": {
+      "by": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionFor": {
+    "message": "pendant $duration$",
+    "placeholders": {
+      "duration": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionGroupByOld": {
+    "message": "Regrouper les onglets par $by$",
+    "placeholders": {
+      "by": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSnoozeMinutesOld": {
+    "message": "Reporter pendant $minutes$ minutes",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSuspendOld": {
+    "message": "Suspendre les onglets $excludePinned$",
+    "placeholders": {
+      "excludePinned": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSuspendExcludePinned": {
+    "message": "(exclure les épinglés)"
+  },
+  "dashboard_rules_confirmDelete": {
+    "message": "Voulez-vous vraiment supprimer cette règle ?"
+  },
+  "dashboard_rules_confirmPurge": {
+    "message": "Voulez-vous vraiment supprimer TOUTES les règles ? Cette action est irréversible."
+  },
+  "dashboard_rules_templateInstalled": {
+    "message": "Modèle de règle installé avec succès"
+  },
+  "dashboard_rules_deleted": {
+    "message": "Règle supprimée"
+  },
+  "dashboard_rules_purged": {
+    "message": "Toutes les règles ont été purgées"
+  },
+  "dashboard_rules_purgeFailed": {
+    "message": "Échec de la purge des règles"
+  },
+  "dashboard_rules_allEnabled": {
+    "message": "Toutes les règles activées"
+  },
+  "dashboard_rules_allDisabled": {
+    "message": "Toutes les règles désactivées"
+  },
+  "dashboard_rules_updated": {
+    "message": "Règle mise à jour avec succès"
+  },
+  "dashboard_rules_created": {
+    "message": "Règle créée avec succès"
+  },
+  "dashboard_rules_prioritiesUpdated": {
+    "message": "Priorités des règles mises à jour"
+  },
+  "dashboard_rules_modalTitleEdit": {
+    "message": "Modifier la règle"
+  },
+  "dashboard_rules_modalTitleCreate": {
+    "message": "Créer une nouvelle règle"
+  },
+  "dashboard_rules_noActionsDefined": {
+    "message": "Aucune action définie. Cliquez sur « Ajouter une action » pour en ajouter une."
+  },
+  "dashboard_rules_closeNotCombinable": {
+    "message": "L'action Fermer ne peut pas être combinée avec d'autres actions"
+  },
+  "dashboard_rules_noMoreCompatible": {
+    "message": "Aucune autre action compatible disponible"
+  },
+  "dashboard_rules_paramKeep": {
+    "message": "Garder :"
+  },
+  "dashboard_rules_paramKeepOldest": {
+    "message": "Onglet le plus ancien"
+  },
+  "dashboard_rules_paramKeepNewest": {
+    "message": "Onglet le plus récent"
+  },
+  "dashboard_rules_paramKeepNone": {
+    "message": "Aucun (tout fermer)"
+  },
+  "dashboard_rules_paramScope": {
+    "message": "Portée :"
+  },
+  "dashboard_rules_paramScopeGlobal": {
+    "message": "Global (toutes les fenêtres)"
+  },
+  "dashboard_rules_paramScopePerWindow": {
+    "message": "Par fenêtre (chacune séparément)"
+  },
+  "dashboard_rules_paramGroupBy": {
+    "message": "Grouper par :"
+  },
+  "dashboard_rules_paramGroupByDomain": {
+    "message": "Domaine"
+  },
+  "dashboard_rules_paramGroupByCategory": {
+    "message": "Catégorie"
+  },
+  "dashboard_rules_paramGroupByWindow": {
+    "message": "Fenêtre"
+  },
+  "dashboard_rules_paramName": {
+    "message": "Nom :"
+  },
+  "dashboard_rules_paramNamePlaceholder": {
+    "message": "Généré automatiquement"
+  },
+  "dashboard_rules_paramSnoozeFor": {
+    "message": "Reporter pendant :"
+  },
+  "dashboard_rules_paramUnitMinutes": {
+    "message": "minutes"
+  },
+  "dashboard_rules_paramUnitHours": {
+    "message": "heures"
+  },
+  "dashboard_rules_paramUnitDays": {
+    "message": "jours"
+  },
+  "dashboard_rules_paramTargetWindow": {
+    "message": "Fenêtre cible :"
+  },
+  "dashboard_rules_paramTargetNew": {
+    "message": "Nouvelle fenêtre"
+  },
+  "dashboard_rules_paramTargetCurrent": {
+    "message": "Fenêtre actuelle"
+  },
+  "dashboard_rules_removeAction": {
+    "message": "Retirer"
+  },
+  "dashboard_rules_triggerRepeatEvery": {
+    "message": "Répéter tous les :"
+  },
+  "dashboard_rules_triggerRunAt": {
+    "message": "Exécuter à :"
+  },
+  "dashboard_rules_triggerDebounce": {
+    "message": "Anti-rebond"
+  },
+  "dashboard_rules_triggerDebounceHelp": {
+    "message": "Lorsque cette option est activée, attend une pause dans l'activité des onglets avant d'exécuter la règle. Cela empêche la règle de s'exécuter plusieurs fois lors d'activités en rafale, comme l'ouverture de nombreux onglets à la fois. Par exemple, si vous ouvrez 10 onglets rapidement, la règle s'exécute une fois après que vous avez terminé au lieu de 10 fois."
+  },
+  "dashboard_rules_triggerWaitFor": {
+    "message": "Attendre :"
+  },
+  "dashboard_rules_triggerSeconds": {
+    "message": "secondes"
+  },
+  "dashboard_rules_addAction": {
+    "message": "Ajouter une action"
+  },
+  "dashboard_rules_noMoreActions": {
+    "message": "Aucune autre action ne peut être ajoutée. Les actions actuelles ne sont pas compatibles avec des actions supplémentaires."
+  },
+  "dashboard_rules_closeNotCombinableNote": {
+    "message": "$note$ L'action Fermer ne peut pas être combinée avec d'autres actions.",
+    "placeholders": {
+      "note": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_noteLabel": {
+    "message": "Remarque :"
+  },
+  "dashboard_rules_actionType": {
+    "message": "Type d'action :"
+  },
+  "dashboard_rules_onlyCompatible": {
+    "message": "Affichage des actions compatibles avec les actions existantes uniquement."
+  },
+  "dashboard_rules_enterName": {
+    "message": "Veuillez saisir un nom de règle"
+  },
+  "dashboard_rules_conditionsNotInit": {
+    "message": "Conditions mal initialisées"
+  },
+  "dashboard_rules_invalidConditions": {
+    "message": "Conditions non valides : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_addAtLeastOneAction": {
+    "message": "Veuillez ajouter au moins une action"
+  },
+  "dashboard_rules_invalidActions": {
+    "message": "Actions non valides : $errors$",
+    "placeholders": {
+      "errors": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecuted": {
+    "message": "Règle exécutée : $details$",
+    "placeholders": {
+      "details": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecutionFailed": {
+    "message": "Échec de l'exécution de la règle : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecutionError": {
+    "message": "Erreur lors de l'exécution de la règle : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewAffected_one": {
+    "message": "Aperçu de la règle : $count$ onglet serait affecté",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewAffected_other": {
+    "message": "Aperçu de la règle : $count$ onglets seraient affectés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewAffected_many": {
+    "message": "Aperçu de la règle : $count$ onglets seraient affectés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewNoMatch": {
+    "message": "Aperçu de la règle : aucun onglet correspondant trouvé"
+  },
+  "dashboard_rules_testFailed": {
+    "message": "Échec du test de la règle : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testError": {
+    "message": "Erreur lors du test de la règle : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_unableToPreview": {
+    "message": "Impossible de prévisualiser la règle"
+  },
+  "dashboard_rules_noEnabledToTest": {
+    "message": "Aucune règle activée à tester"
+  },
+  "dashboard_rules_testing": {
+    "message": "Test..."
+  },
+  "dashboard_rules_testAll": {
+    "message": "Tester toutes les règles"
+  },
+  "dashboard_rules_testCompleteAffected_one": {
+    "message": "Test terminé : $count$ onglet au total serait affecté",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testCompleteAffected_other": {
+    "message": "Test terminé : $count$ onglets au total seraient affectés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testCompleteAffected_many": {
+    "message": "Test terminé : $count$ onglets au total seraient affectés",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testNoneAffected": {
+    "message": "Aucun onglet ne serait affecté par les règles actuelles"
+  },
+  "dashboard_rules_testResultsTitle": {
+    "message": "Résultats du test : $name$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_wouldBeAffected_one": {
+    "message": "$count$ onglet serait affecté :",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_wouldBeAffected_other": {
+    "message": "$count$ onglets seraient affectés :",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_wouldBeAffected_many": {
+    "message": "$count$ onglets seraient affectés :",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_untitled": {
+    "message": "Sans titre"
+  },
+  "dashboard_rules_duplicateTag": {
+    "message": "[DOUBLON]"
+  },
+  "dashboard_rules_executeRule": {
+    "message": "Exécuter la règle"
+  },
+  "dashboard_rules_ruleExecutedActions": {
+    "message": "Règle exécutée : $count$ actions effectuées",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_executeFailed": {
+    "message": "Échec de l'exécution de la règle : $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  }
+}

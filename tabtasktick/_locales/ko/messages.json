@@ -1,0 +1,6015 @@
+{
+  "appName": {
+    "message": "TabTaskTick"
+  },
+  "appDesc": {
+    "message": "컬렉션, 규칙 엔진, 자동 그룹화, 미루기 기능을 갖춘 지능형 탭 및 작업 관리 도구"
+  },
+  "cmd_quickSnooze": {
+    "message": "현재 탭 빠른 미루기"
+  },
+  "cmd_groupByDomain": {
+    "message": "모든 탭을 도메인별로 그룹화"
+  },
+  "cmd_closeDuplicates": {
+    "message": "중복 탭 닫기"
+  },
+  "common_cancel": {
+    "message": "취소"
+  },
+  "common_save": {
+    "message": "저장"
+  },
+  "common_close": {
+    "message": "닫기"
+  },
+  "common_delete": {
+    "message": "삭제"
+  },
+  "common_edit": {
+    "message": "편집"
+  },
+  "common_loading": {
+    "message": "불러오는 중..."
+  },
+  "common_errorLoading": {
+    "message": "불러오기 오류"
+  },
+  "common_settings": {
+    "message": "설정"
+  },
+  "popup_collectionsDetail": {
+    "message": "활성 $active$개, 저장됨 $saved$개",
+    "placeholders": {
+      "active": {
+        "content": "$1",
+        "example": "3"
+      },
+      "saved": {
+        "content": "$2",
+        "example": "12"
+      }
+    }
+  },
+  "snooze_title_tabs_one": {
+    "message": "탭 $count$개 미루기",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "snooze_title_tabs_other": {
+    "message": "탭 $count$개 미루기",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "popup_debug_title": {
+    "message": "디버그 정보 복사"
+  },
+  "popup_testMode_title": {
+    "message": "테스트 모드 활성"
+  },
+  "popup_testMode_body": {
+    "message": "프로덕션 규칙이 비활성화되었습니다"
+  },
+  "popup_testMode_exit": {
+    "message": "테스트 모드 종료"
+  },
+  "popup_banner_collections_title": {
+    "message": "컬렉션 사용해 보기"
+  },
+  "popup_banner_collections_body": {
+    "message": "창을 컬렉션으로 저장하고 언제든지 복원하세요"
+  },
+  "popup_banner_dismiss": {
+    "message": "배너 닫기"
+  },
+  "popup_saveWindow": {
+    "message": "이 창 저장"
+  },
+  "popup_collections_label": {
+    "message": "컬렉션"
+  },
+  "popup_tasks_label": {
+    "message": "작업"
+  },
+  "popup_stat_allTabs": {
+    "message": "모든 탭"
+  },
+  "popup_stat_groups": {
+    "message": "그룹"
+  },
+  "popup_stat_snoozed": {
+    "message": "미룬 탭"
+  },
+  "popup_stat_duplicates": {
+    "message": "중복"
+  },
+  "popup_quickActions": {
+    "message": "빠른 작업"
+  },
+  "popup_action_closeDuplicates": {
+    "message": "중복 닫기"
+  },
+  "popup_action_groupByDomain": {
+    "message": "도메인별 그룹화"
+  },
+  "popup_action_snoozeCurrent": {
+    "message": "현재 탭 미루기"
+  },
+  "popup_action_snoozeWindow": {
+    "message": "창 미루기"
+  },
+  "popup_action_suspendInactive": {
+    "message": "비활성 탭 정지"
+  },
+  "popup_activeRules": {
+    "message": "활성 규칙"
+  },
+  "popup_manageRules_title": {
+    "message": "규칙 관리"
+  },
+  "popup_manage": {
+    "message": "관리"
+  },
+  "popup_topDomains": {
+    "message": "상위 도메인"
+  },
+  "popup_snoozedTabs": {
+    "message": "미룬 탭"
+  },
+  "popup_wakeAll_title": {
+    "message": "미룬 탭 모두 깨우기"
+  },
+  "popup_wakeAll": {
+    "message": "모두 깨우기"
+  },
+  "popup_dashboard": {
+    "message": "대시보드"
+  },
+  "popup_backup_title": {
+    "message": "모든 탭, 설정, 규칙, 미룬 탭 백업"
+  },
+  "popup_backup": {
+    "message": "백업"
+  },
+  "popup_restore_title": {
+    "message": "탭, 설정, 규칙, 미룬 탭 복원"
+  },
+  "popup_restore": {
+    "message": "복원"
+  },
+  "popup_testPanel_title": {
+    "message": "테스트 패널 열기"
+  },
+  "popup_test": {
+    "message": "테스트"
+  },
+  "popup_help": {
+    "message": "도움말"
+  },
+  "popup_tasksDetail": {
+    "message": "열림 $open$개, 활성 $active$개",
+    "placeholders": {
+      "open": {
+        "content": "$1",
+        "example": "2"
+      },
+      "active": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "popup_rules_empty": {
+    "message": "활성 규칙 없음"
+  },
+  "popup_domains_empty": {
+    "message": "표시할 도메인 없음"
+  },
+  "popup_snoozed_windowLabel_one": {
+    "message": "창 (탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_snoozed_windowLabel_other": {
+    "message": "창 (탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_snoozed_restoreWindow": {
+    "message": "창 복원"
+  },
+  "popup_snoozed_deleteWindow": {
+    "message": "창 삭제"
+  },
+  "popup_snoozed_wakeNow": {
+    "message": "지금 깨우기"
+  },
+  "popup_snoozed_reschedule": {
+    "message": "재예약"
+  },
+  "popup_confirm_deleteWindow_one": {
+    "message": "탭 $count$개가 있는 미룬 창을 삭제하시겠습니까?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_confirm_deleteWindow_other": {
+    "message": "탭 $count$개가 있는 미룬 창을 삭제하시겠습니까?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_confirm_deleteTab": {
+    "message": "미룬 탭 \"$title$\"을(를) 삭제하시겠습니까?",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_group_nextHour": {
+    "message": "다음 시간"
+  },
+  "popup_group_today": {
+    "message": "오늘"
+  },
+  "popup_group_tomorrow": {
+    "message": "내일"
+  },
+  "popup_group_later": {
+    "message": "나중에"
+  },
+  "popup_time_now": {
+    "message": "지금"
+  },
+  "popup_notify_loadStatsFailed": {
+    "message": "통계를 불러오지 못했습니다"
+  },
+  "popup_notify_sidePanelFailed": {
+    "message": "사이드 패널을 열지 못했습니다"
+  },
+  "popup_notify_closedDuplicates_one": {
+    "message": "중복 탭 $count$개를 닫았습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_closedDuplicates_other": {
+    "message": "중복 탭 $count$개를 닫았습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noDuplicates": {
+    "message": "중복 탭이 없습니다"
+  },
+  "popup_notify_closeDuplicatesFailed": {
+    "message": "중복 탭을 닫지 못했습니다"
+  },
+  "popup_notify_createdGroups_one": {
+    "message": "그룹 $count$개를 만들었습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_createdGroups_other": {
+    "message": "그룹 $count$개를 만들었습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noTabsToGroup": {
+    "message": "그룹화할 탭이 없습니다"
+  },
+  "popup_notify_groupTabsFailed": {
+    "message": "탭을 그룹화하지 못했습니다"
+  },
+  "popup_notify_tabsSnoozed_one": {
+    "message": "탭을 $duration$ 동안 미뤘습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_tabsSnoozed_other": {
+    "message": "탭 $count$개를 $duration$ 동안 미뤘습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_snoozeTabsFailed": {
+    "message": "탭을 미루지 못했습니다"
+  },
+  "popup_notify_noTabsToSnooze": {
+    "message": "미룰 탭이 없습니다"
+  },
+  "popup_notify_windowsSnoozed_one": {
+    "message": "창 $count$개를 $duration$ 동안 미뤘습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_windowsSnoozed_other": {
+    "message": "창 $count$개를 $duration$ 동안 미뤘습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_totalTabsSnoozed_one": {
+    "message": "탭 $count$개를 $duration$ 동안 미뤘습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_totalTabsSnoozed_other": {
+    "message": "탭 $count$개를 $duration$ 동안 미뤘습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_snoozeErrors_one": {
+    "message": "오류 $count$개와 함께 미루기를 완료했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_snoozeErrors_other": {
+    "message": "오류 $count$개와 함께 미루기를 완료했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_snoozeWindowFailed": {
+    "message": "창을 미루지 못했습니다"
+  },
+  "popup_notify_prepareSnoozeFailed": {
+    "message": "창 미루기를 준비하지 못했습니다"
+  },
+  "popup_notify_tabRescheduled": {
+    "message": "탭이 재예약되었습니다"
+  },
+  "popup_notify_rescheduleFailed": {
+    "message": "탭을 재예약하지 못했습니다"
+  },
+  "popup_notify_restoredTabs_one": {
+    "message": "미룬 탭 $count$개를 복원했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_restoredTabs_other": {
+    "message": "미룬 탭 $count$개를 복원했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noSnoozedToRestore": {
+    "message": "복원할 미룬 탭이 없습니다"
+  },
+  "popup_notify_wakeAllFailed": {
+    "message": "미룬 탭을 깨우지 못했습니다"
+  },
+  "popup_notify_suspended_one": {
+    "message": "비활성 탭 $count$개를 정지했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_suspended_other": {
+    "message": "비활성 탭 $count$개를 정지했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noInactive": {
+    "message": "정지할 비활성 탭이 없습니다"
+  },
+  "popup_notify_suspendFailed": {
+    "message": "탭을 정지하지 못했습니다"
+  },
+  "popup_notify_toggleRuleFailed": {
+    "message": "규칙을 업데이트하지 못했습니다"
+  },
+  "popup_notify_tabRestored": {
+    "message": "탭이 복원되었습니다"
+  },
+  "popup_notify_wakeTabFailedDetail": {
+    "message": "탭을 깨우지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_wakeTabFailed": {
+    "message": "탭을 깨우지 못했습니다"
+  },
+  "popup_notify_snoozedTabDeleted": {
+    "message": "미룬 탭이 삭제되었습니다"
+  },
+  "popup_notify_deleteTabFailedDetail": {
+    "message": "탭을 삭제하지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_deleteTabFailed": {
+    "message": "탭을 삭제하지 못했습니다"
+  },
+  "popup_notify_windowRestored": {
+    "message": "창이 복원되었습니다"
+  },
+  "popup_notify_restoreWindowFailedDetail": {
+    "message": "창을 복원하지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_restoreWindowFailed": {
+    "message": "창을 복원하지 못했습니다"
+  },
+  "popup_notify_snoozedWindowDeleted": {
+    "message": "미룬 창이 삭제되었습니다"
+  },
+  "popup_notify_deleteWindowFailedDetail": {
+    "message": "창을 삭제하지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_deleteWindowFailed": {
+    "message": "창을 삭제하지 못했습니다"
+  },
+  "popup_notify_debugCopied": {
+    "message": "디버그 정보가 클립보드에 복사되었습니다"
+  },
+  "popup_notify_debugFailed": {
+    "message": "디버그 정보를 복사하지 못했습니다"
+  },
+  "popup_notify_testPanelFailedDetail": {
+    "message": "테스트 패널을 열지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_genericError": {
+    "message": "오류가 발생했습니다"
+  },
+  "common_unknownError": {
+    "message": "알 수 없는 오류"
+  },
+  "common_days_one": {
+    "message": "$count$일",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_days_other": {
+    "message": "$count$일",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_hours_one": {
+    "message": "$count$시간",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_hours_other": {
+    "message": "$count$시간",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_minutes_one": {
+    "message": "$count$분",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_minutes_other": {
+    "message": "$count$분",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_docTitle": {
+    "message": "컬렉션에 추가"
+  },
+  "modal_collection_title": {
+    "message": "컬렉션에 추가"
+  },
+  "modal_collection_searchPlaceholder": {
+    "message": "컬렉션 검색..."
+  },
+  "modal_collection_nameLabel": {
+    "message": "컬렉션 이름"
+  },
+  "modal_collection_namePlaceholder": {
+    "message": "예: 프로젝트 X"
+  },
+  "modal_collection_create": {
+    "message": "만들기"
+  },
+  "modal_collection_creating": {
+    "message": "만드는 중..."
+  },
+  "modal_collection_emptyTitle": {
+    "message": "아직 컬렉션이 없습니다"
+  },
+  "modal_collection_emptyHint": {
+    "message": "아래에서 첫 컬렉션을 만드세요"
+  },
+  "modal_collection_noMatch": {
+    "message": "검색과 일치하는 컬렉션이 없습니다"
+  },
+  "modal_collection_createNew": {
+    "message": "+ 새 컬렉션 만들기"
+  },
+  "modal_collection_active": {
+    "message": "활성"
+  },
+  "modal_collection_moreCount_one": {
+    "message": "+ 컬렉션 $count$개 더 (검색을 좁혀 보세요)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_moreCount_other": {
+    "message": "+ 컬렉션 $count$개 더 (검색을 좁혀 보세요)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_tabCount_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_tabCount_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_loadFailed": {
+    "message": "컬렉션을 불러오지 못했습니다"
+  },
+  "modal_collection_loadError": {
+    "message": "컬렉션 불러오기 오류"
+  },
+  "modal_collection_nameRequired": {
+    "message": "컬렉션 이름을 입력하세요"
+  },
+  "modal_collection_createFailed": {
+    "message": "컬렉션을 만들지 못했습니다"
+  },
+  "modal_collection_createdTitle": {
+    "message": "컬렉션 생성됨"
+  },
+  "modal_collection_createdMessage": {
+    "message": "컬렉션 \"$name$\"을(를) 만들고 탭을 추가했습니다",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_addedTitle": {
+    "message": "탭 추가됨"
+  },
+  "modal_collection_addedMessage": {
+    "message": "$name$에 추가했습니다",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_fallbackName": {
+    "message": "컬렉션"
+  },
+  "modal_collection_noTabData": {
+    "message": "사용할 수 있는 탭 데이터가 없습니다"
+  },
+  "modal_collection_loadCollectionFailed": {
+    "message": "컬렉션을 불러오지 못했습니다"
+  },
+  "modal_collection_createFolderFailed": {
+    "message": "폴더를 만들지 못했습니다"
+  },
+  "modal_collection_addTabFailed": {
+    "message": "탭을 추가하지 못했습니다"
+  },
+  "modal_collection_errorMessage": {
+    "message": "오류: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_note_docTitle": {
+    "message": "탭에 메모 추가"
+  },
+  "modal_note_title": {
+    "message": "탭에 메모 추가"
+  },
+  "modal_note_placeholder": {
+    "message": "여기에 메모를 입력하세요 (최대 255자)..."
+  },
+  "modal_note_charCount": {
+    "message": "$current$ / 255",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_note_save": {
+    "message": "메모 저장"
+  },
+  "modal_note_saving": {
+    "message": "저장 중..."
+  },
+  "modal_note_noTab": {
+    "message": "탭이 지정되지 않았습니다"
+  },
+  "modal_note_notFound": {
+    "message": "탭을 찾을 수 없습니다"
+  },
+  "modal_note_notInCollection": {
+    "message": "이 탭은 컬렉션에 없습니다. 먼저 \"컬렉션에 추가\"를 사용하세요."
+  },
+  "modal_note_saveFailed": {
+    "message": "메모를 저장하지 못했습니다"
+  },
+  "modal_note_savedTitle": {
+    "message": "메모 저장됨"
+  },
+  "modal_note_savedAdded": {
+    "message": "탭에 메모를 추가했습니다"
+  },
+  "modal_note_savedRemoved": {
+    "message": "탭에서 메모를 제거했습니다"
+  },
+  "modal_note_errorMessage": {
+    "message": "오류: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_docTitle": {
+    "message": "작업 만들기"
+  },
+  "modal_task_title": {
+    "message": "작업 만들기"
+  },
+  "modal_task_summaryLabel": {
+    "message": "요약"
+  },
+  "modal_task_summaryPlaceholder": {
+    "message": "예: PR #234 검토"
+  },
+  "modal_task_summaryError": {
+    "message": "요약은 필수입니다"
+  },
+  "modal_task_notesLabel": {
+    "message": "메모"
+  },
+  "modal_task_notesPlaceholder": {
+    "message": "추가 세부 정보..."
+  },
+  "modal_task_collectionLabel": {
+    "message": "컬렉션"
+  },
+  "modal_task_uncategorized": {
+    "message": "미분류"
+  },
+  "modal_task_collectionActive": {
+    "message": "$name$ (활성)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_priorityLabel": {
+    "message": "우선순위"
+  },
+  "modal_task_priorityLow": {
+    "message": "낮음"
+  },
+  "modal_task_priorityMedium": {
+    "message": "보통"
+  },
+  "modal_task_priorityHigh": {
+    "message": "높음"
+  },
+  "modal_task_priorityCritical": {
+    "message": "긴급"
+  },
+  "modal_task_statusLabel": {
+    "message": "상태"
+  },
+  "modal_task_statusOpen": {
+    "message": "열림"
+  },
+  "modal_task_statusActive": {
+    "message": "활성"
+  },
+  "modal_task_dueDateLabel": {
+    "message": "마감일"
+  },
+  "modal_task_tagsLabel": {
+    "message": "태그"
+  },
+  "modal_task_tagPlaceholder": {
+    "message": "태그 입력..."
+  },
+  "modal_task_addTag": {
+    "message": "태그 추가"
+  },
+  "modal_task_referencedTabs": {
+    "message": "참조된 탭"
+  },
+  "modal_task_selectCollection": {
+    "message": "탭을 보려면 컬렉션을 선택하세요"
+  },
+  "modal_task_create": {
+    "message": "작업 만들기"
+  },
+  "modal_task_creating": {
+    "message": "만드는 중..."
+  },
+  "modal_task_errorLoadingTabs": {
+    "message": "탭 불러오기 오류"
+  },
+  "modal_task_noTabsInCollection": {
+    "message": "이 컬렉션에 탭이 없습니다"
+  },
+  "modal_task_createFailed": {
+    "message": "작업을 만들지 못했습니다"
+  },
+  "modal_task_createdTitle": {
+    "message": "작업 생성됨"
+  },
+  "modal_task_createdMessage": {
+    "message": "작업 생성: $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_errorCreating": {
+    "message": "작업 생성 오류: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_docTitle": {
+    "message": "TabTaskTick - 설정"
+  },
+  "options_title": {
+    "message": "TabTaskTick 설정"
+  },
+  "options_subtitle": {
+    "message": "탭 및 작업 관리 기본 설정을 구성하세요"
+  },
+  "options_tab_general": {
+    "message": "일반"
+  },
+  "options_tab_keybinds": {
+    "message": "키보드 단축키"
+  },
+  "options_tab_data": {
+    "message": "데이터 관리"
+  },
+  "options_tab_about": {
+    "message": "정보"
+  },
+  "options_section_tabBehavior": {
+    "message": "탭 동작"
+  },
+  "options_protectPinned_label": {
+    "message": "고정된 탭 보호"
+  },
+  "options_protectPinned_desc": {
+    "message": "규칙 실행 시 고정된 탭을 자동으로 건너뜁니다 (실수로 닫는 것을 방지)"
+  },
+  "options_section_snooze": {
+    "message": "미루기 동작"
+  },
+  "options_restoration_label": {
+    "message": "탭 복원 위치"
+  },
+  "options_restoration_desc": {
+    "message": "개별 미룬 탭이 깨어날 때 열리는 위치"
+  },
+  "options_restoration_original": {
+    "message": "원래 창으로 (기본값)"
+  },
+  "options_restoration_current": {
+    "message": "현재 창에"
+  },
+  "options_restoration_new": {
+    "message": "새 창에"
+  },
+  "options_section_developer": {
+    "message": "개발자 옵션"
+  },
+  "options_devMode_label": {
+    "message": "개발자 모드"
+  },
+  "options_devMode_desc": {
+    "message": "디버깅 기능과 상세 로깅을 활성화합니다"
+  },
+  "options_logLevel_label": {
+    "message": "로그 레벨"
+  },
+  "options_logLevel_desc": {
+    "message": "디버깅을 위해 기록할 로그 메시지를 제어합니다"
+  },
+  "options_logLevel_debug": {
+    "message": "DEBUG (자세히)"
+  },
+  "options_logLevel_info": {
+    "message": "INFO"
+  },
+  "options_logLevel_warn": {
+    "message": "WARN (기본값)"
+  },
+  "options_logLevel_error": {
+    "message": "ERROR (최소)"
+  },
+  "options_testLog_label": {
+    "message": "로그 필터링 테스트"
+  },
+  "options_testLog_desc": {
+    "message": "필터링을 확인하기 위해 각 레벨에서 테스트 로그를 출력합니다 (브라우저 콘솔 확인)"
+  },
+  "options_testLog_btn": {
+    "message": "로그 레벨 테스트"
+  },
+  "options_section_keybinds": {
+    "message": "키보드 단축키"
+  },
+  "options_keybinds_howto_title": {
+    "message": "단축키 변경 방법"
+  },
+  "options_keybinds_howto_p1": {
+    "message": "Chrome 확장 프로그램 단축키는 Chrome의 기본 설정에서만 수정할 수 있습니다. "
+  },
+  "options_keybinds_howto_p2": {
+    "message": "에서 이 단축키를 사용자 지정하세요."
+  },
+  "options_shortcut_popup_title": {
+    "message": "팝업 열기"
+  },
+  "options_shortcut_popup_desc": {
+    "message": "TabTaskTick 팝업 열기"
+  },
+  "options_shortcut_snooze_title": {
+    "message": "빠른 미루기"
+  },
+  "options_shortcut_snooze_desc": {
+    "message": "대화 상자로 현재 탭 미루기"
+  },
+  "options_shortcut_group_title": {
+    "message": "도메인별 그룹화"
+  },
+  "options_shortcut_group_desc": {
+    "message": "모든 탭을 도메인 그룹으로 정리"
+  },
+  "options_shortcut_dupes_title": {
+    "message": "중복 닫기"
+  },
+  "options_shortcut_dupes_desc": {
+    "message": "모든 중복 탭 제거"
+  },
+  "options_section_data": {
+    "message": "데이터 관리"
+  },
+  "options_data_desc": {
+    "message": "확장 프로그램 데이터를 관리하고 설정을 재설정합니다"
+  },
+  "options_clearHistory_label": {
+    "message": "활동 기록 지우기"
+  },
+  "options_clearHistory_desc": {
+    "message": "기록된 모든 탭 활동 기록 제거"
+  },
+  "options_clearHistory_btn": {
+    "message": "기록 지우기"
+  },
+  "options_clearData_label": {
+    "message": "모든 데이터 지우기"
+  },
+  "options_clearData_desc": {
+    "message": "미룬 탭, 규칙, 설정을 포함한 모든 확장 프로그램 데이터 제거"
+  },
+  "options_clearData_btn": {
+    "message": "모든 데이터 지우기"
+  },
+  "options_reset_label": {
+    "message": "기본값으로 재설정"
+  },
+  "options_reset_desc": {
+    "message": "모든 설정을 기본값으로 복원합니다"
+  },
+  "options_reset_btn": {
+    "message": "기본값으로 재설정"
+  },
+  "options_section_importExport": {
+    "message": "가져오기 및 내보내기"
+  },
+  "options_importExport_desc": {
+    "message": "예약 백업을 포함한 전체 데이터 내보내기/가져오기는 대시보드를 사용하세요"
+  },
+  "options_openDashboard_label": {
+    "message": "대시보드 열기"
+  },
+  "options_openDashboard_desc": {
+    "message": "여러 형식과 예약 기능을 갖춘 고급 내보내기/가져오기 기능에 접근하세요"
+  },
+  "options_openDashboard_btn": {
+    "message": "대시보드 열기"
+  },
+  "options_version_loading": {
+    "message": "버전 불러오는 중..."
+  },
+  "options_about_desc": {
+    "message": "지능형 자동화를 갖춘 고급 탭 및 북마크 관리 확장 프로그램입니다."
+  },
+  "options_link_github": {
+    "message": "GitHub"
+  },
+  "options_link_reportIssue": {
+    "message": "문제 신고"
+  },
+  "options_saved": {
+    "message": "설정이 저장되었습니다!"
+  },
+  "options_version": {
+    "message": "버전 $version$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "1.4.11"
+      }
+    }
+  },
+  "options_notify_loadFailed": {
+    "message": "설정을 불러오지 못했습니다"
+  },
+  "options_notify_saveFailed": {
+    "message": "설정을 저장하지 못했습니다"
+  },
+  "options_confirm_clearHistory": {
+    "message": "모든 기록을 지우시겠습니까?"
+  },
+  "options_notify_historyCleared": {
+    "message": "기록이 지워졌습니다"
+  },
+  "options_notify_clearHistoryFailed": {
+    "message": "기록을 지우지 못했습니다"
+  },
+  "options_confirm_clearData": {
+    "message": "모든 데이터를 지우시겠습니까? 이 작업은 되돌릴 수 없습니다."
+  },
+  "options_notify_dataCleared": {
+    "message": "모든 데이터가 지워졌습니다"
+  },
+  "options_notify_clearDataFailed": {
+    "message": "데이터를 지우지 못했습니다"
+  },
+  "options_confirm_reset": {
+    "message": "모든 설정을 기본값으로 재설정하시겠습니까?"
+  },
+  "options_notify_reset": {
+    "message": "설정이 기본값으로 재설정되었습니다"
+  },
+  "options_notify_resetFailed": {
+    "message": "설정을 재설정하지 못했습니다"
+  },
+  "options_notify_logLevel": {
+    "message": "레벨: $level$",
+    "placeholders": {
+      "level": {
+        "content": "$1",
+        "example": "WARN"
+      }
+    }
+  },
+  "options_notify_urlCopied": {
+    "message": "URL이 복사되었습니다! 주소창에 붙여넣으세요."
+  },
+  "options_notify_openManually": {
+    "message": "chrome://extensions/shortcuts를 직접 여세요"
+  },
+  "snooze_title_window": {
+    "message": "창 미루기: $title$",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_windows_one": {
+    "message": "창 $count$개 미루기",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_windows_other": {
+    "message": "창 $count$개 미루기",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_windowOne": {
+    "message": "창 1"
+  },
+  "snooze_part_windows_one": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_windows_other": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_otherTabs_one": {
+    "message": "다른 탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_otherTabs_other": {
+    "message": "다른 탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_mixed": {
+    "message": "$windows$ 및 $tabs$ 미루기",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_desc_windows_one": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_windows_other": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabCount_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabCount_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_windowPart": {
+    "message": "$windows$ ($tabs$)",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_desc_otherTabs_one": {
+    "message": "다른 탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_otherTabs_other": {
+    "message": "다른 탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabsFromCurrent": {
+    "message": "현재 창에서 $tabs$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_join": {
+    "message": " 및 "
+  },
+  "snooze_desc_prefix": {
+    "message": "$parts$을(를) 미룹니다",
+    "placeholders": {
+      "parts": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_windows_one": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_windows_other": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_tabs_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_tabs_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_mixed": {
+    "message": "$windows$ + $tabs$",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_restoration_original": {
+    "message": "원래 창으로"
+  },
+  "snooze_restoration_current": {
+    "message": "현재 창으로"
+  },
+  "snooze_restoration_new": {
+    "message": "새 창에"
+  },
+  "activity_noActions": {
+    "message": "$rule$: 수행된 작업 없음 ($trigger$)",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "trigger": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_noSuccess": {
+    "message": "$rule$: 성공한 작업 없음 ($trigger$)",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "trigger": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_summary": {
+    "message": "$rule$: $actions$ ($trigger$)",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "actions": {
+        "content": "$2"
+      },
+      "trigger": {
+        "content": "$3"
+      }
+    }
+  },
+  "activity_join": {
+    "message": ", "
+  },
+  "activity_actionPart_one": {
+    "message": "탭 $count$개 $verb$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "verb": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_actionPart_other": {
+    "message": "탭 $count$개 $verb$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "verb": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_verb_close": {
+    "message": "닫음"
+  },
+  "activity_verb_closeDuplicate": {
+    "message": "중복 닫음"
+  },
+  "activity_verb_group": {
+    "message": "그룹화함"
+  },
+  "activity_verb_snooze": {
+    "message": "미룸"
+  },
+  "activity_verb_bookmark": {
+    "message": "북마크함"
+  },
+  "activity_verb_pin": {
+    "message": "고정함"
+  },
+  "activity_verb_unpin": {
+    "message": "고정 해제함"
+  },
+  "activity_verb_mute": {
+    "message": "음소거함"
+  },
+  "activity_verb_unmute": {
+    "message": "음소거 해제함"
+  },
+  "activity_verb_discard": {
+    "message": "정지함"
+  },
+  "activity_verb_move": {
+    "message": "이동함"
+  },
+  "activity_actionNoun_one": {
+    "message": "작업"
+  },
+  "activity_actionNoun_other": {
+    "message": "작업"
+  },
+  "activity_noMatching": {
+    "message": "일치하는 탭을 찾을 수 없습니다"
+  },
+  "sidepanel_docTitle": {
+    "message": "TabTaskTick"
+  },
+  "sidepanel_searchPlaceholder": {
+    "message": "컬렉션 및 작업 검색..."
+  },
+  "sidepanel_searchLabel": {
+    "message": "컬렉션 및 작업 검색"
+  },
+  "sidepanel_createCollection_title": {
+    "message": "새 컬렉션 만들기"
+  },
+  "sidepanel_createCollection_btn": {
+    "message": "📁 컬렉션 만들기"
+  },
+  "sidepanel_createTask_title": {
+    "message": "새 작업 만들기"
+  },
+  "sidepanel_createTask_btn": {
+    "message": "✓ 작업 만들기"
+  },
+  "sidepanel_import_title": {
+    "message": "JSON 파일에서 컬렉션 가져오기"
+  },
+  "sidepanel_import_btn": {
+    "message": "📥 가져오기"
+  },
+  "sidepanel_view_collections": {
+    "message": "📁 컬렉션"
+  },
+  "sidepanel_view_tasks": {
+    "message": "✓ 작업"
+  },
+  "sidepanel_toggleFilters_label": {
+    "message": "필터 전환"
+  },
+  "sidepanel_toggleFilters_title": {
+    "message": "필터 표시/숨기기"
+  },
+  "sidepanel_toggleFilters_btn": {
+    "message": "🔍 필터"
+  },
+  "sidepanel_filtersPanel_label": {
+    "message": "필터"
+  },
+  "sidepanel_collections_loading": {
+    "message": "컬렉션 불러오는 중..."
+  },
+  "sidepanel_collections_errorTitle": {
+    "message": "컬렉션을 불러올 수 없습니다"
+  },
+  "sidepanel_collections_emptyTitle": {
+    "message": "아직 컬렉션이 없습니다"
+  },
+  "sidepanel_collections_emptyDescription": {
+    "message": "첫 컬렉션을 만들어 탭 그룹을 정리하고 관리하세요. 컬렉션은 작업을 정리하고 쉽게 접근할 수 있도록 도와줍니다."
+  },
+  "sidepanel_collections_emptyAction": {
+    "message": "📁 첫 컬렉션 만들기"
+  },
+  "sidepanel_collections_sectionActive": {
+    "message": "활성"
+  },
+  "sidepanel_collections_sectionSaved": {
+    "message": "저장됨"
+  },
+  "sidepanel_common_retry": {
+    "message": "다시 시도"
+  },
+  "sidepanel_tasks_loading": {
+    "message": "작업 불러오는 중..."
+  },
+  "sidepanel_tasks_errorTitle": {
+    "message": "작업을 불러올 수 없습니다"
+  },
+  "sidepanel_tasks_emptyTitle": {
+    "message": "아직 작업이 없습니다"
+  },
+  "sidepanel_tasks_emptyDescription": {
+    "message": "컬렉션에서 작업을 만들어 진행 상황을 추적하세요. 작업은 무엇을 하고 있는지 기억하는 데 도움이 됩니다."
+  },
+  "sidepanel_tasks_emptyAction": {
+    "message": "✓ 첫 작업 만들기"
+  },
+  "sidepanel_panel_saveWindowFailed": {
+    "message": "창을 저장하지 못했습니다"
+  },
+  "sidepanel_panel_newCollectionName": {
+    "message": "새 컬렉션"
+  },
+  "sidepanel_panel_saveWindowIntro_oneTab_oneFolder": {
+    "message": "탭 $tabs$개와 폴더 $folders$개로 현재 창에서 새 컬렉션을 만듭니다.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_oneTab_otherFolders": {
+    "message": "탭 $tabs$개와 폴더 $folders$개로 현재 창에서 새 컬렉션을 만듭니다.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_oneFolder": {
+    "message": "탭 $tabs$개와 폴더 $folders$개로 현재 창에서 새 컬렉션을 만듭니다.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_otherFolders": {
+    "message": "탭 $tabs$개와 폴더 $folders$개로 현재 창에서 새 컬렉션을 만듭니다.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_form_nameLabel": {
+    "message": "이름 *"
+  },
+  "sidepanel_form_namePlaceholder": {
+    "message": "컬렉션 이름 입력"
+  },
+  "sidepanel_form_descriptionLabel": {
+    "message": "설명"
+  },
+  "sidepanel_form_descriptionPlaceholder": {
+    "message": "이 컬렉션의 용도는 무엇인가요?"
+  },
+  "sidepanel_form_iconLabel": {
+    "message": "아이콘"
+  },
+  "sidepanel_form_emojiSuggested": {
+    "message": "✨ 추천"
+  },
+  "sidepanel_form_tagsLabel": {
+    "message": "태그 (쉼표로 구분)"
+  },
+  "sidepanel_form_tagsPlaceholder": {
+    "message": "업무, 프로젝트, 리서치"
+  },
+  "sidepanel_panel_createCollectionTitle": {
+    "message": "컬렉션 만들기"
+  },
+  "sidepanel_panel_createCollectionSubmit": {
+    "message": "컬렉션 만들기"
+  },
+  "sidepanel_panel_nameRequired": {
+    "message": "컬렉션 이름은 필수입니다"
+  },
+  "sidepanel_panel_savedCollection": {
+    "message": "✓ $name$ 저장됨 (탭 $tabs$개, 폴더 $folders$개)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      },
+      "folders": {
+        "content": "$3"
+      }
+    }
+  },
+  "sidepanel_panel_importing": {
+    "message": "컬렉션 가져오는 중..."
+  },
+  "sidepanel_panel_importFailed": {
+    "message": "컬렉션을 가져오지 못했습니다"
+  },
+  "sidepanel_panel_createTaskFailed": {
+    "message": "작업을 만들지 못했습니다"
+  },
+  "sidepanel_panel_createTaskTitle": {
+    "message": "새 작업 만들기"
+  },
+  "sidepanel_task_summaryLabel": {
+    "message": "요약 *"
+  },
+  "sidepanel_task_summaryPlaceholder": {
+    "message": "무엇을 해야 하나요?"
+  },
+  "sidepanel_task_contextLabel": {
+    "message": "컨텍스트"
+  },
+  "sidepanel_task_contextHelperThis": {
+    "message": "이 탭에 빠르게 접근"
+  },
+  "sidepanel_task_contextHelper": {
+    "message": "탭에 빠르게 접근"
+  },
+  "sidepanel_task_notesLabel": {
+    "message": "메모"
+  },
+  "sidepanel_task_notesPlaceholder": {
+    "message": "추가 세부 정보..."
+  },
+  "sidepanel_task_priorityLabel": {
+    "message": "우선순위"
+  },
+  "sidepanel_task_priorityLow": {
+    "message": "낮음"
+  },
+  "sidepanel_task_priorityMedium": {
+    "message": "보통"
+  },
+  "sidepanel_task_priorityHigh": {
+    "message": "높음"
+  },
+  "sidepanel_task_priorityCritical": {
+    "message": "긴급"
+  },
+  "sidepanel_task_collectionLabel": {
+    "message": "컬렉션"
+  },
+  "sidepanel_task_uncategorized": {
+    "message": "미분류"
+  },
+  "sidepanel_task_unnamed": {
+    "message": "이름 없음"
+  },
+  "sidepanel_task_dueDateLabel": {
+    "message": "마감일"
+  },
+  "sidepanel_task_tagsLabel": {
+    "message": "태그 (쉼표로 구분)"
+  },
+  "sidepanel_task_tagsPlaceholderUrgent": {
+    "message": "긴급, 업무, 검토"
+  },
+  "sidepanel_task_createSubmit": {
+    "message": "작업 만들기"
+  },
+  "sidepanel_task_statusLabel": {
+    "message": "상태"
+  },
+  "sidepanel_task_statusOpen": {
+    "message": "열림"
+  },
+  "sidepanel_task_statusActive": {
+    "message": "활성"
+  },
+  "sidepanel_task_statusFixed": {
+    "message": "완료"
+  },
+  "sidepanel_task_statusAbandoned": {
+    "message": "중단됨"
+  },
+  "sidepanel_task_summaryRequired": {
+    "message": "요약은 필수입니다"
+  },
+  "sidepanel_task_created": {
+    "message": "작업이 생성되었습니다"
+  },
+  "sidepanel_panel_noResultsTitle_collections": {
+    "message": "컬렉션을 찾을 수 없습니다"
+  },
+  "sidepanel_panel_noResultsTitle_tasks": {
+    "message": "작업을 찾을 수 없습니다"
+  },
+  "sidepanel_panel_noResultsDescription_collections": {
+    "message": "검색어 \"$query$\"와 일치하는 컬렉션이 없습니다. 다른 검색어를 사용해 보세요.",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_panel_noResultsDescription_tasks": {
+    "message": "검색어 \"$query$\"와 일치하는 작업이 없습니다. 다른 검색어를 사용해 보세요.",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_panel_genericError": {
+    "message": "오류가 발생했습니다"
+  },
+  "sidepanel_panel_initError": {
+    "message": "초기화 오류"
+  },
+  "sidepanel_collections_untitled": {
+    "message": "제목 없는 컬렉션"
+  },
+  "sidepanel_collections_windowBadge": {
+    "message": "창 #$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_metaTabs": {
+    "message": "탭"
+  },
+  "sidepanel_collections_metaFolders": {
+    "message": "폴더"
+  },
+  "sidepanel_collections_metaLastAccessed": {
+    "message": "마지막 접근"
+  },
+  "sidepanel_collections_moreTags": {
+    "message": "+$count$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_viewDetails": {
+    "message": "👁️ 세부 정보 보기"
+  },
+  "sidepanel_collections_focusWindow": {
+    "message": "창 포커스"
+  },
+  "sidepanel_collections_open": {
+    "message": "📂 열기"
+  },
+  "sidepanel_collections_edit": {
+    "message": "✏️ 편집"
+  },
+  "sidepanel_collections_close": {
+    "message": "❌ 닫기"
+  },
+  "sidepanel_collections_delete": {
+    "message": "🗑️ 삭제"
+  },
+  "sidepanel_collections_export": {
+    "message": "💾 내보내기"
+  },
+  "sidepanel_collections_exportTitle": {
+    "message": "이 컬렉션 내보내기"
+  },
+  "sidepanel_collections_detailViewUnavailable": {
+    "message": "세부 정보 보기를 사용할 수 없습니다"
+  },
+  "sidepanel_collections_showDetailsFailed": {
+    "message": "컬렉션 세부 정보를 표시하지 못했습니다"
+  },
+  "sidepanel_collections_windowNotFound": {
+    "message": "창을 찾을 수 없습니다"
+  },
+  "sidepanel_collections_windowFocused": {
+    "message": "창에 포커스됨"
+  },
+  "sidepanel_collections_focusFailed": {
+    "message": "창에 포커스하지 못했습니다"
+  },
+  "sidepanel_collections_openedNewWindow": {
+    "message": "컬렉션이 새 창에서 열렸습니다"
+  },
+  "sidepanel_collections_openFailed": {
+    "message": "컬렉션을 열지 못했습니다"
+  },
+  "sidepanel_collections_viewingTasks": {
+    "message": "컬렉션의 작업 보기"
+  },
+  "sidepanel_collections_viewTasksFailed": {
+    "message": "작업을 보지 못했습니다"
+  },
+  "sidepanel_collections_notFound": {
+    "message": "컬렉션을 찾을 수 없습니다"
+  },
+  "sidepanel_collections_editTitle": {
+    "message": "컬렉션 편집"
+  },
+  "sidepanel_collections_editFailed": {
+    "message": "컬렉션을 편집하지 못했습니다"
+  },
+  "sidepanel_collections_windowClosedSaved": {
+    "message": "창이 닫혔습니다 - 컬렉션 저장됨"
+  },
+  "sidepanel_collections_closeWindowFailed": {
+    "message": "창을 닫지 못했습니다"
+  },
+  "sidepanel_collections_deleteTitle": {
+    "message": "컬렉션 삭제"
+  },
+  "sidepanel_collections_deleteFailed": {
+    "message": "컬렉션을 삭제하지 못했습니다"
+  },
+  "sidepanel_collections_deleted": {
+    "message": "컬렉션 \"$name$\"이(가) 삭제되었습니다",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_deleteWarningActive": {
+    "message": "⚠️ 이 컬렉션은 현재 활성 상태입니다. 창은 열린 상태로 유지되지만 컬렉션 데이터는 영구적으로 삭제됩니다."
+  },
+  "sidepanel_collections_deleteConfirmQuestion": {
+    "message": "\"$name$\"을(를) 삭제하시겠습니까?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_deleteWillDelete": {
+    "message": "다음 항목이 영구적으로 삭제됩니다:"
+  },
+  "sidepanel_collections_deleteItemFolders": {
+    "message": "이 컬렉션의 모든 폴더와 탭"
+  },
+  "sidepanel_collections_deleteItemTasks": {
+    "message": "이 컬렉션과 연결된 모든 작업"
+  },
+  "sidepanel_collections_actionUndone": {
+    "message": "이 작업은 되돌릴 수 없습니다."
+  },
+  "sidepanel_collections_nameLabel": {
+    "message": "이름"
+  },
+  "sidepanel_collections_tagsPlaceholder": {
+    "message": "업무, 리서치, 개인"
+  },
+  "sidepanel_collections_updated": {
+    "message": "컬렉션이 업데이트되었습니다"
+  },
+  "sidepanel_collections_saveChangesFailed": {
+    "message": "변경 사항을 저장하지 못했습니다"
+  },
+  "sidepanel_collections_exporting": {
+    "message": "컬렉션 내보내는 중..."
+  },
+  "sidepanel_collections_exportFailedNotify": {
+    "message": "컬렉션을 내보내지 못했습니다"
+  },
+  "sidepanel_collections_exportFailedDetail": {
+    "message": "내보내기 실패: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_never": {
+    "message": "없음"
+  },
+  "sidepanel_time_justNow": {
+    "message": "방금"
+  },
+  "sidepanel_time_minAgo": {
+    "message": "$count$분 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_hoursAgo": {
+    "message": "$count$시간 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_daysAgo": {
+    "message": "$count$일 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_weeksAgo": {
+    "message": "$count$주 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_monthsAgo": {
+    "message": "$count$개월 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_filters_state": {
+    "message": "상태"
+  },
+  "sidepanel_filters_stateAll": {
+    "message": "전체"
+  },
+  "sidepanel_filters_stateActive": {
+    "message": "활성"
+  },
+  "sidepanel_filters_stateSaved": {
+    "message": "저장됨"
+  },
+  "sidepanel_filters_tags": {
+    "message": "태그"
+  },
+  "sidepanel_filters_sortBy": {
+    "message": "정렬 기준"
+  },
+  "sidepanel_filters_sortLastAccessed": {
+    "message": "마지막 접근"
+  },
+  "sidepanel_filters_sortCreated": {
+    "message": "생성일"
+  },
+  "sidepanel_filters_sortName": {
+    "message": "이름"
+  },
+  "sidepanel_filters_status": {
+    "message": "상태"
+  },
+  "sidepanel_filters_statusOpen": {
+    "message": "열림"
+  },
+  "sidepanel_filters_statusActive": {
+    "message": "활성"
+  },
+  "sidepanel_filters_statusFixed": {
+    "message": "완료"
+  },
+  "sidepanel_filters_statusAbandoned": {
+    "message": "중단됨"
+  },
+  "sidepanel_filters_priority": {
+    "message": "우선순위"
+  },
+  "sidepanel_filters_priorityLow": {
+    "message": "낮음"
+  },
+  "sidepanel_filters_priorityMedium": {
+    "message": "보통"
+  },
+  "sidepanel_filters_priorityHigh": {
+    "message": "높음"
+  },
+  "sidepanel_filters_priorityCritical": {
+    "message": "긴급"
+  },
+  "sidepanel_filters_collection": {
+    "message": "컬렉션"
+  },
+  "sidepanel_filters_uncategorized": {
+    "message": "미분류"
+  },
+  "sidepanel_filters_unnamed": {
+    "message": "이름 없음"
+  },
+  "sidepanel_filters_clear": {
+    "message": "필터 지우기 ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_presentation_groupBy": {
+    "message": "그룹화 기준:"
+  },
+  "sidepanel_presentation_groupByLabel": {
+    "message": "작업 그룹화 기준"
+  },
+  "sidepanel_presentation_groupCollection": {
+    "message": "컬렉션"
+  },
+  "sidepanel_presentation_groupPriority": {
+    "message": "우선순위"
+  },
+  "sidepanel_presentation_groupStatus": {
+    "message": "상태"
+  },
+  "sidepanel_presentation_groupNone": {
+    "message": "없음"
+  },
+  "sidepanel_presentation_sortBy": {
+    "message": "정렬 기준:"
+  },
+  "sidepanel_presentation_sortByLabel": {
+    "message": "작업 정렬 기준"
+  },
+  "sidepanel_presentation_sortPriority": {
+    "message": "우선순위"
+  },
+  "sidepanel_presentation_sortDueDate": {
+    "message": "마감일"
+  },
+  "sidepanel_presentation_sortCreated": {
+    "message": "생성일"
+  },
+  "sidepanel_presentation_sortAlpha": {
+    "message": "가나다순"
+  },
+  "sidepanel_presentation_directionLabel": {
+    "message": "정렬 방향 전환"
+  },
+  "sidepanel_presentation_directionAsc": {
+    "message": "오름차순"
+  },
+  "sidepanel_presentation_directionDesc": {
+    "message": "내림차순"
+  },
+  "sidepanel_tasks_uncategorized": {
+    "message": "미분류"
+  },
+  "sidepanel_tasks_unnamedCollection": {
+    "message": "이름 없는 컬렉션"
+  },
+  "sidepanel_tasks_unnamed": {
+    "message": "이름 없음"
+  },
+  "sidepanel_tasks_completed": {
+    "message": "완료됨"
+  },
+  "sidepanel_tasks_groupCritical": {
+    "message": "긴급"
+  },
+  "sidepanel_tasks_groupHigh": {
+    "message": "높은 우선순위"
+  },
+  "sidepanel_tasks_groupMedium": {
+    "message": "보통 우선순위"
+  },
+  "sidepanel_tasks_groupLow": {
+    "message": "낮은 우선순위"
+  },
+  "sidepanel_tasks_groupNoPriority": {
+    "message": "우선순위 없음"
+  },
+  "sidepanel_tasks_statusOpen": {
+    "message": "열림"
+  },
+  "sidepanel_tasks_statusActive": {
+    "message": "활성"
+  },
+  "sidepanel_tasks_statusFixed": {
+    "message": "완료"
+  },
+  "sidepanel_tasks_statusAbandoned": {
+    "message": "중단됨"
+  },
+  "sidepanel_tasks_viewCollection": {
+    "message": "컬렉션 보기"
+  },
+  "sidepanel_tasks_delete": {
+    "message": "삭제"
+  },
+  "sidepanel_tasks_openTabs": {
+    "message": "탭 열기"
+  },
+  "sidepanel_tasks_markFixed": {
+    "message": "완료로 표시"
+  },
+  "sidepanel_tasks_edit": {
+    "message": "편집"
+  },
+  "sidepanel_tasks_dueOverdue": {
+    "message": "⚠️ 마감 $date$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_due": {
+    "message": "마감 $date$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadge_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadge_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_one": {
+    "message": "연결된 탭 $count$개 열기",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_other": {
+    "message": "연결된 탭 $count$개 열기",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openingTabs": {
+    "message": "작업 탭 여는 중..."
+  },
+  "sidepanel_tasks_openedTabs_one": {
+    "message": "탭 $count$개를 열었습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openedTabs_other": {
+    "message": "탭 $count$개를 열었습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsFailed": {
+    "message": "작업 탭을 열지 못했습니다"
+  },
+  "sidepanel_tasks_markedFixed": {
+    "message": "작업이 완료로 표시되었습니다"
+  },
+  "sidepanel_tasks_markFixedFailed": {
+    "message": "작업을 완료로 표시하지 못했습니다"
+  },
+  "sidepanel_tasks_loadFailed": {
+    "message": "작업을 불러오지 못했습니다"
+  },
+  "sidepanel_tasks_deleted": {
+    "message": "작업 \"$summary$\"이(가) 삭제되었습니다",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_deleteFailed": {
+    "message": "작업을 삭제하지 못했습니다"
+  },
+  "sidepanel_tasks_deleteTitle": {
+    "message": "작업 삭제"
+  },
+  "sidepanel_tasks_deleteQuestion": {
+    "message": "이 작업을 삭제하시겠습니까?"
+  },
+  "sidepanel_tasks_deleteCollectionInfo": {
+    "message": "이 작업은 컬렉션의 일부입니다. 컬렉션에는 영향을 주지 않습니다."
+  },
+  "sidepanel_tasks_editTitle": {
+    "message": "작업 편집"
+  },
+  "sidepanel_task_saveChanges": {
+    "message": "변경 사항 저장"
+  },
+  "sidepanel_tasks_updated": {
+    "message": "작업이 업데이트되었습니다"
+  },
+  "sidepanel_tasks_saveEditsFailed": {
+    "message": "작업 편집을 저장하지 못했습니다"
+  },
+  "sidepanel_tabchip_closed": {
+    "message": "닫힘"
+  },
+  "sidepanel_tabchip_removeLabel": {
+    "message": "탭 참조 제거"
+  },
+  "sidepanel_tabchip_removeAssociation": {
+    "message": "탭 연결 제거"
+  },
+  "sidepanel_tabchip_linkCurrent": {
+    "message": "현재 탭에 연결"
+  },
+  "sidepanel_tabchip_alreadyLinked": {
+    "message": "이 탭은 이미 연결되어 있습니다"
+  },
+  "sidepanel_tabchip_noActiveTab": {
+    "message": "활성 탭을 찾을 수 없습니다"
+  },
+  "sidepanel_detail_back": {
+    "message": "← 컬렉션으로 돌아가기"
+  },
+  "sidepanel_detail_notFound": {
+    "message": "컬렉션을 찾을 수 없습니다"
+  },
+  "sidepanel_detail_loadFailed": {
+    "message": "컬렉션을 불러오지 못했습니다"
+  },
+  "sidepanel_detail_syncNever": {
+    "message": "없음"
+  },
+  "sidepanel_detail_tasksHeader": {
+    "message": "✓ 작업"
+  },
+  "sidepanel_detail_newTask": {
+    "message": "+ 새 작업"
+  },
+  "sidepanel_detail_noTasks": {
+    "message": "아직 작업이 없습니다. 만들어서 진행 상황을 추적하세요."
+  },
+  "sidepanel_detail_tasksOpen": {
+    "message": "열림 ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_tasksActive": {
+    "message": "활성 ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_tasksCompleted": {
+    "message": "완료됨 ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_moreTabs": {
+    "message": ", +$count$개 더",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_openTabsTitle": {
+    "message": "탭 열기"
+  },
+  "sidepanel_detail_markFixedTitle": {
+    "message": "완료로 표시"
+  },
+  "sidepanel_detail_editTaskTitle": {
+    "message": "작업 편집"
+  },
+  "sidepanel_detail_foldersHeader": {
+    "message": "📂 폴더 및 탭"
+  },
+  "sidepanel_detail_foldersCount": {
+    "message": "폴더 $folders$개, 탭 $tabs$개",
+    "placeholders": {
+      "folders": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_detail_noFolders": {
+    "message": "아직 폴더나 탭이 없습니다."
+  },
+  "sidepanel_detail_untitledFolder": {
+    "message": "제목 없는 폴더"
+  },
+  "sidepanel_detail_folderTabsCount": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_ungroupedTabs": {
+    "message": "그룹화되지 않은 탭"
+  },
+  "sidepanel_detail_notePlaceholder": {
+    "message": "메모 추가 (최대 255자)..."
+  },
+  "sidepanel_detail_noteChars": {
+    "message": "$count$/255",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_settingsHeader": {
+    "message": "⚙️ 점진적 동기화 설정"
+  },
+  "sidepanel_detail_settingsInfo": {
+    "message": "활성화하면 탭과 그룹의 변경 사항이 자동으로 동기화되어 컬렉션 상태가 보존됩니다."
+  },
+  "sidepanel_detail_trackingTitle": {
+    "message": "실시간 추적 활성화"
+  },
+  "sidepanel_detail_trackingDesc": {
+    "message": "탭/그룹 변경 사항을 자동으로 추적하고 저장합니다"
+  },
+  "sidepanel_detail_syncDelayTitle": {
+    "message": "동기화 지연"
+  },
+  "sidepanel_detail_syncDelayDesc": {
+    "message": "변경 사항을 저장하기 전 대기 시간 ($value$)",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_syncStatus": {
+    "message": "동기화 상태"
+  },
+  "sidepanel_detail_lastSynced": {
+    "message": "마지막 동기화:"
+  },
+  "sidepanel_detail_pendingChanges": {
+    "message": "대기 중인 변경 사항:"
+  },
+  "sidepanel_detail_saveSettings": {
+    "message": "설정 저장"
+  },
+  "sidepanel_detail_syncDelayInstant": {
+    "message": "0초 (즉시)"
+  },
+  "sidepanel_detail_syncDelayMs": {
+    "message": "$ms$ms",
+    "placeholders": {
+      "ms": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_syncDelaySeconds": {
+    "message": "$seconds$초",
+    "placeholders": {
+      "seconds": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_refresh": {
+    "message": "🔄 새로 고침"
+  },
+  "sidepanel_detail_focusWindow": {
+    "message": "👁️ 창 포커스"
+  },
+  "sidepanel_detail_closeWindow": {
+    "message": "❌ 창 닫기"
+  },
+  "sidepanel_detail_openCollection": {
+    "message": "📂 컬렉션 열기"
+  },
+  "sidepanel_detail_editCollection": {
+    "message": "✏️ 컬렉션 편집"
+  },
+  "sidepanel_detail_createTaskTitle": {
+    "message": "작업 만들기"
+  },
+  "sidepanel_detail_createTaskFailed": {
+    "message": "작업을 만들지 못했습니다"
+  },
+  "sidepanel_detail_create": {
+    "message": "만들기"
+  },
+  "sidepanel_detail_taskNotFound": {
+    "message": "작업을 찾을 수 없습니다"
+  },
+  "sidepanel_detail_editTaskFailed": {
+    "message": "작업을 편집하지 못했습니다"
+  },
+  "sidepanel_detail_form_summaryLabel": {
+    "message": "요약 *"
+  },
+  "sidepanel_detail_form_contextLabel": {
+    "message": "컨텍스트"
+  },
+  "sidepanel_detail_form_contextHelper": {
+    "message": "탭에 빠르게 접근"
+  },
+  "sidepanel_detail_form_notesLabel": {
+    "message": "메모"
+  },
+  "sidepanel_detail_form_priorityLabel": {
+    "message": "우선순위"
+  },
+  "sidepanel_detail_form_priorityLow": {
+    "message": "낮음"
+  },
+  "sidepanel_detail_form_priorityMedium": {
+    "message": "보통"
+  },
+  "sidepanel_detail_form_priorityHigh": {
+    "message": "높음"
+  },
+  "sidepanel_detail_form_priorityCritical": {
+    "message": "긴급"
+  },
+  "sidepanel_detail_form_statusLabel": {
+    "message": "상태"
+  },
+  "sidepanel_detail_form_statusOpen": {
+    "message": "열림"
+  },
+  "sidepanel_detail_form_statusActive": {
+    "message": "활성"
+  },
+  "sidepanel_detail_form_statusFixed": {
+    "message": "완료"
+  },
+  "sidepanel_detail_form_statusAbandoned": {
+    "message": "중단됨"
+  },
+  "sidepanel_detail_form_dueDateLabel": {
+    "message": "마감일"
+  },
+  "sidepanel_detail_form_tagsLabel": {
+    "message": "태그 (쉼표로 구분)"
+  },
+  "sidepanel_detail_form_tagsPlaceholder": {
+    "message": "버그, 기능, 긴급"
+  },
+  "sidepanel_detail_taskUpdated": {
+    "message": "작업이 업데이트되었습니다"
+  },
+  "sidepanel_detail_taskCreated": {
+    "message": "작업이 생성되었습니다"
+  },
+  "sidepanel_detail_saveTaskFailed": {
+    "message": "작업을 저장하지 못했습니다"
+  },
+  "sidepanel_detail_openedTabs": {
+    "message": "작업을 위해 탭 $count$개를 열었습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_openTaskTabsFailed": {
+    "message": "작업 탭을 열지 못했습니다"
+  },
+  "sidepanel_detail_markedFixed": {
+    "message": "작업이 완료로 표시되었습니다"
+  },
+  "sidepanel_detail_updateTaskFailed": {
+    "message": "작업을 업데이트하지 못했습니다"
+  },
+  "sidepanel_detail_saveNoteFailed": {
+    "message": "메모를 저장하지 못했습니다"
+  },
+  "sidepanel_detail_syncing": {
+    "message": "컬렉션 동기화 중..."
+  },
+  "sidepanel_detail_upToDate": {
+    "message": "컬렉션이 최신 상태입니다"
+  },
+  "sidepanel_detail_refreshed": {
+    "message": "새로 고침됨: $added$개 추가, $updated$개 업데이트, $removed$개 제거",
+    "placeholders": {
+      "added": {
+        "content": "$1"
+      },
+      "updated": {
+        "content": "$2"
+      },
+      "removed": {
+        "content": "$3"
+      }
+    }
+  },
+  "sidepanel_detail_syncFailed": {
+    "message": "동기화 실패"
+  },
+  "sidepanel_detail_syncCollectionFailed": {
+    "message": "컬렉션을 동기화하지 못했습니다"
+  },
+  "sidepanel_detail_windowNotFound": {
+    "message": "창을 찾을 수 없습니다"
+  },
+  "sidepanel_detail_windowFocused": {
+    "message": "창에 포커스됨"
+  },
+  "sidepanel_detail_focusWindowFailed": {
+    "message": "창에 포커스하지 못했습니다"
+  },
+  "sidepanel_detail_windowClosedSaved": {
+    "message": "창이 닫혔습니다 - 컬렉션 저장됨"
+  },
+  "sidepanel_detail_closeWindowFailed": {
+    "message": "창을 닫지 못했습니다"
+  },
+  "sidepanel_detail_openedNewWindow": {
+    "message": "컬렉션이 새 창에서 열렸습니다"
+  },
+  "sidepanel_detail_openCollectionFailed": {
+    "message": "컬렉션을 열지 못했습니다"
+  },
+  "sidepanel_detail_editCollectionTitle": {
+    "message": "컬렉션 편집"
+  },
+  "sidepanel_detail_editCollectionFailed": {
+    "message": "컬렉션을 편집하지 못했습니다"
+  },
+  "sidepanel_detail_form_nameLabel": {
+    "message": "이름"
+  },
+  "sidepanel_detail_form_descriptionLabel": {
+    "message": "설명"
+  },
+  "sidepanel_detail_form_iconLabel": {
+    "message": "아이콘"
+  },
+  "sidepanel_detail_form_collectionTagsLabel": {
+    "message": "태그 (쉼표로 구분)"
+  },
+  "sidepanel_detail_form_collectionTagsPlaceholder": {
+    "message": "업무, 리서치, 개인"
+  },
+  "sidepanel_detail_collectionUpdated": {
+    "message": "컬렉션이 업데이트되었습니다"
+  },
+  "sidepanel_detail_saveChangesFailed": {
+    "message": "변경 사항을 저장하지 못했습니다"
+  },
+  "sidepanel_detail_settingsSaved": {
+    "message": "설정이 저장되었습니다"
+  },
+  "sidepanel_detail_saveSettingsFailed": {
+    "message": "설정을 저장하지 못했습니다"
+  },
+  "sidepanel_detail_untitledCollection": {
+    "message": "제목 없는 컬렉션"
+  },
+  "sidepanel_detail_metaCreated": {
+    "message": "생성일:"
+  },
+  "sidepanel_detail_metaLastAccessed": {
+    "message": "마지막 접근:"
+  },
+  "sidepanel_detail_loading": {
+    "message": "불러오는 중..."
+  },
+  "sidepanel_detail_windowBadge": {
+    "message": "창 #$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_modal_closeLabel": {
+    "message": "대화 상자 닫기"
+  },
+  "sidepanel_notification_closeLabel": {
+    "message": "알림 닫기"
+  },
+  "sidepanel_state_connectionMessage": {
+    "message": "연결이 끊어졌습니다. 확장 프로그램이 다시 시작되었을 수 있습니다."
+  },
+  "sidepanel_state_connectionSuggestion": {
+    "message": "데이터를 다시 불러오려면 다시 시도를 클릭하세요."
+  },
+  "sidepanel_state_quotaMessage": {
+    "message": "저장 공간이 가득 찼습니다."
+  },
+  "sidepanel_state_quotaSuggestion": {
+    "message": "공간을 확보하려면 오래된 컬렉션을 삭제하세요."
+  },
+  "sidepanel_state_notFoundMessage": {
+    "message": "항목이 더 이상 존재하지 않습니다."
+  },
+  "sidepanel_state_notFoundSuggestion": {
+    "message": "삭제되었을 수 있습니다."
+  },
+  "sidepanel_state_permissionMessage": {
+    "message": "권한이 거부되었습니다."
+  },
+  "sidepanel_state_permissionSuggestion": {
+    "message": "chrome://extensions에서 확장 프로그램 권한을 확인하세요"
+  },
+  "sidepanel_state_unknownMessage": {
+    "message": "오류가 발생했습니다."
+  },
+  "sidepanel_state_unknownSuggestion": {
+    "message": "다시 시도하려면 다시 시도를 클릭하세요."
+  },
+  "dashboard_docTitle": {
+    "message": "TabTaskTick - 대시보드"
+  },
+  "dashboard_nav_overview": {
+    "message": "개요"
+  },
+  "dashboard_nav_allTabs": {
+    "message": "모든 탭"
+  },
+  "dashboard_nav_groups": {
+    "message": "그룹"
+  },
+  "dashboard_nav_snoozed": {
+    "message": "미룬 탭"
+  },
+  "dashboard_nav_history": {
+    "message": "기록"
+  },
+  "dashboard_nav_collections": {
+    "message": "컬렉션"
+  },
+  "dashboard_nav_tasks": {
+    "message": "작업"
+  },
+  "dashboard_nav_rulesEngine": {
+    "message": "규칙 엔진"
+  },
+  "dashboard_nav_backupRestore": {
+    "message": "백업 및 복원"
+  },
+  "dashboard_footer_shortcuts": {
+    "message": "단축키"
+  },
+  "dashboard_footer_shortcutsTitle": {
+    "message": "키보드 단축키 (Shift+?)"
+  },
+  "dashboard_footer_settings": {
+    "message": "설정"
+  },
+  "dashboard_overview_title": {
+    "message": "대시보드 개요"
+  },
+  "dashboard_overview_quickOrganize": {
+    "message": "빠른 정리"
+  },
+  "dashboard_overview_refresh": {
+    "message": "새로 고침"
+  },
+  "dashboard_overview_statTotalTabs": {
+    "message": "전체 탭"
+  },
+  "dashboard_overview_statTotalTabsTitle": {
+    "message": "모든 탭 보기"
+  },
+  "dashboard_overview_statTabsChange": {
+    "message": "오늘 +0"
+  },
+  "dashboard_overview_statTabGroups": {
+    "message": "탭 그룹"
+  },
+  "dashboard_overview_statTabGroupsTitle": {
+    "message": "탭 그룹 보기"
+  },
+  "dashboard_overview_statGroupsInfo": {
+    "message": "접힘 0개"
+  },
+  "dashboard_overview_statSnoozed": {
+    "message": "미룬 탭"
+  },
+  "dashboard_overview_statSnoozedTitle": {
+    "message": "미룬 탭 보기"
+  },
+  "dashboard_overview_statNextWake": {
+    "message": "다음 --"
+  },
+  "dashboard_overview_statDuplicates": {
+    "message": "중복"
+  },
+  "dashboard_overview_statDuplicatesTitle": {
+    "message": "중복 탭 보기"
+  },
+  "dashboard_overview_statDuplicatesInfo": {
+    "message": "클릭하여 정리"
+  },
+  "dashboard_overview_chartActivity": {
+    "message": "탭 활동 (최근 7일)"
+  },
+  "dashboard_overview_chartTopDomains": {
+    "message": "상위 도메인"
+  },
+  "dashboard_overview_recentActivity": {
+    "message": "최근 활동"
+  },
+  "dashboard_tabs_title": {
+    "message": "모든 탭"
+  },
+  "dashboard_tabs_searchPlaceholder": {
+    "message": "탭 검색..."
+  },
+  "dashboard_tabs_filterAll": {
+    "message": "모든 탭"
+  },
+  "dashboard_tabs_filterActive": {
+    "message": "활성"
+  },
+  "dashboard_tabs_filterSuspended": {
+    "message": "정지됨"
+  },
+  "dashboard_tabs_filterPinned": {
+    "message": "고정됨"
+  },
+  "dashboard_tabs_filterAudible": {
+    "message": "오디오 재생 중"
+  },
+  "dashboard_tabs_filterMuted": {
+    "message": "음소거됨"
+  },
+  "dashboard_tabs_filterGrouped": {
+    "message": "그룹 내"
+  },
+  "dashboard_tabs_filterUngrouped": {
+    "message": "그룹화되지 않음"
+  },
+  "dashboard_tabs_filterDuplicates": {
+    "message": "중복"
+  },
+  "dashboard_tabs_windowAll": {
+    "message": "모든 창"
+  },
+  "dashboard_tabs_sortDefault": {
+    "message": "기본 순서"
+  },
+  "dashboard_tabs_sortWindow": {
+    "message": "창별 그룹화"
+  },
+  "dashboard_tabs_sortRecent": {
+    "message": "최근 사용순"
+  },
+  "dashboard_tabs_sortOldest": {
+    "message": "사용한 지 오래된 순"
+  },
+  "dashboard_tabs_sortSuspended": {
+    "message": "정지된 항목 먼저"
+  },
+  "dashboard_tabs_sortActive": {
+    "message": "활성 항목 먼저"
+  },
+  "dashboard_tabs_sortTitle": {
+    "message": "제목 (ㄱ-ㅎ)"
+  },
+  "dashboard_tabs_sortDomain": {
+    "message": "도메인 (A-Z)"
+  },
+  "dashboard_tabs_sortCategory": {
+    "message": "카테고리 (ㄱ-ㅎ)"
+  },
+  "dashboard_tabs_gridViewTitle": {
+    "message": "그리드 보기"
+  },
+  "dashboard_tabs_treeViewTitle": {
+    "message": "트리 보기"
+  },
+  "dashboard_tabs_selected": {
+    "message": "개 탭 선택됨"
+  },
+  "dashboard_tabs_selectAll": {
+    "message": "모두 선택"
+  },
+  "dashboard_tabs_clear": {
+    "message": "지우기"
+  },
+  "dashboard_tabs_bulkClose": {
+    "message": "닫기"
+  },
+  "dashboard_tabs_bulkSnooze": {
+    "message": "미루기"
+  },
+  "dashboard_tabs_bulkGroup": {
+    "message": "그룹화"
+  },
+  "dashboard_tabs_bulkMove": {
+    "message": "이동"
+  },
+  "dashboard_tabs_smartWindowName": {
+    "message": "$name$ 창",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_defaultWindowName": {
+    "message": "창 $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_defaultGroupName": {
+    "message": "그룹 $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_countOfTotal": {
+    "message": "($total$개 중 $displayed$개)",
+    "placeholders": {
+      "displayed": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tabs_noTabsTitle": {
+    "message": "탭을 찾을 수 없습니다"
+  },
+  "dashboard_tabs_noTabsText": {
+    "message": "현재 필터와 일치하는 탭이 없습니다"
+  },
+  "dashboard_tabs_badgePinned": {
+    "message": "고정됨"
+  },
+  "dashboard_tabs_badgePlaying": {
+    "message": "재생 중"
+  },
+  "dashboard_tabs_unknownWindow": {
+    "message": "알 수 없는 창"
+  },
+  "dashboard_tabs_lastAccessed": {
+    "message": "• 마지막 접근: $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_selectAllInWindow": {
+    "message": "창의 모든 탭 선택"
+  },
+  "dashboard_tabs_closeWindowTitle": {
+    "message": "창 닫기"
+  },
+  "dashboard_tabs_selectAllInGroup": {
+    "message": "그룹의 모든 탭 선택"
+  },
+  "dashboard_tabs_renameGroupTitle": {
+    "message": "그룹 이름 변경"
+  },
+  "dashboard_tabs_closeGroupTitle": {
+    "message": "그룹 닫기"
+  },
+  "dashboard_tabs_windowTabCount_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowTabCount_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_ungroupedTabs": {
+    "message": "그룹화되지 않은 탭"
+  },
+  "dashboard_tabs_confirmCloseWindow": {
+    "message": "이 창과 모든 탭을 닫으시겠습니까?"
+  },
+  "dashboard_tabs_confirmCloseGroup": {
+    "message": "이 그룹의 모든 탭을 닫으시겠습니까?"
+  },
+  "dashboard_tabs_removedFromGroup_one": {
+    "message": "그룹에서 탭 $count$개를 제거했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_removedFromGroup_other": {
+    "message": "그룹에서 탭 $count$개를 제거했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_ungroupFailed": {
+    "message": "탭 그룹화를 해제하지 못했습니다"
+  },
+  "dashboard_tabs_movedToWindow_one": {
+    "message": "탭 $count$개를 창으로 이동했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_movedToWindow_other": {
+    "message": "탭 $count$개를 창으로 이동했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_addedToGroup_one": {
+    "message": "그룹에 탭 $count$개를 추가했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_addedToGroup_other": {
+    "message": "그룹에 탭 $count$개를 추가했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_moveToGroupFailed": {
+    "message": "탭을 그룹으로 이동하지 못했습니다"
+  },
+  "dashboard_tabs_treeBadgePin": {
+    "message": "고정"
+  },
+  "dashboard_tabs_treeBadgeAudio": {
+    "message": "오디오"
+  },
+  "dashboard_tabs_detailsBtnTitle": {
+    "message": "디버깅용 탭 상태 세부 정보 표시"
+  },
+  "dashboard_tabs_gotoTabTitle": {
+    "message": "탭으로 이동"
+  },
+  "dashboard_tabs_windowOptionCurrent_one": {
+    "message": "$name$ (현재, 탭 $count$개)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOptionCurrent_other": {
+    "message": "$name$ (현재, 탭 $count$개)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOption_one": {
+    "message": "$name$ (탭 $count$개)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOption_other": {
+    "message": "$name$ (탭 $count$개)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_renameWindowsOption": {
+    "message": "✏️ 창 이름 변경..."
+  },
+  "dashboard_tabs_detailsTitle": {
+    "message": "탭 상태 세부 정보"
+  },
+  "dashboard_tabs_detailsAttribute": {
+    "message": "속성"
+  },
+  "dashboard_tabs_detailsValue": {
+    "message": "값"
+  },
+  "dashboard_tabs_copyJson": {
+    "message": "JSON으로 복사"
+  },
+  "dashboard_tabs_copied": {
+    "message": "복사됨!"
+  },
+  "dashboard_groups_title": {
+    "message": "탭 그룹"
+  },
+  "dashboard_groups_ungroupAll": {
+    "message": "모두 그룹 해제"
+  },
+  "dashboard_groups_groupByDomain": {
+    "message": "도메인별 그룹화"
+  },
+  "dashboard_snoozed_title": {
+    "message": "미룬 탭"
+  },
+  "dashboard_snoozed_wakeAll": {
+    "message": "모두 깨우기"
+  },
+  "dashboard_history_title": {
+    "message": "탭 기록"
+  },
+  "dashboard_history_clear": {
+    "message": "기록 지우기"
+  },
+  "dashboard_rules_title": {
+    "message": "규칙 엔진"
+  },
+  "dashboard_rules_runNow": {
+    "message": "지금 규칙 실행"
+  },
+  "dashboard_rules_purgeAll": {
+    "message": "모두 삭제"
+  },
+  "dashboard_rules_purgeAllTitle": {
+    "message": "모든 규칙 삭제"
+  },
+  "dashboard_rules_addRule": {
+    "message": "규칙 추가"
+  },
+  "dashboard_rules_createCustom": {
+    "message": "사용자 지정 규칙 만들기"
+  },
+  "dashboard_rules_startFromTemplate": {
+    "message": "템플릿으로 시작:"
+  },
+  "dashboard_rules_description": {
+    "message": "탭을 관리할 자동 규칙을 만드세요. 규칙은 위에서 아래로 순서대로 실행됩니다. 드래그하여 순서를 변경하세요."
+  },
+  "dashboard_rules_warning": {
+    "message": "규칙은 자동으로 탭을 닫거나 수정할 수 있습니다. 활성화하기 전에 규칙을 신중하게 테스트하세요."
+  },
+  "dashboard_rules_disableAll": {
+    "message": "모두 비활성화"
+  },
+  "dashboard_rules_enableAll": {
+    "message": "모두 활성화"
+  },
+  "dashboard_rules_emptyTitle": {
+    "message": "생성된 규칙 없음"
+  },
+  "dashboard_rules_emptyText": {
+    "message": "탭 관리를 자동화할 첫 규칙을 만들거나 템플릿으로 시작하세요."
+  },
+  "dashboard_rules_addFirst": {
+    "message": "첫 규칙 추가"
+  },
+  "dashboard_backup_title": {
+    "message": "백업 및 복원"
+  },
+  "dashboard_backup_createTitle": {
+    "message": "백업 만들기"
+  },
+  "dashboard_backup_createDesc": {
+    "message": "탭, 그룹, 규칙, 설정을 저장합니다."
+  },
+  "dashboard_backup_scope": {
+    "message": "범위"
+  },
+  "dashboard_backup_include": {
+    "message": "포함"
+  },
+  "dashboard_backup_includeGroups": {
+    "message": "탭 그룹 및 구성"
+  },
+  "dashboard_backup_includeRules": {
+    "message": "규칙 및 자동화"
+  },
+  "dashboard_backup_includeSnoozed": {
+    "message": "미룬 탭"
+  },
+  "dashboard_backup_includeSettings": {
+    "message": "설정 및 기본 설정"
+  },
+  "dashboard_backup_includeStatistics": {
+    "message": "사용 통계"
+  },
+  "dashboard_backup_includeCollections": {
+    "message": "컬렉션 및 작업"
+  },
+  "dashboard_backup_format": {
+    "message": "형식"
+  },
+  "dashboard_backup_formatJSON": {
+    "message": "전체 백업 (.json)"
+  },
+  "dashboard_backup_formatJSONHint": {
+    "message": "완전한 백업 - 복원 가능"
+  },
+  "dashboard_backup_formatCSV": {
+    "message": "스프레드시트 (.csv)"
+  },
+  "dashboard_backup_formatCSVHint": {
+    "message": "Excel/Google 스프레드시트 분석용"
+  },
+  "dashboard_backup_formatMarkdown": {
+    "message": "문서 (.md)"
+  },
+  "dashboard_backup_formatMarkdownHint": {
+    "message": "사람이 읽기 쉬운 목록"
+  },
+  "dashboard_backup_backupNow": {
+    "message": "지금 백업"
+  },
+  "dashboard_backup_restoreTitle": {
+    "message": "백업에서 복원"
+  },
+  "dashboard_backup_restoreDesc": {
+    "message": "이전 백업에서 탭, 그룹, 규칙, 설정을 복원합니다."
+  },
+  "dashboard_backup_dropFile": {
+    "message": "파일을 여기에 놓거나 클릭하여 찾아보세요"
+  },
+  "dashboard_backup_dropHint": {
+    "message": "TabTaskTick에서 내보낸 .json 파일을 허용합니다"
+  },
+  "dashboard_backup_fileInfo": {
+    "message": "파일 정보"
+  },
+  "dashboard_backup_fileLabel": {
+    "message": "파일:"
+  },
+  "dashboard_backup_sizeLabel": {
+    "message": "크기:"
+  },
+  "dashboard_backup_formatLabel": {
+    "message": "형식:"
+  },
+  "dashboard_backup_importPreview": {
+    "message": "가져오기 미리 보기"
+  },
+  "dashboard_backup_importTo": {
+    "message": "가져올 위치"
+  },
+  "dashboard_backup_importNewWindows": {
+    "message": "새 창"
+  },
+  "dashboard_backup_importNewWindowsHint": {
+    "message": "가장 안전 - 새 창 생성"
+  },
+  "dashboard_backup_importCurrentWindow": {
+    "message": "현재 창"
+  },
+  "dashboard_backup_importCurrentWindowHint": {
+    "message": "현재 창에 추가"
+  },
+  "dashboard_backup_importReplaceAll": {
+    "message": "모든 창 교체"
+  },
+  "dashboard_backup_importReplaceAllHint": {
+    "message": "⚠️ 기존의 모든 창을 닫습니다"
+  },
+  "dashboard_backup_options": {
+    "message": "옵션"
+  },
+  "dashboard_backup_importGroups": {
+    "message": "탭 그룹 가져오기"
+  },
+  "dashboard_backup_importRules": {
+    "message": "규칙 가져오기 (병합)"
+  },
+  "dashboard_backup_importSnoozed": {
+    "message": "미룬 탭 가져오기"
+  },
+  "dashboard_backup_importSettings": {
+    "message": "설정 가져오기 (덮어쓰기)"
+  },
+  "dashboard_backup_importCollections": {
+    "message": "컬렉션 및 작업 가져오기"
+  },
+  "dashboard_backup_restoreBackup": {
+    "message": "백업 복원"
+  },
+  "dashboard_backup_scheduledTitle": {
+    "message": "예약 백업"
+  },
+  "dashboard_backup_scheduledDesc": {
+    "message": "재해 복구를 위해 일정에 따라 자동으로 전체 백업을 만듭니다."
+  },
+  "dashboard_backup_enableAuto": {
+    "message": "자동 백업 활성화"
+  },
+  "dashboard_backup_frequency": {
+    "message": "주기:"
+  },
+  "dashboard_backup_freqHourly": {
+    "message": "매시간"
+  },
+  "dashboard_backup_freqDaily": {
+    "message": "매일"
+  },
+  "dashboard_backup_freqWeekly": {
+    "message": "매주"
+  },
+  "dashboard_backup_time": {
+    "message": "시간:"
+  },
+  "dashboard_backup_recentBackups": {
+    "message": "최근 백업"
+  },
+  "dashboard_backup_loadingHistory": {
+    "message": "백업 기록 불러오는 중..."
+  },
+  "dashboard_collections_title": {
+    "message": "컬렉션"
+  },
+  "dashboard_collections_saveWindow": {
+    "message": "창 저장"
+  },
+  "dashboard_collections_searchPlaceholder": {
+    "message": "컬렉션 검색..."
+  },
+  "dashboard_collections_filterAll": {
+    "message": "모든 컬렉션"
+  },
+  "dashboard_collections_filterActive": {
+    "message": "활성"
+  },
+  "dashboard_collections_filterSaved": {
+    "message": "저장됨"
+  },
+  "dashboard_collections_filterArchived": {
+    "message": "보관됨"
+  },
+  "dashboard_collections_sortLastAccessed": {
+    "message": "마지막 접근"
+  },
+  "dashboard_collections_sortName": {
+    "message": "이름 (A-Z)"
+  },
+  "dashboard_collections_sortCreated": {
+    "message": "생성일"
+  },
+  "dashboard_collections_sortTabCount": {
+    "message": "탭 수"
+  },
+  "dashboard_collections_listViewTitle": {
+    "message": "목록 보기"
+  },
+  "dashboard_collections_exportAllTitle": {
+    "message": "모든 컬렉션을 JSON으로 내보내기"
+  },
+  "dashboard_collections_exportAll": {
+    "message": "모두 내보내기"
+  },
+  "dashboard_collections_importTitle": {
+    "message": "JSON 파일에서 컬렉션 가져오기"
+  },
+  "dashboard_collections_import": {
+    "message": "가져오기"
+  },
+  "dashboard_collections_sectionActive": {
+    "message": "활성 컬렉션"
+  },
+  "dashboard_collections_sectionSaved": {
+    "message": "저장된 컬렉션"
+  },
+  "dashboard_collections_sectionArchived": {
+    "message": "보관됨"
+  },
+  "dashboard_collections_never": {
+    "message": "없음"
+  },
+  "dashboard_collections_windowBadge": {
+    "message": "창 #$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_moreTags": {
+    "message": "+$count$개 더",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_noDescription": {
+    "message": "설명 없음"
+  },
+  "dashboard_collections_statTabs": {
+    "message": "탭"
+  },
+  "dashboard_collections_statFolders": {
+    "message": "폴더"
+  },
+  "dashboard_collections_statTasks": {
+    "message": "작업"
+  },
+  "dashboard_collections_statAccessed": {
+    "message": "접근"
+  },
+  "dashboard_collections_syncLastLabel": {
+    "message": "마지막 동기화:"
+  },
+  "dashboard_collections_syncLoading": {
+    "message": "불러오는 중..."
+  },
+  "dashboard_collections_syncPendingLabel": {
+    "message": "대기 중:"
+  },
+  "dashboard_collections_syncPendingPlaceholder": {
+    "message": "..."
+  },
+  "dashboard_collections_focusWindow": {
+    "message": "창 포커스"
+  },
+  "dashboard_collections_open": {
+    "message": "열기"
+  },
+  "dashboard_collections_details": {
+    "message": "세부 정보"
+  },
+  "dashboard_collections_exportCardTitle": {
+    "message": "이 컬렉션을 JSON으로 내보내기"
+  },
+  "dashboard_collections_export": {
+    "message": "내보내기"
+  },
+  "dashboard_collections_emptyTitle": {
+    "message": "아직 컬렉션이 없습니다"
+  },
+  "dashboard_collections_emptyText": {
+    "message": "컬렉션은 브라우저 창과 작업을 정리하는 데 도움이 됩니다. 첫 컬렉션을 만들어 시작하세요!"
+  },
+  "dashboard_collections_saveCurrentWindow": {
+    "message": "현재 창 저장"
+  },
+  "dashboard_collections_errorTitle": {
+    "message": "컬렉션을 불러오지 못했습니다"
+  },
+  "dashboard_collections_errorDefault": {
+    "message": "컬렉션을 불러오는 중 오류가 발생했습니다."
+  },
+  "dashboard_collections_retry": {
+    "message": "다시 시도"
+  },
+  "dashboard_collections_actionFailed": {
+    "message": "컬렉션 작업에 실패했습니다"
+  },
+  "dashboard_collections_restoring": {
+    "message": "컬렉션 복원 중..."
+  },
+  "dashboard_collections_openedInWindow": {
+    "message": "컬렉션이 창 $id$에서 열렸습니다",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_openFailed": {
+    "message": "컬렉션을 열지 못했습니다"
+  },
+  "dashboard_collections_notActive": {
+    "message": "컬렉션이 활성 상태가 아닙니다"
+  },
+  "dashboard_collections_windowFocused": {
+    "message": "창에 포커스됨"
+  },
+  "dashboard_collections_focusFailed": {
+    "message": "창에 포커스하지 못했습니다"
+  },
+  "dashboard_collections_confirmCloseWindow": {
+    "message": "창을 닫고 컬렉션 \"$name$\"을(를) 저장하시겠습니까?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_windowClosedSaved": {
+    "message": "창이 닫히고 컬렉션이 저장되었습니다"
+  },
+  "dashboard_collections_closeFailed": {
+    "message": "창을 닫지 못했습니다"
+  },
+  "dashboard_collections_loadingDetails": {
+    "message": "컬렉션 세부 정보 불러오는 중..."
+  },
+  "dashboard_collections_detailsFailed": {
+    "message": "컬렉션 세부 정보를 불러오지 못했습니다"
+  },
+  "dashboard_collections_detailsTitle": {
+    "message": "컬렉션 세부 정보"
+  },
+  "dashboard_collections_unknown": {
+    "message": "알 수 없음"
+  },
+  "dashboard_collections_information": {
+    "message": "정보"
+  },
+  "dashboard_collections_statusLabel": {
+    "message": "상태:"
+  },
+  "dashboard_collections_statusActive": {
+    "message": "🟢 활성"
+  },
+  "dashboard_collections_statusSaved": {
+    "message": "💾 저장됨"
+  },
+  "dashboard_collections_windowLabel": {
+    "message": "창:"
+  },
+  "dashboard_collections_createdLabel": {
+    "message": "생성일:"
+  },
+  "dashboard_collections_lastAccessedLabel": {
+    "message": "마지막 접근:"
+  },
+  "dashboard_collections_tabsLabel": {
+    "message": "탭:"
+  },
+  "dashboard_collections_foldersLabel": {
+    "message": "폴더:"
+  },
+  "dashboard_collections_tasksLabel": {
+    "message": "작업:"
+  },
+  "dashboard_collections_tags": {
+    "message": "태그"
+  },
+  "dashboard_collections_foldersAndTabs": {
+    "message": "폴더 및 탭"
+  },
+  "dashboard_collections_untitledFolder": {
+    "message": "제목 없는 폴더"
+  },
+  "dashboard_collections_folderTabCount": {
+    "message": "(탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_untitled": {
+    "message": "제목 없음"
+  },
+  "dashboard_collections_ungrouped": {
+    "message": "그룹화되지 않음"
+  },
+  "dashboard_collections_tasksHeading": {
+    "message": "작업 ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_taskTabCount_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_taskTabCount_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_notFound": {
+    "message": "컬렉션을 찾을 수 없습니다"
+  },
+  "dashboard_collections_formName": {
+    "message": "이름 *"
+  },
+  "dashboard_collections_formNamePlaceholder": {
+    "message": "컬렉션 이름"
+  },
+  "dashboard_collections_formDescription": {
+    "message": "설명"
+  },
+  "dashboard_collections_formDescriptionPlaceholder": {
+    "message": "선택 사항 설명"
+  },
+  "dashboard_collections_formIcon": {
+    "message": "아이콘"
+  },
+  "dashboard_collections_formColor": {
+    "message": "색상"
+  },
+  "dashboard_collections_formTags": {
+    "message": "태그 (쉼표로 구분)"
+  },
+  "dashboard_collections_formTagsPlaceholder": {
+    "message": "업무, 중요, 프로젝트"
+  },
+  "dashboard_collections_syncSettingsLabel": {
+    "message": "점진적 동기화 설정"
+  },
+  "dashboard_collections_enableTracking": {
+    "message": "실시간 추적 활성화"
+  },
+  "dashboard_collections_enableTrackingHelp": {
+    "message": "탭/그룹 변경 사항을 자동으로 추적하고 저장합니다"
+  },
+  "dashboard_collections_syncDelay": {
+    "message": "동기화 지연 (초)"
+  },
+  "dashboard_collections_syncDelayHelp": {
+    "message": "변경 사항을 저장하기 전 대기 시간"
+  },
+  "dashboard_collections_saveChanges": {
+    "message": "변경 사항 저장"
+  },
+  "dashboard_collections_editTitle": {
+    "message": "컬렉션 편집"
+  },
+  "dashboard_collections_nameRequired": {
+    "message": "컬렉션 이름은 필수입니다"
+  },
+  "dashboard_collections_updated": {
+    "message": "컬렉션이 업데이트되었습니다"
+  },
+  "dashboard_collections_updateFailed": {
+    "message": "컬렉션을 업데이트하지 못했습니다"
+  },
+  "dashboard_collections_confirmDelete": {
+    "message": "컬렉션 \"$name$\"을(를) 삭제하시겠습니까? 연결된 모든 작업도 함께 삭제됩니다.",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_deleted": {
+    "message": "컬렉션이 삭제되었습니다"
+  },
+  "dashboard_collections_deleteFailed": {
+    "message": "컬렉션을 삭제하지 못했습니다"
+  },
+  "dashboard_collections_savingWindow": {
+    "message": "현재 창 저장 중..."
+  },
+  "dashboard_collections_created": {
+    "message": "컬렉션이 생성되었습니다!"
+  },
+  "dashboard_collections_createFailed": {
+    "message": "컬렉션을 만들지 못했습니다"
+  },
+  "dashboard_collections_exporting": {
+    "message": "컬렉션 내보내는 중..."
+  },
+  "dashboard_collections_exportFailed": {
+    "message": "컬렉션을 내보내지 못했습니다"
+  },
+  "dashboard_collections_exportFailedMsg": {
+    "message": "내보내기 실패: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_noneToExport": {
+    "message": "내보낼 컬렉션이 없습니다"
+  },
+  "dashboard_collections_exportingCount_one": {
+    "message": "컬렉션 $count$개 내보내는 중...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_exportingCount_other": {
+    "message": "컬렉션 $count$개 내보내는 중...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_exportAllFailed": {
+    "message": "컬렉션을 내보내지 못했습니다"
+  },
+  "dashboard_collections_importing": {
+    "message": "컬렉션 가져오는 중..."
+  },
+  "dashboard_collections_importFailed": {
+    "message": "컬렉션을 가져오지 못했습니다"
+  },
+  "dashboard_collections_importFailedMsg": {
+    "message": "가져오기 실패: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_opened": {
+    "message": "컬렉션이 열렸습니다"
+  },
+  "dashboard_collections_syncJustNow": {
+    "message": "방금"
+  },
+  "dashboard_collections_syncSecondsAgo": {
+    "message": "$count$초 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncMinutesAgo": {
+    "message": "$count$분 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncHoursAgo": {
+    "message": "$count$시간 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncDaysAgo": {
+    "message": "$count$일 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_title": {
+    "message": "작업"
+  },
+  "dashboard_tasks_kanban": {
+    "message": "칸반"
+  },
+  "dashboard_tasks_kanbanTitle": {
+    "message": "칸반 보기"
+  },
+  "dashboard_tasks_list": {
+    "message": "목록"
+  },
+  "dashboard_tasks_listTitle": {
+    "message": "목록 보기"
+  },
+  "dashboard_tasks_newTask": {
+    "message": "새 작업"
+  },
+  "dashboard_tasks_searchPlaceholder": {
+    "message": "작업 검색..."
+  },
+  "dashboard_tasks_filters": {
+    "message": "필터"
+  },
+  "dashboard_tasks_filtersTitle": {
+    "message": "필터 전환"
+  },
+  "dashboard_tasks_clear": {
+    "message": "지우기"
+  },
+  "dashboard_tasks_filterStatus": {
+    "message": "상태"
+  },
+  "dashboard_tasks_statusOpen": {
+    "message": "열림"
+  },
+  "dashboard_tasks_statusActive": {
+    "message": "활성"
+  },
+  "dashboard_tasks_statusFixed": {
+    "message": "완료"
+  },
+  "dashboard_tasks_statusAbandoned": {
+    "message": "중단됨"
+  },
+  "dashboard_tasks_filterPriority": {
+    "message": "우선순위"
+  },
+  "dashboard_tasks_priorityLow": {
+    "message": "낮음"
+  },
+  "dashboard_tasks_priorityMedium": {
+    "message": "보통"
+  },
+  "dashboard_tasks_priorityHigh": {
+    "message": "높음"
+  },
+  "dashboard_tasks_priorityCritical": {
+    "message": "긴급"
+  },
+  "dashboard_tasks_filterCollection": {
+    "message": "컬렉션"
+  },
+  "dashboard_tasks_uncategorized": {
+    "message": "미분류"
+  },
+  "dashboard_tasks_bulkSelected": {
+    "message": "작업 0개 선택됨"
+  },
+  "dashboard_tasks_selectAll": {
+    "message": "모두 선택"
+  },
+  "dashboard_tasks_bulkChangeStatus": {
+    "message": "상태 변경"
+  },
+  "dashboard_tasks_bulkChangePriority": {
+    "message": "우선순위 변경"
+  },
+  "dashboard_tasks_bulkDelete": {
+    "message": "선택 항목 삭제"
+  },
+  "dashboard_tasks_detailTitle": {
+    "message": "작업 세부 정보"
+  },
+  "dashboard_tasks_fieldSummary": {
+    "message": "요약"
+  },
+  "dashboard_tasks_summaryPlaceholder": {
+    "message": "작업 요약"
+  },
+  "dashboard_tasks_fieldNotes": {
+    "message": "메모"
+  },
+  "dashboard_tasks_notesPlaceholder": {
+    "message": "작업 메모"
+  },
+  "dashboard_tasks_fieldStatus": {
+    "message": "상태"
+  },
+  "dashboard_tasks_fieldPriority": {
+    "message": "우선순위"
+  },
+  "dashboard_tasks_fieldDueDate": {
+    "message": "마감일"
+  },
+  "dashboard_tasks_fieldCollection": {
+    "message": "컬렉션"
+  },
+  "dashboard_tasks_fieldTags": {
+    "message": "태그 (쉼표로 구분)"
+  },
+  "dashboard_tasks_tagsPlaceholder": {
+    "message": "태그1, 태그2, 태그3"
+  },
+  "dashboard_tasks_summaryRequired": {
+    "message": "요약은 필수입니다"
+  },
+  "dashboard_tasks_created": {
+    "message": "작업이 생성되었습니다"
+  },
+  "dashboard_tasks_updated": {
+    "message": "작업이 업데이트되었습니다"
+  },
+  "dashboard_tasks_createFailed": {
+    "message": "작업을 만들지 못했습니다"
+  },
+  "dashboard_tasks_updateFailed": {
+    "message": "작업을 업데이트하지 못했습니다"
+  },
+  "dashboard_tasks_deleteConfirm": {
+    "message": "작업 \"$summary$\"을(를) 삭제하시겠습니까?",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_deleted": {
+    "message": "작업이 삭제되었습니다"
+  },
+  "dashboard_tasks_deleteFailed": {
+    "message": "작업을 삭제하지 못했습니다"
+  },
+  "dashboard_tasks_noneSelected": {
+    "message": "선택된 작업이 없습니다"
+  },
+  "dashboard_tasks_actionFailed": {
+    "message": "작업에 실패했습니다"
+  },
+  "dashboard_tasks_promptStatus": {
+    "message": "상태를 입력하세요 (open/active/fixed/abandoned):"
+  },
+  "dashboard_tasks_promptPriority": {
+    "message": "우선순위를 입력하세요 (low/medium/high/critical):"
+  },
+  "dashboard_tasks_bulkDeleteConfirm_one": {
+    "message": "작업 $count$개를 삭제하시겠습니까?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_bulkDeleteConfirm_other": {
+    "message": "작업 $count$개를 삭제하시겠습니까?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_unknownAction": {
+    "message": "알 수 없는 작업: $action$",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_bulkUpdated": {
+    "message": "작업 $total$개 중 $done$개를 업데이트했습니다",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tasks_bulkDeleted": {
+    "message": "작업 $total$개 중 $done$개를 삭제했습니다",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tasks_selectedCount_one": {
+    "message": "작업 $count$개 선택됨",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_selectedCount_other": {
+    "message": "작업 $count$개 선택됨",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_tabCount_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_tabCount_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_emptyTitle": {
+    "message": "아직 작업이 없습니다"
+  },
+  "dashboard_tasks_emptyDescription": {
+    "message": "컬렉션에서 작업을 만들어 진행 상황을 추적하세요."
+  },
+  "dashboard_tasks_emptyAction": {
+    "message": "첫 작업 만들기"
+  },
+  "dashboard_tasks_errorTitle": {
+    "message": "작업을 불러오지 못했습니다"
+  },
+  "dashboard_tasks_errorDescription": {
+    "message": "작업을 불러오는 중 오류가 발생했습니다."
+  },
+  "dashboard_tasks_retry": {
+    "message": "다시 시도"
+  },
+  "dashboard_tasks_noResultsTitle": {
+    "message": "결과를 찾을 수 없습니다"
+  },
+  "dashboard_tasks_noResultsDescription": {
+    "message": "검색이나 필터 조건을 조정해 보세요."
+  },
+  "dashboard_tasks_loadFailed": {
+    "message": "작업을 불러오지 못했습니다"
+  },
+  "dashboard_tasks_notFound": {
+    "message": "작업을 찾을 수 없습니다"
+  },
+  "dashboard_tasks_openTabsFailed": {
+    "message": "작업 탭을 열지 못했습니다"
+  },
+  "dashboard_tasks_openedTabs_one": {
+    "message": "탭 $count$개를 열었습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_openedTabs_other": {
+    "message": "탭 $count$개를 열었습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_colTask": {
+    "message": "작업"
+  },
+  "dashboard_tasks_colCollection": {
+    "message": "컬렉션"
+  },
+  "dashboard_tasks_colPriority": {
+    "message": "우선순위"
+  },
+  "dashboard_tasks_colStatus": {
+    "message": "상태"
+  },
+  "dashboard_tasks_colDueDate": {
+    "message": "마감일"
+  },
+  "dashboard_tasks_colActions": {
+    "message": "작업"
+  },
+  "dashboard_tasks_dragReorder": {
+    "message": "드래그하여 순서 변경"
+  },
+  "dashboard_tasks_actionEdit": {
+    "message": "편집"
+  },
+  "dashboard_tasks_actionDelete": {
+    "message": "삭제"
+  },
+  "dashboard_tasks_actionOpenTabs": {
+    "message": "탭 열기"
+  },
+  "dashboard_tasks_columnEmpty": {
+    "message": "$status$ 작업 없음",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_movedTo": {
+    "message": "작업이 $status$(으)로 이동되었습니다",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_statusUpdateFailed": {
+    "message": "작업 상태를 업데이트하지 못했습니다"
+  },
+  "dashboard_tasks_toastCreate": {
+    "message": "새 작업 만들기 (n)"
+  },
+  "dashboard_tasks_deleteConfirmGeneric": {
+    "message": "이 작업을 삭제하시겠습니까?"
+  },
+  "dashboard_tasks_updatePriorityFailed": {
+    "message": "우선순위를 업데이트하지 못했습니다"
+  },
+  "dashboard_tasks_prioritySet": {
+    "message": "우선순위가 $priority$(으)로 설정되었습니다",
+    "placeholders": {
+      "priority": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_statusChanged": {
+    "message": "상태가 $status$(으)로 변경되었습니다",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_openedTabsForTask": {
+    "message": "작업의 탭을 열었습니다"
+  },
+  "dashboard_tasks_openTabsActionFailed": {
+    "message": "탭을 열지 못했습니다"
+  },
+  "dashboard_tasks_noTabsForTask": {
+    "message": "이 작업과 연결된 탭이 없습니다"
+  },
+  "dashboard_tasks_filteringByStatus": {
+    "message": "상태별 필터링: $status$",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_modal_confirmTitle": {
+    "message": "작업 확인"
+  },
+  "dashboard_modal_proceed": {
+    "message": "계속"
+  },
+  "dashboard_modal_processing": {
+    "message": "처리 중..."
+  },
+  "dashboard_modal_confirmMessage": {
+    "message": "계속하시겠습니까?"
+  },
+  "dashboard_organize_title": {
+    "message": "빠른 정리"
+  },
+  "dashboard_organize_closeDupes": {
+    "message": "중복 탭 닫기"
+  },
+  "dashboard_organize_dupeCount": {
+    "message": "($count$개 발견)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_groupDomains": {
+    "message": "탭을 도메인별로 그룹화"
+  },
+  "dashboard_organize_groupCount": {
+    "message": "(그룹 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_snoozeInactive": {
+    "message": "비활성 탭 미루기"
+  },
+  "dashboard_organize_inactiveCount": {
+    "message": "(탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_suspendHeavy": {
+    "message": "메모리 많이 쓰는 탭 정지"
+  },
+  "dashboard_organize_heavyCount": {
+    "message": "(탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_organizeNow": {
+    "message": "지금 정리"
+  },
+  "dashboard_rule_addNew": {
+    "message": "새 규칙 추가"
+  },
+  "dashboard_rule_name": {
+    "message": "규칙 이름"
+  },
+  "dashboard_rule_namePlaceholder": {
+    "message": "이 규칙에 대한 설명적인 이름을 입력하세요"
+  },
+  "dashboard_rule_conditions": {
+    "message": "조건"
+  },
+  "dashboard_rule_preview": {
+    "message": "미리 보기"
+  },
+  "dashboard_rule_previewDefault": {
+    "message": "URL에 \"example.com\"이 포함된 모든 탭 일치"
+  },
+  "dashboard_rule_actions": {
+    "message": "작업 (순서대로)"
+  },
+  "dashboard_rule_addAction": {
+    "message": "+ 작업 추가"
+  },
+  "dashboard_rule_whenToApply": {
+    "message": "적용 시점"
+  },
+  "dashboard_rule_triggerImmediate": {
+    "message": "탭 이벤트 발생 시 (즉시)"
+  },
+  "dashboard_rule_triggerRepeat": {
+    "message": "주기적으로 반복"
+  },
+  "dashboard_rule_triggerOnce": {
+    "message": "특정 시간에 한 번"
+  },
+  "dashboard_rule_triggerManual": {
+    "message": "수동으로만"
+  },
+  "dashboard_rule_enableNow": {
+    "message": "규칙 즉시 활성화"
+  },
+  "dashboard_rule_enableHelp": {
+    "message": "활성화하기 전에 규칙을 테스트할 수 있습니다"
+  },
+  "dashboard_rule_save": {
+    "message": "규칙 저장"
+  },
+  "dashboard_emoji_catFolders": {
+    "message": "폴더 및 파일"
+  },
+  "dashboard_emoji_catWork": {
+    "message": "업무 및 생산성"
+  },
+  "dashboard_emoji_catDev": {
+    "message": "개발 및 기술"
+  },
+  "dashboard_emoji_catMisc": {
+    "message": "기타"
+  },
+  "dashboard_time_justNow": {
+    "message": "방금"
+  },
+  "dashboard_time_minutesAgo": {
+    "message": "$count$분 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_hoursAgo": {
+    "message": "$count$시간 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_daysAgo": {
+    "message": "$count$일 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_now": {
+    "message": "지금"
+  },
+  "dashboard_time_unknown": {
+    "message": "알 수 없음"
+  },
+  "dashboard_tabState_suspended": {
+    "message": "💤 정지됨"
+  },
+  "dashboard_tabState_active": {
+    "message": "👁 활성"
+  },
+  "dashboard_tabState_playing": {
+    "message": "🔊 재생 중"
+  },
+  "dashboard_tabState_pinned": {
+    "message": "📌 고정됨"
+  },
+  "dashboard_tabState_loaded": {
+    "message": "로드됨"
+  },
+  "dashboard_notify_savingWindow": {
+    "message": "현재 창 저장 중..."
+  },
+  "dashboard_notify_collectionCreated": {
+    "message": "컬렉션이 생성되었습니다!"
+  },
+  "dashboard_notify_collectionFailed": {
+    "message": "컬렉션을 만들지 못했습니다"
+  },
+  "dashboard_notify_closedTabs": {
+    "message": "탭 $count$개를 닫았습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_notify_groupCreated": {
+    "message": "탭 $count$개로 그룹 \"$name$\"을(를) 만들었습니다",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_actionFailed": {
+    "message": "탭을 $action$하지 못했습니다: $error$",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      },
+      "error": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_noTabsToSnooze": {
+    "message": "미룰 탭이 없습니다"
+  },
+  "dashboard_notify_snoozeUnavailable": {
+    "message": "미루기 기능을 사용할 수 없습니다"
+  },
+  "dashboard_notify_snoozedWindows": {
+    "message": "$windows$을(를) $duration$ 동안 미뤘습니다",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_snoozedTabs": {
+    "message": "$tabs$을(를) $duration$ 동안 미뤘습니다",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_snoozeErrors": {
+    "message": "오류 $count$개와 함께 미루기를 완료했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_notify_snoozeFailed": {
+    "message": "미루지 못했습니다"
+  },
+  "dashboard_notify_prepareSnoozeFailed": {
+    "message": "미루기를 준비하지 못했습니다"
+  },
+  "dashboard_notify_movedTabs": {
+    "message": "$tabs$을(를) $window$(으)로 이동했습니다",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "window": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_moveTabsFailed": {
+    "message": "탭을 이동하지 못했습니다"
+  },
+  "dashboard_notify_wakeAllSuccess": {
+    "message": "모든 미룬 탭이 복원되었습니다"
+  },
+  "dashboard_notify_wakeAllFailed": {
+    "message": "미룬 탭을 깨우지 못했습니다"
+  },
+  "dashboard_notify_windowNamesSaved": {
+    "message": "창 이름이 저장되었습니다"
+  },
+  "dashboard_progress_processingTabs": {
+    "message": "탭 $count$개 처리 중...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_confirm_actionTitle": {
+    "message": "$action$ 확인",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_confirm_actionMessage": {
+    "message": "탭 $count$개를 $action$하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_prompt_groupName": {
+    "message": "그룹 이름을 입력하세요:"
+  },
+  "dashboard_group_untitled": {
+    "message": "제목 없음"
+  },
+  "dashboard_moveDialog_title": {
+    "message": "$count$개를 이동할 위치...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_moveDialog_currentWindow": {
+    "message": "현재 창"
+  },
+  "dashboard_moveDialog_windowName": {
+    "message": "창 $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_moveDialog_currentLocation": {
+    "message": "(현재 위치)"
+  },
+  "dashboard_moveDialog_createNew": {
+    "message": "새 창 만들기"
+  },
+  "dashboard_moveDialog_newWindow": {
+    "message": "새 창"
+  },
+  "dashboard_count_tabs_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_tabs_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_windows_one": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_windows_other": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rename_title": {
+    "message": "창 이름 변경"
+  },
+  "dashboard_rename_windowLabel": {
+    "message": "창 $index$",
+    "placeholders": {
+      "index": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rename_placeholder": {
+    "message": "이름 입력..."
+  },
+  "dashboard_rename_save": {
+    "message": "이름 저장"
+  },
+  "dashboard_state_selectedCount": {
+    "message": "$count$개 선택됨",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_help_title": {
+    "message": "키보드 단축키"
+  },
+  "dashboard_help_closeLabel": {
+    "message": "키보드 단축키 도움말 닫기"
+  },
+  "dashboard_help_searchPlaceholder": {
+    "message": "단축키 검색..."
+  },
+  "dashboard_help_searchLabel": {
+    "message": "키보드 단축키 검색"
+  },
+  "dashboard_help_listLabel": {
+    "message": "키보드 단축키 목록"
+  },
+  "dashboard_help_noShortcuts": {
+    "message": "단축키를 찾을 수 없습니다"
+  },
+  "dashboard_help_noDescription": {
+    "message": "설명 없음"
+  },
+  "dashboard_help_sequenceThen": {
+    "message": "그 다음"
+  },
+  "dashboard_help_catNavigation": {
+    "message": "탐색"
+  },
+  "dashboard_help_catTasks": {
+    "message": "작업"
+  },
+  "dashboard_help_catCollections": {
+    "message": "컬렉션"
+  },
+  "dashboard_help_catGeneral": {
+    "message": "일반"
+  },
+  "dashboard_shortcuts_tooltip": {
+    "message": "Enter를 눌러 열기 • Space를 눌러 선택"
+  },
+  "dashboard_backup_exporting": {
+    "message": "$format$(으)로 내보내는 중...",
+    "placeholders": {
+      "format": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportedSummary": {
+    "message": "내보냄: $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportedFormat": {
+    "message": "$format$(으)로 내보냈습니다",
+    "placeholders": {
+      "format": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportFailed": {
+    "message": "내보내기 실패: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryTabs_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryTabs_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryRules_one": {
+    "message": "규칙 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryRules_other": {
+    "message": "규칙 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summarySnoozed_one": {
+    "message": "미룬 탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summarySnoozed_other": {
+    "message": "미룬 탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryWindows_one": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryWindows_other": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryGroups_one": {
+    "message": "그룹 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryGroups_other": {
+    "message": "그룹 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_selectJsonFile": {
+    "message": "JSON 파일을 선택하세요"
+  },
+  "dashboard_backup_fileTooLarge": {
+    "message": "파일이 너무 큽니다 (최대 10MB)"
+  },
+  "dashboard_backup_invalidFile": {
+    "message": "유효하지 않은 TabMaster 내보내기 파일"
+  },
+  "dashboard_backup_fileSizeKB": {
+    "message": "$size$ KB",
+    "placeholders": {
+      "size": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_formatUnknown": {
+    "message": "알 수 없음"
+  },
+  "dashboard_backup_previewTabs_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewTabs_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewTabsInWindows": {
+    "message": "$windows$의 $tabs$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "windows": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_previewWindowCount_one": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewWindowCount_other": {
+    "message": "창 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRestricted": {
+    "message": "$base$ (제한된 URL $count$개 제외)",
+    "placeholders": {
+      "base": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_previewGroups_one": {
+    "message": "탭 그룹 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewGroups_other": {
+    "message": "탭 그룹 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRules_one": {
+    "message": "규칙 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRules_other": {
+    "message": "규칙 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewSnoozed_one": {
+    "message": "미룬 탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewSnoozed_other": {
+    "message": "미룬 탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnManyTabs_one": {
+    "message": "⚠️ 탭 $count$개를 엽니다. 더 작은 배치로 나누어 가져오는 것을 고려하세요.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnManyTabs_other": {
+    "message": "⚠️ 탭 $count$개를 엽니다. 더 작은 배치로 나누어 가져오는 것을 고려하세요.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnOpenTabs_one": {
+    "message": "탭 $count$개를 엽니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnOpenTabs_other": {
+    "message": "탭 $count$개를 엽니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnAllRestricted_one": {
+    "message": "⚠️ 탭 $count$개의 URL이 제한되어 가져올 수 없습니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnAllRestricted_other": {
+    "message": "⚠️ 탭 $count$개 모두 URL이 제한되어 가져올 수 없습니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_fileReadFailed": {
+    "message": "파일을 읽지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_noFileSelected": {
+    "message": "선택된 파일이 없습니다"
+  },
+  "dashboard_backup_importing": {
+    "message": "데이터 가져오는 중..."
+  },
+  "dashboard_backup_importSuccess": {
+    "message": "성공적으로 가져왔습니다: $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_importNoItems": {
+    "message": "가져오기가 완료되었지만 가져온 항목이 없습니다"
+  },
+  "dashboard_backup_importFailed": {
+    "message": "가져오기 실패: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_nextEveryHour": {
+    "message": "매시간"
+  },
+  "dashboard_backup_nextEveryDay": {
+    "message": "매일"
+  },
+  "dashboard_backup_nextEveryWeek": {
+    "message": "매주"
+  },
+  "dashboard_backup_nextInHM": {
+    "message": "다음 백업까지 $hours$시간 $minutes$분",
+    "placeholders": {
+      "hours": {
+        "content": "$1"
+      },
+      "minutes": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_nextInM": {
+    "message": "다음 백업까지 $minutes$분",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_nextSoon": {
+    "message": "곧 다음 백업"
+  },
+  "dashboard_backup_enabledFirstBackup": {
+    "message": "자동 백업이 활성화되었습니다 - 첫 백업이 생성되었습니다"
+  },
+  "dashboard_backup_enabled": {
+    "message": "자동 백업이 활성화되었습니다"
+  },
+  "dashboard_backup_disabled": {
+    "message": "자동 백업이 비활성화되었습니다"
+  },
+  "dashboard_backup_updateSettingsFailed": {
+    "message": "백업 설정을 업데이트하지 못했습니다"
+  },
+  "dashboard_backup_scheduleUpdated": {
+    "message": "백업 일정이 업데이트되었습니다"
+  },
+  "dashboard_backup_saveSettingsFailed": {
+    "message": "설정을 저장하지 못했습니다"
+  },
+  "dashboard_backup_noBackups": {
+    "message": "아직 백업이 없습니다"
+  },
+  "dashboard_backup_noBackupsHint": {
+    "message": "\"지금 백업\"을 클릭하거나 자동 백업을 활성화하세요"
+  },
+  "dashboard_backup_badgeAuto": {
+    "message": "자동"
+  },
+  "dashboard_backup_badgeManual": {
+    "message": "수동"
+  },
+  "dashboard_backup_itemDetails": {
+    "message": "$date$ • $tabs$ • $windows$ • $size$ MB",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      },
+      "windows": {
+        "content": "$3"
+      },
+      "size": {
+        "content": "$4"
+      }
+    }
+  },
+  "dashboard_backup_showFileTitle": {
+    "message": "다운로드 폴더에서 파일 표시"
+  },
+  "dashboard_backup_showFile": {
+    "message": "📁 표시"
+  },
+  "dashboard_backup_fileMoved": {
+    "message": "백업 파일이 이동되었을 수 있습니다. 다운로드 폴더에서 \"tabmaster-backup-\"으로 시작하는 파일을 확인하세요"
+  },
+  "dashboard_backup_openFolderFailed": {
+    "message": "다운로드 폴더를 열 수 없습니다"
+  },
+  "dashboard_backup_scopeCurrent_one": {
+    "message": "현재 창 (탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeCurrent_other": {
+    "message": "현재 창 (탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeAll_one": {
+    "message": "모든 창 (탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeAll_other": {
+    "message": "모든 창 (탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_tabsChange": {
+    "message": "오늘 +$count$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_collapsed_one": {
+    "message": "접힘 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_collapsed_other": {
+    "message": "접힘 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_nextInHours": {
+    "message": "다음 $hours$시간 후",
+    "placeholders": {
+      "hours": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_noneScheduled": {
+    "message": "예약 없음"
+  },
+  "dashboard_overview_clickToCleanup": {
+    "message": "클릭하여 정리"
+  },
+  "dashboard_overview_noneFound": {
+    "message": "없음"
+  },
+  "dashboard_overview_chartTabsOpened": {
+    "message": "열린 탭"
+  },
+  "dashboard_overview_chartTabsClosed": {
+    "message": "닫힌 탭"
+  },
+  "dashboard_overview_filterAll": {
+    "message": "전체"
+  },
+  "dashboard_overview_filterManual": {
+    "message": "수동"
+  },
+  "dashboard_overview_filterAuto": {
+    "message": "자동"
+  },
+  "dashboard_overview_filterRules": {
+    "message": "규칙"
+  },
+  "dashboard_overview_noActivity": {
+    "message": "최근 활동 없음"
+  },
+  "dashboard_history_today": {
+    "message": "오늘"
+  },
+  "dashboard_history_yesterday": {
+    "message": "어제"
+  },
+  "dashboard_history_daysAgo_one": {
+    "message": "$count$일 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_history_daysAgo_other": {
+    "message": "$count$일 전",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_history_emptyTitle": {
+    "message": "탭 기록 없음"
+  },
+  "dashboard_history_emptyText": {
+    "message": "TabMaster Pro를 사용하면 탭 관리 활동이 여기에 표시됩니다"
+  },
+  "dashboard_history_badgeAuto": {
+    "message": "자동"
+  },
+  "dashboard_history_badgeRule": {
+    "message": "규칙"
+  },
+  "dashboard_history_confirmClear": {
+    "message": "모든 기록을 지우시겠습니까? 이 작업은 되돌릴 수 없습니다."
+  },
+  "dashboard_history_cleared": {
+    "message": "기록이 지워졌습니다"
+  },
+  "dashboard_history_clearFailed": {
+    "message": "기록을 지우지 못했습니다. 다시 시도하세요."
+  },
+  "dashboard_groups_noGroupedTabs": {
+    "message": "그룹 해제할 그룹화된 탭이 없습니다"
+  },
+  "dashboard_groups_ungroupedTabs_one": {
+    "message": "탭 $count$개의 그룹을 해제했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_ungroupedTabs_other": {
+    "message": "탭 $count$개의 그룹을 해제했습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_ungroupFailed": {
+    "message": "탭 그룹화를 해제하지 못했습니다"
+  },
+  "dashboard_groups_emptyTitle": {
+    "message": "탭 그룹 없음"
+  },
+  "dashboard_groups_emptyText": {
+    "message": "그룹을 만들어 탭을 더 잘 정리하세요"
+  },
+  "dashboard_groups_groupByDomainBtn": {
+    "message": "도메인별 그룹화"
+  },
+  "dashboard_groups_untitled": {
+    "message": "제목 없는 그룹"
+  },
+  "dashboard_groups_tabCount_one": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_tabCount_other": {
+    "message": "탭 $count$개",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_groupedResult": {
+    "message": "새 그룹 $created$개를 만들고 기존 그룹 $reused$개를 재사용했습니다",
+    "placeholders": {
+      "created": {
+        "content": "$1"
+      },
+      "reused": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_groups_noTabsToGroup": {
+    "message": "도메인별로 그룹화할 탭이 없습니다"
+  },
+  "dashboard_groups_groupByDomainFailed": {
+    "message": "탭을 도메인별로 그룹화하지 못했습니다"
+  },
+  "dashboard_snoozed_emptyTitle": {
+    "message": "미룬 탭 없음"
+  },
+  "dashboard_snoozed_emptyText": {
+    "message": "탭을 미뤄서 일시적으로 숨기고 나중에 다시 열리도록 하세요"
+  },
+  "dashboard_snoozed_window_one": {
+    "message": "미룬 창 (탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_window_other": {
+    "message": "미룬 창 (탭 $count$개)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_moreTabs": {
+    "message": "+$count$개 더",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_restoreWindow": {
+    "message": "창 복원"
+  },
+  "dashboard_snoozed_deleteAll": {
+    "message": "모두 삭제"
+  },
+  "dashboard_snoozed_grouped": {
+    "message": "📁 그룹화됨"
+  },
+  "dashboard_snoozed_reasonManual": {
+    "message": "수동"
+  },
+  "dashboard_snoozed_wakeNow": {
+    "message": "지금 깨우기"
+  },
+  "dashboard_snoozed_deleteTitle": {
+    "message": "미룬 탭 삭제"
+  },
+  "dashboard_snoozed_within1Hour": {
+    "message": "1시간 이내"
+  },
+  "dashboard_snoozed_today": {
+    "message": "오늘"
+  },
+  "dashboard_snoozed_tomorrow": {
+    "message": "내일"
+  },
+  "dashboard_snoozed_thisWeek": {
+    "message": "이번 주"
+  },
+  "dashboard_snoozed_later": {
+    "message": "나중에"
+  },
+  "dashboard_snoozed_wakeAtToday": {
+    "message": "오늘 $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_wakeAtTomorrow": {
+    "message": "내일 $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_wakeTabFailed": {
+    "message": "탭을 깨우지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_confirmDeleteTab": {
+    "message": "이 미룬 탭을 삭제하시겠습니까?"
+  },
+  "dashboard_snoozed_confirmDeleteWindow": {
+    "message": "이 미룬 창의 모든 탭을 삭제하시겠습니까?"
+  },
+  "dashboard_snoozed_restoreWindowFailed": {
+    "message": "창을 복원하지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_deleteWindowFailed": {
+    "message": "창을 삭제하지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_dragToReorder": {
+    "message": "드래그하여 순서 변경"
+  },
+  "dashboard_rules_disableRule": {
+    "message": "규칙 비활성화"
+  },
+  "dashboard_rules_enableRule": {
+    "message": "규칙 활성화"
+  },
+  "dashboard_rules_testRuleTitle": {
+    "message": "이 규칙 테스트 (미리 보기만)"
+  },
+  "dashboard_rules_runRuleTitle": {
+    "message": "이 규칙 지금 실행"
+  },
+  "dashboard_rules_cardWhen": {
+    "message": "조건:"
+  },
+  "dashboard_rules_cardThen": {
+    "message": "실행:"
+  },
+  "dashboard_rules_cardRuns": {
+    "message": "실행 주기:"
+  },
+  "dashboard_rules_runsEvery": {
+    "message": "$interval$마다",
+    "placeholders": {
+      "interval": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextRun": {
+    "message": "(다음: $time$)",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_runsOnceAt": {
+    "message": "$datetime$에 한 번",
+    "placeholders": {
+      "datetime": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_runsImmediate": {
+    "message": "탭 이벤트 발생 시 (즉시)"
+  },
+  "dashboard_rules_runsOnCreate": {
+    "message": "탭이 생성될 때"
+  },
+  "dashboard_rules_interval_minutes_one": {
+    "message": "$count$분",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_minutes_other": {
+    "message": "$count$분",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_hours_one": {
+    "message": "$count$시간",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_hours_other": {
+    "message": "$count$시간",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_days_one": {
+    "message": "$count$일",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_days_other": {
+    "message": "$count$일",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_seconds_one": {
+    "message": "$count$초",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_seconds_other": {
+    "message": "$count$초",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_days_one": {
+    "message": "$count$일 후",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_days_other": {
+    "message": "$count$일 후",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_hours_one": {
+    "message": "$count$시간 후",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_hours_other": {
+    "message": "$count$시간 후",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_minutes_one": {
+    "message": "$count$분 후",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_minutes_other": {
+    "message": "$count$분 후",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_seconds_one": {
+    "message": "$count$초 후",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_seconds_other": {
+    "message": "$count$초 후",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextOverdue": {
+    "message": "기한 초과"
+  },
+  "dashboard_rules_allTemplatesInstalled": {
+    "message": "모든 템플릿이 설치되었습니다"
+  },
+  "dashboard_rules_condNoConditions": {
+    "message": "조건 없음"
+  },
+  "dashboard_rules_condUnknown": {
+    "message": "알 수 없는 조건"
+  },
+  "dashboard_rules_condJunctionOf": {
+    "message": "$conditions$ 중 $junction$",
+    "placeholders": {
+      "junction": {
+        "content": "$1"
+      },
+      "conditions": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_rules_condTriple": {
+    "message": "$subject$ $operator$ $value$",
+    "placeholders": {
+      "subject": {
+        "content": "$1"
+      },
+      "operator": {
+        "content": "$2"
+      },
+      "value": {
+        "content": "$3"
+      }
+    }
+  },
+  "dashboard_rules_junctionAll": {
+    "message": "모두"
+  },
+  "dashboard_rules_junctionAny": {
+    "message": "하나라도"
+  },
+  "dashboard_rules_junctionNone": {
+    "message": "없음"
+  },
+  "dashboard_rules_valueYes": {
+    "message": "예"
+  },
+  "dashboard_rules_valueNo": {
+    "message": "아니요"
+  },
+  "dashboard_rules_subject_url": {
+    "message": "URL"
+  },
+  "dashboard_rules_subject_title": {
+    "message": "제목"
+  },
+  "dashboard_rules_subject_domain": {
+    "message": "도메인"
+  },
+  "dashboard_rules_subject_domainCount": {
+    "message": "도메인 탭 수"
+  },
+  "dashboard_rules_subject_origin": {
+    "message": "출처"
+  },
+  "dashboard_rules_subject_age": {
+    "message": "탭 사용 기간"
+  },
+  "dashboard_rules_subject_lastAccess": {
+    "message": "마지막 접근"
+  },
+  "dashboard_rules_subject_pinned": {
+    "message": "고정됨"
+  },
+  "dashboard_rules_subject_audible": {
+    "message": "오디오 재생 중"
+  },
+  "dashboard_rules_subject_muted": {
+    "message": "음소거됨"
+  },
+  "dashboard_rules_subject_group": {
+    "message": "그룹 내"
+  },
+  "dashboard_rules_subject_groupName": {
+    "message": "그룹 이름"
+  },
+  "dashboard_rules_subject_windowId": {
+    "message": "창 ID"
+  },
+  "dashboard_rules_subject_duplicate": {
+    "message": "중복임"
+  },
+  "dashboard_rules_subject_category": {
+    "message": "카테고리"
+  },
+  "dashboard_rules_subject_index": {
+    "message": "탭 인덱스"
+  },
+  "dashboard_rules_subject_active": {
+    "message": "활성임"
+  },
+  "dashboard_rules_op_eq": {
+    "message": "같음"
+  },
+  "dashboard_rules_op_neq": {
+    "message": "같지 않음"
+  },
+  "dashboard_rules_op_equals": {
+    "message": "임"
+  },
+  "dashboard_rules_op_gt": {
+    "message": "보다 큼"
+  },
+  "dashboard_rules_op_gte": {
+    "message": "이상"
+  },
+  "dashboard_rules_op_lt": {
+    "message": "보다 작음"
+  },
+  "dashboard_rules_op_lte": {
+    "message": "이하"
+  },
+  "dashboard_rules_op_greaterThan": {
+    "message": "초과"
+  },
+  "dashboard_rules_op_lessThan": {
+    "message": "미만"
+  },
+  "dashboard_rules_op_contains": {
+    "message": "포함"
+  },
+  "dashboard_rules_op_notContains": {
+    "message": "포함하지 않음"
+  },
+  "dashboard_rules_op_startsWith": {
+    "message": "로 시작"
+  },
+  "dashboard_rules_op_endsWith": {
+    "message": "로 끝남"
+  },
+  "dashboard_rules_op_regex": {
+    "message": "일치"
+  },
+  "dashboard_rules_op_in": {
+    "message": "포함됨"
+  },
+  "dashboard_rules_op_nin": {
+    "message": "포함되지 않음"
+  },
+  "dashboard_rules_op_is": {
+    "message": "임"
+  },
+  "dashboard_rules_condDuplicate": {
+    "message": "중복 탭"
+  },
+  "dashboard_rules_condDomainCount": {
+    "message": "같은 도메인에서 탭 $count$개 이상",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condAllTabs": {
+    "message": "모든 탭"
+  },
+  "dashboard_rules_condTabsFrom": {
+    "message": "$patterns$의 탭",
+    "placeholders": {
+      "patterns": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condUrlsMatching": {
+    "message": "\"$pattern$\"과 일치하는 URL",
+    "placeholders": {
+      "pattern": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condSitesInCategories": {
+    "message": "카테고리의 사이트: $categories$",
+    "placeholders": {
+      "categories": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condNoneCategories": {
+    "message": "없음"
+  },
+  "dashboard_rules_condInactiveFor": {
+    "message": "$minutes$분 동안 비활성",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condOlderThan": {
+    "message": "$minutes$분보다 오래됨",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condNotAccessedFor": {
+    "message": "$minutes$분 동안 접근하지 않음",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_action_close": {
+    "message": "탭 닫기"
+  },
+  "dashboard_rules_action_closeDuplicates": {
+    "message": "중복 닫기"
+  },
+  "dashboard_rules_action_group": {
+    "message": "탭 그룹화"
+  },
+  "dashboard_rules_action_snooze": {
+    "message": "탭 미루기"
+  },
+  "dashboard_rules_action_moveToWindow": {
+    "message": "창으로 이동"
+  },
+  "dashboard_rules_action_pin": {
+    "message": "탭 고정"
+  },
+  "dashboard_rules_action_unpin": {
+    "message": "탭 고정 해제"
+  },
+  "dashboard_rules_action_mute": {
+    "message": "탭 음소거"
+  },
+  "dashboard_rules_action_unmute": {
+    "message": "탭 음소거 해제"
+  },
+  "dashboard_rules_actionNoActions": {
+    "message": "작업 없음"
+  },
+  "dashboard_rules_actionUnknown": {
+    "message": "알 수 없는 작업"
+  },
+  "dashboard_rules_actionKeep": {
+    "message": "($keep$ 유지)",
+    "placeholders": {
+      "keep": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionScope": {
+    "message": "[$scope$]",
+    "placeholders": {
+      "scope": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionBy": {
+    "message": "$by$ 기준",
+    "placeholders": {
+      "by": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionFor": {
+    "message": "$duration$ 동안",
+    "placeholders": {
+      "duration": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionGroupByOld": {
+    "message": "$by$ 기준으로 탭 그룹화",
+    "placeholders": {
+      "by": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSnoozeMinutesOld": {
+    "message": "$minutes$분 동안 미루기",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSuspendOld": {
+    "message": "탭 정지 $excludePinned$",
+    "placeholders": {
+      "excludePinned": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSuspendExcludePinned": {
+    "message": "(고정된 탭 제외)"
+  },
+  "dashboard_rules_confirmDelete": {
+    "message": "이 규칙을 삭제하시겠습니까?"
+  },
+  "dashboard_rules_confirmPurge": {
+    "message": "모든 규칙을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+  },
+  "dashboard_rules_templateInstalled": {
+    "message": "규칙 템플릿이 설치되었습니다"
+  },
+  "dashboard_rules_deleted": {
+    "message": "규칙이 삭제되었습니다"
+  },
+  "dashboard_rules_purged": {
+    "message": "모든 규칙이 삭제되었습니다"
+  },
+  "dashboard_rules_purgeFailed": {
+    "message": "규칙을 삭제하지 못했습니다"
+  },
+  "dashboard_rules_allEnabled": {
+    "message": "모든 규칙이 활성화되었습니다"
+  },
+  "dashboard_rules_allDisabled": {
+    "message": "모든 규칙이 비활성화되었습니다"
+  },
+  "dashboard_rules_updated": {
+    "message": "규칙이 업데이트되었습니다"
+  },
+  "dashboard_rules_created": {
+    "message": "규칙이 생성되었습니다"
+  },
+  "dashboard_rules_prioritiesUpdated": {
+    "message": "규칙 우선순위가 업데이트되었습니다"
+  },
+  "dashboard_rules_modalTitleEdit": {
+    "message": "규칙 편집"
+  },
+  "dashboard_rules_modalTitleCreate": {
+    "message": "새 규칙 만들기"
+  },
+  "dashboard_rules_noActionsDefined": {
+    "message": "정의된 작업이 없습니다. \"작업 추가\"를 클릭하여 추가하세요."
+  },
+  "dashboard_rules_closeNotCombinable": {
+    "message": "닫기 작업은 다른 작업과 결합할 수 없습니다"
+  },
+  "dashboard_rules_noMoreCompatible": {
+    "message": "더 이상 호환되는 작업이 없습니다"
+  },
+  "dashboard_rules_paramKeep": {
+    "message": "유지:"
+  },
+  "dashboard_rules_paramKeepOldest": {
+    "message": "가장 오래된 탭"
+  },
+  "dashboard_rules_paramKeepNewest": {
+    "message": "가장 최근 탭"
+  },
+  "dashboard_rules_paramKeepNone": {
+    "message": "없음 (모두 닫기)"
+  },
+  "dashboard_rules_paramScope": {
+    "message": "범위:"
+  },
+  "dashboard_rules_paramScopeGlobal": {
+    "message": "전역 (모든 창)"
+  },
+  "dashboard_rules_paramScopePerWindow": {
+    "message": "창별 (각각 별도로)"
+  },
+  "dashboard_rules_paramGroupBy": {
+    "message": "그룹화 기준:"
+  },
+  "dashboard_rules_paramGroupByDomain": {
+    "message": "도메인"
+  },
+  "dashboard_rules_paramGroupByCategory": {
+    "message": "카테고리"
+  },
+  "dashboard_rules_paramGroupByWindow": {
+    "message": "창"
+  },
+  "dashboard_rules_paramName": {
+    "message": "이름:"
+  },
+  "dashboard_rules_paramNamePlaceholder": {
+    "message": "자동 생성"
+  },
+  "dashboard_rules_paramSnoozeFor": {
+    "message": "미루기 기간:"
+  },
+  "dashboard_rules_paramUnitMinutes": {
+    "message": "분"
+  },
+  "dashboard_rules_paramUnitHours": {
+    "message": "시간"
+  },
+  "dashboard_rules_paramUnitDays": {
+    "message": "일"
+  },
+  "dashboard_rules_paramTargetWindow": {
+    "message": "대상 창:"
+  },
+  "dashboard_rules_paramTargetNew": {
+    "message": "새 창"
+  },
+  "dashboard_rules_paramTargetCurrent": {
+    "message": "현재 창"
+  },
+  "dashboard_rules_removeAction": {
+    "message": "제거"
+  },
+  "dashboard_rules_triggerRepeatEvery": {
+    "message": "반복 주기:"
+  },
+  "dashboard_rules_triggerRunAt": {
+    "message": "실행 시간:"
+  },
+  "dashboard_rules_triggerDebounce": {
+    "message": "디바운스"
+  },
+  "dashboard_rules_triggerDebounceHelp": {
+    "message": "활성화하면 규칙을 실행하기 전에 탭 활동이 멈출 때까지 기다립니다. 이는 한 번에 많은 탭을 여는 등의 연속 활동 중에 규칙이 여러 번 실행되는 것을 방지합니다. 예를 들어 탭 10개를 빠르게 열면 규칙이 10번이 아니라 완료 후 한 번 실행됩니다."
+  },
+  "dashboard_rules_triggerWaitFor": {
+    "message": "대기 시간:"
+  },
+  "dashboard_rules_triggerSeconds": {
+    "message": "초"
+  },
+  "dashboard_rules_addAction": {
+    "message": "작업 추가"
+  },
+  "dashboard_rules_noMoreActions": {
+    "message": "더 이상 작업을 추가할 수 없습니다. 현재 작업이 추가 작업과 호환되지 않습니다."
+  },
+  "dashboard_rules_closeNotCombinableNote": {
+    "message": "$note$ 닫기 작업은 다른 작업과 결합할 수 없습니다.",
+    "placeholders": {
+      "note": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_noteLabel": {
+    "message": "참고:"
+  },
+  "dashboard_rules_actionType": {
+    "message": "작업 유형:"
+  },
+  "dashboard_rules_onlyCompatible": {
+    "message": "기존 작업과 호환되는 작업만 표시합니다."
+  },
+  "dashboard_rules_enterName": {
+    "message": "규칙 이름을 입력하세요"
+  },
+  "dashboard_rules_conditionsNotInit": {
+    "message": "조건이 올바르게 초기화되지 않았습니다"
+  },
+  "dashboard_rules_invalidConditions": {
+    "message": "유효하지 않은 조건: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_addAtLeastOneAction": {
+    "message": "작업을 하나 이상 추가하세요"
+  },
+  "dashboard_rules_invalidActions": {
+    "message": "유효하지 않은 작업: $errors$",
+    "placeholders": {
+      "errors": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecuted": {
+    "message": "규칙 실행됨: $details$",
+    "placeholders": {
+      "details": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecutionFailed": {
+    "message": "규칙 실행에 실패했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecutionError": {
+    "message": "규칙 실행 오류: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewAffected_one": {
+    "message": "규칙 미리 보기: 탭 $count$개가 영향을 받습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewAffected_other": {
+    "message": "규칙 미리 보기: 탭 $count$개가 영향을 받습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewNoMatch": {
+    "message": "규칙 미리 보기: 일치하는 탭을 찾을 수 없습니다"
+  },
+  "dashboard_rules_testFailed": {
+    "message": "규칙 테스트에 실패했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testError": {
+    "message": "규칙 테스트 오류: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_unableToPreview": {
+    "message": "규칙을 미리 볼 수 없습니다"
+  },
+  "dashboard_rules_noEnabledToTest": {
+    "message": "테스트할 활성화된 규칙이 없습니다"
+  },
+  "dashboard_rules_testing": {
+    "message": "테스트 중..."
+  },
+  "dashboard_rules_testAll": {
+    "message": "모든 규칙 테스트"
+  },
+  "dashboard_rules_testCompleteAffected_one": {
+    "message": "테스트 완료: 총 탭 $count$개가 영향을 받습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testCompleteAffected_other": {
+    "message": "테스트 완료: 총 탭 $count$개가 영향을 받습니다",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testNoneAffected": {
+    "message": "현재 규칙으로 영향을 받는 탭이 없습니다"
+  },
+  "dashboard_rules_testResultsTitle": {
+    "message": "테스트 결과: $name$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_wouldBeAffected_one": {
+    "message": "탭 $count$개가 영향을 받습니다:",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_wouldBeAffected_other": {
+    "message": "탭 $count$개가 영향을 받습니다:",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_untitled": {
+    "message": "제목 없음"
+  },
+  "dashboard_rules_duplicateTag": {
+    "message": "[중복]"
+  },
+  "dashboard_rules_executeRule": {
+    "message": "규칙 실행"
+  },
+  "dashboard_rules_ruleExecutedActions": {
+    "message": "규칙 실행됨: 작업 $count$개 수행됨",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_executeFailed": {
+    "message": "규칙을 실행하지 못했습니다: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  }
+}
