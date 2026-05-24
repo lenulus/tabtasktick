@@ -2,6 +2,7 @@
 
 // Console capture for logging
 import { initConsoleCapture, getEffectiveLevel } from '../services/utils/console-capture.js';
+import { t, localizeDocument } from '../services/utils/i18n.js';
 initConsoleCapture();
 
 // ============================================================================
@@ -9,6 +10,7 @@ initConsoleCapture();
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+  localizeDocument('options_docTitle');
   await loadSettings();
   await loadVersion();
   setupEventListeners();
@@ -67,7 +69,7 @@ async function loadSettings() {
 
   } catch (error) {
     console.error('Failed to load settings:', error);
-    showNotification('Failed to load settings', 'error');
+    showNotification(t('options_notify_loadFailed'), 'error');
   }
 }
 
@@ -107,7 +109,7 @@ async function saveSetting(key, value) {
     showSaveNotification();
   } catch (error) {
     console.error('Failed to save setting:', error);
-    showNotification('Failed to save setting', 'error');
+    showNotification(t('options_notify_saveFailed'), 'error');
   }
 }
 
@@ -120,7 +122,7 @@ async function loadVersion() {
     const manifest = chrome.runtime.getManifest();
     const versionElement = document.getElementById('versionNumber');
     if (versionElement) {
-      versionElement.textContent = `Version ${manifest.version}`;
+      versionElement.textContent = t('options_version', [manifest.version]);
     }
   } catch (error) {
     console.error('Failed to load version:', error);
@@ -132,46 +134,46 @@ async function loadVersion() {
 // ============================================================================
 
 async function clearHistory() {
-  if (!confirm('Are you sure you want to clear all history?')) {
+  if (!confirm(t('options_confirm_clearHistory'))) {
     return;
   }
 
   try {
     await sendMessage({ action: 'clearActivityLog' });
-    showNotification('History cleared successfully');
+    showNotification(t('options_notify_historyCleared'));
   } catch (error) {
     console.error('Failed to clear history:', error);
-    showNotification('Failed to clear history', 'error');
+    showNotification(t('options_notify_clearHistoryFailed'), 'error');
   }
 }
 
 async function clearAllData() {
-  if (!confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+  if (!confirm(t('options_confirm_clearData'))) {
     return;
   }
 
   try {
     await chrome.storage.local.clear();
     await loadSettings();
-    showNotification('All data cleared successfully');
+    showNotification(t('options_notify_dataCleared'));
   } catch (error) {
     console.error('Failed to clear data:', error);
-    showNotification('Failed to clear data', 'error');
+    showNotification(t('options_notify_clearDataFailed'), 'error');
   }
 }
 
 async function resetToDefaults() {
-  if (!confirm('Are you sure you want to reset all settings to defaults?')) {
+  if (!confirm(t('options_confirm_reset'))) {
     return;
   }
 
   try {
     await sendMessage({ action: 'resetToDefaults' });
     await loadSettings();
-    showNotification('Settings reset to defaults');
+    showNotification(t('options_notify_reset'));
   } catch (error) {
     console.error('Failed to reset settings:', error);
-    showNotification('Failed to reset settings', 'error');
+    showNotification(t('options_notify_resetFailed'), 'error');
   }
 }
 
@@ -236,7 +238,7 @@ function setupEventListeners() {
       console.error('  [ERROR] This message (level 3) \u2713 always visible');
       console.log('--- End test (DEBUG requires "Verbose" in DevTools) ---');
 
-      showNotification(`Level: ${levelNames[effectiveLevel]}`);
+      showNotification(t('options_notify_logLevel', [levelNames[effectiveLevel]]));
     });
   }
 
@@ -267,9 +269,9 @@ function setupEventListeners() {
     shortcutsLink.addEventListener('click', (e) => {
       e.preventDefault();
       navigator.clipboard.writeText('chrome://extensions/shortcuts').then(() => {
-        showNotification('URL copied! Paste in address bar.');
+        showNotification(t('options_notify_urlCopied'));
       }).catch(() => {
-        showNotification('Open chrome://extensions/shortcuts manually');
+        showNotification(t('options_notify_openManually'));
       });
     });
   }
@@ -310,7 +312,7 @@ function showNotification(message, type = 'success') {
     notification.classList.add('show');
     setTimeout(() => {
       notification.classList.remove('show');
-      notification.textContent = 'Settings saved successfully!';
+      notification.textContent = t('options_saved');
     }, 2000);
   }
 }
