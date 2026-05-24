@@ -180,7 +180,7 @@ export default [
     }
   },
   // i18n guardrail - flag hardcoded user-facing strings in UI surfaces.
-  // Starts as 'warn'; promoted to 'error' once string extraction is complete.
+  // Enforced as 'error': all surfaces are fully extracted to _locales.
   {
     files: [
       'popup/**/*.js',
@@ -194,7 +194,7 @@ export default [
     ],
     ignores: ['**/*.test.js', '**/*.spec.js'],
     rules: {
-      'local/no-hardcoded-ui-string': 'warn'
+      'local/no-hardcoded-ui-string': 'error'
     }
   }
 ];
