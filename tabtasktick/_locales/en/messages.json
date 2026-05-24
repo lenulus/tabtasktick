@@ -1030,5 +1030,349 @@
   "sidepanel_state_permissionMessage": { "message": "Permission denied." },
   "sidepanel_state_permissionSuggestion": { "message": "Check extension permissions in chrome://extensions" },
   "sidepanel_state_unknownMessage": { "message": "An error occurred." },
-  "sidepanel_state_unknownSuggestion": { "message": "Click Retry to try again." }
+  "sidepanel_state_unknownSuggestion": { "message": "Click Retry to try again." },
+
+  "dashboard_docTitle": { "message": "TabTaskTick - Dashboard" },
+
+  "dashboard_nav_overview": { "message": "Overview" },
+  "dashboard_nav_allTabs": { "message": "All Tabs" },
+  "dashboard_nav_groups": { "message": "Groups" },
+  "dashboard_nav_snoozed": { "message": "Snoozed" },
+  "dashboard_nav_history": { "message": "History" },
+  "dashboard_nav_collections": { "message": "Collections" },
+  "dashboard_nav_tasks": { "message": "Tasks" },
+  "dashboard_nav_rulesEngine": { "message": "Rules Engine" },
+  "dashboard_nav_backupRestore": { "message": "Backup & Restore" },
+  "dashboard_footer_shortcuts": { "message": "Shortcuts" },
+  "dashboard_footer_shortcutsTitle": { "message": "Keyboard Shortcuts (Shift+?)" },
+  "dashboard_footer_settings": { "message": "Settings" },
+
+  "dashboard_overview_title": { "message": "Dashboard Overview" },
+  "dashboard_overview_quickOrganize": { "message": "Quick Organize" },
+  "dashboard_overview_refresh": { "message": "Refresh" },
+  "dashboard_overview_statTotalTabs": { "message": "Total Tabs" },
+  "dashboard_overview_statTotalTabsTitle": { "message": "View all tabs" },
+  "dashboard_overview_statTabsChange": { "message": "+0 today" },
+  "dashboard_overview_statTabGroups": { "message": "Tab Groups" },
+  "dashboard_overview_statTabGroupsTitle": { "message": "View tab groups" },
+  "dashboard_overview_statGroupsInfo": { "message": "0 collapsed" },
+  "dashboard_overview_statSnoozed": { "message": "Snoozed" },
+  "dashboard_overview_statSnoozedTitle": { "message": "View snoozed tabs" },
+  "dashboard_overview_statNextWake": { "message": "Next in --" },
+  "dashboard_overview_statDuplicates": { "message": "Duplicates" },
+  "dashboard_overview_statDuplicatesTitle": { "message": "View duplicate tabs" },
+  "dashboard_overview_statDuplicatesInfo": { "message": "Click to clean up" },
+  "dashboard_overview_chartActivity": { "message": "Tab Activity (Last 7 Days)" },
+  "dashboard_overview_chartTopDomains": { "message": "Top Domains" },
+  "dashboard_overview_recentActivity": { "message": "Recent Activity" },
+
+  "dashboard_tabs_title": { "message": "All Tabs" },
+  "dashboard_tabs_searchPlaceholder": { "message": "Search tabs..." },
+  "dashboard_tabs_filterAll": { "message": "All Tabs" },
+  "dashboard_tabs_filterActive": { "message": "Active" },
+  "dashboard_tabs_filterSuspended": { "message": "Suspended" },
+  "dashboard_tabs_filterPinned": { "message": "Pinned" },
+  "dashboard_tabs_filterAudible": { "message": "Playing Audio" },
+  "dashboard_tabs_filterMuted": { "message": "Muted" },
+  "dashboard_tabs_filterGrouped": { "message": "In Groups" },
+  "dashboard_tabs_filterUngrouped": { "message": "Not Grouped" },
+  "dashboard_tabs_filterDuplicates": { "message": "Duplicates" },
+  "dashboard_tabs_windowAll": { "message": "All Windows" },
+  "dashboard_tabs_sortDefault": { "message": "Default Order" },
+  "dashboard_tabs_sortWindow": { "message": "Group by Window" },
+  "dashboard_tabs_sortRecent": { "message": "Most Recently Used" },
+  "dashboard_tabs_sortOldest": { "message": "Least Recently Used" },
+  "dashboard_tabs_sortSuspended": { "message": "Suspended First" },
+  "dashboard_tabs_sortActive": { "message": "Active First" },
+  "dashboard_tabs_sortTitle": { "message": "Title (A-Z)" },
+  "dashboard_tabs_sortDomain": { "message": "Domain (A-Z)" },
+  "dashboard_tabs_sortCategory": { "message": "Category (A-Z)" },
+  "dashboard_tabs_gridViewTitle": { "message": "Grid View" },
+  "dashboard_tabs_treeViewTitle": { "message": "Tree View" },
+  "dashboard_tabs_selected": { "message": "tabs selected" },
+  "dashboard_tabs_selectAll": { "message": "Select All" },
+  "dashboard_tabs_clear": { "message": "Clear" },
+  "dashboard_tabs_bulkClose": { "message": "Close" },
+  "dashboard_tabs_bulkSnooze": { "message": "Snooze" },
+  "dashboard_tabs_bulkGroup": { "message": "Group" },
+  "dashboard_tabs_bulkMove": { "message": "Move" },
+
+  "dashboard_groups_title": { "message": "Tab Groups" },
+  "dashboard_groups_ungroupAll": { "message": "Ungroup All" },
+  "dashboard_groups_groupByDomain": { "message": "Group by Domain" },
+
+  "dashboard_snoozed_title": { "message": "Snoozed Tabs" },
+  "dashboard_snoozed_wakeAll": { "message": "Wake All" },
+
+  "dashboard_history_title": { "message": "Tab History" },
+  "dashboard_history_clear": { "message": "Clear History" },
+
+  "dashboard_rules_title": { "message": "Rules Engine" },
+  "dashboard_rules_runNow": { "message": "Run Rules Now" },
+  "dashboard_rules_purgeAll": { "message": "Purge All" },
+  "dashboard_rules_purgeAllTitle": { "message": "Delete all rules" },
+  "dashboard_rules_addRule": { "message": "Add Rule" },
+  "dashboard_rules_createCustom": { "message": "Create Custom Rule" },
+  "dashboard_rules_startFromTemplate": { "message": "Start from template:" },
+  "dashboard_rules_description": { "message": "Create automated rules to manage your tabs. Rules execute in order from top to bottom. Drag to reorder." },
+  "dashboard_rules_warning": { "message": "Rules can automatically close or modify tabs. Test rules carefully before enabling them." },
+  "dashboard_rules_disableAll": { "message": "Disable All" },
+  "dashboard_rules_enableAll": { "message": "Enable All" },
+  "dashboard_rules_emptyTitle": { "message": "No Rules Created" },
+  "dashboard_rules_emptyText": { "message": "Create your first rule to automate tab management, or start from a template." },
+  "dashboard_rules_addFirst": { "message": "Add Your First Rule" },
+
+  "dashboard_backup_title": { "message": "Backup & Restore" },
+  "dashboard_backup_createTitle": { "message": "Create Backup" },
+  "dashboard_backup_createDesc": { "message": "Save your tabs, groups, rules, and settings." },
+  "dashboard_backup_scope": { "message": "Scope" },
+  "dashboard_backup_include": { "message": "Include" },
+  "dashboard_backup_includeGroups": { "message": "Tab Groups & Organization" },
+  "dashboard_backup_includeRules": { "message": "Rules & Automation" },
+  "dashboard_backup_includeSnoozed": { "message": "Snoozed Tabs" },
+  "dashboard_backup_includeSettings": { "message": "Settings & Preferences" },
+  "dashboard_backup_includeStatistics": { "message": "Usage Statistics" },
+  "dashboard_backup_includeCollections": { "message": "Collections & Tasks" },
+  "dashboard_backup_format": { "message": "Format" },
+  "dashboard_backup_formatJSON": { "message": "Full Backup (.json)" },
+  "dashboard_backup_formatJSONHint": { "message": "Complete backup - can be restored" },
+  "dashboard_backup_formatCSV": { "message": "Spreadsheet (.csv)" },
+  "dashboard_backup_formatCSVHint": { "message": "For Excel/Google Sheets analysis" },
+  "dashboard_backup_formatMarkdown": { "message": "Document (.md)" },
+  "dashboard_backup_formatMarkdownHint": { "message": "Human-readable list" },
+  "dashboard_backup_backupNow": { "message": "Backup Now" },
+  "dashboard_backup_restoreTitle": { "message": "Restore from Backup" },
+  "dashboard_backup_restoreDesc": { "message": "Restore tabs, groups, rules, and settings from a previous backup." },
+  "dashboard_backup_dropFile": { "message": "Drop file here or click to browse" },
+  "dashboard_backup_dropHint": { "message": "Accepts .json files exported from TabTaskTick" },
+  "dashboard_backup_fileInfo": { "message": "File Information" },
+  "dashboard_backup_fileLabel": { "message": "File:" },
+  "dashboard_backup_sizeLabel": { "message": "Size:" },
+  "dashboard_backup_formatLabel": { "message": "Format:" },
+  "dashboard_backup_importPreview": { "message": "Import Preview" },
+  "dashboard_backup_importTo": { "message": "Import To" },
+  "dashboard_backup_importNewWindows": { "message": "New Window(s)" },
+  "dashboard_backup_importNewWindowsHint": { "message": "Safest - Creates new windows" },
+  "dashboard_backup_importCurrentWindow": { "message": "Current Window" },
+  "dashboard_backup_importCurrentWindowHint": { "message": "Append to current window" },
+  "dashboard_backup_importReplaceAll": { "message": "Replace All Windows" },
+  "dashboard_backup_importReplaceAllHint": { "message": "⚠️ Closes all existing windows" },
+  "dashboard_backup_options": { "message": "Options" },
+  "dashboard_backup_importGroups": { "message": "Import tab groups" },
+  "dashboard_backup_importRules": { "message": "Import rules (merge)" },
+  "dashboard_backup_importSnoozed": { "message": "Import snoozed tabs" },
+  "dashboard_backup_importSettings": { "message": "Import settings (override)" },
+  "dashboard_backup_importCollections": { "message": "Import collections & tasks" },
+  "dashboard_backup_restoreBackup": { "message": "Restore Backup" },
+  "dashboard_backup_scheduledTitle": { "message": "Scheduled Backups" },
+  "dashboard_backup_scheduledDesc": { "message": "Automatically create full backups on a schedule for disaster recovery." },
+  "dashboard_backup_enableAuto": { "message": "Enable automatic backups" },
+  "dashboard_backup_frequency": { "message": "Frequency:" },
+  "dashboard_backup_freqHourly": { "message": "Hourly" },
+  "dashboard_backup_freqDaily": { "message": "Daily" },
+  "dashboard_backup_freqWeekly": { "message": "Weekly" },
+  "dashboard_backup_time": { "message": "Time:" },
+  "dashboard_backup_recentBackups": { "message": "Recent Backups" },
+  "dashboard_backup_loadingHistory": { "message": "Loading backup history..." },
+
+  "dashboard_collections_title": { "message": "Collections" },
+  "dashboard_collections_saveWindow": { "message": "Save Window" },
+
+  "dashboard_tasks_title": { "message": "Tasks" },
+  "dashboard_tasks_kanban": { "message": "Kanban" },
+  "dashboard_tasks_kanbanTitle": { "message": "Kanban View" },
+  "dashboard_tasks_list": { "message": "List" },
+  "dashboard_tasks_listTitle": { "message": "List View" },
+  "dashboard_tasks_newTask": { "message": "New Task" },
+  "dashboard_tasks_searchPlaceholder": { "message": "Search tasks..." },
+  "dashboard_tasks_filters": { "message": "Filters" },
+  "dashboard_tasks_filtersTitle": { "message": "Toggle Filters" },
+  "dashboard_tasks_clear": { "message": "Clear" },
+  "dashboard_tasks_filterStatus": { "message": "Status" },
+  "dashboard_tasks_statusOpen": { "message": "Open" },
+  "dashboard_tasks_statusActive": { "message": "Active" },
+  "dashboard_tasks_statusFixed": { "message": "Fixed" },
+  "dashboard_tasks_statusAbandoned": { "message": "Abandoned" },
+  "dashboard_tasks_filterPriority": { "message": "Priority" },
+  "dashboard_tasks_priorityLow": { "message": "Low" },
+  "dashboard_tasks_priorityMedium": { "message": "Medium" },
+  "dashboard_tasks_priorityHigh": { "message": "High" },
+  "dashboard_tasks_priorityCritical": { "message": "Critical" },
+  "dashboard_tasks_filterCollection": { "message": "Collection" },
+  "dashboard_tasks_uncategorized": { "message": "Uncategorized" },
+  "dashboard_tasks_bulkSelected": { "message": "0 tasks selected" },
+  "dashboard_tasks_selectAll": { "message": "Select All" },
+  "dashboard_tasks_bulkChangeStatus": { "message": "Change Status" },
+  "dashboard_tasks_bulkChangePriority": { "message": "Change Priority" },
+  "dashboard_tasks_bulkDelete": { "message": "Delete Selected" },
+
+  "dashboard_modal_confirmTitle": { "message": "Confirm Action" },
+  "dashboard_modal_proceed": { "message": "Proceed" },
+  "dashboard_modal_processing": { "message": "Processing..." },
+  "dashboard_modal_confirmMessage": { "message": "Are you sure you want to proceed?" },
+
+  "dashboard_organize_title": { "message": "Quick Organize" },
+  "dashboard_organize_closeDupes": { "message": "Close duplicate tabs" },
+  "dashboard_organize_dupeCount": {
+    "message": "($count$ found)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_organize_groupDomains": { "message": "Group tabs by domain" },
+  "dashboard_organize_groupCount": {
+    "message": "($count$ groups)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_organize_snoozeInactive": { "message": "Snooze inactive tabs" },
+  "dashboard_organize_inactiveCount": {
+    "message": "($count$ tabs)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_organize_suspendHeavy": { "message": "Suspend memory-heavy tabs" },
+  "dashboard_organize_heavyCount": {
+    "message": "($count$ tabs)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_organize_organizeNow": { "message": "Organize Now" },
+
+  "dashboard_rule_addNew": { "message": "Add New Rule" },
+  "dashboard_rule_name": { "message": "Rule Name" },
+  "dashboard_rule_namePlaceholder": { "message": "Enter a descriptive name for this rule" },
+  "dashboard_rule_conditions": { "message": "Conditions" },
+  "dashboard_rule_preview": { "message": "Preview" },
+  "dashboard_rule_previewDefault": { "message": "Match ALL tabs where URL contains \"example.com\"" },
+  "dashboard_rule_actions": { "message": "Actions (in order)" },
+  "dashboard_rule_addAction": { "message": "+ Add Action" },
+  "dashboard_rule_whenToApply": { "message": "When to apply" },
+  "dashboard_rule_triggerImmediate": { "message": "On tab events (immediate)" },
+  "dashboard_rule_triggerRepeat": { "message": "Repeat periodically" },
+  "dashboard_rule_triggerOnce": { "message": "Once at specific time" },
+  "dashboard_rule_triggerManual": { "message": "Manual only" },
+  "dashboard_rule_enableNow": { "message": "Enable rule immediately" },
+  "dashboard_rule_enableHelp": { "message": "You can test the rule before enabling it" },
+  "dashboard_rule_save": { "message": "Save Rule" },
+
+  "dashboard_emoji_catFolders": { "message": "Folders & Files" },
+  "dashboard_emoji_catWork": { "message": "Work & Productivity" },
+  "dashboard_emoji_catDev": { "message": "Development & Tech" },
+  "dashboard_emoji_catMisc": { "message": "Miscellaneous" },
+
+  "dashboard_time_justNow": { "message": "Just now" },
+  "dashboard_time_minutesAgo": {
+    "message": "$count$m ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_time_hoursAgo": {
+    "message": "$count$h ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_time_daysAgo": {
+    "message": "$count$d ago",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_time_now": { "message": "Now" },
+  "dashboard_time_unknown": { "message": "Unknown" },
+
+  "dashboard_tabState_suspended": { "message": "💤 Suspended" },
+  "dashboard_tabState_active": { "message": "👁 Active" },
+  "dashboard_tabState_playing": { "message": "🔊 Playing" },
+  "dashboard_tabState_pinned": { "message": "📌 Pinned" },
+  "dashboard_tabState_loaded": { "message": "Loaded" },
+
+  "dashboard_notify_savingWindow": { "message": "Saving current window..." },
+  "dashboard_notify_collectionCreated": { "message": "Collection created!" },
+  "dashboard_notify_collectionFailed": { "message": "Failed to create collection" },
+  "dashboard_notify_closedTabs": {
+    "message": "Closed $count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_notify_groupCreated": {
+    "message": "Created group \"$name$\" with $count$ tabs",
+    "placeholders": { "name": { "content": "$1" }, "count": { "content": "$2" } }
+  },
+  "dashboard_notify_actionFailed": {
+    "message": "Failed to $action$ tabs: $error$",
+    "placeholders": { "action": { "content": "$1" }, "error": { "content": "$2" } }
+  },
+  "dashboard_notify_noTabsToSnooze": { "message": "No tabs to snooze" },
+  "dashboard_notify_snoozeUnavailable": { "message": "Snooze feature is not available" },
+  "dashboard_notify_snoozedWindows": {
+    "message": "Snoozed $windows$ for $duration$",
+    "placeholders": { "windows": { "content": "$1" }, "duration": { "content": "$2" } }
+  },
+  "dashboard_notify_snoozedTabs": {
+    "message": "Snoozed $tabs$ for $duration$",
+    "placeholders": { "tabs": { "content": "$1" }, "duration": { "content": "$2" } }
+  },
+  "dashboard_notify_snoozeErrors": {
+    "message": "Snooze completed with $count$ error(s)",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_notify_snoozeFailed": { "message": "Failed to snooze" },
+  "dashboard_notify_prepareSnoozeFailed": { "message": "Failed to prepare snooze" },
+  "dashboard_notify_movedTabs": {
+    "message": "Moved $tabs$ to $window$",
+    "placeholders": { "tabs": { "content": "$1" }, "window": { "content": "$2" } }
+  },
+  "dashboard_notify_moveTabsFailed": { "message": "Failed to move tabs" },
+  "dashboard_notify_wakeAllSuccess": { "message": "All snoozed tabs have been restored" },
+  "dashboard_notify_wakeAllFailed": { "message": "Failed to wake snoozed tabs" },
+  "dashboard_notify_windowNamesSaved": { "message": "Window names saved" },
+
+  "dashboard_progress_processingTabs": {
+    "message": "Processing $count$ tabs...",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_confirm_actionTitle": {
+    "message": "Confirm $action$",
+    "placeholders": { "action": { "content": "$1" } }
+  },
+  "dashboard_confirm_actionMessage": {
+    "message": "Are you sure you want to $action$ $count$ tabs? This action cannot be undone.",
+    "placeholders": { "action": { "content": "$1" }, "count": { "content": "$2" } }
+  },
+  "dashboard_prompt_groupName": { "message": "Enter a name for the group:" },
+  "dashboard_group_untitled": { "message": "Untitled" },
+
+  "dashboard_moveDialog_title": {
+    "message": "Move $count$ to...",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_moveDialog_currentWindow": { "message": "Current Window" },
+  "dashboard_moveDialog_windowName": {
+    "message": "Window $id$",
+    "placeholders": { "id": { "content": "$1" } }
+  },
+  "dashboard_moveDialog_currentLocation": { "message": "(current location)" },
+  "dashboard_moveDialog_createNew": { "message": "Create New Window" },
+  "dashboard_moveDialog_newWindow": { "message": "new window" },
+
+  "dashboard_count_tabs_one": {
+    "message": "$count$ tab",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_count_tabs_other": {
+    "message": "$count$ tabs",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_count_windows_one": {
+    "message": "$count$ window",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "dashboard_count_windows_other": {
+    "message": "$count$ windows",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+
+  "dashboard_rename_title": { "message": "Rename Windows" },
+  "dashboard_rename_windowLabel": {
+    "message": "Window $index$",
+    "placeholders": { "index": { "content": "$1" } }
+  },
+  "dashboard_rename_placeholder": { "message": "Enter name..." },
+  "dashboard_rename_save": { "message": "Save Names" },
+
+  "dashboard_state_selectedCount": {
+    "message": "$count$ selected",
+    "placeholders": { "count": { "content": "$1" } }
+  }
 }

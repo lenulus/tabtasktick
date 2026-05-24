@@ -4,6 +4,7 @@
  */
 
 import state from './state.js';
+import { t } from '../../../services/utils/i18n.js';
 
 // Example 1: Listen to specific state changes
 export function initStateListeners() {
@@ -126,7 +127,7 @@ function updateSelectionDependentUI(selectedCount) {
   // Update selection count display
   const countDisplay = document.querySelector('.selection-count');
   if (countDisplay) {
-    countDisplay.textContent = `${selectedCount} selected`;
+    countDisplay.textContent = t('dashboard_state_selectedCount', [String(selectedCount)]);
   }
   
   // Enable/disable bulk action buttons

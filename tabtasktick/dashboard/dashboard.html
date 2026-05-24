@@ -29,14 +29,14 @@
             <rect x="14" y="14" width="7" height="7"></rect>
             <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
-          Overview
+          <span data-i18n="dashboard_nav_overview">Overview</span>
         </a>
         
         <a href="#" class="nav-item" data-view="tabs">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M2 3h20v18H2zM8 3v18M16 3v18"></path>
           </svg>
-          All Tabs
+          <span data-i18n="dashboard_nav_allTabs">All Tabs</span>
         </a>
         
         <a href="#" class="nav-item" data-view="groups">
@@ -45,7 +45,7 @@
             <line x1="9" y1="3" x2="9" y2="21"></line>
             <line x1="15" y1="3" x2="15" y2="21"></line>
           </svg>
-          Groups
+          <span data-i18n="dashboard_nav_groups">Groups</span>
         </a>
         
         <a href="#" class="nav-item" data-view="snoozed">
@@ -53,7 +53,7 @@
             <circle cx="12" cy="12" r="10"></circle>
             <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
-          Snoozed
+          <span data-i18n="dashboard_nav_snoozed">Snoozed</span>
         </a>
         
         <a href="#" class="nav-item" data-view="history">
@@ -61,14 +61,14 @@
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
             <path d="M3 3v5h5"></path>
           </svg>
-          History
+          <span data-i18n="dashboard_nav_history">History</span>
         </a>
 
         <a href="#" class="nav-item" data-view="collections">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
           </svg>
-          Collections
+          <span data-i18n="dashboard_nav_collections">Collections</span>
         </a>
 
         <a href="#" class="nav-item" data-view="tasks">
@@ -76,14 +76,14 @@
             <path d="M9 11l3 3L22 4"></path>
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
           </svg>
-          Tasks
+          <span data-i18n="dashboard_nav_tasks">Tasks</span>
         </a>
 
         <a href="#" class="nav-item" data-view="rules">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M3 3h18v18H3zM12 8v8m-4-4h8"></path>
           </svg>
-          Rules Engine
+          <span data-i18n="dashboard_nav_rulesEngine">Rules Engine</span>
         </a>
 
         <a href="#" class="nav-item" data-view="export-import">
@@ -93,25 +93,25 @@
             <line x1="12" y1="15" x2="12" y2="3"></line>
             <polyline points="17 8 12 3 7 8"></polyline>
           </svg>
-          Backup & Restore
+          <span data-i18n="dashboard_nav_backupRestore">Backup & Restore</span>
         </a>
       </nav>
       
       <div class="sidebar-footer">
-        <button class="btn-settings" id="openKeyboardShortcuts" title="Keyboard Shortcuts (Shift+?)">
+        <button class="btn-settings" id="openKeyboardShortcuts" title="Keyboard Shortcuts (Shift+?)" data-i18n-title="dashboard_footer_shortcutsTitle">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <circle cx="12" cy="12" r="10"></circle>
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
-          Shortcuts
+          <span data-i18n="dashboard_footer_shortcuts">Shortcuts</span>
         </button>
         <button class="btn-settings" id="openSettings">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"></path>
           </svg>
-          Settings
+          <span data-i18n="dashboard_footer_settings">Settings</span>
         </button>
       </div>
     </aside>
@@ -121,14 +121,14 @@
       <!-- Overview View -->
       <div class="view active" id="overview">
         <div class="view-header">
-          <h1>Dashboard Overview</h1>
+          <h1 data-i18n="dashboard_overview_title">Dashboard Overview</h1>
           <div class="header-actions">
             <button class="btn btn-primary" id="quickOrganize">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
               </svg>
-              Quick Organize
+              <span data-i18n="dashboard_overview_quickOrganize">Quick Organize</span>
             </button>
             <button class="btn btn-secondary" id="refreshData">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -136,14 +136,14 @@
                 <polyline points="1 20 1 14 7 14"></polyline>
                 <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
               </svg>
-              Refresh
+              <span data-i18n="dashboard_overview_refresh">Refresh</span>
             </button>
           </div>
         </div>
 
         <!-- Stats Cards -->
         <div class="stats-container">
-          <div class="stat-card stat-card-link" data-navigate="tabs" title="View all tabs">
+          <div class="stat-card stat-card-link" data-navigate="tabs" title="View all tabs" data-i18n-title="dashboard_overview_statTotalTabsTitle">
             <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
                 <path d="M2 3h20v18H2z"></path>
@@ -151,12 +151,12 @@
             </div>
             <div class="stat-content">
               <div class="stat-value" id="statTotalTabs">0</div>
-              <div class="stat-label">Total Tabs</div>
-              <div class="stat-change" id="statTabsChange">+0 today</div>
+              <div class="stat-label" data-i18n="dashboard_overview_statTotalTabs">Total Tabs</div>
+              <div class="stat-change" id="statTabsChange" data-i18n="dashboard_overview_statTabsChange">+0 today</div>
             </div>
           </div>
 
-          <div class="stat-card stat-card-link" data-navigate="groups" title="View tab groups">
+          <div class="stat-card stat-card-link" data-navigate="groups" title="View tab groups" data-i18n-title="dashboard_overview_statTabGroupsTitle">
             <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -165,12 +165,12 @@
             </div>
             <div class="stat-content">
               <div class="stat-value" id="statGroups">0</div>
-              <div class="stat-label">Tab Groups</div>
-              <div class="stat-change" id="statGroupsInfo">0 collapsed</div>
+              <div class="stat-label" data-i18n="dashboard_overview_statTabGroups">Tab Groups</div>
+              <div class="stat-change" id="statGroupsInfo" data-i18n="dashboard_overview_statGroupsInfo">0 collapsed</div>
             </div>
           </div>
 
-          <div class="stat-card stat-card-link" data-navigate="snoozed" title="View snoozed tabs">
+          <div class="stat-card stat-card-link" data-navigate="snoozed" title="View snoozed tabs" data-i18n-title="dashboard_overview_statSnoozedTitle">
             <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
                 <circle cx="12" cy="12" r="10"></circle>
@@ -179,12 +179,12 @@
             </div>
             <div class="stat-content">
               <div class="stat-value" id="statSnoozed">0</div>
-              <div class="stat-label">Snoozed</div>
-              <div class="stat-change" id="statNextWake">Next in --</div>
+              <div class="stat-label" data-i18n="dashboard_overview_statSnoozed">Snoozed</div>
+              <div class="stat-change" id="statNextWake" data-i18n="dashboard_overview_statNextWake">Next in --</div>
             </div>
           </div>
 
-          <div class="stat-card stat-card-link" data-navigate="duplicates" title="View duplicate tabs">
+          <div class="stat-card stat-card-link" data-navigate="duplicates" title="View duplicate tabs" data-i18n-title="dashboard_overview_statDuplicatesTitle">
             <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
                 <rect x="8" y="2" width="12" height="16" rx="2"></rect>
@@ -193,8 +193,8 @@
             </div>
             <div class="stat-content">
               <div class="stat-value" id="statDuplicates">0</div>
-              <div class="stat-label">Duplicates</div>
-              <div class="stat-change" id="statDuplicatesInfo">Click to clean up</div>
+              <div class="stat-label" data-i18n="dashboard_overview_statDuplicates">Duplicates</div>
+              <div class="stat-change" id="statDuplicatesInfo" data-i18n="dashboard_overview_statDuplicatesInfo">Click to clean up</div>
             </div>
           </div>
         </div>
@@ -202,14 +202,14 @@
         <!-- Charts -->
         <div class="charts-container">
           <div class="chart-card">
-            <h3>Tab Activity (Last 7 Days)</h3>
+            <h3 data-i18n="dashboard_overview_chartActivity">Tab Activity (Last 7 Days)</h3>
             <div class="chart-wrapper">
               <canvas id="activityChart"></canvas>
             </div>
           </div>
-          
+
           <div class="chart-card">
-            <h3>Top Domains</h3>
+            <h3 data-i18n="dashboard_overview_chartTopDomains">Top Domains</h3>
             <div class="chart-wrapper">
               <canvas id="domainsChart"></canvas>
             </div>
@@ -218,7 +218,7 @@
 
         <!-- Recent Activity -->
         <div class="activity-section">
-          <h3>Recent Activity</h3>
+          <h3 data-i18n="dashboard_overview_recentActivity">Recent Activity</h3>
           <div class="activity-list" id="recentActivity">
             <!-- Activity items will be populated here -->
           </div>
@@ -228,37 +228,37 @@
       <!-- All Tabs View -->
       <div class="view" id="tabs">
         <div class="view-header">
-          <h1>All Tabs <span id="tabCount" style="font-size: 18px; color: #666; font-weight: normal;"></span></h1>
+          <h1><span data-i18n="dashboard_tabs_title">All Tabs</span> <span id="tabCount" style="font-size: 18px; color: #666; font-weight: normal;"></span></h1>
           <div class="header-actions">
-            <input type="text" class="search-input" id="searchTabs" placeholder="Search tabs...">
+            <input type="text" class="search-input" id="searchTabs" placeholder="Search tabs..." data-i18n-placeholder="dashboard_tabs_searchPlaceholder">
             <select class="filter-select" id="filterTabs">
-              <option value="all">All Tabs</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="pinned">Pinned</option>
-              <option value="audible">Playing Audio</option>
-              <option value="muted">Muted</option>
-              <option value="grouped">In Groups</option>
-              <option value="ungrouped">Not Grouped</option>
-              <option value="duplicates">Duplicates</option>
+              <option value="all" data-i18n="dashboard_tabs_filterAll">All Tabs</option>
+              <option value="active" data-i18n="dashboard_tabs_filterActive">Active</option>
+              <option value="suspended" data-i18n="dashboard_tabs_filterSuspended">Suspended</option>
+              <option value="pinned" data-i18n="dashboard_tabs_filterPinned">Pinned</option>
+              <option value="audible" data-i18n="dashboard_tabs_filterAudible">Playing Audio</option>
+              <option value="muted" data-i18n="dashboard_tabs_filterMuted">Muted</option>
+              <option value="grouped" data-i18n="dashboard_tabs_filterGrouped">In Groups</option>
+              <option value="ungrouped" data-i18n="dashboard_tabs_filterUngrouped">Not Grouped</option>
+              <option value="duplicates" data-i18n="dashboard_tabs_filterDuplicates">Duplicates</option>
             </select>
             <select class="filter-select" id="windowFilter">
-              <option value="all">All Windows</option>
+              <option value="all" data-i18n="dashboard_tabs_windowAll">All Windows</option>
               <!-- Window options will be dynamically added -->
             </select>
             <select class="filter-select" id="sortTabs">
-              <option value="default">Default Order</option>
-              <option value="window">Group by Window</option>
-              <option value="recent">Most Recently Used</option>
-              <option value="oldest">Least Recently Used</option>
-              <option value="suspended">Suspended First</option>
-              <option value="active">Active First</option>
-              <option value="title">Title (A-Z)</option>
-              <option value="domain">Domain (A-Z)</option>
-              <option value="category">Category (A-Z)</option>
+              <option value="default" data-i18n="dashboard_tabs_sortDefault">Default Order</option>
+              <option value="window" data-i18n="dashboard_tabs_sortWindow">Group by Window</option>
+              <option value="recent" data-i18n="dashboard_tabs_sortRecent">Most Recently Used</option>
+              <option value="oldest" data-i18n="dashboard_tabs_sortOldest">Least Recently Used</option>
+              <option value="suspended" data-i18n="dashboard_tabs_sortSuspended">Suspended First</option>
+              <option value="active" data-i18n="dashboard_tabs_sortActive">Active First</option>
+              <option value="title" data-i18n="dashboard_tabs_sortTitle">Title (A-Z)</option>
+              <option value="domain" data-i18n="dashboard_tabs_sortDomain">Domain (A-Z)</option>
+              <option value="category" data-i18n="dashboard_tabs_sortCategory">Category (A-Z)</option>
             </select>
             <div class="view-toggle" style="display: inline-flex; gap: 2px; background: #f0f0f0; border-radius: 6px; padding: 2px; margin: 0 8px;">
-              <button class="view-toggle-btn active" data-view="grid" title="Grid View" style="padding: 6px 10px; background: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center;">
+              <button class="view-toggle-btn active" data-view="grid" title="Grid View" data-i18n-title="dashboard_tabs_gridViewTitle" style="padding: 6px 10px; background: white; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <rect x="3" y="3" width="7" height="7"></rect>
                   <rect x="14" y="3" width="7" height="7"></rect>
@@ -266,7 +266,7 @@
                   <rect x="3" y="14" width="7" height="7"></rect>
                 </svg>
               </button>
-              <button class="view-toggle-btn" data-view="tree" title="Tree View" style="padding: 6px 10px; background: transparent; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center;">
+              <button class="view-toggle-btn" data-view="tree" title="Tree View" data-i18n-title="dashboard_tabs_treeViewTitle" style="padding: 6px 10px; background: transparent; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M3 3v18M9 3v18M9 9h12M9 15h12"></path>
                 </svg>
@@ -279,10 +279,10 @@
         <div class="bulk-toolbar" id="bulkToolbar" hidden>
           <div class="bulk-info">
             <span class="bulk-count">
-              <span id="selectedCount">0</span> tabs selected
+              <span id="selectedCount">0</span> <span data-i18n="dashboard_tabs_selected">tabs selected</span>
             </span>
-            <button class="link-btn" id="selectAll">Select All</button>
-            <button class="link-btn" id="clearSelection">Clear</button>
+            <button class="link-btn" id="selectAll" data-i18n="dashboard_tabs_selectAll">Select All</button>
+            <button class="link-btn" id="clearSelection" data-i18n="dashboard_tabs_clear">Clear</button>
           </div>
           <div class="bulk-actions">
             <button class="bulk-action-btn" data-action="close">
@@ -290,27 +290,27 @@
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
-              Close
+              <span data-i18n="dashboard_tabs_bulkClose">Close</span>
             </button>
             <button class="bulk-action-btn" data-action="snooze">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
-              Snooze
+              <span data-i18n="dashboard_tabs_bulkSnooze">Snooze</span>
             </button>
             <button class="bulk-action-btn" data-action="group">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               </svg>
-              Group
+              <span data-i18n="dashboard_tabs_bulkGroup">Group</span>
             </button>
             <button class="bulk-action-btn" data-action="move">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M21 11V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"></path>
                 <path d="m12 12 4 10 1.7-4.3L22 16z"></path>
               </svg>
-              Move
+              <span data-i18n="dashboard_tabs_bulkMove">Move</span>
             </button>
           </div>
         </div>
@@ -331,10 +331,10 @@
       <!-- Groups View -->
       <div class="view" id="groups">
         <div class="view-header">
-          <h1>Tab Groups</h1>
+          <h1 data-i18n="dashboard_groups_title">Tab Groups</h1>
           <div class="header-actions">
-            <button class="btn btn-primary" id="ungroupAll">Ungroup All</button>
-            <button class="btn btn-secondary" id="groupByDomain">Group by Domain</button>
+            <button class="btn btn-primary" id="ungroupAll" data-i18n="dashboard_groups_ungroupAll">Ungroup All</button>
+            <button class="btn btn-secondary" id="groupByDomain" data-i18n="dashboard_groups_groupByDomain">Group by Domain</button>
           </div>
         </div>
 
@@ -346,9 +346,9 @@
       <!-- Snoozed View -->
       <div class="view" id="snoozed">
         <div class="view-header">
-          <h1>Snoozed Tabs</h1>
+          <h1 data-i18n="dashboard_snoozed_title">Snoozed Tabs</h1>
           <div class="header-actions">
-            <button class="btn btn-secondary" id="wakeAll">Wake All</button>
+            <button class="btn btn-secondary" id="wakeAll" data-i18n="dashboard_snoozed_wakeAll">Wake All</button>
           </div>
         </div>
 
@@ -360,10 +360,10 @@
       <!-- History View -->
       <div class="view" id="history">
         <div class="view-header">
-          <h1>Tab History</h1>
+          <h1 data-i18n="dashboard_history_title">Tab History</h1>
           <div class="header-actions">
             <input type="date" id="historyDate">
-            <button class="btn btn-secondary" id="clearHistory">Clear History</button>
+            <button class="btn btn-secondary" id="clearHistory" data-i18n="dashboard_history_clear">Clear History</button>
           </div>
         </div>
 
@@ -375,23 +375,23 @@
       <!-- Rules View -->
       <div class="view" id="rules">
         <div class="view-header">
-          <h1>Rules Engine</h1>
+          <h1 data-i18n="dashboard_rules_title">Rules Engine</h1>
           <div class="header-actions">
             <button class="btn btn-secondary" id="testAllRulesBtn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="16 12 12 8 12 16 16 12"></polyline>
               </svg>
-              Run Rules Now
+              <span data-i18n="dashboard_rules_runNow">Run Rules Now</span>
             </button>
-            <button class="btn btn-danger" id="purgeAllRulesBtn" title="Delete all rules">
+            <button class="btn btn-danger" id="purgeAllRulesBtn" title="Delete all rules" data-i18n-title="dashboard_rules_purgeAllTitle">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                 <line x1="10" y1="11" x2="10" y2="17"></line>
                 <line x1="14" y1="11" x2="14" y2="17"></line>
               </svg>
-              Purge All
+              <span data-i18n="dashboard_rules_purgeAll">Purge All</span>
             </button>
             <div class="dropdown">
               <button class="btn btn-primary dropdown-toggle" id="addRuleDropdown">
@@ -399,7 +399,7 @@
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                Add Rule
+                <span data-i18n="dashboard_rules_addRule">Add Rule</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-left: 4px;">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -410,10 +410,10 @@
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                   </svg>
-                  Create Custom Rule
+                  <span data-i18n="dashboard_rules_createCustom">Create Custom Rule</span>
                 </button>
                 <div class="dropdown-divider"></div>
-                <div class="dropdown-header">Start from template:</div>
+                <div class="dropdown-header" data-i18n="dashboard_rules_startFromTemplate">Start from template:</div>
                 <!-- Sample rule items will be added here dynamically -->
                 <div id="sampleRuleItems"></div>
               </div>
@@ -425,7 +425,7 @@
           <!-- Rules Header with quick actions -->
           <div class="rules-header">
             <div class="rules-info">
-              <p class="rules-description">
+              <p class="rules-description" data-i18n="dashboard_rules_description">
                 Create automated rules to manage your tabs. Rules execute in order from top to bottom. Drag to reorder.
               </p>
               <div class="rules-warning">
@@ -434,12 +434,12 @@
                   <line x1="12" y1="9" x2="12" y2="13"></line>
                   <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
-                <span>Rules can automatically close or modify tabs. Test rules carefully before enabling them.</span>
+                <span data-i18n="dashboard_rules_warning">Rules can automatically close or modify tabs. Test rules carefully before enabling them.</span>
               </div>
             </div>
             <div class="rules-quick-actions">
-              <button class="btn btn-sm" id="disableAllRules">Disable All</button>
-              <button class="btn btn-sm" id="enableAllRules">Enable All</button>
+              <button class="btn btn-sm" id="disableAllRules" data-i18n="dashboard_rules_disableAll">Disable All</button>
+              <button class="btn btn-sm" id="enableAllRules" data-i18n="dashboard_rules_enableAll">Enable All</button>
             </div>
           </div>
 
@@ -457,9 +457,9 @@
               <line x1="16" y1="17" x2="8" y2="17"></line>
               <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
-            <h3>No Rules Created</h3>
-            <p>Create your first rule to automate tab management, or start from a template.</p>
-            <button class="btn btn-primary" id="createFirstRuleBtn">Add Your First Rule</button>
+            <h3 data-i18n="dashboard_rules_emptyTitle">No Rules Created</h3>
+            <p data-i18n="dashboard_rules_emptyText">Create your first rule to automate tab management, or start from a template.</p>
+            <button class="btn btn-primary" id="createFirstRuleBtn" data-i18n="dashboard_rules_addFirst">Add Your First Rule</button>
           </div>
         </div>
       </div>
@@ -467,19 +467,19 @@
       <!-- Export/Import View -->
       <div class="view" id="export-import">
         <div class="view-header">
-          <h1>Backup & Restore</h1>
+          <h1 data-i18n="dashboard_backup_title">Backup & Restore</h1>
         </div>
 
         <div class="view-content">
           <div class="export-import-container">
             <!-- Create Backup Section (Left Column) -->
             <div class="data-section">
-              <h2>Create Backup</h2>
-              <p class="section-description">Save your tabs, groups, rules, and settings.</p>
+              <h2 data-i18n="dashboard_backup_createTitle">Create Backup</h2>
+              <p class="section-description" data-i18n="dashboard_backup_createDesc">Save your tabs, groups, rules, and settings.</p>
 
               <div class="export-options">
                 <div class="option-group">
-                  <h3>Scope</h3>
+                  <h3 data-i18n="dashboard_backup_scope">Scope</h3>
                   <div class="radio-group">
                     <label class="radio-option">
                       <input type="radio" name="exportScope" value="current-window" id="scopeCurrentWindow">
@@ -493,52 +493,52 @@
                 </div>
 
                 <div class="option-group">
-                  <h3>Include</h3>
+                  <h3 data-i18n="dashboard_backup_include">Include</h3>
                   <div class="checkbox-group">
                     <label class="checkbox-option">
                       <input type="checkbox" id="includeGroups" checked>
-                      <span>Tab Groups & Organization</span>
+                      <span data-i18n="dashboard_backup_includeGroups">Tab Groups & Organization</span>
                     </label>
                     <label class="checkbox-option">
                       <input type="checkbox" id="includeRules" checked>
-                      <span>Rules & Automation</span>
+                      <span data-i18n="dashboard_backup_includeRules">Rules & Automation</span>
                     </label>
                     <label class="checkbox-option">
                       <input type="checkbox" id="includeSnoozed" checked>
-                      <span>Snoozed Tabs</span>
+                      <span data-i18n="dashboard_backup_includeSnoozed">Snoozed Tabs</span>
                     </label>
                     <label class="checkbox-option">
                       <input type="checkbox" id="includeSettings" checked>
-                      <span>Settings & Preferences</span>
+                      <span data-i18n="dashboard_backup_includeSettings">Settings & Preferences</span>
                     </label>
                     <label class="checkbox-option">
                       <input type="checkbox" id="includeStatistics" checked>
-                      <span>Usage Statistics</span>
+                      <span data-i18n="dashboard_backup_includeStatistics">Usage Statistics</span>
                     </label>
                     <label class="checkbox-option">
                       <input type="checkbox" id="includeCollections" checked>
-                      <span>Collections & Tasks</span>
+                      <span data-i18n="dashboard_backup_includeCollections">Collections & Tasks</span>
                     </label>
                   </div>
                 </div>
 
                 <div class="option-group">
-                  <h3>Format</h3>
+                  <h3 data-i18n="dashboard_backup_format">Format</h3>
                   <div class="radio-group">
                     <label class="radio-option">
                       <input type="radio" name="exportFormat" value="json" id="formatJSON" checked>
-                      <span>Full Backup (.json)</span>
-                      <small>Complete backup - can be restored</small>
+                      <span data-i18n="dashboard_backup_formatJSON">Full Backup (.json)</span>
+                      <small data-i18n="dashboard_backup_formatJSONHint">Complete backup - can be restored</small>
                     </label>
                     <label class="radio-option">
                       <input type="radio" name="exportFormat" value="csv" id="formatCSV">
-                      <span>Spreadsheet (.csv)</span>
-                      <small>For Excel/Google Sheets analysis</small>
+                      <span data-i18n="dashboard_backup_formatCSV">Spreadsheet (.csv)</span>
+                      <small data-i18n="dashboard_backup_formatCSVHint">For Excel/Google Sheets analysis</small>
                     </label>
                     <label class="radio-option">
                       <input type="radio" name="exportFormat" value="markdown" id="formatMarkdown">
-                      <span>Document (.md)</span>
-                      <small>Human-readable list</small>
+                      <span data-i18n="dashboard_backup_formatMarkdown">Document (.md)</span>
+                      <small data-i18n="dashboard_backup_formatMarkdownHint">Human-readable list</small>
                     </label>
                   </div>
                 </div>
@@ -549,7 +549,7 @@
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                   </svg>
-                  Backup Now
+                  <span data-i18n="dashboard_backup_backupNow">Backup Now</span>
                 </button>
               </div>
             </div>
@@ -558,8 +558,8 @@
             <div class="right-column">
               <!-- Restore from Backup Section -->
               <div class="data-section">
-              <h2>Restore from Backup</h2>
-              <p class="section-description">Restore tabs, groups, rules, and settings from a previous backup.</p>
+              <h2 data-i18n="dashboard_backup_restoreTitle">Restore from Backup</h2>
+              <p class="section-description" data-i18n="dashboard_backup_restoreDesc">Restore tabs, groups, rules, and settings from a previous backup.</p>
 
               <div class="import-options">
                 <!-- File Drop Zone -->
@@ -569,25 +569,25 @@
                     <polyline points="17 8 12 3 7 8"></polyline>
                     <line x1="12" y1="3" x2="12" y2="15"></line>
                   </svg>
-                  <p>Drop file here or click to browse</p>
-                  <p class="file-hint">Accepts .json files exported from TabTaskTick</p>
+                  <p data-i18n="dashboard_backup_dropFile">Drop file here or click to browse</p>
+                  <p class="file-hint" data-i18n="dashboard_backup_dropHint">Accepts .json files exported from TabTaskTick</p>
                   <input type="file" id="importFile" accept=".json" style="display: none;">
                 </div>
 
                 <!-- File Info (Hidden by default) -->
                 <div class="file-info" id="fileInfo" style="display: none;">
-                  <h3>File Information</h3>
+                  <h3 data-i18n="dashboard_backup_fileInfo">File Information</h3>
                   <div class="info-grid">
                     <div class="info-item">
-                      <span class="info-label">File:</span>
+                      <span class="info-label" data-i18n="dashboard_backup_fileLabel">File:</span>
                       <span id="fileName">-</span>
                     </div>
                     <div class="info-item">
-                      <span class="info-label">Size:</span>
+                      <span class="info-label" data-i18n="dashboard_backup_sizeLabel">Size:</span>
                       <span id="fileSize">-</span>
                     </div>
                     <div class="info-item">
-                      <span class="info-label">Format:</span>
+                      <span class="info-label" data-i18n="dashboard_backup_formatLabel">Format:</span>
                       <span id="fileFormat">-</span>
                     </div>
                   </div>
@@ -595,7 +595,7 @@
 
                 <!-- Import Preview (Hidden by default) -->
                 <div class="import-preview" id="importPreview" style="display: none;">
-                  <h3>Import Preview</h3>
+                  <h3 data-i18n="dashboard_backup_importPreview">Import Preview</h3>
                   <ul id="importSummaryList" class="summary-list">
                     <!-- Dynamically populated -->
                   </ul>
@@ -604,48 +604,48 @@
                 <!-- Import Options (Hidden by default) -->
                 <div class="import-settings" id="importSettings" style="display: none;">
                   <div class="option-group">
-                    <h3>Import To</h3>
+                    <h3 data-i18n="dashboard_backup_importTo">Import To</h3>
                     <div class="radio-group">
                       <label class="radio-option">
                         <input type="radio" name="importScope" value="new-windows" id="importNewWindows" checked>
-                        <span>New Window(s)</span>
-                        <small>Safest - Creates new windows</small>
+                        <span data-i18n="dashboard_backup_importNewWindows">New Window(s)</span>
+                        <small data-i18n="dashboard_backup_importNewWindowsHint">Safest - Creates new windows</small>
                       </label>
                       <label class="radio-option">
                         <input type="radio" name="importScope" value="current-window" id="importCurrentWindow">
-                        <span>Current Window</span>
-                        <small>Append to current window</small>
+                        <span data-i18n="dashboard_backup_importCurrentWindow">Current Window</span>
+                        <small data-i18n="dashboard_backup_importCurrentWindowHint">Append to current window</small>
                       </label>
                       <label class="radio-option">
                         <input type="radio" name="importScope" value="replace-all" id="importReplaceAll">
-                        <span>Replace All Windows</span>
-                        <small>⚠️ Closes all existing windows</small>
+                        <span data-i18n="dashboard_backup_importReplaceAll">Replace All Windows</span>
+                        <small data-i18n="dashboard_backup_importReplaceAllHint">⚠️ Closes all existing windows</small>
                       </label>
                     </div>
                   </div>
 
                   <div class="option-group">
-                    <h3>Options</h3>
+                    <h3 data-i18n="dashboard_backup_options">Options</h3>
                     <div class="checkbox-group">
                       <label class="checkbox-option">
                         <input type="checkbox" id="importGroups" checked>
-                        <span>Import tab groups</span>
+                        <span data-i18n="dashboard_backup_importGroups">Import tab groups</span>
                       </label>
                       <label class="checkbox-option">
                         <input type="checkbox" id="importRules" checked>
-                        <span>Import rules (merge)</span>
+                        <span data-i18n="dashboard_backup_importRules">Import rules (merge)</span>
                       </label>
                       <label class="checkbox-option">
                         <input type="checkbox" id="importSnoozed" checked>
-                        <span>Import snoozed tabs</span>
+                        <span data-i18n="dashboard_backup_importSnoozed">Import snoozed tabs</span>
                       </label>
                       <label class="checkbox-option">
                         <input type="checkbox" id="importSettings">
-                        <span>Import settings (override)</span>
+                        <span data-i18n="dashboard_backup_importSettings">Import settings (override)</span>
                       </label>
                       <label class="checkbox-option">
                         <input type="checkbox" id="importCollections" checked>
-                        <span>Import collections & tasks</span>
+                        <span data-i18n="dashboard_backup_importCollections">Import collections & tasks</span>
                       </label>
                     </div>
                   </div>
@@ -655,14 +655,14 @@
                   </div>
 
                   <div class="import-actions">
-                    <button class="btn btn-secondary" id="cancelImport">Cancel</button>
+                    <button class="btn btn-secondary" id="cancelImport" data-i18n="common_cancel">Cancel</button>
                     <button class="btn btn-primary" id="confirmImport" disabled>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                       </svg>
-                      Restore Backup
+                      <span data-i18n="dashboard_backup_restoreBackup">Restore Backup</span>
                     </button>
                   </div>
                 </div>
@@ -671,8 +671,8 @@
 
               <!-- Scheduled Backups Section -->
               <div class="data-section">
-                <h2>Scheduled Backups</h2>
-                <p class="section-description">Automatically create full backups on a schedule for disaster recovery.</p>
+                <h2 data-i18n="dashboard_backup_scheduledTitle">Scheduled Backups</h2>
+                <p class="section-description" data-i18n="dashboard_backup_scheduledDesc">Automatically create full backups on a schedule for disaster recovery.</p>
 
                 <div class="backup-config">
                   <!-- Backup Settings -->
@@ -682,26 +682,26 @@
                         <input type="checkbox" id="toggleBackups">
                         <span class="slider"></span>
                       </label>
-                      <span>Enable automatic backups</span>
+                      <span data-i18n="dashboard_backup_enableAuto">Enable automatic backups</span>
                       <span id="nextBackupTime" style="margin-left: auto; color: #666; font-size: 13px;">--</span>
                     </div>
 
                     <div class="setting-row">
-                      <label for="backupFrequency">Frequency:</label>
+                      <label for="backupFrequency" data-i18n="dashboard_backup_frequency">Frequency:</label>
                       <select id="backupFrequency">
-                        <option value="hourly">Hourly</option>
-                        <option value="daily" selected>Daily</option>
-                        <option value="weekly">Weekly</option>
+                        <option value="hourly" data-i18n="dashboard_backup_freqHourly">Hourly</option>
+                        <option value="daily" selected data-i18n="dashboard_backup_freqDaily">Daily</option>
+                        <option value="weekly" data-i18n="dashboard_backup_freqWeekly">Weekly</option>
                       </select>
-                      <label for="backupTime" style="margin-left: 16px;">Time:</label>
+                      <label for="backupTime" style="margin-left: 16px;" data-i18n="dashboard_backup_time">Time:</label>
                       <input type="time" id="backupTime">
                     </div>
 
                     <!-- Backup History -->
                     <div class="backup-history-section">
-                      <h3>Recent Backups</h3>
+                      <h3 data-i18n="dashboard_backup_recentBackups">Recent Backups</h3>
                       <div id="backupHistoryList" class="backup-history">
-                        <div class="loading">Loading backup history...</div>
+                        <div class="loading" data-i18n="dashboard_backup_loadingHistory">Loading backup history...</div>
                       </div>
                     </div>
                   </div>
@@ -715,7 +715,7 @@
       <!-- Collections View -->
       <div class="view" id="collections">
         <div class="view-header">
-          <h1>Collections</h1>
+          <h1 data-i18n="dashboard_collections_title">Collections</h1>
           <div class="header-actions">
             <button class="btn btn-primary" id="saveCurrentWindow">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -723,7 +723,7 @@
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
-              Save Window
+              <span data-i18n="dashboard_collections_saveWindow">Save Window</span>
             </button>
           </div>
         </div>
@@ -736,17 +736,17 @@
       <!-- Tasks View -->
       <div class="view" id="tasks">
         <div class="view-header">
-          <h1>Tasks</h1>
+          <h1 data-i18n="dashboard_tasks_title">Tasks</h1>
           <div class="header-actions">
             <div class="view-toggle" style="display: inline-flex; gap: 2px; background: #f0f0f0; border-radius: 6px; padding: 2px; margin-right: 8px;">
-              <button class="view-toggle-btn active" data-view="kanban" title="Kanban View" id="tasksViewKanban">
+              <button class="view-toggle-btn active" data-view="kanban" title="Kanban View" id="tasksViewKanban" data-i18n-title="dashboard_tasks_kanbanTitle">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <rect x="3" y="3" width="7" height="18"></rect>
                   <rect x="14" y="3" width="7" height="10"></rect>
                 </svg>
-                Kanban
+                <span data-i18n="dashboard_tasks_kanban">Kanban</span>
               </button>
-              <button class="view-toggle-btn" data-view="list" title="List View" id="tasksViewList">
+              <button class="view-toggle-btn" data-view="list" title="List View" id="tasksViewList" data-i18n-title="dashboard_tasks_listTitle">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <line x1="8" y1="6" x2="21" y2="6"></line>
                   <line x1="8" y1="12" x2="21" y2="12"></line>
@@ -755,7 +755,7 @@
                   <line x1="3" y1="12" x2="3.01" y2="12"></line>
                   <line x1="3" y1="18" x2="3.01" y2="18"></line>
                 </svg>
-                List
+                <span data-i18n="dashboard_tasks_list">List</span>
               </button>
             </div>
             <button class="btn btn-primary" id="createNewTask">
@@ -763,7 +763,7 @@
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              New Task
+              <span data-i18n="dashboard_tasks_newTask">New Task</span>
             </button>
           </div>
         </div>
@@ -771,12 +771,12 @@
         <!-- Tasks Filter Bar -->
         <div class="tasks-filter-bar" id="tasksFilterBar">
           <div class="filter-row">
-            <input type="text" class="search-input" id="searchTasks" placeholder="Search tasks...">
-            <button class="btn btn-secondary btn-icon" id="toggleTasksFilters" title="Toggle Filters">
+            <input type="text" class="search-input" id="searchTasks" placeholder="Search tasks..." data-i18n-placeholder="dashboard_tasks_searchPlaceholder">
+            <button class="btn btn-secondary btn-icon" id="toggleTasksFilters" title="Toggle Filters" data-i18n-title="dashboard_tasks_filtersTitle">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M3 6h18M7 12h10M11 18h2"></path>
               </svg>
-              Filters
+              <span data-i18n="dashboard_tasks_filters">Filters</span>
               <span class="filter-count-badge" id="tasksFilterCount" style="display: none;"></span>
             </button>
             <button class="btn btn-secondary btn-icon" id="clearTasksFilters" style="display: none;">
@@ -784,56 +784,56 @@
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
-              Clear
+              <span data-i18n="dashboard_tasks_clear">Clear</span>
             </button>
           </div>
           <div class="filter-panel" id="tasksFilterPanel" style="display: none;">
             <div class="filter-group">
-              <label class="filter-label">Status</label>
+              <label class="filter-label" data-i18n="dashboard_tasks_filterStatus">Status</label>
               <div class="filter-checkboxes">
                 <label class="filter-checkbox-label">
                   <input type="checkbox" class="filter-checkbox" data-filter="status" value="open">
-                  <span>Open</span>
+                  <span data-i18n="dashboard_tasks_statusOpen">Open</span>
                 </label>
                 <label class="filter-checkbox-label">
                   <input type="checkbox" class="filter-checkbox" data-filter="status" value="active">
-                  <span>Active</span>
+                  <span data-i18n="dashboard_tasks_statusActive">Active</span>
                 </label>
                 <label class="filter-checkbox-label">
                   <input type="checkbox" class="filter-checkbox" data-filter="status" value="fixed">
-                  <span>Fixed</span>
+                  <span data-i18n="dashboard_tasks_statusFixed">Fixed</span>
                 </label>
                 <label class="filter-checkbox-label">
                   <input type="checkbox" class="filter-checkbox" data-filter="status" value="abandoned">
-                  <span>Abandoned</span>
+                  <span data-i18n="dashboard_tasks_statusAbandoned">Abandoned</span>
                 </label>
               </div>
             </div>
             <div class="filter-group">
-              <label class="filter-label">Priority</label>
+              <label class="filter-label" data-i18n="dashboard_tasks_filterPriority">Priority</label>
               <div class="filter-checkboxes">
                 <label class="filter-checkbox-label">
                   <input type="checkbox" class="filter-checkbox" data-filter="priority" value="low">
-                  <span>Low</span>
+                  <span data-i18n="dashboard_tasks_priorityLow">Low</span>
                 </label>
                 <label class="filter-checkbox-label">
                   <input type="checkbox" class="filter-checkbox" data-filter="priority" value="medium">
-                  <span>Medium</span>
+                  <span data-i18n="dashboard_tasks_priorityMedium">Medium</span>
                 </label>
                 <label class="filter-checkbox-label">
                   <input type="checkbox" class="filter-checkbox" data-filter="priority" value="high">
-                  <span>High</span>
+                  <span data-i18n="dashboard_tasks_priorityHigh">High</span>
                 </label>
                 <label class="filter-checkbox-label">
                   <input type="checkbox" class="filter-checkbox" data-filter="priority" value="critical">
-                  <span>Critical</span>
+                  <span data-i18n="dashboard_tasks_priorityCritical">Critical</span>
                 </label>
               </div>
             </div>
             <div class="filter-group">
-              <label class="filter-label">Collection</label>
+              <label class="filter-label" data-i18n="dashboard_tasks_filterCollection">Collection</label>
               <select class="filter-select" id="tasksCollectionFilter" multiple size="6">
-                <option value="">Uncategorized</option>
+                <option value="" data-i18n="dashboard_tasks_uncategorized">Uncategorized</option>
                 <!-- Collection options will be populated dynamically -->
               </select>
             </div>
@@ -843,14 +843,14 @@
         <!-- Bulk Actions Bar -->
         <div class="bulk-toolbar" id="tasksBulkBar" style="display: none;">
           <div class="bulk-info">
-            <span class="bulk-count">0 tasks selected</span>
-            <button class="link-btn" id="tasksSelectAll">Select All</button>
-            <button class="link-btn" id="tasksClearSelection">Clear</button>
+            <span class="bulk-count" data-i18n="dashboard_tasks_bulkSelected">0 tasks selected</span>
+            <button class="link-btn" id="tasksSelectAll" data-i18n="dashboard_tasks_selectAll">Select All</button>
+            <button class="link-btn" id="tasksClearSelection" data-i18n="dashboard_tasks_clear">Clear</button>
           </div>
           <div class="bulk-actions">
-            <button class="bulk-action-btn" data-action="changeStatus">Change Status</button>
-            <button class="bulk-action-btn" data-action="changePriority">Change Priority</button>
-            <button class="bulk-action-btn" data-action="delete">Delete Selected</button>
+            <button class="bulk-action-btn" data-action="changeStatus" data-i18n="dashboard_tasks_bulkChangeStatus">Change Status</button>
+            <button class="bulk-action-btn" data-action="changePriority" data-i18n="dashboard_tasks_bulkChangePriority">Change Priority</button>
+            <button class="bulk-action-btn" data-action="delete" data-i18n="dashboard_tasks_bulkDelete">Delete Selected</button>
           </div>
         </div>
 
@@ -871,11 +871,11 @@
   <!-- Confirmation Modal -->
   <div class="modal" id="confirmModal">
     <div class="modal-content compact">
-      <h3 id="confirmTitle">Confirm Action</h3>
+      <h3 id="confirmTitle" data-i18n="dashboard_modal_confirmTitle">Confirm Action</h3>
       <p id="confirmMessage"></p>
       <div class="modal-actions">
-        <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
-        <button class="btn btn-danger" id="confirmProceed">Proceed</button>
+        <button class="btn btn-secondary" id="confirmCancel" data-i18n="common_cancel">Cancel</button>
+        <button class="btn btn-danger" id="confirmProceed" data-i18n="dashboard_modal_proceed">Proceed</button>
       </div>
     </div>
   </div>
@@ -884,7 +884,7 @@
   <div class="progress-overlay" id="progressOverlay" style="display: none;">
     <div class="progress-content">
       <div class="spinner"></div>
-      <div class="progress-text" id="progressText">Processing...</div>
+      <div class="progress-text" id="progressText" data-i18n="dashboard_modal_processing">Processing...</div>
     </div>
   </div>
 
@@ -892,35 +892,35 @@
   <div class="modal" id="quickOrganizeModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Quick Organize</h3>
+        <h3 data-i18n="dashboard_organize_title">Quick Organize</h3>
         <button class="close-btn" id="closeQuickOrganize">&times;</button>
       </div>
       <div class="modal-body">
         <div class="organize-options">
           <label class="organize-option">
             <input type="checkbox" id="orgCloseDupes" checked>
-            <span>Close duplicate tabs</span>
+            <span data-i18n="dashboard_organize_closeDupes">Close duplicate tabs</span>
             <span class="option-count" id="dupeCount">(0 found)</span>
           </label>
           <label class="organize-option">
             <input type="checkbox" id="orgGroupDomains" checked>
-            <span>Group tabs by domain</span>
+            <span data-i18n="dashboard_organize_groupDomains">Group tabs by domain</span>
             <span class="option-count" id="domainGroupCount">(0 groups)</span>
           </label>
           <label class="organize-option">
             <input type="checkbox" id="orgSnoozeInactive" checked>
-            <span>Snooze inactive tabs</span>
+            <span data-i18n="dashboard_organize_snoozeInactive">Snooze inactive tabs</span>
             <span class="option-count" id="inactiveCount">(0 tabs)</span>
           </label>
           <label class="organize-option">
             <input type="checkbox" id="orgSuspendHeavy">
-            <span>Suspend memory-heavy tabs</span>
+            <span data-i18n="dashboard_organize_suspendHeavy">Suspend memory-heavy tabs</span>
             <span class="option-count" id="heavyCount">(0 tabs)</span>
           </label>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" id="cancelOrganize">Cancel</button>
-          <button class="btn btn-primary" id="executeOrganize">Organize Now</button>
+          <button class="btn btn-secondary" id="cancelOrganize" data-i18n="common_cancel">Cancel</button>
+          <button class="btn btn-primary" id="executeOrganize" data-i18n="dashboard_organize_organizeNow">Organize Now</button>
         </div>
       </div>
     </div>
@@ -930,43 +930,43 @@
   <div class="modal" id="ruleModal">
     <div class="modal-content modal-lg">
       <div class="modal-header">
-        <h3 id="ruleModalTitle">Add New Rule</h3>
+        <h3 id="ruleModalTitle" data-i18n="dashboard_rule_addNew">Add New Rule</h3>
         <button class="close-btn" id="closeRuleModal">&times;</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label for="ruleName">Rule Name</label>
-          <input type="text" id="ruleName" placeholder="Enter a descriptive name for this rule">
+          <label for="ruleName" data-i18n="dashboard_rule_name">Rule Name</label>
+          <input type="text" id="ruleName" placeholder="Enter a descriptive name for this rule" data-i18n-placeholder="dashboard_rule_namePlaceholder">
         </div>
 
         <div class="form-group">
-          <label>Conditions</label>
+          <label data-i18n="dashboard_rule_conditions">Conditions</label>
           <div id="conditionsContainer">
             <!-- Conditions builder will be initialized here -->
           </div>
           <div class="condition-preview">
-            <h4>Preview</h4>
-            <div class="preview-text" id="conditionPreview">
+            <h4 data-i18n="dashboard_rule_preview">Preview</h4>
+            <div class="preview-text" id="conditionPreview" data-i18n="dashboard_rule_previewDefault">
               Match ALL tabs where URL contains "example.com"
             </div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Actions (in order)</label>
+          <label data-i18n="dashboard_rule_actions">Actions (in order)</label>
           <div id="actionsContainer" class="actions-list">
             <!-- Actions will be listed here -->
           </div>
-          <button class="btn btn-secondary" id="addActionBtn">+ Add Action</button>
+          <button class="btn btn-secondary" id="addActionBtn" data-i18n="dashboard_rule_addAction">+ Add Action</button>
         </div>
 
         <div class="form-group trigger-type" id="triggerSection">
-          <label for="triggerType">When to apply</label>
+          <label for="triggerType" data-i18n="dashboard_rule_whenToApply">When to apply</label>
           <select id="triggerType">
-            <option value="immediate">On tab events (immediate)</option>
-            <option value="repeat">Repeat periodically</option>
-            <option value="once">Once at specific time</option>
-            <option value="manual">Manual only</option>
+            <option value="immediate" data-i18n="dashboard_rule_triggerImmediate">On tab events (immediate)</option>
+            <option value="repeat" data-i18n="dashboard_rule_triggerRepeat">Repeat periodically</option>
+            <option value="once" data-i18n="dashboard_rule_triggerOnce">Once at specific time</option>
+            <option value="manual" data-i18n="dashboard_rule_triggerManual">Manual only</option>
           </select>
           <div id="triggerParams" class="trigger-params">
             <!-- Dynamic trigger parameters -->
@@ -976,14 +976,14 @@
         <div class="form-group">
           <label for="ruleEnabled">
             <input type="checkbox" id="ruleEnabled" checked>
-            Enable rule immediately
+            <span data-i18n="dashboard_rule_enableNow">Enable rule immediately</span>
           </label>
-          <p class="help-text">You can test the rule before enabling it</p>
+          <p class="help-text" data-i18n="dashboard_rule_enableHelp">You can test the rule before enabling it</p>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="cancelRuleBtn">Cancel</button>
-        <button class="btn btn-primary" id="saveRuleBtn">Save Rule</button>
+        <button class="btn btn-secondary" id="cancelRuleBtn" data-i18n="common_cancel">Cancel</button>
+        <button class="btn btn-primary" id="saveRuleBtn" data-i18n="dashboard_rule_save">Save Rule</button>
       </div>
     </div>
   </div>
@@ -992,14 +992,14 @@
   <div class="modal" id="confirmModal">
     <div class="modal-content" style="max-width: 400px;">
       <div class="modal-header">
-        <h3 id="confirmTitle">Confirm Action</h3>
+        <h3 id="confirmTitle" data-i18n="dashboard_modal_confirmTitle">Confirm Action</h3>
       </div>
       <div class="modal-body">
-        <p id="confirmMessage">Are you sure you want to proceed?</p>
+        <p id="confirmMessage" data-i18n="dashboard_modal_confirmMessage">Are you sure you want to proceed?</p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
-        <button class="btn btn-primary" id="confirmProceed">Proceed</button>
+        <button class="btn btn-secondary" id="confirmCancel" data-i18n="common_cancel">Cancel</button>
+        <button class="btn btn-primary" id="confirmProceed" data-i18n="dashboard_modal_proceed">Proceed</button>
       </div>
     </div>
   </div>

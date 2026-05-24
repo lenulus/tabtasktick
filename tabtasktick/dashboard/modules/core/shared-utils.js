@@ -4,6 +4,7 @@
 // Import state for managing selection state
 import state from './state.js';
 import { getWindowNames, setWindowNames } from '../../../services/utils/WindowNameService.js';
+import { t } from '../../../services/utils/i18n.js';
 
 // Selection state management
 export const selectionState = {
@@ -137,25 +138,25 @@ export async function showRenameWindowsDialog() {
     modal.innerHTML = `
     <div class="modal-content" style="max-width: 500px;">
       <div class="modal-header">
-        <h3>Rename Windows</h3>
+        <h3>${t('dashboard_rename_title')}</h3>
         <button class="modal-close" id="closeRenameModal">&times;</button>
       </div>
       <div class="modal-body">
         ${windows.map(win => `
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <label style="min-width: 100px; color: #6c757d; font-size: 14px;">Window ${windows.indexOf(win) + 1}</label>
+            <label style="min-width: 100px; color: #6c757d; font-size: 14px;">${t('dashboard_rename_windowLabel', [String(windows.indexOf(win) + 1)])}</label>
             <input type="text"
                    class="rename-input"
                    data-window-id="${win.id}"
-                   placeholder="Enter name..."
+                   placeholder="${t('dashboard_rename_placeholder')}"
                    value="${windowNames[win.id] || ''}"
                    style="flex: 1; padding: 8px 12px; border: 1px solid #e9ecef; border-radius: 6px; font-size: 14px;">
           </div>
         `).join('')}
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="cancelRename">Cancel</button>
-        <button class="btn btn-primary" id="saveWindowNames">Save Names</button>
+        <button class="btn btn-secondary" id="cancelRename">${t('common_cancel')}</button>
+        <button class="btn btn-primary" id="saveWindowNames">${t('dashboard_rename_save')}</button>
       </div>
     </div>
   `;
@@ -182,7 +183,7 @@ export async function showRenameWindowsDialog() {
       await setWindowNames(updatedNames);
 
       modal.remove();
-      showNotification('Window names saved', 'success');
+      showNotification(t('dashboard_notify_windowNamesSaved'), 'success');
 
       // Refresh the tabs view to show updated window names
       updateWindowFilterDropdown();
