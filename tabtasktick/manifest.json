@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "TabTaskTick",
-  "version": "1.4.12",
-  "description": "Intelligent tab and task management with collections, rules engine, auto-grouping, and snoozing",
+  "name": "TabTaskTick: Tab & Task Manager — Kanban",
+  "version": "1.4.13",
+  "description": "Tab manager with built-in to-dos, Kanban, auto-grouping, and snooze. Local-only, no account, no tracking. Built for GTD.",
   "permissions": [
     "tabs",
     "tabGroups",
