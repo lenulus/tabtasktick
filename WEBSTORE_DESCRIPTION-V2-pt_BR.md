@@ -14,7 +14,7 @@ TabTaskTick: Gerenciador de abas e tarefas
 
 **Descrição curta** (≤ 132 caracteres):
 ```
-Gerenciador de abas com to-dos integrados, Kanban, agrupamento automático e adiamento. Apenas local, sem conta, sem rastreamento. Feito para GTD.
+Gerenciador de abas com tarefas integradas, Kanban, agrupamento automático e adiamento. Apenas local, sem conta, sem rastreamento. Feito para GTD.
 ```
 
 ---
@@ -83,7 +83,7 @@ Todos os dados — Coleções, Tarefas, Regras, histórico — são armazenados 
 
 ### ⌨️ Atalhos de teclado
 
-Power users vivem aqui:
+Atalhos para usuários avançados:
 *   **Ctrl/Cmd + Shift + S** — adiar rapidamente a aba atual
 *   **Ctrl/Cmd + Shift + G** — agrupar todas as abas por domínio
 *   **Ctrl/Cmd + Shift + D** — fechar abas duplicadas

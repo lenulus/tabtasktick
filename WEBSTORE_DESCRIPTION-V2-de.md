@@ -14,7 +14,7 @@ TabTaskTick: Tab- & Aufgabenmanager
 
 **Kurzbeschreibung** (≤ 132 Zeichen):
 ```
-Tab-Manager mit integrierten To-dos, Kanban, automatischer Gruppierung und Schlummern. Nur lokal, kein Konto, kein Tracking. Für GTD entwickelt.
+Tab-Manager mit integrierten Aufgaben, Kanban, automatischer Gruppierung und Schlummerfunktion. Nur lokal, kein Konto, kein Tracking. Für GTD entwickelt.
 ```
 
 ---
@@ -84,11 +84,11 @@ Alle Daten — Sammlungen, Aufgaben, Regeln, Historie — werden lokal in deinem
 ### ⌨️ Tastenkürzel
 
 Hier leben die Power-User:
-*   **Strg/Cmd + Umschalt + S** — aktuellen Tab schnell schlummern
+*   **Strg/Cmd + Umschalt + S** — aktuellen Tab schnell zurückstellen
 *   **Strg/Cmd + Umschalt + G** — alle Tabs nach Domain gruppieren
 *   **Strg/Cmd + Umschalt + D** — doppelte Tabs schließen
 
-Belege sie um unter `chrome://extensions/shortcuts`.
+Belege sie unter `chrome://extensions/shortcuts` neu.
 
 ---
 

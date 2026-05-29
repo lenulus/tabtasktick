@@ -3,7 +3,7 @@
     "message": "TabTaskTick: Gestor de pestañas y tareas"
   },
   "appDesc": {
-    "message": "Gestor de pestañas con to-dos integradas, Kanban, agrupación automática y posposición. Solo local, sin cuenta, sin seguimiento. Diseñado para GTD."
+    "message": "Gestor de pestañas con tareas integradas, Kanban, agrupación automática y posposición. Solo local, sin cuenta, sin seguimiento. Diseñado para GTD."
   },
   "cmd_quickSnooze": {
     "message": "Posponer rápido la pestaña actual"

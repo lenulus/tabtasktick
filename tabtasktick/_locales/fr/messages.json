@@ -3,7 +3,7 @@
     "message": "TabTaskTick : Gestionnaire d'onglets et de tâches"
   },
   "appDesc": {
-    "message": "Gestionnaire d'onglets avec to-dos intégrés, Kanban, regroupement automatique et report. Local uniquement, sans compte, sans suivi. Conçu pour GTD."
+    "message": "Gestionnaire d'onglets avec tâches intégrées, Kanban, regroupement automatique et report. Local uniquement, sans compte, sans suivi. Conçu pour GTD."
   },
   "cmd_quickSnooze": {
     "message": "Reporter rapidement l'onglet actuel"

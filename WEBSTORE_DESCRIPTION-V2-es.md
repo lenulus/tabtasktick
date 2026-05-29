@@ -14,7 +14,7 @@ TabTaskTick: Gestor de pestañas y tareas
 
 **Descripción corta** (≤ 132 caracteres):
 ```
-Gestor de pestañas con to-dos integradas, Kanban, agrupación automática y posposición. Solo local, sin cuenta, sin seguimiento. Diseñado para GTD.
+Gestor de pestañas con tareas integradas, Kanban, agrupación automática y posposición. Solo local, sin cuenta, sin seguimiento. Diseñado para GTD.
 ```
 
 ---
@@ -49,11 +49,11 @@ Las **Tareas y Notas** te permiten adjuntar to-dos reales y contexto a una pesta
 El **motor de reglas** mantiene el orden automáticamente.
 *   **Agrupación automática** por dominio o criterios personalizados.
 *   **Eliminación de duplicados** — encuentra y cierra pestañas duplicadas, de forma global o por ventana.
-*   **Posposición inteligente** — haz desaparecer una pestaña o una ventana entera ahora y que vuelva más tarde ("posponer hasta mañana por la mañana").
+*   **Posponer de forma inteligente** — haz desaparecer una pestaña o una ventana entera ahora y que vuelva más tarde ("posponer hasta mañana por la mañana").
 *   **Suspensión de memoria** de pestañas inactivas para mantener Chrome rápido.
 
 ### 📊 ¿200 pestañas en 5 ventanas? Velo todo a la vez.
-El **panel** te da la vista a vista de pájaro.
+El **panel** te da una vista de pájaro.
 *   Estadísticas generales, dominios principales y un historial buscable de pestañas cerradas.
 *   Acciones masivas — selecciona, mueve, cierra o agrupa pestañas en todas las ventanas a la vez.
 

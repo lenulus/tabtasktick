@@ -3,7 +3,7 @@
     "message": "TabTaskTick: Tab- & Aufgabenmanager"
   },
   "appDesc": {
-    "message": "Tab-Manager mit integrierten To-dos, Kanban, automatischer Gruppierung und Schlummern. Nur lokal, kein Konto, kein Tracking. Für GTD entwickelt."
+    "message": "Tab-Manager mit integrierten Aufgaben, Kanban, automatischer Gruppierung und Schlummerfunktion. Nur lokal, kein Konto, kein Tracking. Für GTD entwickelt."
   },
   "cmd_quickSnooze": {
     "message": "Aktuellen Tab schnell schlummern"

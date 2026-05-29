@@ -14,7 +14,7 @@ TabTaskTick : Gestionnaire d'onglets et de tâches
 
 **Description courte** (≤ 132 caractères) :
 ```
-Gestionnaire d'onglets avec to-dos intégrés, Kanban, regroupement automatique et report. Local uniquement, sans compte, sans suivi. Conçu pour GTD.
+Gestionnaire d'onglets avec tâches intégrées, Kanban, regroupement automatique et report. Local uniquement, sans compte, sans suivi. Conçu pour GTD.
 ```
 
 ---
