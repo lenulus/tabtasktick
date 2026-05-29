@@ -1,9 +1,9 @@
 {
   "appName": {
-    "message": "TabTaskTick"
+    "message": "TabTaskTick: Gerenciador de Abas e Tarefas"
   },
   "appDesc": {
-    "message": "Gerenciamento inteligente de abas e tarefas com coleções, motor de regras, agrupamento automático e adiamento"
+    "message": "Gerenciador de abas com to-dos integrados, Kanban, agrupamento automático e adiamento. Apenas local, sem conta, sem rastreamento. Feito para GTD."
   },
   "cmd_quickSnooze": {
     "message": "Adiar aba atual rapidamente"

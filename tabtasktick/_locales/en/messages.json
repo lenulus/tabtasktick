@@ -1,6 +1,6 @@
 {
-  "appName": { "message": "TabTaskTick" },
-  "appDesc": { "message": "Intelligent tab and task management with collections, rules engine, auto-grouping, and snoozing" },
+  "appName": { "message": "TabTaskTick: Tab & Task Manager" },
+  "appDesc": { "message": "Tab manager with built-in to-dos, Kanban, auto-grouping, and snooze. Local-only, no account, no tracking. Built for GTD." },
 
   "cmd_quickSnooze": { "message": "Quick snooze current tab" },
   "cmd_groupByDomain": { "message": "Group all tabs by domain" },

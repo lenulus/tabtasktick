@@ -1,9 +1,9 @@
 {
   "appName": {
-    "message": "TabTaskTick"
+    "message": "TabTaskTick: タブ・タスク管理"
   },
   "appDesc": {
-    "message": "コレクション、ルールエンジン、自動グループ化、スヌーズを備えたスマートなタブ・タスク管理"
+    "message": "To-do、カンバン、自動グループ化、スヌーズを内蔵したタブマネージャー。ローカル保存のみ、アカウント不要、トラッキングなし。GTD向けに設計。"
   },
   "cmd_quickSnooze": {
     "message": "現在のタブをクイックスヌーズ"

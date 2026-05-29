@@ -1,9 +1,9 @@
 {
   "appName": {
-    "message": "TabTaskTick"
+    "message": "TabTaskTick: Gestor de Pestañas y Tareas"
   },
   "appDesc": {
-    "message": "Gestión inteligente de pestañas y tareas con colecciones, motor de reglas, agrupación automática y posposición"
+    "message": "Gestor de pestañas con to-dos integradas, Kanban, agrupación automática y posposición. Solo local, sin cuenta, sin seguimiento. Diseñado para GTD."
   },
   "cmd_quickSnooze": {
     "message": "Posponer rápido la pestaña actual"

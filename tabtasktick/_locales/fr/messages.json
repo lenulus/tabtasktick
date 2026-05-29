@@ -1,9 +1,9 @@
 {
   "appName": {
-    "message": "TabTaskTick"
+    "message": "TabTaskTick : Gestion d'onglets et tâches"
   },
   "appDesc": {
-    "message": "Gestion intelligente des onglets et des tâches avec collections, moteur de règles, regroupement automatique et report"
+    "message": "Gestionnaire d'onglets avec to-dos intégrés, Kanban, regroupement automatique et report. Local uniquement, sans compte, sans suivi. Conçu pour GTD."
   },
   "cmd_quickSnooze": {
     "message": "Reporter rapidement l'onglet actuel"
