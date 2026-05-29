@@ -11,8 +11,10 @@
 
 **Title** (≤ ~45 chars displayed):
 ```
-TabTaskTick: Tab & Task Manager — Kanban
+TabTaskTick: Tab & Task Manager
 ```
+
+(Dropped "— Kanban" from the original V2 draft — overflowed in the OS context menu.)
 
 A/B variants to test if the dashboard allows multiple updates:
 - `TabTaskTick — Tab Manager, To-Do & Snooze`
@@ -115,5 +117,11 @@ TabTaskTick is MIT-licensed and fully open. Read the code, file an issue, or con
 
 **Regain control of your browser today.**
 
-*Version 1.4.11*
+*Version 1.4.13*
 *Open Source (MIT) | Local Storage | Privacy Focused*
+
+---
+
+> **Translations:** see sibling files per locale:
+> [`-de`](./WEBSTORE_DESCRIPTION-V2-de.md) · [`-es`](./WEBSTORE_DESCRIPTION-V2-es.md) · [`-fr`](./WEBSTORE_DESCRIPTION-V2-fr.md) · [`-ja`](./WEBSTORE_DESCRIPTION-V2-ja.md) · [`-ko`](./WEBSTORE_DESCRIPTION-V2-ko.md) · [`-pt_BR`](./WEBSTORE_DESCRIPTION-V2-pt_BR.md).
+> All are AI-translated and should be proofread by a native speaker before publishing in the Chrome Web Store Developer Dashboard.
