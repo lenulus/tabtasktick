@@ -5,6 +5,8 @@
  * Supports success, error, and info variants.
  */
 
+import { t } from '../../services/utils/i18n.js';
+
 class NotificationManager {
   constructor() {
     this.container = null;
@@ -87,7 +89,7 @@ class NotificationManager {
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'notification-close';
-    closeBtn.setAttribute('aria-label', 'Close notification');
+    closeBtn.setAttribute('aria-label', t('sidepanel_notification_closeLabel'));
     closeBtn.innerHTML = '×';
     closeBtn.addEventListener('click', () => {
       this.dismiss(notification);

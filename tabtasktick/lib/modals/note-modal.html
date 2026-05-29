@@ -120,23 +120,23 @@
   </style>
 </head>
 <body>
-  <div id="loading" class="loading">Loading...</div>
+  <div id="loading" class="loading" data-i18n="common_loading">Loading...</div>
 
   <div id="main-container" class="hidden">
-    <h1>Add Note to Tab</h1>
+    <h1 data-i18n="modal_note_title">Add Note to Tab</h1>
 
     <div class="tab-info" id="tab-info">
       <div class="tab-title" id="tab-title"></div>
       <div id="tab-url"></div>
     </div>
 
-    <textarea id="note-textarea" placeholder="Add your note here (max 255 characters)..." maxlength="255"></textarea>
+    <textarea id="note-textarea" data-i18n-placeholder="modal_note_placeholder" placeholder="Add your note here (max 255 characters)..." maxlength="255"></textarea>
 
     <div class="char-count" id="char-count">0 / 255</div>
 
     <div class="actions">
-      <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
-      <button type="button" class="btn btn-primary" id="save-btn">Save Note</button>
+      <button type="button" class="btn btn-secondary" id="cancel-btn" data-i18n="common_cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="save-btn" data-i18n="modal_note_save">Save Note</button>
     </div>
   </div>
 

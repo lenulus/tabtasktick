@@ -9,6 +9,9 @@ import state from './modules/core/state.js';
 import { initConsoleCapture } from '../services/utils/console-capture.js';
 initConsoleCapture();
 
+// Internationalization
+import { t, tPlural, localizeDocument } from '../services/utils/i18n.js';
+
 // Import shared utilities
 import {
   clearSelection,
@@ -60,6 +63,7 @@ let snoozeModalInstance = null;
 
 // Use window.addEventListener to ensure all scripts are loaded
 window.addEventListener('load', async () => {
+  localizeDocument('dashboard_docTitle');
   await initializeDashboard();
   setupEventListeners();
   setupNavigation();
@@ -404,7 +408,7 @@ function setupEventListeners() {
   // Collections view - Save Current Window button
   document.getElementById('saveCurrentWindow')?.addEventListener('click', async () => {
     const currentWindow = await chrome.windows.getCurrent();
-    showNotification('Saving current window...', 'info');
+    showNotification(t('dashboard_notify_savingWindow'), 'info');
 
     try {
       const result = await chrome.runtime.sendMessage({
@@ -417,14 +421,14 @@ function setupEventListeners() {
       });
 
       if (result.success) {
-        showNotification('Collection created!', 'success');
+        showNotification(t('dashboard_notify_collectionCreated'), 'success');
         loadCollectionsView(); // Refresh
       } else {
-        showNotification('Failed to create collection', 'error');
+        showNotification(t('dashboard_notify_collectionFailed'), 'error');
       }
     } catch (error) {
       console.error('Error creating collection:', error);
-      showNotification('Failed to create collection', 'error');
+      showNotification(t('dashboard_notify_collectionFailed'), 'error');
     }
   });
 
@@ -523,10 +527,10 @@ function closeQuickOrganizeModal() {
 async function analyzeTabs() {
   const stats = await sendMessage({ action: 'getStatistics' });
   
-  document.getElementById('dupeCount').textContent = `(${stats.duplicates} found)`;
-  document.getElementById('domainGroupCount').textContent = '(3 groups)'; // Would calculate
-  document.getElementById('inactiveCount').textContent = '(8 tabs)'; // Would calculate
-  document.getElementById('heavyCount').textContent = '(2 tabs)'; // Would calculate
+  document.getElementById('dupeCount').textContent = t('dashboard_organize_dupeCount', [String(stats.duplicates)]);
+  document.getElementById('domainGroupCount').textContent = t('dashboard_organize_groupCount', ['3']); // Would calculate
+  document.getElementById('inactiveCount').textContent = t('dashboard_organize_inactiveCount', ['8']); // Would calculate
+  document.getElementById('heavyCount').textContent = t('dashboard_organize_heavyCount', ['2']); // Would calculate
 }
 
 async function executeQuickOrganize() {
@@ -573,14 +577,14 @@ async function executeBulkAction(action) {
   
   // Show progress for large operations
   if (count > 50) {
-    showProgressIndicator(`Processing ${count} tabs...`);
+    showProgressIndicator(t('dashboard_progress_processingTabs', [String(count)]));
   }
-  
+
   try {
     switch(action) {
     case 'close':
       await closeTabs(selectedIds);
-      showNotification(`Closed ${count} tabs`, 'success');
+      showNotification(t('dashboard_notify_closedTabs', [String(count)]), 'success');
       break;
         
     case 'snooze':
@@ -607,7 +611,7 @@ async function executeBulkAction(action) {
     
   } catch (error) {
     console.error(`Failed to ${action} tabs:`, error);
-    showNotification(`Failed to ${action} tabs: ${error.message}`, 'error');
+    showNotification(t('dashboard_notify_actionFailed', [action, error.message]), 'error');
   } finally {
     hideProgressIndicator();
   }
@@ -634,16 +638,18 @@ async function groupTabs(tabIds) {
   // Get current window ID to restore focus after grouping
   const currentWindow = await chrome.windows.getCurrent();
 
+  const groupName = name || t('dashboard_group_untitled');
+
   // Route through background → engine for single source of truth
   await chrome.runtime.sendMessage({
     action: 'groupTabs',
     tabIds: tabIds,
-    groupName: name || 'Untitled',
+    groupName: groupName,
     color: 'blue',
     callerWindowId: currentWindow.id
   });
 
-  showNotification(`Created group "${name || 'Untitled'}" with ${tabIds.length} tabs`, 'success');
+  showNotification(t('dashboard_notify_groupCreated', [groupName, String(tabIds.length)]), 'success');
 }
 
 async function moveToWindow(tabIds, targetWindowId) {
@@ -677,23 +683,23 @@ async function showMoveToWindowDialog(tabIds) {
     <div class="modal-overlay" id="moveWindowDialog">
       <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header">
-          <h2>Move ${tabIds.length} tab${tabIds.length > 1 ? 's' : ''} to...</h2>
+          <h2>${t('dashboard_moveDialog_title', [tPlural('dashboard_count_tabs', tabIds.length)])}</h2>
           <button class="modal-close">&times;</button>
         </div>
         <div class="modal-body" style="padding: 20px;">
           <div class="window-list" style="display: flex; flex-direction: column; gap: 8px;">
-            ${windows.map(window => {
-    const name = windowInfo?.windowNameMap?.get(window.id) || 
-                          windowNames[window.id] || 
-                          (window.id === currentWindowId ? 'Current Window' : `Window ${window.id}`);
-    const tabCount = window.tabs ? window.tabs.length : 0;
-    const isSource = window.id === sourceWindowId;
-    const windowColor = windowInfo?.windowColorMap?.get(window.id) || '#999';
-              
+            ${windows.map(win => {
+    const name = windowInfo?.windowNameMap?.get(win.id) ||
+                          windowNames[win.id] ||
+                          (win.id === currentWindowId ? t('dashboard_moveDialog_currentWindow') : t('dashboard_moveDialog_windowName', [String(win.id)]));
+    const tabCount = win.tabs ? win.tabs.length : 0;
+    const isSource = win.id === sourceWindowId;
+    const windowColor = windowInfo?.windowColorMap?.get(win.id) || '#999';
+
     return `
-                <button class="window-option" 
-                        data-window-id="${window.id}"
-                        style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; 
+                <button class="window-option"
+                        data-window-id="${win.id}"
+                        style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px;
                                background: white; text-align: left; cursor: pointer; display: flex;
                                align-items: center; gap: 10px; transition: all 0.2s;
                                ${isSource ? 'opacity: 0.5; cursor: not-allowed;' : ''}"
@@ -702,22 +708,22 @@ async function showMoveToWindowDialog(tabIds) {
                   <div style="flex: 1;">
                     <div style="font-weight: 500;">${name}</div>
                     <div style="font-size: 12px; color: #666; margin-top: 4px;">
-                      ${tabCount} tab${tabCount !== 1 ? 's' : ''}
-                      ${isSource ? ' (current location)' : ''}
+                      ${tPlural('dashboard_count_tabs', tabCount)}
+                      ${isSource ? ` ${t('dashboard_moveDialog_currentLocation')}` : ''}
                     </div>
                   </div>
                 </button>
               `;
   }).join('')}
-            <button class="window-option" 
+            <button class="window-option"
                     data-window-id="new"
-                    style="padding: 12px; border: 2px dashed #667eea; border-radius: 8px; 
+                    style="padding: 12px; border: 2px dashed #667eea; border-radius: 8px;
                            background: #f8f9ff; text-align: left; cursor: pointer; display: flex;
                            align-items: center; gap: 10px; transition: all 0.2s;">
-              <div style="width: 12px; height: 12px; display: flex; align-items: center; 
+              <div style="width: 12px; height: 12px; display: flex; align-items: center;
                           justify-content: center; color: #667eea; font-weight: bold;">+</div>
               <div style="flex: 1;">
-                <div style="font-weight: 500; color: #667eea;">Create New Window</div>
+                <div style="font-weight: 500; color: #667eea;">${t('dashboard_moveDialog_createNew')}</div>
               </div>
             </button>
           </div>
@@ -754,17 +760,17 @@ async function showMoveToWindowDialog(tabIds) {
       
       try {
         const movedToId = await moveToWindow(tabIds, targetWindowId);
-        const windowName = targetWindowId === 'new' ? 'new window' : 
-          (windowInfo?.windowNameMap?.get(movedToId) || 
-                           windowNames[movedToId] || 
-                           `Window ${movedToId}`);
-        
-        showNotification(`Moved ${tabIds.length} tab${tabIds.length > 1 ? 's' : ''} to ${windowName}`, 'success');
+        const windowName = targetWindowId === 'new' ? t('dashboard_moveDialog_newWindow') :
+          (windowInfo?.windowNameMap?.get(movedToId) ||
+                           windowNames[movedToId] ||
+                           t('dashboard_moveDialog_windowName', [String(movedToId)]));
+
+        showNotification(t('dashboard_notify_movedTabs', [tPlural('dashboard_count_tabs', tabIds.length), windowName]), 'success');
         clearSelection();
         await loadTabsView();
       } catch (error) {
         console.error('Failed to move tabs:', error);
-        showNotification('Failed to move tabs', 'error');
+        showNotification(t('dashboard_notify_moveTabsFailed'), 'error');
       }
       
       dialog.remove();
@@ -798,7 +804,7 @@ async function showSnoozeDialog(tabIds) {
     });
 
     if (operations.length === 0) {
-      showNotification('No tabs to snooze', 'warning');
+      showNotification(t('dashboard_notify_noTabsToSnooze'), 'warning');
       return;
     }
 
@@ -816,7 +822,7 @@ async function showSnoozeDialog(tabIds) {
 
     if (!snoozeModalInstance || typeof snoozeModalInstance.show !== 'function') {
       console.error('SnoozeModal not initialized properly');
-      showNotification('Snooze feature is not available', 'error');
+      showNotification(t('dashboard_notify_snoozeUnavailable'), 'error');
       return;
     }
 
@@ -845,14 +851,14 @@ async function showSnoozeDialog(tabIds) {
 
           let message;
           if (windowCount > 0 && individualTabCount === 0) {
-            message = `Snoozed ${windowCount} window${windowCount !== 1 ? 's' : ''} for ${getReadableDuration(minutes)}`;
+            message = t('dashboard_notify_snoozedWindows', [tPlural('dashboard_count_windows', windowCount), getReadableDuration(minutes)]);
           } else {
-            message = `Snoozed ${totalTabs} tab${totalTabs !== 1 ? 's' : ''} for ${getReadableDuration(minutes)}`;
+            message = t('dashboard_notify_snoozedTabs', [tPlural('dashboard_count_tabs', totalTabs), getReadableDuration(minutes)]);
           }
 
           showNotification(message, 'success');
         } else {
-          showNotification(`Snooze completed with ${result.errors.length} error(s)`, 'warning');
+          showNotification(t('dashboard_notify_snoozeErrors', [String(result.errors.length)]), 'warning');
         }
 
         // Clear selection and reload data
@@ -860,7 +866,7 @@ async function showSnoozeDialog(tabIds) {
         await refreshData();
       } catch (error) {
         console.error('Failed to snooze:', error);
-        showNotification('Failed to snooze', 'error');
+        showNotification(t('dashboard_notify_snoozeFailed'), 'error');
       }
     };
 
@@ -869,17 +875,17 @@ async function showSnoozeDialog(tabIds) {
     };
   } catch (error) {
     console.error('Failed to detect snooze operations:', error);
-    showNotification('Failed to prepare snooze', 'error');
+    showNotification(t('dashboard_notify_prepareSnoozeFailed'), 'error');
   }
 }
 
 function getReadableDuration(minutes) {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  
-  if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
-  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
-  return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+
+  if (days > 0) return tPlural('common_days', days);
+  if (hours > 0) return tPlural('common_hours', hours);
+  return tPlural('common_minutes', minutes);
 }
 
 // ============================================================================
@@ -893,8 +899,8 @@ function showConfirmDialog(action, count) {
     const message = document.getElementById('confirmMessage');
     const proceedBtn = document.getElementById('confirmProceed');
     
-    title.textContent = `Confirm ${action}`;
-    message.textContent = `Are you sure you want to ${action} ${count} tabs? This action cannot be undone.`;
+    title.textContent = t('dashboard_confirm_actionTitle', [action]);
+    message.textContent = t('dashboard_confirm_actionMessage', [action, String(count)]);
     
     const handleProceed = () => {
       modal.classList.remove('show');
@@ -957,7 +963,7 @@ async function refreshData() {
 
 async function promptGroupName() {
   return new Promise((resolve) => {
-    const name = prompt('Enter a name for the group:');
+    const name = prompt(t('dashboard_prompt_groupName'));
     resolve(name);
   });
 }
@@ -987,11 +993,11 @@ function hideProgressIndicator() {
 async function wakeAllSnoozed() {
   try {
     await sendMessage({ action: 'wakeAllSnoozed' });
-    showNotification('All snoozed tabs have been restored', 'success');
+    showNotification(t('dashboard_notify_wakeAllSuccess'), 'success');
     await refreshData();
   } catch (error) {
     console.error('Failed to wake snoozed tabs:', error);
-    showNotification('Failed to wake snoozed tabs', 'error');
+    showNotification(t('dashboard_notify_wakeAllFailed'), 'error');
   }
 }
 

@@ -20,3 +20,6 @@ dashboard/verify-*.html
 .playwright-user-data/
 playwright-report/
 test-results/
+
+# Generated i18n pseudo-locale (run `npm run i18n:pseudo`)
+_locales/en_XA/

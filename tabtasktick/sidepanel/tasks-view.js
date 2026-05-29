@@ -20,6 +20,7 @@ import {
   formatTabTitle,
   getFallbackFavicon
 } from '../services/utils/tab-snapshot.js';
+import { t, tPlural } from '../services/utils/i18n.js';
 
 export class TasksView {
   constructor(controller) {
@@ -118,7 +119,7 @@ export class TasksView {
 
     // 1. Uncategorized (no collectionId) - shown first
     if (groups.uncategorized.length > 0) {
-      html.push(this.renderTaskSection('uncategorized', 'Uncategorized', groups.uncategorized, true));
+      html.push(this.renderTaskSection('uncategorized', t('sidepanel_tasks_uncategorized'), groups.uncategorized, true));
     }
 
     // 2. By Collection (sorted by last accessed)
@@ -134,7 +135,7 @@ export class TasksView {
     for (const [collectionId, collectionTasks] of sortedCollections) {
       const collection = this.getCollection(collectionId);
       if (collection) {
-        const collectionName = collection.name || 'Unnamed Collection';
+        const collectionName = collection.name || t('sidepanel_tasks_unnamedCollection');
         const isActive = collection.isActive;
         html.push(this.renderTaskSection(collectionId, collectionName, collectionTasks, false, isActive));
       }
@@ -171,11 +172,11 @@ export class TasksView {
 
     const html = [];
     const priorities = [
-      { key: 'critical', label: 'Critical', emoji: '🔴' },
-      { key: 'high', label: 'High Priority', emoji: '🟠' },
-      { key: 'medium', label: 'Medium Priority', emoji: '🟡' },
-      { key: 'low', label: 'Low Priority', emoji: '🟢' },
-      { key: 'none', label: 'No Priority', emoji: '⚪' }
+      { key: 'critical', label: t('sidepanel_tasks_groupCritical'), emoji: '🔴' },
+      { key: 'high', label: t('sidepanel_tasks_groupHigh'), emoji: '🟠' },
+      { key: 'medium', label: t('sidepanel_tasks_groupMedium'), emoji: '🟡' },
+      { key: 'low', label: t('sidepanel_tasks_groupLow'), emoji: '🟢' },
+      { key: 'none', label: t('sidepanel_tasks_groupNoPriority'), emoji: '⚪' }
     ];
 
     for (const { key, label, emoji } of priorities) {
@@ -207,10 +208,10 @@ export class TasksView {
 
     const html = [];
     const statuses = [
-      { key: 'open', label: 'Open', emoji: '📋' },
-      { key: 'active', label: 'Active', emoji: '🔵' },
-      { key: 'fixed', label: 'Fixed', emoji: '✅' },
-      { key: 'abandoned', label: 'Abandoned', emoji: '❌' }
+      { key: 'open', label: t('sidepanel_tasks_statusOpen'), emoji: '📋' },
+      { key: 'active', label: t('sidepanel_tasks_statusActive'), emoji: '🔵' },
+      { key: 'fixed', label: t('sidepanel_tasks_statusFixed'), emoji: '✅' },
+      { key: 'abandoned', label: t('sidepanel_tasks_statusAbandoned'), emoji: '❌' }
     ];
 
     for (const { key, label, emoji } of statuses) {
@@ -304,7 +305,7 @@ export class TasksView {
         <h2 class="section-header clickable" data-toggle-section="completed">
           <span class="section-title">
             <span class="collapse-icon">▶</span>
-            Completed
+            ${t('sidepanel_tasks_completed')}
           </span>
           <span class="section-count">${tasks.length}</span>
         </h2>
@@ -330,15 +331,15 @@ export class TasksView {
 
     const actionButtons = isCompleted
       ? `
-          <button class="btn btn-link task-action" data-action="view-collection" data-collection-id="${task.collectionId || ''}" ${!task.collectionId ? 'disabled' : ''}>View Collection</button>
-          <button class="btn btn-danger task-action" data-action="delete" data-task-id="${task.id}">Delete</button>
+          <button class="btn btn-link task-action" data-action="view-collection" data-collection-id="${task.collectionId || ''}" ${!task.collectionId ? 'disabled' : ''}>${t('sidepanel_tasks_viewCollection')}</button>
+          <button class="btn btn-danger task-action" data-action="delete" data-task-id="${task.id}">${t('sidepanel_tasks_delete')}</button>
         `
       : `
-          <button class="btn btn-primary task-action" data-action="open-tabs" data-task-id="${task.id}">Open Tabs</button>
-          <button class="btn btn-secondary task-action" data-action="mark-fixed" data-task-id="${task.id}">Mark Fixed</button>
-          <button class="btn btn-link task-action" data-action="edit" data-task-id="${task.id}">Edit</button>
-          ${task.collectionId ? `<button class="btn btn-link task-action" data-action="view-collection" data-collection-id="${task.collectionId}">View Collection</button>` : ''}
-          <button class="btn btn-danger task-action" data-action="delete" data-task-id="${task.id}">Delete</button>
+          <button class="btn btn-primary task-action" data-action="open-tabs" data-task-id="${task.id}">${t('sidepanel_tasks_openTabs')}</button>
+          <button class="btn btn-secondary task-action" data-action="mark-fixed" data-task-id="${task.id}">${t('sidepanel_tasks_markFixed')}</button>
+          <button class="btn btn-link task-action" data-action="edit" data-task-id="${task.id}">${t('sidepanel_tasks_edit')}</button>
+          ${task.collectionId ? `<button class="btn btn-link task-action" data-action="view-collection" data-collection-id="${task.collectionId}">${t('sidepanel_tasks_viewCollection')}</button>` : ''}
+          <button class="btn btn-danger task-action" data-action="delete" data-task-id="${task.id}">${t('sidepanel_tasks_delete')}</button>
         `;
 
     return `
@@ -390,13 +391,13 @@ export class TasksView {
    */
   getStatusBadge(status) {
     const statusLabels = {
-      open: 'Open',
-      active: 'Active',
-      fixed: 'Fixed',
-      abandoned: 'Abandoned'
+      open: t('sidepanel_tasks_statusOpen'),
+      active: t('sidepanel_tasks_statusActive'),
+      fixed: t('sidepanel_tasks_statusFixed'),
+      abandoned: t('sidepanel_tasks_statusAbandoned')
     };
     const label = statusLabels[status] || statusLabels.open;
-    return `<span class="status-badge status-${status}">${label}</span>`;
+    return `<span class="status-badge status-${status}">${this.escapeHtml(label)}</span>`;
   }
 
   /**
@@ -413,9 +414,13 @@ export class TasksView {
       year: dueDate - now > 365 * 24 * 60 * 60 * 1000 ? 'numeric' : undefined
     });
 
+    const dueText = isOverdue
+      ? t('sidepanel_tasks_dueOverdue', dueDateStr)
+      : t('sidepanel_tasks_due', dueDateStr);
+
     return `
       <div class="task-due-date ${isOverdue ? 'overdue' : ''}">
-        ${isOverdue ? '⚠️ ' : ''}Due ${dueDateStr}
+        ${this.escapeHtml(dueText)}
       </div>
     `;
   }
@@ -434,7 +439,7 @@ export class TasksView {
 
     return `
       <span class="collection-badge" data-collection-id="${collectionId}">
-        ${this.escapeHtml(collection.name || 'Unnamed')}${activeIndicator}
+        ${this.escapeHtml(collection.name || t('sidepanel_tasks_unnamed'))}${activeIndicator}
       </span>
     `;
   }
@@ -452,14 +457,15 @@ export class TasksView {
     }
 
     const tabCount = tabReferences.length;
-    const tabWord = tabCount === 1 ? 'tab' : 'tabs';
     const firstRef = tabReferences[0];
     const favicon = firstRef.favIconUrl || getFallbackFavicon(firstRef.url);
+    const badgeTitle = tPlural('sidepanel_tasks_openTabsBadgeTitle', tabCount);
+    const countLabel = tPlural('sidepanel_tasks_openTabsBadge', tabCount);
 
     return `
-      <button class="tab-reference-badge" data-action="open-tabs" data-task-id="${taskId}" title="Open ${tabCount} associated ${tabWord}">
+      <button class="tab-reference-badge" data-action="open-tabs" data-task-id="${taskId}" title="${this.escapeHtml(badgeTitle)}">
         <img class="favicon" src="${this.escapeHtml(favicon)}" width="12" height="12" alt="" onerror="this.src='chrome://favicon/'">
-        <span class="tab-count">${tabCount} ${tabWord}</span>
+        <span class="tab-count">${this.escapeHtml(countLabel)}</span>
       </button>
     `;
   }
@@ -524,7 +530,7 @@ export class TasksView {
    */
   async handleOpenTabs(taskId) {
     try {
-      notifications.show('Opening task tabs...', 'info');
+      notifications.show(t('sidepanel_tasks_openingTabs'), 'info');
 
       const response = await chrome.runtime.sendMessage({
         action: 'openTaskTabs',
@@ -537,14 +543,14 @@ export class TasksView {
 
       // Phase 11: response.tabsOpened (not response.opened)
       const tabsOpened = response.tabsOpened || 0;
-      notifications.show(`Opened ${tabsOpened} tab${tabsOpened === 1 ? '' : 's'}`, 'success');
+      notifications.show(tPlural('sidepanel_tasks_openedTabs', tabsOpened), 'success');
 
       // Refresh data
       await this.controller.loadData();
     } catch (error) {
       console.error('Error opening task tabs:', error);
       notifications.show(
-        error.message || 'Failed to open task tabs',
+        error.message || t('sidepanel_tasks_openTabsFailed'),
         'error'
       );
     }
@@ -568,14 +574,14 @@ export class TasksView {
       }
 
       // Show success with undo notification
-      notifications.show('Task marked as fixed', 'success');
+      notifications.show(t('sidepanel_tasks_markedFixed'), 'success');
 
       // Refresh data
       await this.controller.loadData();
     } catch (error) {
       console.error('Error marking task as fixed:', error);
       notifications.show(
-        error.message || 'Failed to mark task as fixed',
+        error.message || t('sidepanel_tasks_markFixedFailed'),
         'error'
       );
     }
@@ -603,7 +609,7 @@ export class TasksView {
     } catch (error) {
       console.error('Error loading task for edit:', error);
       notifications.show(
-        error.message || 'Failed to load task',
+        error.message || t('sidepanel_tasks_loadFailed'),
         'error'
       );
     }
@@ -637,7 +643,7 @@ export class TasksView {
       });
 
       if (deleteResponse && deleteResponse.success) {
-        notifications.success(`Task "${task.summary}" deleted`);
+        notifications.success(t('sidepanel_tasks_deleted', task.summary));
         // Reload data
         await this.controller.loadData();
       } else {
@@ -645,7 +651,7 @@ export class TasksView {
       }
     } catch (error) {
       console.error('Failed to delete task:', error);
-      notifications.error('Failed to delete task');
+      notifications.error(t('sidepanel_tasks_deleteFailed'));
     }
   }
 
@@ -655,20 +661,20 @@ export class TasksView {
   async showDeleteConfirmation(task) {
     return new Promise((resolve) => {
       const collectionInfo = task.collectionId
-        ? '<p>This task is part of the collection. The collection will not be affected.</p>'
+        ? `<p>${t('sidepanel_tasks_deleteCollectionInfo')}</p>`
         : '';
 
       modal.open({
-        title: 'Delete Task',
+        title: t('sidepanel_tasks_deleteTitle'),
         content: `
-          <p>Are you sure you want to delete this task?</p>
+          <p>${t('sidepanel_tasks_deleteQuestion')}</p>
           <p class="task-summary-preview"><strong>"${this.escapeHtml(task.summary)}"</strong></p>
           ${collectionInfo}
-          <p class="danger-text">This action cannot be undone.</p>
+          <p class="danger-text">${t('sidepanel_collections_actionUndone')}</p>
         `,
         actions: [
           {
-            label: 'Cancel',
+            label: t('common_cancel'),
             className: 'btn-secondary',
             onClick: () => {
               modal.close();
@@ -676,7 +682,7 @@ export class TasksView {
             }
           },
           {
-            label: 'Delete',
+            label: t('common_delete'),
             className: 'btn-danger',
             onClick: () => {
               modal.close();
@@ -710,7 +716,7 @@ export class TasksView {
     const formHtml = `
       <form id="edit-task-form" class="modal-form">
         <div class="form-group">
-          <label for="task-summary">Summary *</label>
+          <label for="task-summary">${t('sidepanel_task_summaryLabel')}</label>
           <input
             type="text"
             id="task-summary"
@@ -724,15 +730,15 @@ export class TasksView {
 
         <!-- Phase 11: Tab Association Section -->
         <div class="tab-association-section" id="tab-association-section">
-          <label class="section-label">Context</label>
+          <label class="section-label">${t('sidepanel_task_contextLabel')}</label>
           <div class="tab-chip-container" id="tab-chip-container">
             ${tabReferencesHtml}
           </div>
-          <p class="helper-text">Quick access to tabs</p>
+          <p class="helper-text">${t('sidepanel_task_contextHelper')}</p>
         </div>
 
         <div class="form-group">
-          <label for="task-notes">Notes</label>
+          <label for="task-notes">${t('sidepanel_task_notesLabel')}</label>
           <textarea
             id="task-notes"
             name="notes"
@@ -742,37 +748,37 @@ export class TasksView {
         </div>
 
         <div class="form-group">
-          <label for="task-collection">Collection</label>
+          <label for="task-collection">${t('sidepanel_task_collectionLabel')}</label>
           <select id="task-collection" name="collectionId" class="form-control">
-            <option value="" ${!task.collectionId ? 'selected' : ''}>Uncategorized</option>
+            <option value="" ${!task.collectionId ? 'selected' : ''}>${t('sidepanel_task_uncategorized')}</option>
             ${collectionOptions}
           </select>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="task-priority">Priority</label>
+            <label for="task-priority">${t('sidepanel_task_priorityLabel')}</label>
             <select id="task-priority" name="priority" class="form-control">
-              <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
-              <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
-              <option value="high" ${task.priority === 'high' ? 'selected' : ''}>High</option>
-              <option value="critical" ${task.priority === 'critical' ? 'selected' : ''}>Critical</option>
+              <option value="low" ${task.priority === 'low' ? 'selected' : ''}>${t('sidepanel_task_priorityLow')}</option>
+              <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>${t('sidepanel_task_priorityMedium')}</option>
+              <option value="high" ${task.priority === 'high' ? 'selected' : ''}>${t('sidepanel_task_priorityHigh')}</option>
+              <option value="critical" ${task.priority === 'critical' ? 'selected' : ''}>${t('sidepanel_task_priorityCritical')}</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="task-status">Status</label>
+            <label for="task-status">${t('sidepanel_task_statusLabel')}</label>
             <select id="task-status" name="status" class="form-control">
-              <option value="open" ${task.status === 'open' ? 'selected' : ''}>Open</option>
-              <option value="active" ${task.status === 'active' ? 'selected' : ''}>Active</option>
-              <option value="fixed" ${task.status === 'fixed' ? 'selected' : ''}>Fixed</option>
-              <option value="abandoned" ${task.status === 'abandoned' ? 'selected' : ''}>Abandoned</option>
+              <option value="open" ${task.status === 'open' ? 'selected' : ''}>${t('sidepanel_task_statusOpen')}</option>
+              <option value="active" ${task.status === 'active' ? 'selected' : ''}>${t('sidepanel_task_statusActive')}</option>
+              <option value="fixed" ${task.status === 'fixed' ? 'selected' : ''}>${t('sidepanel_task_statusFixed')}</option>
+              <option value="abandoned" ${task.status === 'abandoned' ? 'selected' : ''}>${t('sidepanel_task_statusAbandoned')}</option>
             </select>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="task-due-date">Due Date</label>
+          <label for="task-due-date">${t('sidepanel_task_dueDateLabel')}</label>
           <input
             type="date"
             id="task-due-date"
@@ -783,7 +789,7 @@ export class TasksView {
         </div>
 
         <div class="form-group">
-          <label for="task-tags">Tags (comma-separated)</label>
+          <label for="task-tags">${t('sidepanel_task_tagsLabel')}</label>
           <input
             type="text"
             id="task-tags"
@@ -794,14 +800,14 @@ export class TasksView {
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" data-modal-cancel>Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <button type="button" class="btn btn-secondary" data-modal-cancel>${t('common_cancel')}</button>
+          <button type="submit" class="btn btn-primary">${t('sidepanel_task_saveChanges')}</button>
         </div>
       </form>
     `;
 
     modal.open({
-      title: 'Edit Task',
+      title: t('sidepanel_tasks_editTitle'),
       content: formHtml
     });
 
@@ -836,7 +842,7 @@ export class TasksView {
     try {
       const summary = formData.get('summary')?.trim();
       if (!summary) {
-        notifications.show('Summary is required', 'error');
+        notifications.show(t('sidepanel_task_summaryRequired'), 'error');
         return;
       }
 
@@ -885,14 +891,14 @@ export class TasksView {
       }
 
       modal.close();
-      notifications.show('Task updated successfully', 'success');
+      notifications.show(t('sidepanel_tasks_updated'), 'success');
 
       // Refresh data
       await this.controller.loadData();
     } catch (error) {
       console.error('Error saving task edits:', error);
       notifications.show(
-        error.message || 'Failed to save task edits',
+        error.message || t('sidepanel_tasks_saveEditsFailed'),
         'error'
       );
     }
@@ -966,8 +972,8 @@ export class TasksView {
       <div class="tab-chip ${isActive ? 'active' : 'inactive'}" data-tab-ref='${JSON.stringify(tabRef).replace(/'/g, '&#39;')}'>
         <img class="favicon" src="${this.escapeHtml(favicon)}" width="16" height="16" alt="" onerror="this.src='chrome://favicon/'">
         <span class="tab-title">${this.escapeHtml(title)}</span>
-        ${!isActive ? '<span class="status-badge">Closed</span>' : ''}
-        <button class="remove-btn" aria-label="Remove tab reference" title="Remove tab reference">×</button>
+        ${!isActive ? `<span class="status-badge">${t('sidepanel_tabchip_closed')}</span>` : ''}
+        <button class="remove-btn" aria-label="${this.escapeHtml(t('sidepanel_tabchip_removeLabel'))}" title="${this.escapeHtml(t('sidepanel_tabchip_removeLabel'))}">×</button>
       </div>
     `;
   }
@@ -980,7 +986,7 @@ export class TasksView {
     return `
       <button class="add-current-tab-btn subtle" id="add-current-tab-btn">
         <span class="icon">🔗</span>
-        <span>Link to current tab</span>
+        <span>${t('sidepanel_tabchip_linkCurrent')}</span>
       </button>
     `;
   }
@@ -1036,10 +1042,10 @@ export class TasksView {
             container.dataset.tabReferences = JSON.stringify(currentReferences);
             container.innerHTML = currentReferences.map(ref => this.renderTabChip(ref)).join('');
           } else {
-            notifications.show('This tab is already linked', 'info');
+            notifications.show(t('sidepanel_tabchip_alreadyLinked'), 'info');
           }
         } else {
-          notifications.show('No active tab found', 'warning');
+          notifications.show(t('sidepanel_tabchip_noActiveTab'), 'warning');
         }
       }
     });

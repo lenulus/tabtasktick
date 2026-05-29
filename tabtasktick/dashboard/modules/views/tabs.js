@@ -32,6 +32,8 @@ import {
   getWindowSignature
 } from '../../../services/utils/WindowNameService.js';
 
+import { t, tPlural } from '../../../services/utils/i18n.js';
+
 // Track window filter selection to restore after rename dialog
 let lastWindowFilterSelection = 'all';
 
@@ -128,13 +130,14 @@ export async function loadTabsView(filter = undefined) {
           
           if (topDomain && topDomain[1] >= 2) {
             // If one domain appears multiple times, use it as the name
-            windowName = topDomain[0].split('.')[0].charAt(0).toUpperCase() + 
-                        topDomain[0].split('.')[0].slice(1) + ' Window';
+            const domainBase = topDomain[0].split('.')[0];
+            windowName = t('dashboard_tabs_smartWindowName',
+              domainBase.charAt(0).toUpperCase() + domainBase.slice(1));
           } else {
-            windowName = `Window ${index + 1}`;
+            windowName = t('dashboard_tabs_defaultWindowName', String(index + 1));
           }
         } else {
-          windowName = `Window ${index + 1}`;
+          windowName = t('dashboard_tabs_defaultWindowName', String(index + 1));
         }
       }
       
@@ -159,7 +162,7 @@ export async function loadTabsView(filter = undefined) {
     const groupMap = new Map();
     groups.forEach(group => {
       groupMap.set(group.id, {
-        title: group.title || `Group ${group.id}`,
+        title: group.title || t('dashboard_tabs_defaultGroupName', String(group.id)),
         color: group.color,
         collapsed: group.collapsed
       });
@@ -226,7 +229,7 @@ export function updateTabCount(displayedCount, totalCount) {
     if (displayedCount === totalCount) {
       tabCountEl.textContent = `(${totalCount})`;
     } else {
-      tabCountEl.textContent = `(${displayedCount} of ${totalCount})`;
+      tabCountEl.textContent = t('dashboard_tabs_countOfTotal', [String(displayedCount), String(totalCount)]);
     }
   }
 }
@@ -273,13 +276,13 @@ export function renderGridView(tabs) {
   if (tabs.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
-        <h3>No tabs found</h3>
-        <p>No tabs match your current filter</p>
+        <h3>${t('dashboard_tabs_noTabsTitle')}</h3>
+        <p>${t('dashboard_tabs_noTabsText')}</p>
       </div>
     `;
     return;
   }
-  
+
   tabs.forEach(tab => {
     const card = document.createElement('div');
     card.className = 'tab-card';
@@ -296,8 +299,8 @@ export function renderGridView(tabs) {
     }
     
     const badges = [];
-    if (tab.pinned) badges.push('<span class="tab-badge pinned">Pinned</span>');
-    if (tab.audible) badges.push('<span class="tab-badge audible">Playing</span>');
+    if (tab.pinned) badges.push(`<span class="tab-badge pinned">${t('dashboard_tabs_badgePinned')}</span>`);
+    if (tab.audible) badges.push(`<span class="tab-badge audible">${t('dashboard_tabs_badgePlaying')}</span>`);
     if (tab.category && tab.category !== 'unknown') badges.push(`<span class="tab-badge category">${tab.category}</span>`);
     
     // Filter out invalid favicon URLs
@@ -317,7 +320,7 @@ export function renderGridView(tabs) {
     const safeFaviconUrl = filterFaviconUrl(getFaviconUrl(tab));
     
     card.innerHTML = `
-      <div class="window-indicator" style="background: ${tab.windowColor || '#999'};" title="${tab.windowName || 'Unknown Window'}"></div>
+      <div class="window-indicator" style="background: ${tab.windowColor || '#999'};" title="${tab.windowName || t('dashboard_tabs_unknownWindow')}"></div>
       <label class="tab-select-wrapper">
         <input type="checkbox" class="tab-checkbox" data-tab-id="${tab.id}" ${state.selectedTabs.has(tab.id) ? 'checked' : ''}>
         <span class="tab-select-indicator"></span>
@@ -330,7 +333,7 @@ export function renderGridView(tabs) {
       ${badges.length > 0 ? `<div class="tab-badges">${badges.join('')}</div>` : ''}
       <div class="tab-hover-info">
         <span class="tab-state">${getTabState(tab)}</span>
-        <span class="tab-access">• Last accessed: ${getLastAccessText(tab)}</span>
+        <span class="tab-access">${t('dashboard_tabs_lastAccessed', getLastAccessText(tab))}</span>
       </div>
     `;
     
@@ -379,8 +382,8 @@ export function renderTreeView(tabs) {
   if (tabs.length === 0) {
     tree.innerHTML = `
       <div class="empty-state">
-        <h3>No tabs found</h3>
-        <p>No tabs match your current filter</p>
+        <h3>${t('dashboard_tabs_noTabsTitle')}</h3>
+        <p>${t('dashboard_tabs_noTabsText')}</p>
       </div>
     `;
     return;
@@ -393,7 +396,7 @@ export function renderTreeView(tabs) {
     if (!windows.has(tab.windowId)) {
       windows.set(tab.windowId, {
         id: tab.windowId,
-        name: tab.windowName || `Window ${tab.windowId}`,
+        name: tab.windowName || t('dashboard_tabs_defaultWindowName', String(tab.windowId)),
         color: tab.windowColor || '#999',
         groups: new Map(),
         ungroupedTabs: []
@@ -406,7 +409,7 @@ export function renderTreeView(tabs) {
       if (!window.groups.has(tab.groupId)) {
         window.groups.set(tab.groupId, {
           id: tab.groupId,
-          name: tab.groupName || `Group ${tab.groupId}`,
+          name: tab.groupName || t('dashboard_tabs_defaultGroupName', String(tab.groupId)),
           color: getGroupColor(tab.groupColor),
           tabs: []
         });
@@ -438,14 +441,14 @@ export function renderTreeView(tabs) {
       <svg class="tree-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <polyline points="6 9 12 15 18 9"></polyline>
       </svg>
-      <input type="checkbox" class="tree-select-checkbox" data-window-id="${windowId}" 
+      <input type="checkbox" class="tree-select-checkbox" data-window-id="${windowId}"
              ${windowCheckedState === 'checked' ? 'checked' : ''}
-             title="Select all tabs in window">
+             title="${t('dashboard_tabs_selectAllInWindow')}">
       <div class="tree-window-color" style="background: ${window.color};"></div>
       <div class="tree-window-name">${window.name}</div>
-      <div class="tree-window-count">${totalWindowTabs} tabs</div>
+      <div class="tree-window-count">${tPlural('dashboard_tabs_windowTabCount', totalWindowTabs)}</div>
       <div class="tree-window-actions">
-        <button class="tree-action-btn" title="Close window" data-action="close-window" data-window-id="${windowId}">
+        <button class="tree-action-btn" title="${t('dashboard_tabs_closeWindowTitle')}" data-action="close-window" data-window-id="${windowId}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -488,20 +491,20 @@ export function renderTreeView(tabs) {
         <svg class="tree-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 14px; height: 14px;">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-        <input type="checkbox" class="tree-select-checkbox" data-group-id="${groupId}" 
+        <input type="checkbox" class="tree-select-checkbox" data-group-id="${groupId}"
                ${groupCheckedState === 'checked' ? 'checked' : ''}
-               title="Select all tabs in group">
+               title="${t('dashboard_tabs_selectAllInGroup')}">
         <div class="tree-group-color" style="background: ${group.color};"></div>
         <div class="tree-group-name" contenteditable="false" data-group-id="${groupId}">${group.name}</div>
-        <div class="tree-window-count">${group.tabs.length} tabs</div>
+        <div class="tree-window-count">${tPlural('dashboard_tabs_windowTabCount', group.tabs.length)}</div>
         <div class="tree-group-actions">
-          <button class="tree-action-btn" title="Rename group" data-action="rename-group" data-group-id="${groupId}">
+          <button class="tree-action-btn" title="${t('dashboard_tabs_renameGroupTitle')}" data-action="rename-group" data-group-id="${groupId}">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>
           </button>
-          <button class="tree-action-btn" title="Close group" data-action="close-group" data-group-id="${groupId}">
+          <button class="tree-action-btn" title="${t('dashboard_tabs_closeGroupTitle')}" data-action="close-group" data-group-id="${groupId}">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -579,7 +582,7 @@ export function renderTreeView(tabs) {
       
       const ungroupedHeader = document.createElement('div');
       ungroupedHeader.className = 'tree-ungrouped-header';
-      ungroupedHeader.textContent = 'Ungrouped Tabs';
+      ungroupedHeader.textContent = t('dashboard_tabs_ungroupedTabs');
       ungroupedEl.appendChild(ungroupedHeader);
       
       window.ungroupedTabs.forEach(tab => {
@@ -662,14 +665,14 @@ export function renderTreeView(tabs) {
     
     if (action === 'close-window') {
       const windowId = parseInt(actionBtn.dataset.windowId);
-      if (confirm('Close this window and all its tabs?')) {
+      if (confirm(t('dashboard_tabs_confirmCloseWindow'))) {
         await chrome.windows.remove(windowId);
         await loadTabsView();
       }
     } else if (action === 'close-group') {
       const groupId = parseInt(actionBtn.dataset.groupId);
-      if (confirm('Close all tabs in this group?')) {
-        const tabsToClose = tabs.filter(t => t.groupId === groupId).map(t => t.id);
+      if (confirm(t('dashboard_tabs_confirmCloseGroup'))) {
+        const tabsToClose = tabs.filter(tab => tab.groupId === groupId).map(tab => tab.id);
         // Route through background → engine
         await chrome.runtime.sendMessage({
           action: 'closeTabs',
@@ -738,11 +741,11 @@ async function handleDropOnWindow(e) {
     if (data.sourceGroupId && data.sourceGroupId !== -1) {
       try {
         await chrome.tabs.ungroup(data.tabIds);
-        showNotification(`Removed ${data.tabIds.length} tab(s) from group`, 'success');
+        showNotification(tPlural('dashboard_tabs_removedFromGroup', data.tabIds.length), 'success');
         await loadTabsView();
       } catch (error) {
         console.error('Failed to ungroup tabs:', error);
-        showNotification('Failed to ungroup tabs', 'error');
+        showNotification(t('dashboard_tabs_ungroupFailed'), 'error');
       }
     }
   } else {
@@ -752,12 +755,12 @@ async function handleDropOnWindow(e) {
         windowId: targetWindowId,
         index: -1
       });
-      showNotification(`Moved ${data.tabIds.length} tab(s) to window`, 'success');
+      showNotification(tPlural('dashboard_tabs_movedToWindow', data.tabIds.length), 'success');
       clearSelection();
       await loadTabsView();
     } catch (error) {
       console.error('Failed to move tabs:', error);
-      showNotification('Failed to move tabs', 'error');
+      showNotification(t('dashboard_notify_moveTabsFailed'), 'error');
     }
   }
 }
@@ -787,12 +790,12 @@ async function handleDropOnGroup(e) {
       groupId: targetGroupId
     });
     
-    showNotification(`Added ${data.tabIds.length} tab(s) to group`, 'success');
+    showNotification(tPlural('dashboard_tabs_addedToGroup', data.tabIds.length), 'success');
     clearSelection();
     await loadTabsView();
   } catch (error) {
     console.error('Failed to move tabs to group:', error);
-    showNotification('Failed to move tabs to group', 'error');
+    showNotification(t('dashboard_tabs_moveToGroupFailed'), 'error');
   }
 }
 
@@ -809,8 +812,8 @@ function createTreeTab(tab) {
   }
   
   const badges = [];
-  if (tab.pinned) badges.push('<span class="tree-tab-badge pinned">Pin</span>');
-  if (tab.audible) badges.push('<span class="tree-tab-badge audible">Audio</span>');
+  if (tab.pinned) badges.push(`<span class="tree-tab-badge pinned">${t('dashboard_tabs_treeBadgePin')}</span>`);
+  if (tab.audible) badges.push(`<span class="tree-tab-badge audible">${t('dashboard_tabs_treeBadgeAudio')}</span>`);
   
   // Filter out invalid favicon URLs
   const filterFaviconUrl = (url) => {
@@ -831,14 +834,14 @@ function createTreeTab(tab) {
            ${state.selectedTabs.has(tab.id) ? 'checked' : ''}>
     <img src="${safeFaviconUrl}" class="tree-tab-favicon" data-fallback="../icons/icon-16.png">
     <div class="tree-tab-title" title="${tab.title}">${tab.title}</div>
-    <button class="tree-tab-details" title="Show tab state details for debugging">
+    <button class="tree-tab-details" title="${t('dashboard_tabs_detailsBtnTitle')}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="12" y1="16" x2="12" y2="12"></line>
         <line x1="12" y1="8" x2="12.01" y2="8"></line>
       </svg>
     </button>
-    <button class="tree-tab-goto" title="Go to tab">
+    <button class="tree-tab-goto" title="${t('dashboard_tabs_gotoTabTitle')}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
         <polyline points="15 3 21 3 21 9"></polyline>
@@ -987,23 +990,25 @@ export function updateWindowFilterDropdown(windows, windowNameMap, currentWindow
   if (!windowFilter) return;
   
   // Clear existing options except 'All Windows'
-  windowFilter.innerHTML = '<option value="all">All Windows</option>';
-  
+  windowFilter.innerHTML = `<option value="all">${t('dashboard_tabs_windowAll')}</option>`;
+
   // Add window options with custom names
   windows.forEach(window => {
     const option = document.createElement('option');
     option.value = window.id;
     const name = windowNameMap.get(window.id);
-    const tabCount = state.get('tabsData').filter(t => t.windowId === window.id).length;
-    const currentIndicator = window.id === currentWindowId ? 'current, ' : '';
-    option.textContent = `${name} (${currentIndicator}${tabCount} tabs)`;
+    const tabCount = state.get('tabsData').filter(tab => tab.windowId === window.id).length;
+    const isCurrent = window.id === currentWindowId;
+    option.textContent = isCurrent
+      ? tPlural('dashboard_tabs_windowOptionCurrent', tabCount, name)
+      : tPlural('dashboard_tabs_windowOption', tabCount, name);
     windowFilter.appendChild(option);
   });
-  
+
   // Add rename option at the end
   const renameOption = document.createElement('option');
   renameOption.value = 'rename';
-  renameOption.textContent = '✏️ Rename Windows...';
+  renameOption.textContent = t('dashboard_tabs_renameWindowsOption');
   renameOption.style.borderTop = '1px solid #ddd';
   windowFilter.appendChild(renameOption);
 }
@@ -1246,7 +1251,7 @@ export function showTabDetails(tab) {
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
       <div class="modal-header" style="padding: 20px; border-bottom: 1px solid #eee;">
-        <h2 style="margin: 0; font-size: 18px;">Tab State Details</h2>
+        <h2 style="margin: 0; font-size: 18px;">${t('dashboard_tabs_detailsTitle')}</h2>
         <button class="modal-close" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
       </div>
       <div style="padding: 20px; overflow-y: auto; flex: 1;">
@@ -1262,8 +1267,8 @@ export function showTabDetails(tab) {
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr>
-              <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd; background: #f5f5f5;">Attribute</th>
-              <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd; background: #f5f5f5;">Value</th>
+              <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd; background: #f5f5f5;">${t('dashboard_tabs_detailsAttribute')}</th>
+              <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd; background: #f5f5f5;">${t('dashboard_tabs_detailsValue')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1272,8 +1277,8 @@ export function showTabDetails(tab) {
         </table>
       </div>
       <div class="modal-footer" style="padding: 16px; border-top: 1px solid #eee; display: flex; justify-content: space-between;">
-        <button class="btn btn-secondary copy-json-btn">Copy as JSON</button>
-        <button class="btn btn-primary close-modal-btn">Close</button>
+        <button class="btn btn-secondary copy-json-btn">${t('dashboard_tabs_copyJson')}</button>
+        <button class="btn btn-primary close-modal-btn">${t('common_close')}</button>
       </div>
     </div>
   `;
@@ -1294,7 +1299,7 @@ export function showTabDetails(tab) {
     navigator.clipboard.writeText(json).then(() => {
       const btn = modal.querySelector('.copy-json-btn');
       const originalText = btn.textContent;
-      btn.textContent = 'Copied!';
+      btn.textContent = t('dashboard_tabs_copied');
       setTimeout(() => {
         btn.textContent = originalText;
       }, 2000);

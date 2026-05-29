@@ -10,21 +10,23 @@
  * - Maintainability: Single source of truth for emoji sets
  */
 
+import { t } from '../../../services/utils/i18n.js';
+
 export const EMOJI_CATEGORIES = {
   folders: {
-    name: 'Folders & Files',
+    name: t('dashboard_emoji_catFolders'),
     emojis: ['📁', '📂', '🗂️', '📋', '📄', '📃', '📑', '🗃️', '🗄️', '📦', '📇', '🗳️', '📰', '📚', '📖']
   },
   work: {
-    name: 'Work & Productivity',
+    name: t('dashboard_emoji_catWork'),
     emojis: ['💼', '🏢', '📊', '📈', '📉', '💰', '💵', '💳', '🏦', '📞', '📱', '💻', '⌨️', '🖥️', '🖨️', '📠', '✉️', '📧', '📮', '📬', '📭', '📪', '🗒️', '📝', '✏️', '✒️', '🖊️', '🖋️', '📌', '📍', '🔖', '🏷️']
   },
   dev: {
-    name: 'Development & Tech',
+    name: t('dashboard_emoji_catDev'),
     emojis: ['💻', '🖥️', '⌨️', '🖱️', '🖲️', '💾', '💿', '📀', '🔌', '🔋', '🔧', '🔨', '⚙️', '🛠️', '⚡', '🔥', '💡', '🔍', '🔎', '🧪', '🧬', '🚀', '🛸', '🤖', '👾', '🎮', '🕹️']
   },
   misc: {
-    name: 'Miscellaneous',
+    name: t('dashboard_emoji_catMisc'),
     emojis: ['🎯', '📌', '⭐', '✨', '🌟', '💫', '🔔', '🔕', '🎨', '🎭', '🎪', '🎬', '🎤', '🎧', '🎵', '🎶', '📻', '📺', '📷', '📸', '🔐', '🔒', '🔓', '🔑', '🗝️', '🏆', '🥇', '🥈', '🥉', '🎖️', '🏅', '🎗️', '🎀', '🎁', '🎉', '🎊', '🎈', '❤️', '💙', '💚', '💛', '🧡', '💜', '🖤', '🤍', '🤎', '💖', '💝']
   }
 };

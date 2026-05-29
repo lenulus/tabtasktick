@@ -15,6 +15,8 @@ import {
 import modalService from '../core/modal-service.js';
 import keyboardShortcuts from '../keyboard-shortcuts.js';
 
+import { t, tPlural } from '../../../services/utils/i18n.js';
+
 // Import view modules statically (no dynamic imports in Chrome extensions)
 import { loadKanbanView } from './tasks-kanban.js';
 import { loadListView } from './tasks-list.js';
@@ -158,64 +160,64 @@ export function showTaskDetailModal(task, collections) {
         <input type="hidden" id="taskDetailId">
 
         <div class="form-group">
-          <label for="taskDetailSummary">Summary</label>
-          <input type="text" id="taskDetailSummary" class="form-control" placeholder="Task summary">
+          <label for="taskDetailSummary">${t('dashboard_tasks_fieldSummary')}</label>
+          <input type="text" id="taskDetailSummary" class="form-control" placeholder="${t('dashboard_tasks_summaryPlaceholder')}">
         </div>
 
         <div class="form-group">
-          <label for="taskDetailNotes">Notes</label>
-          <textarea id="taskDetailNotes" class="form-control" rows="4" placeholder="Task notes"></textarea>
+          <label for="taskDetailNotes">${t('dashboard_tasks_fieldNotes')}</label>
+          <textarea id="taskDetailNotes" class="form-control" rows="4" placeholder="${t('dashboard_tasks_notesPlaceholder')}"></textarea>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="taskDetailStatus">Status</label>
+            <label for="taskDetailStatus">${t('dashboard_tasks_fieldStatus')}</label>
             <select id="taskDetailStatus" class="form-control">
-              <option value="open">Open</option>
-              <option value="active">Active</option>
-              <option value="fixed">Fixed</option>
-              <option value="abandoned">Abandoned</option>
+              <option value="open">${t('dashboard_tasks_statusOpen')}</option>
+              <option value="active">${t('dashboard_tasks_statusActive')}</option>
+              <option value="fixed">${t('dashboard_tasks_statusFixed')}</option>
+              <option value="abandoned">${t('dashboard_tasks_statusAbandoned')}</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="taskDetailPriority">Priority</label>
+            <label for="taskDetailPriority">${t('dashboard_tasks_fieldPriority')}</label>
             <select id="taskDetailPriority" class="form-control">
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
+              <option value="low">${t('dashboard_tasks_priorityLow')}</option>
+              <option value="medium">${t('dashboard_tasks_priorityMedium')}</option>
+              <option value="high">${t('dashboard_tasks_priorityHigh')}</option>
+              <option value="critical">${t('dashboard_tasks_priorityCritical')}</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="taskDetailDueDate">Due Date</label>
+            <label for="taskDetailDueDate">${t('dashboard_tasks_fieldDueDate')}</label>
             <input type="date" id="taskDetailDueDate" class="form-control">
           </div>
         </div>
 
         <div class="form-group">
-          <label for="taskDetailCollection">Collection</label>
+          <label for="taskDetailCollection">${t('dashboard_tasks_fieldCollection')}</label>
           <select id="taskDetailCollection" class="form-control">
-            <option value="">Uncategorized</option>
+            <option value="">${t('dashboard_tasks_uncategorized')}</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="taskDetailTags">Tags (comma-separated)</label>
-          <input type="text" id="taskDetailTags" class="form-control" placeholder="tag1, tag2, tag3">
+          <label for="taskDetailTags">${t('dashboard_tasks_fieldTags')}</label>
+          <input type="text" id="taskDetailTags" class="form-control" placeholder="${t('dashboard_tasks_tagsPlaceholder')}">
         </div>
     `;
 
     const footerHtml = `
-      <button class="btn btn-danger" id="deleteTaskBtn">Delete</button>
-      <button class="btn btn-secondary" id="cancelTaskDetailBtn">Cancel</button>
-      <button class="btn btn-primary" id="saveTaskDetailBtn">Save</button>
+      <button class="btn btn-danger" id="deleteTaskBtn">${t('common_delete')}</button>
+      <button class="btn btn-secondary" id="cancelTaskDetailBtn">${t('common_cancel')}</button>
+      <button class="btn btn-primary" id="saveTaskDetailBtn">${t('common_save')}</button>
     `;
 
     modalService.create({
       id: 'taskDetailModal',
-      title: 'Task Details',
+      title: t('dashboard_tasks_detailTitle'),
       size: 'lg',
       body: bodyHtml,
       footer: footerHtml,
@@ -238,7 +240,7 @@ export function showTaskDetailModal(task, collections) {
 
   // Populate collection dropdown
   const collectionSelect = document.getElementById('taskDetailCollection');
-  collectionSelect.innerHTML = '<option value="">Uncategorized</option>';
+  collectionSelect.innerHTML = `<option value="">${t('dashboard_tasks_uncategorized')}</option>`;
   collections.forEach(collection => {
     const option = document.createElement('option');
     option.value = collection.id;
@@ -262,14 +264,14 @@ async function handleSaveTaskDetail() {
   const summary = document.getElementById('taskDetailSummary').value.trim();
 
   if (!summary) {
-    showNotification('Summary is required', 'error');
+    showNotification(t('dashboard_tasks_summaryRequired'), 'error');
     return;
   }
 
   const tags = document.getElementById('taskDetailTags').value
     .split(',')
-    .map(t => t.trim())
-    .filter(t => t.length > 0);
+    .map(tag => tag.trim())
+    .filter(tag => tag.length > 0);
 
   const taskData = {
     summary,
@@ -284,7 +286,7 @@ async function handleSaveTaskDetail() {
 
   // Check if this is a new task or an update
   const tasks = state.get('tasks') || [];
-  const existingTask = tasks.find(t => t.id === taskId);
+  const existingTask = tasks.find(task => task.id === taskId);
   const isNewTask = !existingTask;
 
   try {
@@ -303,7 +305,7 @@ async function handleSaveTaskDetail() {
       });
 
       if (result.success) {
-        showNotification('Task created', 'success');
+        showNotification(t('dashboard_tasks_created'), 'success');
       }
     } else {
       // Update existing task
@@ -314,7 +316,7 @@ async function handleSaveTaskDetail() {
       });
 
       if (result.success) {
-        showNotification('Task updated', 'success');
+        showNotification(t('dashboard_tasks_updated'), 'success');
       }
     }
 
@@ -325,11 +327,11 @@ async function handleSaveTaskDetail() {
       const event = new CustomEvent(isNewTask ? 'taskCreated' : 'taskUpdated', { detail: { taskId } });
       window.dispatchEvent(event);
     } else {
-      showNotification(`Failed to ${isNewTask ? 'create' : 'update'} task`, 'error');
+      showNotification(t(isNewTask ? 'dashboard_tasks_createFailed' : 'dashboard_tasks_updateFailed'), 'error');
     }
   } catch (error) {
     console.error(`Error ${isNewTask ? 'creating' : 'updating'} task:`, error);
-    showNotification(`Failed to ${isNewTask ? 'create' : 'update'} task`, 'error');
+    showNotification(t(isNewTask ? 'dashboard_tasks_createFailed' : 'dashboard_tasks_updateFailed'), 'error');
   }
 }
 
@@ -337,7 +339,7 @@ async function handleDeleteTask() {
   const taskId = document.getElementById('taskDetailId').value;
   const summary = document.getElementById('taskDetailSummary').value;
 
-  if (!confirm(`Delete task "${summary}"?`)) {
+  if (!confirm(t('dashboard_tasks_deleteConfirm', summary))) {
     return;
   }
 
@@ -348,18 +350,18 @@ async function handleDeleteTask() {
     });
 
     if (result.success) {
-      showNotification('Task deleted', 'success');
+      showNotification(t('dashboard_tasks_deleted'), 'success');
       hideTaskDetailModal();
 
       // Trigger refresh
       const event = new CustomEvent('taskDeleted', { detail: { taskId } });
       window.dispatchEvent(event);
     } else {
-      showNotification('Failed to delete task', 'error');
+      showNotification(t('dashboard_tasks_deleteFailed'), 'error');
     }
   } catch (error) {
     console.error('Error deleting task:', error);
-    showNotification('Failed to delete task', 'error');
+    showNotification(t('dashboard_tasks_deleteFailed'), 'error');
   }
 }
 
@@ -402,7 +404,7 @@ function updateBulkBar(selectedTasks, bulkBar) {
   if (count > 0) {
     bulkBar.style.display = 'flex';
     if (countSpan) {
-      countSpan.textContent = `${count} task${count !== 1 ? 's' : ''} selected`;
+      countSpan.textContent = tPlural('dashboard_tasks_selectedCount', count);
     }
   } else {
     bulkBar.style.display = 'none';
@@ -411,7 +413,7 @@ function updateBulkBar(selectedTasks, bulkBar) {
 
 export async function handleBulkAction(action, selectedTaskIds) {
   if (selectedTaskIds.size === 0) {
-    showNotification('No tasks selected', 'warning');
+    showNotification(t('dashboard_tasks_noneSelected'), 'warning');
     return;
   }
 
@@ -420,7 +422,7 @@ export async function handleBulkAction(action, selectedTaskIds) {
   try {
     switch (action) {
     case 'changeStatus': {
-      const status = prompt('Enter status (open/active/fixed/abandoned):');
+      const status = prompt(t('dashboard_tasks_promptStatus'));
       if (!status) return;
 
       await bulkUpdateTasks(taskIds, { status });
@@ -428,7 +430,7 @@ export async function handleBulkAction(action, selectedTaskIds) {
     }
 
     case 'changePriority': {
-      const priority = prompt('Enter priority (low/medium/high/critical):');
+      const priority = prompt(t('dashboard_tasks_promptPriority'));
       if (!priority) return;
 
       await bulkUpdateTasks(taskIds, { priority });
@@ -436,18 +438,18 @@ export async function handleBulkAction(action, selectedTaskIds) {
     }
 
     case 'delete': {
-      if (!confirm(`Delete ${taskIds.length} task(s)?`)) return;
+      if (!confirm(tPlural('dashboard_tasks_bulkDeleteConfirm', taskIds.length))) return;
 
       await bulkDeleteTasks(taskIds);
       break;
     }
 
     default:
-      showNotification(`Unknown action: ${action}`, 'error');
+      showNotification(t('dashboard_tasks_unknownAction', action), 'error');
     }
   } catch (error) {
     console.error('Error in bulk action:', error);
-    showNotification(`Failed to ${action} tasks`, 'error');
+    showNotification(t('dashboard_tasks_actionFailed'), 'error');
   }
 }
 
@@ -467,7 +469,7 @@ async function bulkUpdateTasks(taskIds, updates) {
     }
   }
 
-  showNotification(`Updated ${successCount} of ${taskIds.length} tasks`, 'success');
+  showNotification(t('dashboard_tasks_bulkUpdated', [String(successCount), String(taskIds.length)]), 'success');
 
   // Trigger refresh
   const event = new CustomEvent('tasksUpdated');
@@ -489,7 +491,7 @@ async function bulkDeleteTasks(taskIds) {
     }
   }
 
-  showNotification(`Deleted ${successCount} of ${taskIds.length} tasks`, 'success');
+  showNotification(t('dashboard_tasks_bulkDeleted', [String(successCount), String(taskIds.length)]), 'success');
 
   // Trigger refresh
   const event = new CustomEvent('tasksUpdated');
@@ -511,8 +513,16 @@ export function renderPriorityBadge(priority) {
   const color = priorityColors[priority] || priorityColors.medium;
   const emoji = priority === 'critical' || priority === 'high' ? '🔴' : '⚪';
 
+  const priorityLabels = {
+    critical: t('dashboard_tasks_priorityCritical'),
+    high: t('dashboard_tasks_priorityHigh'),
+    medium: t('dashboard_tasks_priorityMedium'),
+    low: t('dashboard_tasks_priorityLow')
+  };
+  const label = priorityLabels[priority] || priorityLabels.medium;
+
   return `<span class="priority-badge" style="background-color: ${color}; color: white;">
-    ${emoji} ${priority.charAt(0).toUpperCase() + priority.slice(1)}
+    ${emoji} ${label}
   </span>`;
 }
 
@@ -526,8 +536,16 @@ export function renderStatusBadge(status) {
 
   const color = statusColors[status] || statusColors.open;
 
+  const statusLabels = {
+    open: t('dashboard_tasks_statusOpen'),
+    active: t('dashboard_tasks_statusActive'),
+    fixed: t('dashboard_tasks_statusFixed'),
+    abandoned: t('dashboard_tasks_statusAbandoned')
+  };
+  const label = statusLabels[status] || statusLabels.open;
+
   return `<span class="status-badge" style="background-color: ${color}; color: white;">
-    ${status.charAt(0).toUpperCase() + status.slice(1)}
+    ${label}
   </span>`;
 }
 
@@ -553,14 +571,14 @@ export function renderEmptyState(type, message = '') {
           <path d="M9 11l3 3L22 4"></path>
           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
         </svg>
-        <h3>No Tasks Yet</h3>
-        <p>Create tasks to track your work in collections.</p>
+        <h3>${t('dashboard_tasks_emptyTitle')}</h3>
+        <p>${t('dashboard_tasks_emptyDescription')}</p>
         <button class="btn btn-primary" id="createFirstTask">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          Create Your First Task
+          ${t('dashboard_tasks_emptyAction')}
         </button>
       </div>
     `;
@@ -572,9 +590,9 @@ export function renderEmptyState(type, message = '') {
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
-        <h3>Failed to Load Tasks</h3>
-        <p>${escapeHtml(message || 'An error occurred while loading tasks.')}</p>
-        <button class="btn btn-primary" id="retryLoadTasks">Retry</button>
+        <h3>${t('dashboard_tasks_errorTitle')}</h3>
+        <p>${escapeHtml(message || t('dashboard_tasks_errorDescription'))}</p>
+        <button class="btn btn-primary" id="retryLoadTasks">${t('dashboard_tasks_retry')}</button>
       </div>
     `;
 
@@ -592,8 +610,8 @@ export function renderEmptyState(type, message = '') {
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.35-4.35"></path>
         </svg>
-        <h3>No Results Found</h3>
-        <p>Try adjusting your search or filter criteria.</p>
+        <h3>${t('dashboard_tasks_noResultsTitle')}</h3>
+        <p>${t('dashboard_tasks_noResultsDescription')}</p>
       </div>
     `;
   }
@@ -621,7 +639,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
       tabIds: []
     };
     showTaskDetailModal(newTask, collections);
-    keyboardShortcuts.showShortcutToast('Create new task (n)');
+    keyboardShortcuts.showShortcutToast(t('dashboard_tasks_toastCreate'));
   }, {
     category: 'tasks',
     description: 'Create new task',
@@ -674,13 +692,13 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
     if (focusedItem) {
       const taskId = focusedItem.dataset.taskId;
       if (taskId) {
-        if (confirm('Are you sure you want to delete this task?')) {
+        if (confirm(t('dashboard_tasks_deleteConfirmGeneric'))) {
           try {
             await chrome.runtime.sendMessage({
               action: 'deleteTask',
               taskId
             });
-            showNotification('Task deleted', 'success');
+            showNotification(t('dashboard_tasks_deleted'), 'success');
             // Reload current view
             const currentView = state.get('tasksViewPreference') || 'kanban';
             if (currentView === 'kanban') {
@@ -690,7 +708,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
             }
           } catch (error) {
             console.error('Failed to delete task:', error);
-            showNotification('Failed to delete task', 'error');
+            showNotification(t('dashboard_tasks_deleteFailed'), 'error');
           }
         }
       }
@@ -715,7 +733,13 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
               id: taskId,
               updates: { priority }
             });
-            showNotification(`Priority set to ${priority}`, 'success');
+            const priorityLabels = {
+              low: t('dashboard_tasks_priorityLow'),
+              medium: t('dashboard_tasks_priorityMedium'),
+              high: t('dashboard_tasks_priorityHigh'),
+              critical: t('dashboard_tasks_priorityCritical')
+            };
+            showNotification(t('dashboard_tasks_prioritySet', priorityLabels[priority] || priority), 'success');
             // Reload current view
             const currentView = state.get('tasksViewPreference') || 'kanban';
             if (currentView === 'kanban') {
@@ -725,7 +749,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
             }
           } catch (error) {
             console.error('Failed to update priority:', error);
-            showNotification('Failed to update priority', 'error');
+            showNotification(t('dashboard_tasks_updatePriorityFailed'), 'error');
           }
         }
       }
@@ -743,7 +767,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
       const taskId = focusedItem.dataset.taskId;
       if (taskId) {
         const tasks = state.get('tasks') || [];
-        const task = tasks.find(t => t.id === taskId);
+        const task = tasks.find(tk => tk.id === taskId);
         if (task) {
           const statusCycle = ['open', 'active', 'fixed'];
           const currentIndex = statusCycle.indexOf(task.status);
@@ -755,7 +779,13 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
               id: taskId,
               updates: { status: nextStatus }
             });
-            showNotification(`Status changed to ${nextStatus}`, 'success');
+            const statusLabels = {
+              open: t('dashboard_tasks_statusOpen'),
+              active: t('dashboard_tasks_statusActive'),
+              fixed: t('dashboard_tasks_statusFixed'),
+              abandoned: t('dashboard_tasks_statusAbandoned')
+            };
+            showNotification(t('dashboard_tasks_statusChanged', statusLabels[nextStatus] || nextStatus), 'success');
             // Reload current view
             const currentView = state.get('tasksViewPreference') || 'kanban';
             if (currentView === 'kanban') {
@@ -765,7 +795,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
             }
           } catch (error) {
             console.error('Failed to update status:', error);
-            showNotification('Failed to update status', 'error');
+            showNotification(t('dashboard_tasks_statusUpdateFailed'), 'error');
           }
         }
       }
@@ -803,7 +833,7 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
       const taskId = focusedItem.dataset.taskId;
       if (taskId) {
         const tasks = state.get('tasks') || [];
-        const task = tasks.find(t => t.id === taskId);
+        const task = tasks.find(tk => tk.id === taskId);
         if (task && task.tabIds && task.tabIds.length > 0) {
           try {
             // Focus the tabs associated with this task
@@ -821,13 +851,13 @@ export function setupTasksKeyboardShortcuts(keyboardShortcuts) {
                 console.warn(`Tab ${tabId} not found`);
               }
             }
-            showNotification('Opened tabs for task', 'success');
+            showNotification(t('dashboard_tasks_openedTabsForTask'), 'success');
           } catch (error) {
             console.error('Failed to open tabs:', error);
-            showNotification('Failed to open tabs', 'error');
+            showNotification(t('dashboard_tasks_openTabsActionFailed'), 'error');
           }
         } else {
-          showNotification('No tabs associated with this task', 'info');
+          showNotification(t('dashboard_tasks_noTabsForTask'), 'info');
         }
       }
     }
@@ -936,7 +966,13 @@ function applyTaskStatusFilter(status) {
     loadListView(currentFilters);
   }
 
-  showNotification(`Filtering by status: ${status}`, 'info');
+  const statusLabels = {
+    open: t('dashboard_tasks_statusOpen'),
+    active: t('dashboard_tasks_statusActive'),
+    fixed: t('dashboard_tasks_statusFixed'),
+    abandoned: t('dashboard_tasks_statusAbandoned')
+  };
+  showNotification(t('dashboard_tasks_filteringByStatus', statusLabels[status] || status), 'info');
 }
 
 // Helper function for multi-select

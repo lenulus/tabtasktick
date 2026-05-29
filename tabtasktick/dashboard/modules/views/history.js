@@ -2,6 +2,7 @@
 // Handles the tab history timeline view
 
 import { getActivityIcon } from '../core/utils.js';
+import { t, tPlural } from '../../../services/utils/i18n.js';
 
 export async function loadHistoryView() {
   // Set up event listeners (only once)
@@ -21,12 +22,12 @@ export async function loadHistoryView() {
     let dateKey;
     
     if (activity.timestamp >= todayStart) {
-      dateKey = 'Today';
+      dateKey = t('dashboard_history_today');
     } else if (activity.timestamp >= yesterdayStart) {
-      dateKey = 'Yesterday';
+      dateKey = t('dashboard_history_yesterday');
     } else if (activity.timestamp >= weekAgo) {
       const daysAgo = Math.floor((todayStart - activity.timestamp) / 86400000);
-      dateKey = `${daysAgo} days ago`;
+      dateKey = tPlural('dashboard_history_daysAgo', daysAgo);
     } else {
       const date = new Date(activity.timestamp);
       dateKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -66,8 +67,8 @@ function renderHistory(history) {
   if (history.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <h3>No tab history</h3>
-        <p>Your tab management activity will appear here as you use TabMaster Pro</p>
+        <h3>${t('dashboard_history_emptyTitle')}</h3>
+        <p>${t('dashboard_history_emptyText')}</p>
       </div>
     `;
     return;
@@ -88,8 +89,8 @@ function renderHistory(history) {
       const historyItem = document.createElement('div');
       historyItem.className = 'history-item';
       
-      const badge = item.source === 'auto' ? '<span class="source-badge auto">Auto</span>' : 
-        item.source === 'rule' ? '<span class="source-badge rule">Rule</span>' : '';
+      const badge = item.source === 'auto' ? `<span class="source-badge auto">${t('dashboard_history_badgeAuto')}</span>` :
+        item.source === 'rule' ? `<span class="source-badge rule">${t('dashboard_history_badgeRule')}</span>` : '';
       
       historyItem.innerHTML = `
         <div class="history-icon" style="color: ${item.color || '#666'};">
@@ -130,7 +131,7 @@ function setupHistoryEventListeners() {
 }
 
 async function handleClearHistory() {
-  if (!confirm('Are you sure you want to clear all history? This cannot be undone.')) {
+  if (!confirm(t('dashboard_history_confirmClear'))) {
     return;
   }
 
@@ -143,14 +144,14 @@ async function handleClearHistory() {
 
       // Show success notification if available
       if (typeof showNotification === 'function') {
-        showNotification('History cleared successfully', 'success');
+        showNotification(t('dashboard_history_cleared'), 'success');
       }
     } else {
       throw new Error('Failed to clear history');
     }
   } catch (error) {
     console.error('Failed to clear history:', error);
-    alert('Failed to clear history. Please try again.');
+    alert(t('dashboard_history_clearFailed'));
   }
 }
 

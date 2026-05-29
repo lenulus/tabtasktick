@@ -10,6 +10,7 @@
  */
 
 import { debounce } from '../dashboard/modules/core/utils.js';
+import { t } from '../services/utils/i18n.js';
 
 export class SearchFilter {
   constructor() {
@@ -97,35 +98,35 @@ export class SearchFilter {
     const html = `
       <div class="filter-section">
         <div class="filter-group">
-          <label class="filter-label">State</label>
+          <label class="filter-label">${t('sidepanel_filters_state')}</label>
           <div class="filter-toggle-group">
             <button
               class="filter-toggle ${this.collectionsFilters.state === 'all' ? 'active' : ''}"
               data-filter="state"
               data-value="all"
             >
-              All
+              ${t('sidepanel_filters_stateAll')}
             </button>
             <button
               class="filter-toggle ${this.collectionsFilters.state === 'active' ? 'active' : ''}"
               data-filter="state"
               data-value="active"
             >
-              Active
+              ${t('sidepanel_filters_stateActive')}
             </button>
             <button
               class="filter-toggle ${this.collectionsFilters.state === 'saved' ? 'active' : ''}"
               data-filter="state"
               data-value="saved"
             >
-              Saved
+              ${t('sidepanel_filters_stateSaved')}
             </button>
           </div>
         </div>
 
         ${availableTags.length > 0 ? `
           <div class="filter-group">
-            <label class="filter-label">Tags</label>
+            <label class="filter-label">${t('sidepanel_filters_tags')}</label>
             <div class="filter-multi-select" id="collections-tags-filter">
               ${availableTags.map(tag => `
                 <label class="filter-checkbox">
@@ -143,23 +144,23 @@ export class SearchFilter {
         ` : ''}
 
         <div class="filter-group">
-          <label class="filter-label">Sort by</label>
+          <label class="filter-label">${t('sidepanel_filters_sortBy')}</label>
           <select class="filter-select" data-filter="sortBy">
             <option value="lastAccessed" ${this.collectionsFilters.sortBy === 'lastAccessed' ? 'selected' : ''}>
-              Last Accessed
+              ${t('sidepanel_filters_sortLastAccessed')}
             </option>
             <option value="created" ${this.collectionsFilters.sortBy === 'created' ? 'selected' : ''}>
-              Created
+              ${t('sidepanel_filters_sortCreated')}
             </option>
             <option value="name" ${this.collectionsFilters.sortBy === 'name' ? 'selected' : ''}>
-              Name
+              ${t('sidepanel_filters_sortName')}
             </option>
           </select>
         </div>
 
         ${this.getActiveFilterCount('collections') > 0 ? `
           <button class="filter-clear-btn" data-clear-filters="collections">
-            Clear Filters (${this.getActiveFilterCount('collections')})
+            ${t('sidepanel_filters_clear', String(this.getActiveFilterCount('collections')))}
           </button>
         ` : ''}
       </div>
@@ -179,10 +180,23 @@ export class SearchFilter {
     const container = document.getElementById('tasks-filters');
     if (!container) return;
 
+    const statusLabels = {
+      open: t('sidepanel_filters_statusOpen'),
+      active: t('sidepanel_filters_statusActive'),
+      fixed: t('sidepanel_filters_statusFixed'),
+      abandoned: t('sidepanel_filters_statusAbandoned')
+    };
+    const priorityLabels = {
+      low: t('sidepanel_filters_priorityLow'),
+      medium: t('sidepanel_filters_priorityMedium'),
+      high: t('sidepanel_filters_priorityHigh'),
+      critical: t('sidepanel_filters_priorityCritical')
+    };
+
     const html = `
       <div class="filter-section">
         <div class="filter-group">
-          <label class="filter-label">Status</label>
+          <label class="filter-label">${t('sidepanel_filters_status')}</label>
           <div class="filter-multi-select">
             ${['open', 'active', 'fixed', 'abandoned'].map(status => `
               <label class="filter-checkbox">
@@ -192,14 +206,14 @@ export class SearchFilter {
                   value="${status}"
                   ${this.tasksFilters.status.includes(status) ? 'checked' : ''}
                 >
-                <span>${this.capitalize(status)}</span>
+                <span>${this.escapeHtml(statusLabels[status])}</span>
               </label>
             `).join('')}
           </div>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">Priority</label>
+          <label class="filter-label">${t('sidepanel_filters_priority')}</label>
           <div class="filter-multi-select">
             ${['low', 'medium', 'high', 'critical'].map(priority => `
               <label class="filter-checkbox">
@@ -209,7 +223,7 @@ export class SearchFilter {
                   value="${priority}"
                   ${this.tasksFilters.priority.includes(priority) ? 'checked' : ''}
                 >
-                <span>${this.capitalize(priority)}</span>
+                <span>${this.escapeHtml(priorityLabels[priority])}</span>
               </label>
             `).join('')}
           </div>
@@ -217,7 +231,7 @@ export class SearchFilter {
 
         ${collections.length > 0 ? `
           <div class="filter-group">
-            <label class="filter-label">Collection</label>
+            <label class="filter-label">${t('sidepanel_filters_collection')}</label>
             <div class="filter-multi-select" style="max-height: 200px; overflow-y: auto;">
               <label class="filter-checkbox">
                 <input
@@ -226,7 +240,7 @@ export class SearchFilter {
                   value="uncategorized"
                   ${this.tasksFilters.collectionId.includes('uncategorized') ? 'checked' : ''}
                 >
-                <span>Uncategorized</span>
+                <span>${t('sidepanel_filters_uncategorized')}</span>
               </label>
               ${collections.map(c => `
                 <label class="filter-checkbox">
@@ -236,7 +250,7 @@ export class SearchFilter {
                     value="${c.id}"
                     ${this.tasksFilters.collectionId.includes(c.id) ? 'checked' : ''}
                   >
-                  <span>${this.escapeHtml(c.name || 'Unnamed')}</span>
+                  <span>${this.escapeHtml(c.name || t('sidepanel_filters_unnamed'))}</span>
                 </label>
               `).join('')}
             </div>
@@ -247,7 +261,7 @@ export class SearchFilter {
 
         ${this.getActiveFilterCount('tasks') > 0 ? `
           <button class="filter-clear-btn" data-clear-filters="tasks">
-            Clear Filters (${this.getActiveFilterCount('tasks')})
+            ${t('sidepanel_filters_clear', String(this.getActiveFilterCount('tasks')))}
           </button>
         ` : ''}
       </div>
@@ -548,12 +562,5 @@ export class SearchFilter {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-  }
-
-  /**
-   * Capitalize first letter
-   */
-  capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 }

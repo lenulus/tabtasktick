@@ -10,6 +10,8 @@
  * - NO business logic - just UI state management
  */
 
+import { t } from '../services/utils/i18n.js';
+
 export class PresentationControls {
   constructor() {
     // Presentation state (defaults from design doc)
@@ -42,22 +44,22 @@ export class PresentationControls {
     const html = `
       <div class="presentation-controls">
         <div class="control-group">
-          <label class="control-label" for="group-by-select">Group By:</label>
-          <select id="group-by-select" class="control-select" aria-label="Group tasks by">
-            <option value="collection" ${this.groupBy === 'collection' ? 'selected' : ''}>Collection</option>
-            <option value="priority" ${this.groupBy === 'priority' ? 'selected' : ''}>Priority</option>
-            <option value="status" ${this.groupBy === 'status' ? 'selected' : ''}>Status</option>
-            <option value="none" ${this.groupBy === 'none' ? 'selected' : ''}>None</option>
+          <label class="control-label" for="group-by-select">${t('sidepanel_presentation_groupBy')}</label>
+          <select id="group-by-select" class="control-select" aria-label="${t('sidepanel_presentation_groupByLabel')}">
+            <option value="collection" ${this.groupBy === 'collection' ? 'selected' : ''}>${t('sidepanel_presentation_groupCollection')}</option>
+            <option value="priority" ${this.groupBy === 'priority' ? 'selected' : ''}>${t('sidepanel_presentation_groupPriority')}</option>
+            <option value="status" ${this.groupBy === 'status' ? 'selected' : ''}>${t('sidepanel_presentation_groupStatus')}</option>
+            <option value="none" ${this.groupBy === 'none' ? 'selected' : ''}>${t('sidepanel_presentation_groupNone')}</option>
           </select>
         </div>
 
         <div class="control-group">
-          <label class="control-label" for="sort-by-select">Sort By:</label>
-          <select id="sort-by-select" class="control-select" aria-label="Sort tasks by">
-            <option value="priority" ${this.sortBy === 'priority' ? 'selected' : ''}>Priority</option>
-            <option value="dueDate" ${this.sortBy === 'dueDate' ? 'selected' : ''}>Due Date</option>
-            <option value="created" ${this.sortBy === 'created' ? 'selected' : ''}>Created</option>
-            <option value="alpha" ${this.sortBy === 'alpha' ? 'selected' : ''}>Alpha</option>
+          <label class="control-label" for="sort-by-select">${t('sidepanel_presentation_sortBy')}</label>
+          <select id="sort-by-select" class="control-select" aria-label="${t('sidepanel_presentation_sortByLabel')}">
+            <option value="priority" ${this.sortBy === 'priority' ? 'selected' : ''}>${t('sidepanel_presentation_sortPriority')}</option>
+            <option value="dueDate" ${this.sortBy === 'dueDate' ? 'selected' : ''}>${t('sidepanel_presentation_sortDueDate')}</option>
+            <option value="created" ${this.sortBy === 'created' ? 'selected' : ''}>${t('sidepanel_presentation_sortCreated')}</option>
+            <option value="alpha" ${this.sortBy === 'alpha' ? 'selected' : ''}>${t('sidepanel_presentation_sortAlpha')}</option>
           </select>
         </div>
 
@@ -65,8 +67,8 @@ export class PresentationControls {
           <button
             id="sort-direction-toggle"
             class="sort-direction-btn"
-            aria-label="Toggle sort direction"
-            title="${this.sortDirection === 'asc' ? 'Ascending' : 'Descending'}"
+            aria-label="${t('sidepanel_presentation_directionLabel')}"
+            title="${this.sortDirection === 'asc' ? t('sidepanel_presentation_directionAsc') : t('sidepanel_presentation_directionDesc')}"
           >
             ${this.sortDirection === 'asc' ? '↑' : '↓'}
           </button>
@@ -127,7 +129,9 @@ export class PresentationControls {
 
         // Update button UI
         sortDirectionBtn.textContent = this.sortDirection === 'asc' ? '↑' : '↓';
-        sortDirectionBtn.title = this.sortDirection === 'asc' ? 'Ascending' : 'Descending';
+        sortDirectionBtn.title = this.sortDirection === 'asc'
+          ? t('sidepanel_presentation_directionAsc')
+          : t('sidepanel_presentation_directionDesc');
 
         // Fire callback IMMEDIATELY with updated value (don't wait for saveState)
         if (this.onSortDirectionChange) {

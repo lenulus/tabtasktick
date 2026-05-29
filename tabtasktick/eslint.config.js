@@ -178,5 +178,23 @@ export default [
       'no-undef': 'off',
       'no-restricted-syntax': 'off'
     }
+  },
+  // i18n guardrail - flag hardcoded user-facing strings in UI surfaces.
+  // Enforced as 'error': all surfaces are fully extracted to _locales.
+  {
+    files: [
+      'popup/**/*.js',
+      'sidepanel/**/*.js',
+      'dashboard/**/*.js',
+      'options/**/*.js',
+      'lib/modals/**/*.js',
+      'services/utils/snoozeFormatters.js',
+      'services/utils/WindowNameService.js',
+      'services/utils/activityFormatter.js'
+    ],
+    ignores: ['**/*.test.js', '**/*.spec.js'],
+    rules: {
+      'local/no-hardcoded-ui-string': 'error'
+    }
   }
 ];

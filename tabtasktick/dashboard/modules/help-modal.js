@@ -5,6 +5,7 @@
  */
 
 import keyboardShortcuts from './keyboard-shortcuts.js';
+import { t } from '../../services/utils/i18n.js';
 
 class KeyboardShortcutsHelpModal {
   constructor() {
@@ -35,25 +36,25 @@ class KeyboardShortcutsHelpModal {
            aria-labelledby="keyboard-shortcuts-title">
         <div class="modal-content modal-lg">
           <div class="modal-header">
-            <h3 id="keyboard-shortcuts-title">Keyboard Shortcuts</h3>
+            <h3 id="keyboard-shortcuts-title">${t('dashboard_help_title')}</h3>
             <button class="close-btn"
                     id="closeKeyboardShortcutsModal"
-                    aria-label="Close keyboard shortcuts help">&times;</button>
+                    aria-label="${t('dashboard_help_closeLabel')}">&times;</button>
           </div>
           <div class="modal-body">
             <div class="shortcuts-search">
               <input
                 type="text"
                 id="shortcutsSearch"
-                placeholder="Search shortcuts..."
+                placeholder="${t('dashboard_help_searchPlaceholder')}"
                 class="search-input"
-                aria-label="Search keyboard shortcuts"
+                aria-label="${t('dashboard_help_searchLabel')}"
               >
             </div>
             <div class="shortcuts-container"
                  id="shortcutsContainer"
                  role="region"
-                 aria-label="Keyboard shortcuts list">
+                 aria-label="${t('dashboard_help_listLabel')}">
               <!-- Shortcuts will be populated here -->
             </div>
           </div>
@@ -200,7 +201,7 @@ class KeyboardShortcutsHelpModal {
     if (shortcuts.length === 0) {
       this.shortcutsContainer.innerHTML = `
         <div class="empty-state" style="padding: 40px; text-align: center;">
-          <p>No shortcuts found</p>
+          <p>${t('dashboard_help_noShortcuts')}</p>
         </div>
       `;
       return;
@@ -283,7 +284,7 @@ class KeyboardShortcutsHelpModal {
    */
   renderShortcut(shortcut) {
     const keys = this.formatShortcutKeys(shortcut.key, shortcut);
-    const description = shortcut.description || 'No description';
+    const description = shortcut.description || t('dashboard_help_noDescription');
     const context = shortcut.context ? ` <span class="shortcut-context">(${shortcut.context})</span>` : '';
 
     return `
@@ -330,7 +331,7 @@ class KeyboardShortcutsHelpModal {
     // Render as keyboard keys
     return parts.map((part, i) => {
       if (part === 'then') {
-        return '<span class="key-separator">then</span>';
+        return `<span class="key-separator">${t('dashboard_help_sequenceThen')}</span>`;
       }
       return `<kbd class="keyboard-key">${part}</kbd>`;
     }).join(' ');
@@ -366,10 +367,10 @@ class KeyboardShortcutsHelpModal {
    */
   formatCategoryTitle(category) {
     const titleMap = {
-      navigation: 'Navigation',
-      tasks: 'Tasks',
-      collections: 'Collections',
-      general: 'General'
+      navigation: t('dashboard_help_catNavigation'),
+      tasks: t('dashboard_help_catTasks'),
+      collections: t('dashboard_help_catCollections'),
+      general: t('dashboard_help_catGeneral')
     };
 
     return titleMap[category] || category.charAt(0).toUpperCase() + category.slice(1);

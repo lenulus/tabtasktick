@@ -14,8 +14,8 @@
         <div class="logo">
           <img src="../icons/icon-48.png" alt="TabTaskTick">
           <div>
-            <h1>TabTaskTick Settings</h1>
-            <p class="subtitle">Configure your tab and task management preferences</p>
+            <h1 data-i18n="options_title">TabTaskTick Settings</h1>
+            <p class="subtitle" data-i18n="options_subtitle">Configure your tab and task management preferences</p>
           </div>
         </div>
       </div>
@@ -23,10 +23,10 @@
 
     <!-- Settings Navigation -->
     <nav class="nav-tabs">
-      <button class="nav-tab active" data-tab="general">General</button>
-      <button class="nav-tab" data-tab="keybinds">Keyboard Shortcuts</button>
-      <button class="nav-tab" data-tab="data">Data Management</button>
-      <button class="nav-tab" data-tab="about">About</button>
+      <button class="nav-tab active" data-tab="general" data-i18n="options_tab_general">General</button>
+      <button class="nav-tab" data-tab="keybinds" data-i18n="options_tab_keybinds">Keyboard Shortcuts</button>
+      <button class="nav-tab" data-tab="data" data-i18n="options_tab_data">Data Management</button>
+      <button class="nav-tab" data-tab="about" data-i18n="options_tab_about">About</button>
     </nav>
 
     <!-- Settings Content -->
@@ -35,12 +35,12 @@
       <!-- General Tab -->
       <div class="tab-panel active" id="general">
         <section class="settings-section">
-          <h2>Tab Behavior</h2>
+          <h2 data-i18n="options_section_tabBehavior">Tab Behavior</h2>
 
           <div class="setting-item">
             <div class="setting-info">
-              <label for="skipPinnedByDefault">Protect Pinned Tabs</label>
-              <p class="setting-description">Automatically skip pinned tabs when running rules (prevents accidental closure)</p>
+              <label for="skipPinnedByDefault" data-i18n="options_protectPinned_label">Protect Pinned Tabs</label>
+              <p class="setting-description" data-i18n="options_protectPinned_desc">Automatically skip pinned tabs when running rules (prevents accidental closure)</p>
             </div>
             <label class="switch">
               <input type="checkbox" id="skipPinnedByDefault" checked>
@@ -50,28 +50,28 @@
         </section>
 
         <section class="settings-section">
-          <h2>Snooze Behavior</h2>
+          <h2 data-i18n="options_section_snooze">Snooze Behavior</h2>
 
           <div class="setting-item">
             <div class="setting-info">
-              <label for="tabRestorationMode">Tab Restoration Location</label>
-              <p class="setting-description">Where individual snoozed tabs should open when they wake up</p>
+              <label for="tabRestorationMode" data-i18n="options_restoration_label">Tab Restoration Location</label>
+              <p class="setting-description" data-i18n="options_restoration_desc">Where individual snoozed tabs should open when they wake up</p>
             </div>
             <select id="tabRestorationMode" class="setting-select">
-              <option value="original">Back to original window (default)</option>
-              <option value="current">In current window</option>
-              <option value="new">In new window</option>
+              <option value="original" data-i18n="options_restoration_original">Back to original window (default)</option>
+              <option value="current" data-i18n="options_restoration_current">In current window</option>
+              <option value="new" data-i18n="options_restoration_new">In new window</option>
             </select>
           </div>
         </section>
 
         <section class="settings-section">
-          <h2>Developer Options</h2>
+          <h2 data-i18n="options_section_developer">Developer Options</h2>
 
           <div class="setting-item">
             <div class="setting-info">
-              <label for="developerMode">Developer Mode</label>
-              <p class="setting-description">Enable debugging features and detailed logging</p>
+              <label for="developerMode" data-i18n="options_devMode_label">Developer Mode</label>
+              <p class="setting-description" data-i18n="options_devMode_desc">Enable debugging features and detailed logging</p>
             </div>
             <label class="switch">
               <input type="checkbox" id="developerMode">
@@ -82,23 +82,23 @@
           <div id="developerSettings" class="developer-settings hidden">
             <div class="setting-item">
               <div class="setting-info">
-                <label for="developerLogLevel">Log Level</label>
-                <p class="setting-description">Controls which log messages are captured for debugging</p>
+                <label for="developerLogLevel" data-i18n="options_logLevel_label">Log Level</label>
+                <p class="setting-description" data-i18n="options_logLevel_desc">Controls which log messages are captured for debugging</p>
               </div>
               <select id="developerLogLevel" class="setting-select">
-                <option value="0">DEBUG (verbose)</option>
-                <option value="1">INFO</option>
-                <option value="2" selected>WARN (default)</option>
-                <option value="3">ERROR (minimal)</option>
+                <option value="0" data-i18n="options_logLevel_debug">DEBUG (verbose)</option>
+                <option value="1" data-i18n="options_logLevel_info">INFO</option>
+                <option value="2" selected data-i18n="options_logLevel_warn">WARN (default)</option>
+                <option value="3" data-i18n="options_logLevel_error">ERROR (minimal)</option>
               </select>
             </div>
 
             <div class="setting-item">
               <div class="setting-info">
-                <label>Test Log Filtering</label>
-                <p class="setting-description">Emit a test log at each level to verify filtering (check browser console)</p>
+                <label data-i18n="options_testLog_label">Test Log Filtering</label>
+                <p class="setting-description" data-i18n="options_testLog_desc">Emit a test log at each level to verify filtering (check browser console)</p>
               </div>
-              <button class="btn btn-secondary" id="testLogLevels">Test Log Levels</button>
+              <button class="btn btn-secondary" id="testLogLevels" data-i18n="options_testLog_btn">Test Log Levels</button>
             </div>
           </div>
         </section>
@@ -107,22 +107,20 @@
       <!-- Keyboard Shortcuts Tab -->
       <div class="tab-panel" id="keybinds">
         <section class="settings-section">
-          <h2>Keyboard Shortcuts</h2>
+          <h2 data-i18n="options_section_keybinds">Keyboard Shortcuts</h2>
 
           <div class="shortcuts-info">
             <div class="info-card">
-              <h4>How to Change Shortcuts</h4>
-              <p>Chrome extension shortcuts can only be modified through Chrome's built-in settings.
-                 Visit <a href="chrome://extensions/shortcuts" id="shortcutsLink">chrome://extensions/shortcuts</a>
-                 to customize these shortcuts.</p>
+              <h4 data-i18n="options_keybinds_howto_title">How to Change Shortcuts</h4>
+              <p><span data-i18n="options_keybinds_howto_p1">Chrome extension shortcuts can only be modified through Chrome's built-in settings. Visit </span><a href="chrome://extensions/shortcuts" id="shortcutsLink">chrome://extensions/shortcuts</a><span data-i18n="options_keybinds_howto_p2"> to customize these shortcuts.</span></p>
             </div>
           </div>
 
           <div class="shortcuts-list" id="shortcutsList">
             <div class="shortcut-item">
               <div class="shortcut-info">
-                <h4>Open Popup</h4>
-                <p>Open the TabTaskTick popup</p>
+                <h4 data-i18n="options_shortcut_popup_title">Open Popup</h4>
+                <p data-i18n="options_shortcut_popup_desc">Open the TabTaskTick popup</p>
               </div>
               <div class="shortcut-key">
                 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
@@ -131,8 +129,8 @@
 
             <div class="shortcut-item">
               <div class="shortcut-info">
-                <h4>Quick Snooze</h4>
-                <p>Snooze the current tab with dialog</p>
+                <h4 data-i18n="options_shortcut_snooze_title">Quick Snooze</h4>
+                <p data-i18n="options_shortcut_snooze_desc">Snooze the current tab with dialog</p>
               </div>
               <div class="shortcut-key">
                 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>
@@ -141,8 +139,8 @@
 
             <div class="shortcut-item">
               <div class="shortcut-info">
-                <h4>Group by Domain</h4>
-                <p>Organize all tabs into domain groups</p>
+                <h4 data-i18n="options_shortcut_group_title">Group by Domain</h4>
+                <p data-i18n="options_shortcut_group_desc">Organize all tabs into domain groups</p>
               </div>
               <div class="shortcut-key">
                 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>
@@ -151,8 +149,8 @@
 
             <div class="shortcut-item">
               <div class="shortcut-info">
-                <h4>Close Duplicates</h4>
-                <p>Remove all duplicate tabs</p>
+                <h4 data-i18n="options_shortcut_dupes_title">Close Duplicates</h4>
+                <p data-i18n="options_shortcut_dupes_desc">Remove all duplicate tabs</p>
               </div>
               <div class="shortcut-key">
                 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>
@@ -165,44 +163,44 @@
       <!-- Data Management Tab -->
       <div class="tab-panel" id="data">
         <section class="settings-section">
-          <h2>Data Management</h2>
-          <p class="section-description">Manage your extension data and reset settings</p>
+          <h2 data-i18n="options_section_data">Data Management</h2>
+          <p class="section-description" data-i18n="options_data_desc">Manage your extension data and reset settings</p>
 
           <div class="setting-item">
             <div class="setting-info">
-              <label>Clear Activity History</label>
-              <p class="setting-description">Remove all recorded tab activity history</p>
+              <label data-i18n="options_clearHistory_label">Clear Activity History</label>
+              <p class="setting-description" data-i18n="options_clearHistory_desc">Remove all recorded tab activity history</p>
             </div>
-            <button class="btn btn-secondary" id="clearHistory">Clear History</button>
+            <button class="btn btn-secondary" id="clearHistory" data-i18n="options_clearHistory_btn">Clear History</button>
           </div>
 
           <div class="setting-item">
             <div class="setting-info">
-              <label>Clear All Data</label>
-              <p class="setting-description">Remove all extension data including snoozed tabs, rules, and settings</p>
+              <label data-i18n="options_clearData_label">Clear All Data</label>
+              <p class="setting-description" data-i18n="options_clearData_desc">Remove all extension data including snoozed tabs, rules, and settings</p>
             </div>
-            <button class="btn btn-secondary" id="clearStorage">Clear All Data</button>
+            <button class="btn btn-secondary" id="clearStorage" data-i18n="options_clearData_btn">Clear All Data</button>
           </div>
 
           <div class="setting-item">
             <div class="setting-info">
-              <label>Reset to Defaults</label>
-              <p class="setting-description">Restore all settings to their default values</p>
+              <label data-i18n="options_reset_label">Reset to Defaults</label>
+              <p class="setting-description" data-i18n="options_reset_desc">Restore all settings to their default values</p>
             </div>
-            <button class="btn btn-danger" id="resetSettings">Reset to Defaults</button>
+            <button class="btn btn-danger" id="resetSettings" data-i18n="options_reset_btn">Reset to Defaults</button>
           </div>
         </section>
 
         <section class="settings-section">
-          <h2>Import & Export</h2>
-          <p class="section-description">For full data export/import including scheduled backups, use the Dashboard</p>
+          <h2 data-i18n="options_section_importExport">Import & Export</h2>
+          <p class="section-description" data-i18n="options_importExport_desc">For full data export/import including scheduled backups, use the Dashboard</p>
 
           <div class="setting-item">
             <div class="setting-info">
-              <label>Open Dashboard</label>
-              <p class="setting-description">Access advanced export/import features with multiple formats and scheduling</p>
+              <label data-i18n="options_openDashboard_label">Open Dashboard</label>
+              <p class="setting-description" data-i18n="options_openDashboard_desc">Access advanced export/import features with multiple formats and scheduling</p>
             </div>
-            <button class="btn btn-primary" id="openDashboard">Open Dashboard</button>
+            <button class="btn btn-primary" id="openDashboard" data-i18n="options_openDashboard_btn">Open Dashboard</button>
           </div>
         </section>
       </div>
@@ -213,14 +211,14 @@
           <div class="about-content">
             <img src="../icons/icon-128.png" alt="TabTaskTick" class="about-logo">
             <h2>TabTaskTick</h2>
-            <p class="version" id="versionNumber">Version loading...</p>
+            <p class="version" id="versionNumber" data-i18n="options_version_loading">Version loading...</p>
 
             <div class="about-info">
-              <p>Advanced tab and bookmark management extension with intelligent automation.</p>
+              <p data-i18n="options_about_desc">Advanced tab and bookmark management extension with intelligent automation.</p>
 
               <div class="links">
-                <a href="https://github.com/lenulus/tabtasktick" target="_blank">GitHub</a>
-                <a href="https://github.com/lenulus/tabtasktick/issues" target="_blank">Report Issue</a>
+                <a href="https://github.com/lenulus/tabtasktick" target="_blank" data-i18n="options_link_github">GitHub</a>
+                <a href="https://github.com/lenulus/tabtasktick/issues" target="_blank" data-i18n="options_link_reportIssue">Report Issue</a>
               </div>
             </div>
           </div>
@@ -229,7 +227,7 @@
     </div>
 
     <!-- Save Notification -->
-    <div class="save-notification" id="saveNotification">
+    <div class="save-notification" id="saveNotification" data-i18n="options_saved">
       Settings saved successfully!
     </div>
   </div>

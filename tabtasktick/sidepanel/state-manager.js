@@ -4,6 +4,8 @@
  * NO business logic - pure UI state coordination
  */
 
+import { t } from '../services/utils/i18n.js';
+
 class StateManager {
   constructor() {
     this.state = {
@@ -146,9 +148,9 @@ class StateManager {
         error.message?.includes('Extension context invalidated')) {
       return {
         type: 'connection',
-        message: 'Connection lost. The extension may have restarted.',
+        message: t('sidepanel_state_connectionMessage'),
         retry: true,
-        suggestion: 'Click Retry to reload data.'
+        suggestion: t('sidepanel_state_connectionSuggestion')
       };
     }
 
@@ -157,9 +159,9 @@ class StateManager {
         error.message?.includes('QUOTA_EXCEEDED')) {
       return {
         type: 'quota',
-        message: 'Storage full.',
+        message: t('sidepanel_state_quotaMessage'),
         retry: false,
-        suggestion: 'Delete old collections to free up space.'
+        suggestion: t('sidepanel_state_quotaSuggestion')
       };
     }
 
@@ -168,9 +170,9 @@ class StateManager {
         error.message?.includes('does not exist')) {
       return {
         type: 'not_found',
-        message: 'Item no longer exists.',
+        message: t('sidepanel_state_notFoundMessage'),
         retry: false,
-        suggestion: 'It may have been deleted.'
+        suggestion: t('sidepanel_state_notFoundSuggestion')
       };
     }
 
@@ -179,18 +181,18 @@ class StateManager {
         error.message?.includes('denied')) {
       return {
         type: 'permission',
-        message: 'Permission denied.',
+        message: t('sidepanel_state_permissionMessage'),
         retry: false,
-        suggestion: 'Check extension permissions in chrome://extensions'
+        suggestion: t('sidepanel_state_permissionSuggestion')
       };
     }
 
     // Generic error
     return {
       type: 'unknown',
-      message: error.message || 'An error occurred.',
+      message: error.message || t('sidepanel_state_unknownMessage'),
       retry: true,
-      suggestion: 'Click Retry to try again.'
+      suggestion: t('sidepanel_state_unknownSuggestion')
     };
   }
 

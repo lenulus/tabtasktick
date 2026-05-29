@@ -1,0 +1,6015 @@
+{
+  "appName": {
+    "message": "TabTaskTick"
+  },
+  "appDesc": {
+    "message": "Intelligente Tab- und Aufgabenverwaltung mit Sammlungen, Regel-Engine, automatischer Gruppierung und Schlummern"
+  },
+  "cmd_quickSnooze": {
+    "message": "Aktuellen Tab schnell schlummern"
+  },
+  "cmd_groupByDomain": {
+    "message": "Alle Tabs nach Domain gruppieren"
+  },
+  "cmd_closeDuplicates": {
+    "message": "Doppelte Tabs schließen"
+  },
+  "common_cancel": {
+    "message": "Abbrechen"
+  },
+  "common_save": {
+    "message": "Speichern"
+  },
+  "common_close": {
+    "message": "Schließen"
+  },
+  "common_delete": {
+    "message": "Löschen"
+  },
+  "common_edit": {
+    "message": "Bearbeiten"
+  },
+  "common_loading": {
+    "message": "Wird geladen..."
+  },
+  "common_errorLoading": {
+    "message": "Fehler beim Laden"
+  },
+  "common_settings": {
+    "message": "Einstellungen"
+  },
+  "popup_collectionsDetail": {
+    "message": "$active$ aktiv, $saved$ gespeichert",
+    "placeholders": {
+      "active": {
+        "content": "$1",
+        "example": "3"
+      },
+      "saved": {
+        "content": "$2",
+        "example": "12"
+      }
+    }
+  },
+  "snooze_title_tabs_one": {
+    "message": "$count$ Tab schlummern",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "snooze_title_tabs_other": {
+    "message": "$count$ Tabs schlummern",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "popup_debug_title": {
+    "message": "Debug-Informationen kopieren"
+  },
+  "popup_testMode_title": {
+    "message": "Testmodus aktiv"
+  },
+  "popup_testMode_body": {
+    "message": "Produktivregeln sind deaktiviert"
+  },
+  "popup_testMode_exit": {
+    "message": "Testmodus beenden"
+  },
+  "popup_banner_collections_title": {
+    "message": "Sammlungen ausprobieren"
+  },
+  "popup_banner_collections_body": {
+    "message": "Fenster als Sammlungen speichern und jederzeit wiederherstellen"
+  },
+  "popup_banner_dismiss": {
+    "message": "Banner ausblenden"
+  },
+  "popup_saveWindow": {
+    "message": "Dieses Fenster speichern"
+  },
+  "popup_collections_label": {
+    "message": "Sammlungen"
+  },
+  "popup_tasks_label": {
+    "message": "Aufgaben"
+  },
+  "popup_stat_allTabs": {
+    "message": "Alle Tabs"
+  },
+  "popup_stat_groups": {
+    "message": "Gruppen"
+  },
+  "popup_stat_snoozed": {
+    "message": "Schlummernd"
+  },
+  "popup_stat_duplicates": {
+    "message": "Duplikate"
+  },
+  "popup_quickActions": {
+    "message": "Schnellaktionen"
+  },
+  "popup_action_closeDuplicates": {
+    "message": "Duplikate schließen"
+  },
+  "popup_action_groupByDomain": {
+    "message": "Nach Domain gruppieren"
+  },
+  "popup_action_snoozeCurrent": {
+    "message": "Aktuellen schlummern"
+  },
+  "popup_action_snoozeWindow": {
+    "message": "Fenster schlummern"
+  },
+  "popup_action_suspendInactive": {
+    "message": "Inaktive aussetzen"
+  },
+  "popup_activeRules": {
+    "message": "Aktive Regeln"
+  },
+  "popup_manageRules_title": {
+    "message": "Regeln verwalten"
+  },
+  "popup_manage": {
+    "message": "Verwalten"
+  },
+  "popup_topDomains": {
+    "message": "Top-Domains"
+  },
+  "popup_snoozedTabs": {
+    "message": "Schlummernde Tabs"
+  },
+  "popup_wakeAll_title": {
+    "message": "Alle schlummernden Tabs aufwecken"
+  },
+  "popup_wakeAll": {
+    "message": "Alle aufwecken"
+  },
+  "popup_dashboard": {
+    "message": "Dashboard"
+  },
+  "popup_backup_title": {
+    "message": "Alle Tabs, Einstellungen, Regeln und schlummernden Tabs sichern"
+  },
+  "popup_backup": {
+    "message": "Sicherung"
+  },
+  "popup_restore_title": {
+    "message": "Tabs, Einstellungen, Regeln und schlummernde Tabs wiederherstellen"
+  },
+  "popup_restore": {
+    "message": "Wiederherstellen"
+  },
+  "popup_testPanel_title": {
+    "message": "Test-Panel öffnen"
+  },
+  "popup_test": {
+    "message": "Test"
+  },
+  "popup_help": {
+    "message": "Hilfe"
+  },
+  "popup_tasksDetail": {
+    "message": "$open$ offen, $active$ aktiv",
+    "placeholders": {
+      "open": {
+        "content": "$1",
+        "example": "2"
+      },
+      "active": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "popup_rules_empty": {
+    "message": "Keine aktiven Regeln"
+  },
+  "popup_domains_empty": {
+    "message": "Keine Domains zum Anzeigen"
+  },
+  "popup_snoozed_windowLabel_one": {
+    "message": "Fenster ($count$ Tab)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_snoozed_windowLabel_other": {
+    "message": "Fenster ($count$ Tabs)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_snoozed_restoreWindow": {
+    "message": "Fenster wiederherstellen"
+  },
+  "popup_snoozed_deleteWindow": {
+    "message": "Fenster löschen"
+  },
+  "popup_snoozed_wakeNow": {
+    "message": "Jetzt aufwecken"
+  },
+  "popup_snoozed_reschedule": {
+    "message": "Neu planen"
+  },
+  "popup_confirm_deleteWindow_one": {
+    "message": "Schlummerndes Fenster mit $count$ Tab löschen?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_confirm_deleteWindow_other": {
+    "message": "Schlummerndes Fenster mit $count$ Tabs löschen?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_confirm_deleteTab": {
+    "message": "Schlummernden Tab \"$title$\" löschen?",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_group_nextHour": {
+    "message": "Nächste Stunde"
+  },
+  "popup_group_today": {
+    "message": "Heute"
+  },
+  "popup_group_tomorrow": {
+    "message": "Morgen"
+  },
+  "popup_group_later": {
+    "message": "Später"
+  },
+  "popup_time_now": {
+    "message": "jetzt"
+  },
+  "popup_notify_loadStatsFailed": {
+    "message": "Statistiken konnten nicht geladen werden"
+  },
+  "popup_notify_sidePanelFailed": {
+    "message": "Seitenleiste konnte nicht geöffnet werden"
+  },
+  "popup_notify_closedDuplicates_one": {
+    "message": "$count$ doppelten Tab geschlossen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_closedDuplicates_other": {
+    "message": "$count$ doppelte Tabs geschlossen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noDuplicates": {
+    "message": "Keine doppelten Tabs gefunden"
+  },
+  "popup_notify_closeDuplicatesFailed": {
+    "message": "Duplikate konnten nicht geschlossen werden"
+  },
+  "popup_notify_createdGroups_one": {
+    "message": "$count$ Gruppe erstellt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_createdGroups_other": {
+    "message": "$count$ Gruppen erstellt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noTabsToGroup": {
+    "message": "Keine Tabs zum Gruppieren"
+  },
+  "popup_notify_groupTabsFailed": {
+    "message": "Tabs konnten nicht gruppiert werden"
+  },
+  "popup_notify_tabsSnoozed_one": {
+    "message": "Tab für $duration$ geschlummert",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_tabsSnoozed_other": {
+    "message": "$count$ Tabs für $duration$ geschlummert",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_snoozeTabsFailed": {
+    "message": "Tabs konnten nicht geschlummert werden"
+  },
+  "popup_notify_noTabsToSnooze": {
+    "message": "Keine Tabs zum Schlummern"
+  },
+  "popup_notify_windowsSnoozed_one": {
+    "message": "$count$ Fenster für $duration$ geschlummert",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_windowsSnoozed_other": {
+    "message": "$count$ Fenster für $duration$ geschlummert",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_totalTabsSnoozed_one": {
+    "message": "$count$ Tab für $duration$ geschlummert",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_totalTabsSnoozed_other": {
+    "message": "$count$ Tabs für $duration$ geschlummert",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_snoozeErrors_one": {
+    "message": "Schlummern mit $count$ Fehler abgeschlossen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_snoozeErrors_other": {
+    "message": "Schlummern mit $count$ Fehlern abgeschlossen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_snoozeWindowFailed": {
+    "message": "Fenster konnte nicht geschlummert werden"
+  },
+  "popup_notify_prepareSnoozeFailed": {
+    "message": "Fensterschlummern konnte nicht vorbereitet werden"
+  },
+  "popup_notify_tabRescheduled": {
+    "message": "Tab neu geplant"
+  },
+  "popup_notify_rescheduleFailed": {
+    "message": "Tab konnte nicht neu geplant werden"
+  },
+  "popup_notify_restoredTabs_one": {
+    "message": "$count$ schlummernden Tab wiederhergestellt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_restoredTabs_other": {
+    "message": "$count$ schlummernde Tabs wiederhergestellt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noSnoozedToRestore": {
+    "message": "Keine schlummernden Tabs zum Wiederherstellen"
+  },
+  "popup_notify_wakeAllFailed": {
+    "message": "Schlummernde Tabs konnten nicht aufgeweckt werden"
+  },
+  "popup_notify_suspended_one": {
+    "message": "$count$ inaktiven Tab ausgesetzt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_suspended_other": {
+    "message": "$count$ inaktive Tabs ausgesetzt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noInactive": {
+    "message": "Keine inaktiven Tabs zum Aussetzen"
+  },
+  "popup_notify_suspendFailed": {
+    "message": "Tabs konnten nicht ausgesetzt werden"
+  },
+  "popup_notify_toggleRuleFailed": {
+    "message": "Regel konnte nicht aktualisiert werden"
+  },
+  "popup_notify_tabRestored": {
+    "message": "Tab wiederhergestellt"
+  },
+  "popup_notify_wakeTabFailedDetail": {
+    "message": "Tab konnte nicht aufgeweckt werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_wakeTabFailed": {
+    "message": "Tab konnte nicht aufgeweckt werden"
+  },
+  "popup_notify_snoozedTabDeleted": {
+    "message": "Schlummernder Tab gelöscht"
+  },
+  "popup_notify_deleteTabFailedDetail": {
+    "message": "Tab konnte nicht gelöscht werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_deleteTabFailed": {
+    "message": "Tab konnte nicht gelöscht werden"
+  },
+  "popup_notify_windowRestored": {
+    "message": "Fenster wiederhergestellt"
+  },
+  "popup_notify_restoreWindowFailedDetail": {
+    "message": "Fenster konnte nicht wiederhergestellt werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_restoreWindowFailed": {
+    "message": "Fenster konnte nicht wiederhergestellt werden"
+  },
+  "popup_notify_snoozedWindowDeleted": {
+    "message": "Schlummerndes Fenster gelöscht"
+  },
+  "popup_notify_deleteWindowFailedDetail": {
+    "message": "Fenster konnte nicht gelöscht werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_deleteWindowFailed": {
+    "message": "Fenster konnte nicht gelöscht werden"
+  },
+  "popup_notify_debugCopied": {
+    "message": "Debug-Informationen in die Zwischenablage kopiert"
+  },
+  "popup_notify_debugFailed": {
+    "message": "Debug-Informationen konnten nicht kopiert werden"
+  },
+  "popup_notify_testPanelFailedDetail": {
+    "message": "Test-Panel konnte nicht geöffnet werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_genericError": {
+    "message": "Ein Fehler ist aufgetreten"
+  },
+  "common_unknownError": {
+    "message": "Unbekannter Fehler"
+  },
+  "common_days_one": {
+    "message": "$count$ Tag",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_days_other": {
+    "message": "$count$ Tage",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_hours_one": {
+    "message": "$count$ Stunde",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_hours_other": {
+    "message": "$count$ Stunden",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_minutes_one": {
+    "message": "$count$ Minute",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_minutes_other": {
+    "message": "$count$ Minuten",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_docTitle": {
+    "message": "Zur Sammlung hinzufügen"
+  },
+  "modal_collection_title": {
+    "message": "Zur Sammlung hinzufügen"
+  },
+  "modal_collection_searchPlaceholder": {
+    "message": "Sammlungen durchsuchen..."
+  },
+  "modal_collection_nameLabel": {
+    "message": "Name der Sammlung"
+  },
+  "modal_collection_namePlaceholder": {
+    "message": "z. B. Projekt X"
+  },
+  "modal_collection_create": {
+    "message": "Erstellen"
+  },
+  "modal_collection_creating": {
+    "message": "Wird erstellt..."
+  },
+  "modal_collection_emptyTitle": {
+    "message": "Noch keine Sammlungen"
+  },
+  "modal_collection_emptyHint": {
+    "message": "Erstellen Sie unten Ihre erste Sammlung"
+  },
+  "modal_collection_noMatch": {
+    "message": "Keine Sammlungen entsprechen Ihrer Suche"
+  },
+  "modal_collection_createNew": {
+    "message": "+ Neue Sammlung erstellen"
+  },
+  "modal_collection_active": {
+    "message": "Aktiv"
+  },
+  "modal_collection_moreCount_one": {
+    "message": "+ $count$ weitere Sammlung (Suche verfeinern)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_moreCount_other": {
+    "message": "+ $count$ weitere Sammlungen (Suche verfeinern)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_tabCount_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_tabCount_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_loadFailed": {
+    "message": "Sammlungen konnten nicht geladen werden"
+  },
+  "modal_collection_loadError": {
+    "message": "Fehler beim Laden der Sammlungen"
+  },
+  "modal_collection_nameRequired": {
+    "message": "Bitte geben Sie einen Sammlungsnamen ein"
+  },
+  "modal_collection_createFailed": {
+    "message": "Sammlung konnte nicht erstellt werden"
+  },
+  "modal_collection_createdTitle": {
+    "message": "Sammlung erstellt"
+  },
+  "modal_collection_createdMessage": {
+    "message": "Sammlung \"$name$\" erstellt und Tab hinzugefügt",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_addedTitle": {
+    "message": "Tab hinzugefügt"
+  },
+  "modal_collection_addedMessage": {
+    "message": "Zu $name$ hinzugefügt",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_fallbackName": {
+    "message": "Sammlung"
+  },
+  "modal_collection_noTabData": {
+    "message": "Keine Tab-Daten verfügbar"
+  },
+  "modal_collection_loadCollectionFailed": {
+    "message": "Sammlung konnte nicht geladen werden"
+  },
+  "modal_collection_createFolderFailed": {
+    "message": "Ordner konnte nicht erstellt werden"
+  },
+  "modal_collection_addTabFailed": {
+    "message": "Tab konnte nicht hinzugefügt werden"
+  },
+  "modal_collection_errorMessage": {
+    "message": "Fehler: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_note_docTitle": {
+    "message": "Notiz zum Tab hinzufügen"
+  },
+  "modal_note_title": {
+    "message": "Notiz zum Tab hinzufügen"
+  },
+  "modal_note_placeholder": {
+    "message": "Notiz hier hinzufügen (max. 255 Zeichen)..."
+  },
+  "modal_note_charCount": {
+    "message": "$current$ / 255",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_note_save": {
+    "message": "Notiz speichern"
+  },
+  "modal_note_saving": {
+    "message": "Wird gespeichert..."
+  },
+  "modal_note_noTab": {
+    "message": "Kein Tab angegeben"
+  },
+  "modal_note_notFound": {
+    "message": "Tab nicht gefunden"
+  },
+  "modal_note_notInCollection": {
+    "message": "Dieser Tab ist in keiner Sammlung. Verwenden Sie zuerst \"Zur Sammlung hinzufügen\"."
+  },
+  "modal_note_saveFailed": {
+    "message": "Notiz konnte nicht gespeichert werden"
+  },
+  "modal_note_savedTitle": {
+    "message": "Notiz gespeichert"
+  },
+  "modal_note_savedAdded": {
+    "message": "Notiz zum Tab hinzugefügt"
+  },
+  "modal_note_savedRemoved": {
+    "message": "Notiz vom Tab entfernt"
+  },
+  "modal_note_errorMessage": {
+    "message": "Fehler: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_docTitle": {
+    "message": "Aufgabe erstellen"
+  },
+  "modal_task_title": {
+    "message": "Aufgabe erstellen"
+  },
+  "modal_task_summaryLabel": {
+    "message": "Zusammenfassung"
+  },
+  "modal_task_summaryPlaceholder": {
+    "message": "z. B. PR #234 prüfen"
+  },
+  "modal_task_summaryError": {
+    "message": "Zusammenfassung ist erforderlich"
+  },
+  "modal_task_notesLabel": {
+    "message": "Notizen"
+  },
+  "modal_task_notesPlaceholder": {
+    "message": "Weitere Details..."
+  },
+  "modal_task_collectionLabel": {
+    "message": "Sammlung"
+  },
+  "modal_task_uncategorized": {
+    "message": "Nicht kategorisiert"
+  },
+  "modal_task_collectionActive": {
+    "message": "$name$ (aktiv)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_priorityLabel": {
+    "message": "Priorität"
+  },
+  "modal_task_priorityLow": {
+    "message": "Niedrig"
+  },
+  "modal_task_priorityMedium": {
+    "message": "Mittel"
+  },
+  "modal_task_priorityHigh": {
+    "message": "Hoch"
+  },
+  "modal_task_priorityCritical": {
+    "message": "Kritisch"
+  },
+  "modal_task_statusLabel": {
+    "message": "Status"
+  },
+  "modal_task_statusOpen": {
+    "message": "Offen"
+  },
+  "modal_task_statusActive": {
+    "message": "Aktiv"
+  },
+  "modal_task_dueDateLabel": {
+    "message": "Fälligkeitsdatum"
+  },
+  "modal_task_tagsLabel": {
+    "message": "Tags"
+  },
+  "modal_task_tagPlaceholder": {
+    "message": "Tag eingeben..."
+  },
+  "modal_task_addTag": {
+    "message": "Tag hinzufügen"
+  },
+  "modal_task_referencedTabs": {
+    "message": "Referenzierte Tabs"
+  },
+  "modal_task_selectCollection": {
+    "message": "Wählen Sie eine Sammlung, um Tabs anzuzeigen"
+  },
+  "modal_task_create": {
+    "message": "Aufgabe erstellen"
+  },
+  "modal_task_creating": {
+    "message": "Wird erstellt..."
+  },
+  "modal_task_errorLoadingTabs": {
+    "message": "Fehler beim Laden der Tabs"
+  },
+  "modal_task_noTabsInCollection": {
+    "message": "Keine Tabs in dieser Sammlung"
+  },
+  "modal_task_createFailed": {
+    "message": "Aufgabe konnte nicht erstellt werden"
+  },
+  "modal_task_createdTitle": {
+    "message": "Aufgabe erstellt"
+  },
+  "modal_task_createdMessage": {
+    "message": "Aufgabe erstellt: $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_errorCreating": {
+    "message": "Fehler beim Erstellen der Aufgabe: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_docTitle": {
+    "message": "TabTaskTick - Einstellungen"
+  },
+  "options_title": {
+    "message": "TabTaskTick-Einstellungen"
+  },
+  "options_subtitle": {
+    "message": "Konfigurieren Sie Ihre Einstellungen für die Tab- und Aufgabenverwaltung"
+  },
+  "options_tab_general": {
+    "message": "Allgemein"
+  },
+  "options_tab_keybinds": {
+    "message": "Tastenkombinationen"
+  },
+  "options_tab_data": {
+    "message": "Datenverwaltung"
+  },
+  "options_tab_about": {
+    "message": "Über"
+  },
+  "options_section_tabBehavior": {
+    "message": "Tab-Verhalten"
+  },
+  "options_protectPinned_label": {
+    "message": "Angeheftete Tabs schützen"
+  },
+  "options_protectPinned_desc": {
+    "message": "Angeheftete Tabs bei der Regelausführung automatisch überspringen (verhindert versehentliches Schließen)"
+  },
+  "options_section_snooze": {
+    "message": "Schlummerverhalten"
+  },
+  "options_restoration_label": {
+    "message": "Speicherort der Tab-Wiederherstellung"
+  },
+  "options_restoration_desc": {
+    "message": "Wo einzelne schlummernde Tabs beim Aufwecken geöffnet werden sollen"
+  },
+  "options_restoration_original": {
+    "message": "Zurück ins ursprüngliche Fenster (Standard)"
+  },
+  "options_restoration_current": {
+    "message": "Im aktuellen Fenster"
+  },
+  "options_restoration_new": {
+    "message": "In neuem Fenster"
+  },
+  "options_section_developer": {
+    "message": "Entwickleroptionen"
+  },
+  "options_devMode_label": {
+    "message": "Entwicklermodus"
+  },
+  "options_devMode_desc": {
+    "message": "Debugging-Funktionen und detaillierte Protokollierung aktivieren"
+  },
+  "options_logLevel_label": {
+    "message": "Protokollebene"
+  },
+  "options_logLevel_desc": {
+    "message": "Legt fest, welche Protokollmeldungen zum Debuggen erfasst werden"
+  },
+  "options_logLevel_debug": {
+    "message": "DEBUG (ausführlich)"
+  },
+  "options_logLevel_info": {
+    "message": "INFO"
+  },
+  "options_logLevel_warn": {
+    "message": "WARN (Standard)"
+  },
+  "options_logLevel_error": {
+    "message": "ERROR (minimal)"
+  },
+  "options_testLog_label": {
+    "message": "Protokollfilterung testen"
+  },
+  "options_testLog_desc": {
+    "message": "Ein Testprotokoll auf jeder Ebene ausgeben, um die Filterung zu überprüfen (Browserkonsole prüfen)"
+  },
+  "options_testLog_btn": {
+    "message": "Protokollebenen testen"
+  },
+  "options_section_keybinds": {
+    "message": "Tastenkombinationen"
+  },
+  "options_keybinds_howto_title": {
+    "message": "So ändern Sie Tastenkombinationen"
+  },
+  "options_keybinds_howto_p1": {
+    "message": "Tastenkombinationen für Chrome-Erweiterungen können nur über die integrierten Chrome-Einstellungen geändert werden. Besuchen Sie "
+  },
+  "options_keybinds_howto_p2": {
+    "message": ", um diese Tastenkombinationen anzupassen."
+  },
+  "options_shortcut_popup_title": {
+    "message": "Popup öffnen"
+  },
+  "options_shortcut_popup_desc": {
+    "message": "Das TabTaskTick-Popup öffnen"
+  },
+  "options_shortcut_snooze_title": {
+    "message": "Schnellschlummern"
+  },
+  "options_shortcut_snooze_desc": {
+    "message": "Aktuellen Tab mit Dialog schlummern"
+  },
+  "options_shortcut_group_title": {
+    "message": "Nach Domain gruppieren"
+  },
+  "options_shortcut_group_desc": {
+    "message": "Alle Tabs in Domain-Gruppen organisieren"
+  },
+  "options_shortcut_dupes_title": {
+    "message": "Duplikate schließen"
+  },
+  "options_shortcut_dupes_desc": {
+    "message": "Alle doppelten Tabs entfernen"
+  },
+  "options_section_data": {
+    "message": "Datenverwaltung"
+  },
+  "options_data_desc": {
+    "message": "Verwalten Sie Ihre Erweiterungsdaten und setzen Sie Einstellungen zurück"
+  },
+  "options_clearHistory_label": {
+    "message": "Aktivitätsverlauf löschen"
+  },
+  "options_clearHistory_desc": {
+    "message": "Alle aufgezeichneten Tab-Aktivitäten entfernen"
+  },
+  "options_clearHistory_btn": {
+    "message": "Verlauf löschen"
+  },
+  "options_clearData_label": {
+    "message": "Alle Daten löschen"
+  },
+  "options_clearData_desc": {
+    "message": "Alle Erweiterungsdaten einschließlich schlummernder Tabs, Regeln und Einstellungen entfernen"
+  },
+  "options_clearData_btn": {
+    "message": "Alle Daten löschen"
+  },
+  "options_reset_label": {
+    "message": "Auf Standard zurücksetzen"
+  },
+  "options_reset_desc": {
+    "message": "Alle Einstellungen auf ihre Standardwerte zurücksetzen"
+  },
+  "options_reset_btn": {
+    "message": "Auf Standard zurücksetzen"
+  },
+  "options_section_importExport": {
+    "message": "Import & Export"
+  },
+  "options_importExport_desc": {
+    "message": "Für vollständigen Datenexport/-import einschließlich geplanter Sicherungen verwenden Sie das Dashboard"
+  },
+  "options_openDashboard_label": {
+    "message": "Dashboard öffnen"
+  },
+  "options_openDashboard_desc": {
+    "message": "Auf erweiterte Export-/Importfunktionen mit mehreren Formaten und Zeitplanung zugreifen"
+  },
+  "options_openDashboard_btn": {
+    "message": "Dashboard öffnen"
+  },
+  "options_version_loading": {
+    "message": "Version wird geladen..."
+  },
+  "options_about_desc": {
+    "message": "Erweiterte Tab- und Lesezeichenverwaltung mit intelligenter Automatisierung."
+  },
+  "options_link_github": {
+    "message": "GitHub"
+  },
+  "options_link_reportIssue": {
+    "message": "Problem melden"
+  },
+  "options_saved": {
+    "message": "Einstellungen erfolgreich gespeichert!"
+  },
+  "options_version": {
+    "message": "Version $version$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "1.4.11"
+      }
+    }
+  },
+  "options_notify_loadFailed": {
+    "message": "Einstellungen konnten nicht geladen werden"
+  },
+  "options_notify_saveFailed": {
+    "message": "Einstellung konnte nicht gespeichert werden"
+  },
+  "options_confirm_clearHistory": {
+    "message": "Möchten Sie wirklich den gesamten Verlauf löschen?"
+  },
+  "options_notify_historyCleared": {
+    "message": "Verlauf erfolgreich gelöscht"
+  },
+  "options_notify_clearHistoryFailed": {
+    "message": "Verlauf konnte nicht gelöscht werden"
+  },
+  "options_confirm_clearData": {
+    "message": "Möchten Sie wirklich alle Daten löschen? Dies kann nicht rückgängig gemacht werden."
+  },
+  "options_notify_dataCleared": {
+    "message": "Alle Daten erfolgreich gelöscht"
+  },
+  "options_notify_clearDataFailed": {
+    "message": "Daten konnten nicht gelöscht werden"
+  },
+  "options_confirm_reset": {
+    "message": "Möchten Sie wirklich alle Einstellungen auf die Standardwerte zurücksetzen?"
+  },
+  "options_notify_reset": {
+    "message": "Einstellungen auf Standard zurückgesetzt"
+  },
+  "options_notify_resetFailed": {
+    "message": "Einstellungen konnten nicht zurückgesetzt werden"
+  },
+  "options_notify_logLevel": {
+    "message": "Ebene: $level$",
+    "placeholders": {
+      "level": {
+        "content": "$1",
+        "example": "WARN"
+      }
+    }
+  },
+  "options_notify_urlCopied": {
+    "message": "URL kopiert! In die Adressleiste einfügen."
+  },
+  "options_notify_openManually": {
+    "message": "chrome://extensions/shortcuts manuell öffnen"
+  },
+  "snooze_title_window": {
+    "message": "Fenster schlummern: $title$",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_windows_one": {
+    "message": "$count$ Fenster schlummern",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_windows_other": {
+    "message": "$count$ Fenster schlummern",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_windowOne": {
+    "message": "Fenster 1"
+  },
+  "snooze_part_windows_one": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_windows_other": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_otherTabs_one": {
+    "message": "$count$ weiterer Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_otherTabs_other": {
+    "message": "$count$ weitere Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_mixed": {
+    "message": "$windows$ und $tabs$ schlummern",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_desc_windows_one": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_windows_other": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabCount_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabCount_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_windowPart": {
+    "message": "$windows$ ($tabs$)",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_desc_otherTabs_one": {
+    "message": "$count$ weiterer Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_otherTabs_other": {
+    "message": "$count$ weitere Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabsFromCurrent": {
+    "message": "$tabs$ aus dem aktuellen Fenster",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_join": {
+    "message": " und "
+  },
+  "snooze_desc_prefix": {
+    "message": "Dadurch werden $parts$ geschlummert",
+    "placeholders": {
+      "parts": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_windows_one": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_windows_other": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_tabs_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_tabs_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_mixed": {
+    "message": "$windows$ + $tabs$",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_restoration_original": {
+    "message": "Zurück ins ursprüngliche Fenster"
+  },
+  "snooze_restoration_current": {
+    "message": "Ins aktuelle Fenster"
+  },
+  "snooze_restoration_new": {
+    "message": "In neuem Fenster"
+  },
+  "activity_noActions": {
+    "message": "$rule$: Keine Aktionen durchgeführt ($trigger$)",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "trigger": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_noSuccess": {
+    "message": "$rule$: Keine erfolgreichen Aktionen ($trigger$)",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "trigger": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_summary": {
+    "message": "$rule$: $actions$ ($trigger$)",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "actions": {
+        "content": "$2"
+      },
+      "trigger": {
+        "content": "$3"
+      }
+    }
+  },
+  "activity_join": {
+    "message": ", "
+  },
+  "activity_actionPart_one": {
+    "message": "$count$ Tab $verb$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "verb": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_actionPart_other": {
+    "message": "$count$ Tabs $verb$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "verb": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_verb_close": {
+    "message": "geschlossen"
+  },
+  "activity_verb_closeDuplicate": {
+    "message": "Duplikat geschlossen"
+  },
+  "activity_verb_group": {
+    "message": "gruppiert"
+  },
+  "activity_verb_snooze": {
+    "message": "geschlummert"
+  },
+  "activity_verb_bookmark": {
+    "message": "als Lesezeichen gespeichert"
+  },
+  "activity_verb_pin": {
+    "message": "angeheftet"
+  },
+  "activity_verb_unpin": {
+    "message": "losgelöst"
+  },
+  "activity_verb_mute": {
+    "message": "stummgeschaltet"
+  },
+  "activity_verb_unmute": {
+    "message": "Stummschaltung aufgehoben"
+  },
+  "activity_verb_discard": {
+    "message": "ausgesetzt"
+  },
+  "activity_verb_move": {
+    "message": "verschoben"
+  },
+  "activity_actionNoun_one": {
+    "message": "Aktion"
+  },
+  "activity_actionNoun_other": {
+    "message": "Aktionen"
+  },
+  "activity_noMatching": {
+    "message": "Keine passenden Tabs gefunden"
+  },
+  "sidepanel_docTitle": {
+    "message": "TabTaskTick"
+  },
+  "sidepanel_searchPlaceholder": {
+    "message": "Sammlungen & Aufgaben durchsuchen..."
+  },
+  "sidepanel_searchLabel": {
+    "message": "Sammlungen und Aufgaben durchsuchen"
+  },
+  "sidepanel_createCollection_title": {
+    "message": "Neue Sammlung erstellen"
+  },
+  "sidepanel_createCollection_btn": {
+    "message": "📁 Sammlung erstellen"
+  },
+  "sidepanel_createTask_title": {
+    "message": "Neue Aufgabe erstellen"
+  },
+  "sidepanel_createTask_btn": {
+    "message": "✓ Aufgabe erstellen"
+  },
+  "sidepanel_import_title": {
+    "message": "Sammlungen aus JSON-Datei importieren"
+  },
+  "sidepanel_import_btn": {
+    "message": "📥 Importieren"
+  },
+  "sidepanel_view_collections": {
+    "message": "📁 Sammlungen"
+  },
+  "sidepanel_view_tasks": {
+    "message": "✓ Aufgaben"
+  },
+  "sidepanel_toggleFilters_label": {
+    "message": "Filter umschalten"
+  },
+  "sidepanel_toggleFilters_title": {
+    "message": "Filter ein-/ausblenden"
+  },
+  "sidepanel_toggleFilters_btn": {
+    "message": "🔍 Filter"
+  },
+  "sidepanel_filtersPanel_label": {
+    "message": "Filter"
+  },
+  "sidepanel_collections_loading": {
+    "message": "Sammlungen werden geladen..."
+  },
+  "sidepanel_collections_errorTitle": {
+    "message": "Sammlungen konnten nicht geladen werden"
+  },
+  "sidepanel_collections_emptyTitle": {
+    "message": "Noch keine Sammlungen"
+  },
+  "sidepanel_collections_emptyDescription": {
+    "message": "Erstellen Sie Ihre erste Sammlung, um Tab-Gruppen zu organisieren und zu verwalten. Sammlungen helfen Ihnen, Ihre Arbeit organisiert und leicht zugänglich zu halten."
+  },
+  "sidepanel_collections_emptyAction": {
+    "message": "📁 Erste Sammlung erstellen"
+  },
+  "sidepanel_collections_sectionActive": {
+    "message": "Aktiv"
+  },
+  "sidepanel_collections_sectionSaved": {
+    "message": "Gespeichert"
+  },
+  "sidepanel_common_retry": {
+    "message": "Erneut versuchen"
+  },
+  "sidepanel_tasks_loading": {
+    "message": "Aufgaben werden geladen..."
+  },
+  "sidepanel_tasks_errorTitle": {
+    "message": "Aufgaben konnten nicht geladen werden"
+  },
+  "sidepanel_tasks_emptyTitle": {
+    "message": "Noch keine Aufgaben"
+  },
+  "sidepanel_tasks_emptyDescription": {
+    "message": "Erstellen Sie Aufgaben, um Ihre Arbeit in Sammlungen zu verfolgen. Aufgaben helfen Ihnen, sich daran zu erinnern, woran Sie arbeiten."
+  },
+  "sidepanel_tasks_emptyAction": {
+    "message": "✓ Erste Aufgabe erstellen"
+  },
+  "sidepanel_panel_saveWindowFailed": {
+    "message": "Fenster konnte nicht gespeichert werden"
+  },
+  "sidepanel_panel_newCollectionName": {
+    "message": "Neue Sammlung"
+  },
+  "sidepanel_panel_saveWindowIntro_oneTab_oneFolder": {
+    "message": "Eine neue Sammlung aus dem aktuellen Fenster mit $tabs$ Tab und $folders$ Ordner erstellen.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_oneTab_otherFolders": {
+    "message": "Eine neue Sammlung aus dem aktuellen Fenster mit $tabs$ Tab und $folders$ Ordnern erstellen.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_oneFolder": {
+    "message": "Eine neue Sammlung aus dem aktuellen Fenster mit $tabs$ Tabs und $folders$ Ordner erstellen.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_otherFolders": {
+    "message": "Eine neue Sammlung aus dem aktuellen Fenster mit $tabs$ Tabs und $folders$ Ordnern erstellen.",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_form_nameLabel": {
+    "message": "Name *"
+  },
+  "sidepanel_form_namePlaceholder": {
+    "message": "Sammlungsnamen eingeben"
+  },
+  "sidepanel_form_descriptionLabel": {
+    "message": "Beschreibung"
+  },
+  "sidepanel_form_descriptionPlaceholder": {
+    "message": "Wofür ist diese Sammlung?"
+  },
+  "sidepanel_form_iconLabel": {
+    "message": "Symbol"
+  },
+  "sidepanel_form_emojiSuggested": {
+    "message": "✨ Vorgeschlagen"
+  },
+  "sidepanel_form_tagsLabel": {
+    "message": "Tags (durch Komma getrennt)"
+  },
+  "sidepanel_form_tagsPlaceholder": {
+    "message": "Arbeit, Projekt, Recherche"
+  },
+  "sidepanel_panel_createCollectionTitle": {
+    "message": "Sammlung erstellen"
+  },
+  "sidepanel_panel_createCollectionSubmit": {
+    "message": "Sammlung erstellen"
+  },
+  "sidepanel_panel_nameRequired": {
+    "message": "Sammlungsname ist erforderlich"
+  },
+  "sidepanel_panel_savedCollection": {
+    "message": "✓ $name$ gespeichert ($tabs$ Tabs, $folders$ Ordner)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      },
+      "folders": {
+        "content": "$3"
+      }
+    }
+  },
+  "sidepanel_panel_importing": {
+    "message": "Sammlungen werden importiert..."
+  },
+  "sidepanel_panel_importFailed": {
+    "message": "Sammlungen konnten nicht importiert werden"
+  },
+  "sidepanel_panel_createTaskFailed": {
+    "message": "Aufgabe konnte nicht erstellt werden"
+  },
+  "sidepanel_panel_createTaskTitle": {
+    "message": "Neue Aufgabe erstellen"
+  },
+  "sidepanel_task_summaryLabel": {
+    "message": "Zusammenfassung *"
+  },
+  "sidepanel_task_summaryPlaceholder": {
+    "message": "Was müssen Sie erledigen?"
+  },
+  "sidepanel_task_contextLabel": {
+    "message": "Kontext"
+  },
+  "sidepanel_task_contextHelperThis": {
+    "message": "Schnellzugriff auf diesen Tab"
+  },
+  "sidepanel_task_contextHelper": {
+    "message": "Schnellzugriff auf Tabs"
+  },
+  "sidepanel_task_notesLabel": {
+    "message": "Notizen"
+  },
+  "sidepanel_task_notesPlaceholder": {
+    "message": "Weitere Details..."
+  },
+  "sidepanel_task_priorityLabel": {
+    "message": "Priorität"
+  },
+  "sidepanel_task_priorityLow": {
+    "message": "Niedrig"
+  },
+  "sidepanel_task_priorityMedium": {
+    "message": "Mittel"
+  },
+  "sidepanel_task_priorityHigh": {
+    "message": "Hoch"
+  },
+  "sidepanel_task_priorityCritical": {
+    "message": "Kritisch"
+  },
+  "sidepanel_task_collectionLabel": {
+    "message": "Sammlung"
+  },
+  "sidepanel_task_uncategorized": {
+    "message": "Nicht kategorisiert"
+  },
+  "sidepanel_task_unnamed": {
+    "message": "Unbenannt"
+  },
+  "sidepanel_task_dueDateLabel": {
+    "message": "Fälligkeitsdatum"
+  },
+  "sidepanel_task_tagsLabel": {
+    "message": "Tags (durch Komma getrennt)"
+  },
+  "sidepanel_task_tagsPlaceholderUrgent": {
+    "message": "dringend, Arbeit, Prüfung"
+  },
+  "sidepanel_task_createSubmit": {
+    "message": "Aufgabe erstellen"
+  },
+  "sidepanel_task_statusLabel": {
+    "message": "Status"
+  },
+  "sidepanel_task_statusOpen": {
+    "message": "Offen"
+  },
+  "sidepanel_task_statusActive": {
+    "message": "Aktiv"
+  },
+  "sidepanel_task_statusFixed": {
+    "message": "Erledigt"
+  },
+  "sidepanel_task_statusAbandoned": {
+    "message": "Verworfen"
+  },
+  "sidepanel_task_summaryRequired": {
+    "message": "Zusammenfassung ist erforderlich"
+  },
+  "sidepanel_task_created": {
+    "message": "Aufgabe erfolgreich erstellt"
+  },
+  "sidepanel_panel_noResultsTitle_collections": {
+    "message": "Keine Sammlungen gefunden"
+  },
+  "sidepanel_panel_noResultsTitle_tasks": {
+    "message": "Keine Aufgaben gefunden"
+  },
+  "sidepanel_panel_noResultsDescription_collections": {
+    "message": "Keine Sammlungen entsprechen Ihrer Suchanfrage \"$query$\". Versuchen Sie einen anderen Suchbegriff.",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_panel_noResultsDescription_tasks": {
+    "message": "Keine Aufgaben entsprechen Ihrer Suchanfrage \"$query$\". Versuchen Sie einen anderen Suchbegriff.",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_panel_genericError": {
+    "message": "Ein Fehler ist aufgetreten"
+  },
+  "sidepanel_panel_initError": {
+    "message": "Initialisierungsfehler"
+  },
+  "sidepanel_collections_untitled": {
+    "message": "Unbenannte Sammlung"
+  },
+  "sidepanel_collections_windowBadge": {
+    "message": "Fenster #$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_metaTabs": {
+    "message": "Tabs"
+  },
+  "sidepanel_collections_metaFolders": {
+    "message": "Ordner"
+  },
+  "sidepanel_collections_metaLastAccessed": {
+    "message": "Zuletzt aufgerufen"
+  },
+  "sidepanel_collections_moreTags": {
+    "message": "+$count$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_viewDetails": {
+    "message": "👁️ Details anzeigen"
+  },
+  "sidepanel_collections_focusWindow": {
+    "message": "Fenster fokussieren"
+  },
+  "sidepanel_collections_open": {
+    "message": "📂 Öffnen"
+  },
+  "sidepanel_collections_edit": {
+    "message": "✏️ Bearbeiten"
+  },
+  "sidepanel_collections_close": {
+    "message": "❌ Schließen"
+  },
+  "sidepanel_collections_delete": {
+    "message": "🗑️ Löschen"
+  },
+  "sidepanel_collections_export": {
+    "message": "💾 Exportieren"
+  },
+  "sidepanel_collections_exportTitle": {
+    "message": "Diese Sammlung exportieren"
+  },
+  "sidepanel_collections_detailViewUnavailable": {
+    "message": "Detailansicht nicht verfügbar"
+  },
+  "sidepanel_collections_showDetailsFailed": {
+    "message": "Sammlungsdetails konnten nicht angezeigt werden"
+  },
+  "sidepanel_collections_windowNotFound": {
+    "message": "Fenster nicht gefunden"
+  },
+  "sidepanel_collections_windowFocused": {
+    "message": "Fenster fokussiert"
+  },
+  "sidepanel_collections_focusFailed": {
+    "message": "Fenster konnte nicht fokussiert werden"
+  },
+  "sidepanel_collections_openedNewWindow": {
+    "message": "Sammlung in neuem Fenster geöffnet"
+  },
+  "sidepanel_collections_openFailed": {
+    "message": "Sammlung konnte nicht geöffnet werden"
+  },
+  "sidepanel_collections_viewingTasks": {
+    "message": "Aufgaben für Sammlung anzeigen"
+  },
+  "sidepanel_collections_viewTasksFailed": {
+    "message": "Aufgaben konnten nicht angezeigt werden"
+  },
+  "sidepanel_collections_notFound": {
+    "message": "Sammlung nicht gefunden"
+  },
+  "sidepanel_collections_editTitle": {
+    "message": "Sammlung bearbeiten"
+  },
+  "sidepanel_collections_editFailed": {
+    "message": "Sammlung konnte nicht bearbeitet werden"
+  },
+  "sidepanel_collections_windowClosedSaved": {
+    "message": "Fenster geschlossen – Sammlung gespeichert"
+  },
+  "sidepanel_collections_closeWindowFailed": {
+    "message": "Fenster konnte nicht geschlossen werden"
+  },
+  "sidepanel_collections_deleteTitle": {
+    "message": "Sammlung löschen"
+  },
+  "sidepanel_collections_deleteFailed": {
+    "message": "Sammlung konnte nicht gelöscht werden"
+  },
+  "sidepanel_collections_deleted": {
+    "message": "Sammlung \"$name$\" gelöscht",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_deleteWarningActive": {
+    "message": "⚠️ Diese Sammlung ist derzeit aktiv. Das Fenster bleibt geöffnet, aber die Sammlungsdaten werden dauerhaft gelöscht."
+  },
+  "sidepanel_collections_deleteConfirmQuestion": {
+    "message": "Möchten Sie \"$name$\" wirklich löschen?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_deleteWillDelete": {
+    "message": "Dadurch wird dauerhaft gelöscht:"
+  },
+  "sidepanel_collections_deleteItemFolders": {
+    "message": "Alle Ordner und Tabs in dieser Sammlung"
+  },
+  "sidepanel_collections_deleteItemTasks": {
+    "message": "Alle mit dieser Sammlung verknüpften Aufgaben"
+  },
+  "sidepanel_collections_actionUndone": {
+    "message": "Diese Aktion kann nicht rückgängig gemacht werden."
+  },
+  "sidepanel_collections_nameLabel": {
+    "message": "Name"
+  },
+  "sidepanel_collections_tagsPlaceholder": {
+    "message": "Arbeit, Recherche, Persönlich"
+  },
+  "sidepanel_collections_updated": {
+    "message": "Sammlung aktualisiert"
+  },
+  "sidepanel_collections_saveChangesFailed": {
+    "message": "Änderungen konnten nicht gespeichert werden"
+  },
+  "sidepanel_collections_exporting": {
+    "message": "Sammlung wird exportiert..."
+  },
+  "sidepanel_collections_exportFailedNotify": {
+    "message": "Sammlung konnte nicht exportiert werden"
+  },
+  "sidepanel_collections_exportFailedDetail": {
+    "message": "Export fehlgeschlagen: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_never": {
+    "message": "Nie"
+  },
+  "sidepanel_time_justNow": {
+    "message": "Gerade eben"
+  },
+  "sidepanel_time_minAgo": {
+    "message": "vor $count$ Min.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_hoursAgo": {
+    "message": "vor $count$ Std.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_daysAgo": {
+    "message": "vor $count$ T.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_weeksAgo": {
+    "message": "vor $count$ Wo.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_monthsAgo": {
+    "message": "vor $count$ Mon.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_filters_state": {
+    "message": "Status"
+  },
+  "sidepanel_filters_stateAll": {
+    "message": "Alle"
+  },
+  "sidepanel_filters_stateActive": {
+    "message": "Aktiv"
+  },
+  "sidepanel_filters_stateSaved": {
+    "message": "Gespeichert"
+  },
+  "sidepanel_filters_tags": {
+    "message": "Tags"
+  },
+  "sidepanel_filters_sortBy": {
+    "message": "Sortieren nach"
+  },
+  "sidepanel_filters_sortLastAccessed": {
+    "message": "Zuletzt aufgerufen"
+  },
+  "sidepanel_filters_sortCreated": {
+    "message": "Erstellt"
+  },
+  "sidepanel_filters_sortName": {
+    "message": "Name"
+  },
+  "sidepanel_filters_status": {
+    "message": "Status"
+  },
+  "sidepanel_filters_statusOpen": {
+    "message": "Offen"
+  },
+  "sidepanel_filters_statusActive": {
+    "message": "Aktiv"
+  },
+  "sidepanel_filters_statusFixed": {
+    "message": "Erledigt"
+  },
+  "sidepanel_filters_statusAbandoned": {
+    "message": "Verworfen"
+  },
+  "sidepanel_filters_priority": {
+    "message": "Priorität"
+  },
+  "sidepanel_filters_priorityLow": {
+    "message": "Niedrig"
+  },
+  "sidepanel_filters_priorityMedium": {
+    "message": "Mittel"
+  },
+  "sidepanel_filters_priorityHigh": {
+    "message": "Hoch"
+  },
+  "sidepanel_filters_priorityCritical": {
+    "message": "Kritisch"
+  },
+  "sidepanel_filters_collection": {
+    "message": "Sammlung"
+  },
+  "sidepanel_filters_uncategorized": {
+    "message": "Nicht kategorisiert"
+  },
+  "sidepanel_filters_unnamed": {
+    "message": "Unbenannt"
+  },
+  "sidepanel_filters_clear": {
+    "message": "Filter zurücksetzen ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_presentation_groupBy": {
+    "message": "Gruppieren nach:"
+  },
+  "sidepanel_presentation_groupByLabel": {
+    "message": "Aufgaben gruppieren nach"
+  },
+  "sidepanel_presentation_groupCollection": {
+    "message": "Sammlung"
+  },
+  "sidepanel_presentation_groupPriority": {
+    "message": "Priorität"
+  },
+  "sidepanel_presentation_groupStatus": {
+    "message": "Status"
+  },
+  "sidepanel_presentation_groupNone": {
+    "message": "Keine"
+  },
+  "sidepanel_presentation_sortBy": {
+    "message": "Sortieren nach:"
+  },
+  "sidepanel_presentation_sortByLabel": {
+    "message": "Aufgaben sortieren nach"
+  },
+  "sidepanel_presentation_sortPriority": {
+    "message": "Priorität"
+  },
+  "sidepanel_presentation_sortDueDate": {
+    "message": "Fälligkeitsdatum"
+  },
+  "sidepanel_presentation_sortCreated": {
+    "message": "Erstellt"
+  },
+  "sidepanel_presentation_sortAlpha": {
+    "message": "Alphabetisch"
+  },
+  "sidepanel_presentation_directionLabel": {
+    "message": "Sortierrichtung umschalten"
+  },
+  "sidepanel_presentation_directionAsc": {
+    "message": "Aufsteigend"
+  },
+  "sidepanel_presentation_directionDesc": {
+    "message": "Absteigend"
+  },
+  "sidepanel_tasks_uncategorized": {
+    "message": "Nicht kategorisiert"
+  },
+  "sidepanel_tasks_unnamedCollection": {
+    "message": "Unbenannte Sammlung"
+  },
+  "sidepanel_tasks_unnamed": {
+    "message": "Unbenannt"
+  },
+  "sidepanel_tasks_completed": {
+    "message": "Abgeschlossen"
+  },
+  "sidepanel_tasks_groupCritical": {
+    "message": "Kritisch"
+  },
+  "sidepanel_tasks_groupHigh": {
+    "message": "Hohe Priorität"
+  },
+  "sidepanel_tasks_groupMedium": {
+    "message": "Mittlere Priorität"
+  },
+  "sidepanel_tasks_groupLow": {
+    "message": "Niedrige Priorität"
+  },
+  "sidepanel_tasks_groupNoPriority": {
+    "message": "Keine Priorität"
+  },
+  "sidepanel_tasks_statusOpen": {
+    "message": "Offen"
+  },
+  "sidepanel_tasks_statusActive": {
+    "message": "Aktiv"
+  },
+  "sidepanel_tasks_statusFixed": {
+    "message": "Erledigt"
+  },
+  "sidepanel_tasks_statusAbandoned": {
+    "message": "Verworfen"
+  },
+  "sidepanel_tasks_viewCollection": {
+    "message": "Sammlung anzeigen"
+  },
+  "sidepanel_tasks_delete": {
+    "message": "Löschen"
+  },
+  "sidepanel_tasks_openTabs": {
+    "message": "Tabs öffnen"
+  },
+  "sidepanel_tasks_markFixed": {
+    "message": "Als erledigt markieren"
+  },
+  "sidepanel_tasks_edit": {
+    "message": "Bearbeiten"
+  },
+  "sidepanel_tasks_dueOverdue": {
+    "message": "⚠️ Fällig $date$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_due": {
+    "message": "Fällig $date$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadge_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadge_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_one": {
+    "message": "$count$ verknüpften Tab öffnen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_other": {
+    "message": "$count$ verknüpfte Tabs öffnen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openingTabs": {
+    "message": "Aufgaben-Tabs werden geöffnet..."
+  },
+  "sidepanel_tasks_openedTabs_one": {
+    "message": "$count$ Tab geöffnet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openedTabs_other": {
+    "message": "$count$ Tabs geöffnet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsFailed": {
+    "message": "Aufgaben-Tabs konnten nicht geöffnet werden"
+  },
+  "sidepanel_tasks_markedFixed": {
+    "message": "Aufgabe als erledigt markiert"
+  },
+  "sidepanel_tasks_markFixedFailed": {
+    "message": "Aufgabe konnte nicht als erledigt markiert werden"
+  },
+  "sidepanel_tasks_loadFailed": {
+    "message": "Aufgabe konnte nicht geladen werden"
+  },
+  "sidepanel_tasks_deleted": {
+    "message": "Aufgabe \"$summary$\" gelöscht",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_deleteFailed": {
+    "message": "Aufgabe konnte nicht gelöscht werden"
+  },
+  "sidepanel_tasks_deleteTitle": {
+    "message": "Aufgabe löschen"
+  },
+  "sidepanel_tasks_deleteQuestion": {
+    "message": "Möchten Sie diese Aufgabe wirklich löschen?"
+  },
+  "sidepanel_tasks_deleteCollectionInfo": {
+    "message": "Diese Aufgabe gehört zur Sammlung. Die Sammlung ist nicht betroffen."
+  },
+  "sidepanel_tasks_editTitle": {
+    "message": "Aufgabe bearbeiten"
+  },
+  "sidepanel_task_saveChanges": {
+    "message": "Änderungen speichern"
+  },
+  "sidepanel_tasks_updated": {
+    "message": "Aufgabe erfolgreich aktualisiert"
+  },
+  "sidepanel_tasks_saveEditsFailed": {
+    "message": "Aufgabenänderungen konnten nicht gespeichert werden"
+  },
+  "sidepanel_tabchip_closed": {
+    "message": "Geschlossen"
+  },
+  "sidepanel_tabchip_removeLabel": {
+    "message": "Tab-Referenz entfernen"
+  },
+  "sidepanel_tabchip_removeAssociation": {
+    "message": "Tab-Verknüpfung entfernen"
+  },
+  "sidepanel_tabchip_linkCurrent": {
+    "message": "Mit aktuellem Tab verknüpfen"
+  },
+  "sidepanel_tabchip_alreadyLinked": {
+    "message": "Dieser Tab ist bereits verknüpft"
+  },
+  "sidepanel_tabchip_noActiveTab": {
+    "message": "Kein aktiver Tab gefunden"
+  },
+  "sidepanel_detail_back": {
+    "message": "← Zurück zu Sammlungen"
+  },
+  "sidepanel_detail_notFound": {
+    "message": "Sammlung nicht gefunden"
+  },
+  "sidepanel_detail_loadFailed": {
+    "message": "Sammlung konnte nicht geladen werden"
+  },
+  "sidepanel_detail_syncNever": {
+    "message": "Nie"
+  },
+  "sidepanel_detail_tasksHeader": {
+    "message": "✓ Aufgaben"
+  },
+  "sidepanel_detail_newTask": {
+    "message": "+ Neue Aufgabe"
+  },
+  "sidepanel_detail_noTasks": {
+    "message": "Noch keine Aufgaben. Erstellen Sie eine, um Ihre Arbeit zu verfolgen."
+  },
+  "sidepanel_detail_tasksOpen": {
+    "message": "Offen ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_tasksActive": {
+    "message": "Aktiv ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_tasksCompleted": {
+    "message": "Abgeschlossen ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_moreTabs": {
+    "message": ", +$count$ weitere",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_openTabsTitle": {
+    "message": "Tabs öffnen"
+  },
+  "sidepanel_detail_markFixedTitle": {
+    "message": "Als erledigt markieren"
+  },
+  "sidepanel_detail_editTaskTitle": {
+    "message": "Aufgabe bearbeiten"
+  },
+  "sidepanel_detail_foldersHeader": {
+    "message": "📂 Ordner & Tabs"
+  },
+  "sidepanel_detail_foldersCount": {
+    "message": "$folders$ Ordner, $tabs$ Tabs",
+    "placeholders": {
+      "folders": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_detail_noFolders": {
+    "message": "Noch keine Ordner oder Tabs."
+  },
+  "sidepanel_detail_untitledFolder": {
+    "message": "Unbenannter Ordner"
+  },
+  "sidepanel_detail_folderTabsCount": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_ungroupedTabs": {
+    "message": "Nicht gruppierte Tabs"
+  },
+  "sidepanel_detail_notePlaceholder": {
+    "message": "Notiz hinzufügen (max. 255 Zeichen)..."
+  },
+  "sidepanel_detail_noteChars": {
+    "message": "$count$/255",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_settingsHeader": {
+    "message": "⚙️ Einstellungen für progressive Synchronisierung"
+  },
+  "sidepanel_detail_settingsInfo": {
+    "message": "Wenn aktiviert, werden Änderungen an Tabs und Gruppen automatisch synchronisiert, um den Zustand Ihrer Sammlung zu erhalten."
+  },
+  "sidepanel_detail_trackingTitle": {
+    "message": "Echtzeit-Verfolgung aktivieren"
+  },
+  "sidepanel_detail_trackingDesc": {
+    "message": "Tab-/Gruppenänderungen automatisch verfolgen und speichern"
+  },
+  "sidepanel_detail_syncDelayTitle": {
+    "message": "Synchronisierungsverzögerung"
+  },
+  "sidepanel_detail_syncDelayDesc": {
+    "message": "Wartezeit vor dem Speichern von Änderungen ($value$)",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_syncStatus": {
+    "message": "Synchronisierungsstatus"
+  },
+  "sidepanel_detail_lastSynced": {
+    "message": "Zuletzt synchronisiert:"
+  },
+  "sidepanel_detail_pendingChanges": {
+    "message": "Ausstehende Änderungen:"
+  },
+  "sidepanel_detail_saveSettings": {
+    "message": "Einstellungen speichern"
+  },
+  "sidepanel_detail_syncDelayInstant": {
+    "message": "0 s (sofort)"
+  },
+  "sidepanel_detail_syncDelayMs": {
+    "message": "$ms$ ms",
+    "placeholders": {
+      "ms": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_syncDelaySeconds": {
+    "message": "$seconds$ s",
+    "placeholders": {
+      "seconds": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_refresh": {
+    "message": "🔄 Aktualisieren"
+  },
+  "sidepanel_detail_focusWindow": {
+    "message": "👁️ Fenster fokussieren"
+  },
+  "sidepanel_detail_closeWindow": {
+    "message": "❌ Fenster schließen"
+  },
+  "sidepanel_detail_openCollection": {
+    "message": "📂 Sammlung öffnen"
+  },
+  "sidepanel_detail_editCollection": {
+    "message": "✏️ Sammlung bearbeiten"
+  },
+  "sidepanel_detail_createTaskTitle": {
+    "message": "Aufgabe erstellen"
+  },
+  "sidepanel_detail_createTaskFailed": {
+    "message": "Aufgabe konnte nicht erstellt werden"
+  },
+  "sidepanel_detail_create": {
+    "message": "Erstellen"
+  },
+  "sidepanel_detail_taskNotFound": {
+    "message": "Aufgabe nicht gefunden"
+  },
+  "sidepanel_detail_editTaskFailed": {
+    "message": "Aufgabe konnte nicht bearbeitet werden"
+  },
+  "sidepanel_detail_form_summaryLabel": {
+    "message": "Zusammenfassung *"
+  },
+  "sidepanel_detail_form_contextLabel": {
+    "message": "Kontext"
+  },
+  "sidepanel_detail_form_contextHelper": {
+    "message": "Schnellzugriff auf Tabs"
+  },
+  "sidepanel_detail_form_notesLabel": {
+    "message": "Notizen"
+  },
+  "sidepanel_detail_form_priorityLabel": {
+    "message": "Priorität"
+  },
+  "sidepanel_detail_form_priorityLow": {
+    "message": "Niedrig"
+  },
+  "sidepanel_detail_form_priorityMedium": {
+    "message": "Mittel"
+  },
+  "sidepanel_detail_form_priorityHigh": {
+    "message": "Hoch"
+  },
+  "sidepanel_detail_form_priorityCritical": {
+    "message": "Kritisch"
+  },
+  "sidepanel_detail_form_statusLabel": {
+    "message": "Status"
+  },
+  "sidepanel_detail_form_statusOpen": {
+    "message": "Offen"
+  },
+  "sidepanel_detail_form_statusActive": {
+    "message": "Aktiv"
+  },
+  "sidepanel_detail_form_statusFixed": {
+    "message": "Erledigt"
+  },
+  "sidepanel_detail_form_statusAbandoned": {
+    "message": "Verworfen"
+  },
+  "sidepanel_detail_form_dueDateLabel": {
+    "message": "Fälligkeitsdatum"
+  },
+  "sidepanel_detail_form_tagsLabel": {
+    "message": "Tags (durch Komma getrennt)"
+  },
+  "sidepanel_detail_form_tagsPlaceholder": {
+    "message": "Bug, Feature, dringend"
+  },
+  "sidepanel_detail_taskUpdated": {
+    "message": "Aufgabe aktualisiert"
+  },
+  "sidepanel_detail_taskCreated": {
+    "message": "Aufgabe erstellt"
+  },
+  "sidepanel_detail_saveTaskFailed": {
+    "message": "Aufgabe konnte nicht gespeichert werden"
+  },
+  "sidepanel_detail_openedTabs": {
+    "message": "$count$ Tab(s) für Aufgabe geöffnet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_openTaskTabsFailed": {
+    "message": "Aufgaben-Tabs konnten nicht geöffnet werden"
+  },
+  "sidepanel_detail_markedFixed": {
+    "message": "Aufgabe als erledigt markiert"
+  },
+  "sidepanel_detail_updateTaskFailed": {
+    "message": "Aufgabe konnte nicht aktualisiert werden"
+  },
+  "sidepanel_detail_saveNoteFailed": {
+    "message": "Notiz konnte nicht gespeichert werden"
+  },
+  "sidepanel_detail_syncing": {
+    "message": "Sammlung wird synchronisiert..."
+  },
+  "sidepanel_detail_upToDate": {
+    "message": "Sammlung ist auf dem neuesten Stand"
+  },
+  "sidepanel_detail_refreshed": {
+    "message": "Aktualisiert: $added$ hinzugefügt, $updated$ aktualisiert, $removed$ entfernt",
+    "placeholders": {
+      "added": {
+        "content": "$1"
+      },
+      "updated": {
+        "content": "$2"
+      },
+      "removed": {
+        "content": "$3"
+      }
+    }
+  },
+  "sidepanel_detail_syncFailed": {
+    "message": "Synchronisierung fehlgeschlagen"
+  },
+  "sidepanel_detail_syncCollectionFailed": {
+    "message": "Sammlung konnte nicht synchronisiert werden"
+  },
+  "sidepanel_detail_windowNotFound": {
+    "message": "Fenster nicht gefunden"
+  },
+  "sidepanel_detail_windowFocused": {
+    "message": "Fenster fokussiert"
+  },
+  "sidepanel_detail_focusWindowFailed": {
+    "message": "Fenster konnte nicht fokussiert werden"
+  },
+  "sidepanel_detail_windowClosedSaved": {
+    "message": "Fenster geschlossen – Sammlung gespeichert"
+  },
+  "sidepanel_detail_closeWindowFailed": {
+    "message": "Fenster konnte nicht geschlossen werden"
+  },
+  "sidepanel_detail_openedNewWindow": {
+    "message": "Sammlung in neuem Fenster geöffnet"
+  },
+  "sidepanel_detail_openCollectionFailed": {
+    "message": "Sammlung konnte nicht geöffnet werden"
+  },
+  "sidepanel_detail_editCollectionTitle": {
+    "message": "Sammlung bearbeiten"
+  },
+  "sidepanel_detail_editCollectionFailed": {
+    "message": "Sammlung konnte nicht bearbeitet werden"
+  },
+  "sidepanel_detail_form_nameLabel": {
+    "message": "Name"
+  },
+  "sidepanel_detail_form_descriptionLabel": {
+    "message": "Beschreibung"
+  },
+  "sidepanel_detail_form_iconLabel": {
+    "message": "Symbol"
+  },
+  "sidepanel_detail_form_collectionTagsLabel": {
+    "message": "Tags (durch Komma getrennt)"
+  },
+  "sidepanel_detail_form_collectionTagsPlaceholder": {
+    "message": "Arbeit, Recherche, Persönlich"
+  },
+  "sidepanel_detail_collectionUpdated": {
+    "message": "Sammlung aktualisiert"
+  },
+  "sidepanel_detail_saveChangesFailed": {
+    "message": "Änderungen konnten nicht gespeichert werden"
+  },
+  "sidepanel_detail_settingsSaved": {
+    "message": "Einstellungen gespeichert"
+  },
+  "sidepanel_detail_saveSettingsFailed": {
+    "message": "Einstellungen konnten nicht gespeichert werden"
+  },
+  "sidepanel_detail_untitledCollection": {
+    "message": "Unbenannte Sammlung"
+  },
+  "sidepanel_detail_metaCreated": {
+    "message": "Erstellt:"
+  },
+  "sidepanel_detail_metaLastAccessed": {
+    "message": "Zuletzt aufgerufen:"
+  },
+  "sidepanel_detail_loading": {
+    "message": "Wird geladen..."
+  },
+  "sidepanel_detail_windowBadge": {
+    "message": "Fenster #$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_modal_closeLabel": {
+    "message": "Dialog schließen"
+  },
+  "sidepanel_notification_closeLabel": {
+    "message": "Benachrichtigung schließen"
+  },
+  "sidepanel_state_connectionMessage": {
+    "message": "Verbindung verloren. Die Erweiterung wurde möglicherweise neu gestartet."
+  },
+  "sidepanel_state_connectionSuggestion": {
+    "message": "Klicken Sie auf \"Erneut versuchen\", um die Daten neu zu laden."
+  },
+  "sidepanel_state_quotaMessage": {
+    "message": "Speicher voll."
+  },
+  "sidepanel_state_quotaSuggestion": {
+    "message": "Löschen Sie alte Sammlungen, um Speicherplatz freizugeben."
+  },
+  "sidepanel_state_notFoundMessage": {
+    "message": "Element existiert nicht mehr."
+  },
+  "sidepanel_state_notFoundSuggestion": {
+    "message": "Es wurde möglicherweise gelöscht."
+  },
+  "sidepanel_state_permissionMessage": {
+    "message": "Zugriff verweigert."
+  },
+  "sidepanel_state_permissionSuggestion": {
+    "message": "Überprüfen Sie die Erweiterungsberechtigungen unter chrome://extensions"
+  },
+  "sidepanel_state_unknownMessage": {
+    "message": "Ein Fehler ist aufgetreten."
+  },
+  "sidepanel_state_unknownSuggestion": {
+    "message": "Klicken Sie auf \"Erneut versuchen\"."
+  },
+  "dashboard_docTitle": {
+    "message": "TabTaskTick - Dashboard"
+  },
+  "dashboard_nav_overview": {
+    "message": "Übersicht"
+  },
+  "dashboard_nav_allTabs": {
+    "message": "Alle Tabs"
+  },
+  "dashboard_nav_groups": {
+    "message": "Gruppen"
+  },
+  "dashboard_nav_snoozed": {
+    "message": "Schlummernd"
+  },
+  "dashboard_nav_history": {
+    "message": "Verlauf"
+  },
+  "dashboard_nav_collections": {
+    "message": "Sammlungen"
+  },
+  "dashboard_nav_tasks": {
+    "message": "Aufgaben"
+  },
+  "dashboard_nav_rulesEngine": {
+    "message": "Regel-Engine"
+  },
+  "dashboard_nav_backupRestore": {
+    "message": "Sicherung & Wiederherstellung"
+  },
+  "dashboard_footer_shortcuts": {
+    "message": "Tastenkombinationen"
+  },
+  "dashboard_footer_shortcutsTitle": {
+    "message": "Tastenkombinationen (Umschalt+?)"
+  },
+  "dashboard_footer_settings": {
+    "message": "Einstellungen"
+  },
+  "dashboard_overview_title": {
+    "message": "Dashboard-Übersicht"
+  },
+  "dashboard_overview_quickOrganize": {
+    "message": "Schnell organisieren"
+  },
+  "dashboard_overview_refresh": {
+    "message": "Aktualisieren"
+  },
+  "dashboard_overview_statTotalTabs": {
+    "message": "Tabs gesamt"
+  },
+  "dashboard_overview_statTotalTabsTitle": {
+    "message": "Alle Tabs anzeigen"
+  },
+  "dashboard_overview_statTabsChange": {
+    "message": "+0 heute"
+  },
+  "dashboard_overview_statTabGroups": {
+    "message": "Tab-Gruppen"
+  },
+  "dashboard_overview_statTabGroupsTitle": {
+    "message": "Tab-Gruppen anzeigen"
+  },
+  "dashboard_overview_statGroupsInfo": {
+    "message": "0 eingeklappt"
+  },
+  "dashboard_overview_statSnoozed": {
+    "message": "Schlummernd"
+  },
+  "dashboard_overview_statSnoozedTitle": {
+    "message": "Schlummernde Tabs anzeigen"
+  },
+  "dashboard_overview_statNextWake": {
+    "message": "Nächste in --"
+  },
+  "dashboard_overview_statDuplicates": {
+    "message": "Duplikate"
+  },
+  "dashboard_overview_statDuplicatesTitle": {
+    "message": "Doppelte Tabs anzeigen"
+  },
+  "dashboard_overview_statDuplicatesInfo": {
+    "message": "Zum Bereinigen klicken"
+  },
+  "dashboard_overview_chartActivity": {
+    "message": "Tab-Aktivität (letzte 7 Tage)"
+  },
+  "dashboard_overview_chartTopDomains": {
+    "message": "Top-Domains"
+  },
+  "dashboard_overview_recentActivity": {
+    "message": "Letzte Aktivität"
+  },
+  "dashboard_tabs_title": {
+    "message": "Alle Tabs"
+  },
+  "dashboard_tabs_searchPlaceholder": {
+    "message": "Tabs durchsuchen..."
+  },
+  "dashboard_tabs_filterAll": {
+    "message": "Alle Tabs"
+  },
+  "dashboard_tabs_filterActive": {
+    "message": "Aktiv"
+  },
+  "dashboard_tabs_filterSuspended": {
+    "message": "Ausgesetzt"
+  },
+  "dashboard_tabs_filterPinned": {
+    "message": "Angeheftet"
+  },
+  "dashboard_tabs_filterAudible": {
+    "message": "Audio läuft"
+  },
+  "dashboard_tabs_filterMuted": {
+    "message": "Stummgeschaltet"
+  },
+  "dashboard_tabs_filterGrouped": {
+    "message": "In Gruppen"
+  },
+  "dashboard_tabs_filterUngrouped": {
+    "message": "Nicht gruppiert"
+  },
+  "dashboard_tabs_filterDuplicates": {
+    "message": "Duplikate"
+  },
+  "dashboard_tabs_windowAll": {
+    "message": "Alle Fenster"
+  },
+  "dashboard_tabs_sortDefault": {
+    "message": "Standardreihenfolge"
+  },
+  "dashboard_tabs_sortWindow": {
+    "message": "Nach Fenster gruppieren"
+  },
+  "dashboard_tabs_sortRecent": {
+    "message": "Zuletzt verwendet"
+  },
+  "dashboard_tabs_sortOldest": {
+    "message": "Am längsten nicht verwendet"
+  },
+  "dashboard_tabs_sortSuspended": {
+    "message": "Ausgesetzte zuerst"
+  },
+  "dashboard_tabs_sortActive": {
+    "message": "Aktive zuerst"
+  },
+  "dashboard_tabs_sortTitle": {
+    "message": "Titel (A-Z)"
+  },
+  "dashboard_tabs_sortDomain": {
+    "message": "Domain (A-Z)"
+  },
+  "dashboard_tabs_sortCategory": {
+    "message": "Kategorie (A-Z)"
+  },
+  "dashboard_tabs_gridViewTitle": {
+    "message": "Rasteransicht"
+  },
+  "dashboard_tabs_treeViewTitle": {
+    "message": "Baumansicht"
+  },
+  "dashboard_tabs_selected": {
+    "message": "Tabs ausgewählt"
+  },
+  "dashboard_tabs_selectAll": {
+    "message": "Alle auswählen"
+  },
+  "dashboard_tabs_clear": {
+    "message": "Zurücksetzen"
+  },
+  "dashboard_tabs_bulkClose": {
+    "message": "Schließen"
+  },
+  "dashboard_tabs_bulkSnooze": {
+    "message": "Schlummern"
+  },
+  "dashboard_tabs_bulkGroup": {
+    "message": "Gruppieren"
+  },
+  "dashboard_tabs_bulkMove": {
+    "message": "Verschieben"
+  },
+  "dashboard_tabs_smartWindowName": {
+    "message": "$name$-Fenster",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_defaultWindowName": {
+    "message": "Fenster $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_defaultGroupName": {
+    "message": "Gruppe $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_countOfTotal": {
+    "message": "($displayed$ von $total$)",
+    "placeholders": {
+      "displayed": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tabs_noTabsTitle": {
+    "message": "Keine Tabs gefunden"
+  },
+  "dashboard_tabs_noTabsText": {
+    "message": "Keine Tabs entsprechen Ihrem aktuellen Filter"
+  },
+  "dashboard_tabs_badgePinned": {
+    "message": "Angeheftet"
+  },
+  "dashboard_tabs_badgePlaying": {
+    "message": "Läuft"
+  },
+  "dashboard_tabs_unknownWindow": {
+    "message": "Unbekanntes Fenster"
+  },
+  "dashboard_tabs_lastAccessed": {
+    "message": "• Zuletzt aufgerufen: $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_selectAllInWindow": {
+    "message": "Alle Tabs im Fenster auswählen"
+  },
+  "dashboard_tabs_closeWindowTitle": {
+    "message": "Fenster schließen"
+  },
+  "dashboard_tabs_selectAllInGroup": {
+    "message": "Alle Tabs in der Gruppe auswählen"
+  },
+  "dashboard_tabs_renameGroupTitle": {
+    "message": "Gruppe umbenennen"
+  },
+  "dashboard_tabs_closeGroupTitle": {
+    "message": "Gruppe schließen"
+  },
+  "dashboard_tabs_windowTabCount_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowTabCount_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_ungroupedTabs": {
+    "message": "Nicht gruppierte Tabs"
+  },
+  "dashboard_tabs_confirmCloseWindow": {
+    "message": "Dieses Fenster und alle seine Tabs schließen?"
+  },
+  "dashboard_tabs_confirmCloseGroup": {
+    "message": "Alle Tabs in dieser Gruppe schließen?"
+  },
+  "dashboard_tabs_removedFromGroup_one": {
+    "message": "$count$ Tab aus der Gruppe entfernt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_removedFromGroup_other": {
+    "message": "$count$ Tabs aus der Gruppe entfernt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_ungroupFailed": {
+    "message": "Gruppierung der Tabs konnte nicht aufgehoben werden"
+  },
+  "dashboard_tabs_movedToWindow_one": {
+    "message": "$count$ Tab ins Fenster verschoben",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_movedToWindow_other": {
+    "message": "$count$ Tabs ins Fenster verschoben",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_addedToGroup_one": {
+    "message": "$count$ Tab zur Gruppe hinzugefügt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_addedToGroup_other": {
+    "message": "$count$ Tabs zur Gruppe hinzugefügt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_moveToGroupFailed": {
+    "message": "Tabs konnten nicht in die Gruppe verschoben werden"
+  },
+  "dashboard_tabs_treeBadgePin": {
+    "message": "Anheften"
+  },
+  "dashboard_tabs_treeBadgeAudio": {
+    "message": "Audio"
+  },
+  "dashboard_tabs_detailsBtnTitle": {
+    "message": "Tab-Statusdetails zum Debuggen anzeigen"
+  },
+  "dashboard_tabs_gotoTabTitle": {
+    "message": "Zum Tab wechseln"
+  },
+  "dashboard_tabs_windowOptionCurrent_one": {
+    "message": "$name$ (aktuell, $count$ Tab)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOptionCurrent_other": {
+    "message": "$name$ (aktuell, $count$ Tabs)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOption_one": {
+    "message": "$name$ ($count$ Tab)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOption_other": {
+    "message": "$name$ ($count$ Tabs)",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_renameWindowsOption": {
+    "message": "✏️ Fenster umbenennen..."
+  },
+  "dashboard_tabs_detailsTitle": {
+    "message": "Tab-Statusdetails"
+  },
+  "dashboard_tabs_detailsAttribute": {
+    "message": "Attribut"
+  },
+  "dashboard_tabs_detailsValue": {
+    "message": "Wert"
+  },
+  "dashboard_tabs_copyJson": {
+    "message": "Als JSON kopieren"
+  },
+  "dashboard_tabs_copied": {
+    "message": "Kopiert!"
+  },
+  "dashboard_groups_title": {
+    "message": "Tab-Gruppen"
+  },
+  "dashboard_groups_ungroupAll": {
+    "message": "Gruppierung aller aufheben"
+  },
+  "dashboard_groups_groupByDomain": {
+    "message": "Nach Domain gruppieren"
+  },
+  "dashboard_snoozed_title": {
+    "message": "Schlummernde Tabs"
+  },
+  "dashboard_snoozed_wakeAll": {
+    "message": "Alle aufwecken"
+  },
+  "dashboard_history_title": {
+    "message": "Tab-Verlauf"
+  },
+  "dashboard_history_clear": {
+    "message": "Verlauf löschen"
+  },
+  "dashboard_rules_title": {
+    "message": "Regel-Engine"
+  },
+  "dashboard_rules_runNow": {
+    "message": "Regeln jetzt ausführen"
+  },
+  "dashboard_rules_purgeAll": {
+    "message": "Alle löschen"
+  },
+  "dashboard_rules_purgeAllTitle": {
+    "message": "Alle Regeln löschen"
+  },
+  "dashboard_rules_addRule": {
+    "message": "Regel hinzufügen"
+  },
+  "dashboard_rules_createCustom": {
+    "message": "Benutzerdefinierte Regel erstellen"
+  },
+  "dashboard_rules_startFromTemplate": {
+    "message": "Aus Vorlage starten:"
+  },
+  "dashboard_rules_description": {
+    "message": "Erstellen Sie automatisierte Regeln zur Verwaltung Ihrer Tabs. Regeln werden der Reihe nach von oben nach unten ausgeführt. Zum Umsortieren ziehen."
+  },
+  "dashboard_rules_warning": {
+    "message": "Regeln können Tabs automatisch schließen oder ändern. Testen Sie Regeln sorgfältig, bevor Sie sie aktivieren."
+  },
+  "dashboard_rules_disableAll": {
+    "message": "Alle deaktivieren"
+  },
+  "dashboard_rules_enableAll": {
+    "message": "Alle aktivieren"
+  },
+  "dashboard_rules_emptyTitle": {
+    "message": "Keine Regeln erstellt"
+  },
+  "dashboard_rules_emptyText": {
+    "message": "Erstellen Sie Ihre erste Regel zur Automatisierung der Tab-Verwaltung oder starten Sie aus einer Vorlage."
+  },
+  "dashboard_rules_addFirst": {
+    "message": "Erste Regel hinzufügen"
+  },
+  "dashboard_backup_title": {
+    "message": "Sicherung & Wiederherstellung"
+  },
+  "dashboard_backup_createTitle": {
+    "message": "Sicherung erstellen"
+  },
+  "dashboard_backup_createDesc": {
+    "message": "Speichern Sie Ihre Tabs, Gruppen, Regeln und Einstellungen."
+  },
+  "dashboard_backup_scope": {
+    "message": "Umfang"
+  },
+  "dashboard_backup_include": {
+    "message": "Einschließen"
+  },
+  "dashboard_backup_includeGroups": {
+    "message": "Tab-Gruppen & Organisation"
+  },
+  "dashboard_backup_includeRules": {
+    "message": "Regeln & Automatisierung"
+  },
+  "dashboard_backup_includeSnoozed": {
+    "message": "Schlummernde Tabs"
+  },
+  "dashboard_backup_includeSettings": {
+    "message": "Einstellungen & Präferenzen"
+  },
+  "dashboard_backup_includeStatistics": {
+    "message": "Nutzungsstatistiken"
+  },
+  "dashboard_backup_includeCollections": {
+    "message": "Sammlungen & Aufgaben"
+  },
+  "dashboard_backup_format": {
+    "message": "Format"
+  },
+  "dashboard_backup_formatJSON": {
+    "message": "Vollständige Sicherung (.json)"
+  },
+  "dashboard_backup_formatJSONHint": {
+    "message": "Vollständige Sicherung – kann wiederhergestellt werden"
+  },
+  "dashboard_backup_formatCSV": {
+    "message": "Tabelle (.csv)"
+  },
+  "dashboard_backup_formatCSVHint": {
+    "message": "Für Analysen in Excel/Google Sheets"
+  },
+  "dashboard_backup_formatMarkdown": {
+    "message": "Dokument (.md)"
+  },
+  "dashboard_backup_formatMarkdownHint": {
+    "message": "Für Menschen lesbare Liste"
+  },
+  "dashboard_backup_backupNow": {
+    "message": "Jetzt sichern"
+  },
+  "dashboard_backup_restoreTitle": {
+    "message": "Aus Sicherung wiederherstellen"
+  },
+  "dashboard_backup_restoreDesc": {
+    "message": "Stellen Sie Tabs, Gruppen, Regeln und Einstellungen aus einer früheren Sicherung wieder her."
+  },
+  "dashboard_backup_dropFile": {
+    "message": "Datei hierher ziehen oder zum Durchsuchen klicken"
+  },
+  "dashboard_backup_dropHint": {
+    "message": "Akzeptiert .json-Dateien, die aus TabTaskTick exportiert wurden"
+  },
+  "dashboard_backup_fileInfo": {
+    "message": "Dateiinformationen"
+  },
+  "dashboard_backup_fileLabel": {
+    "message": "Datei:"
+  },
+  "dashboard_backup_sizeLabel": {
+    "message": "Größe:"
+  },
+  "dashboard_backup_formatLabel": {
+    "message": "Format:"
+  },
+  "dashboard_backup_importPreview": {
+    "message": "Importvorschau"
+  },
+  "dashboard_backup_importTo": {
+    "message": "Importieren in"
+  },
+  "dashboard_backup_importNewWindows": {
+    "message": "Neue(s) Fenster"
+  },
+  "dashboard_backup_importNewWindowsHint": {
+    "message": "Am sichersten – erstellt neue Fenster"
+  },
+  "dashboard_backup_importCurrentWindow": {
+    "message": "Aktuelles Fenster"
+  },
+  "dashboard_backup_importCurrentWindowHint": {
+    "message": "An aktuelles Fenster anhängen"
+  },
+  "dashboard_backup_importReplaceAll": {
+    "message": "Alle Fenster ersetzen"
+  },
+  "dashboard_backup_importReplaceAllHint": {
+    "message": "⚠️ Schließt alle vorhandenen Fenster"
+  },
+  "dashboard_backup_options": {
+    "message": "Optionen"
+  },
+  "dashboard_backup_importGroups": {
+    "message": "Tab-Gruppen importieren"
+  },
+  "dashboard_backup_importRules": {
+    "message": "Regeln importieren (zusammenführen)"
+  },
+  "dashboard_backup_importSnoozed": {
+    "message": "Schlummernde Tabs importieren"
+  },
+  "dashboard_backup_importSettings": {
+    "message": "Einstellungen importieren (überschreiben)"
+  },
+  "dashboard_backup_importCollections": {
+    "message": "Sammlungen & Aufgaben importieren"
+  },
+  "dashboard_backup_restoreBackup": {
+    "message": "Sicherung wiederherstellen"
+  },
+  "dashboard_backup_scheduledTitle": {
+    "message": "Geplante Sicherungen"
+  },
+  "dashboard_backup_scheduledDesc": {
+    "message": "Erstellen Sie automatisch vollständige Sicherungen nach Zeitplan zur Notfallwiederherstellung."
+  },
+  "dashboard_backup_enableAuto": {
+    "message": "Automatische Sicherungen aktivieren"
+  },
+  "dashboard_backup_frequency": {
+    "message": "Häufigkeit:"
+  },
+  "dashboard_backup_freqHourly": {
+    "message": "Stündlich"
+  },
+  "dashboard_backup_freqDaily": {
+    "message": "Täglich"
+  },
+  "dashboard_backup_freqWeekly": {
+    "message": "Wöchentlich"
+  },
+  "dashboard_backup_time": {
+    "message": "Uhrzeit:"
+  },
+  "dashboard_backup_recentBackups": {
+    "message": "Letzte Sicherungen"
+  },
+  "dashboard_backup_loadingHistory": {
+    "message": "Sicherungsverlauf wird geladen..."
+  },
+  "dashboard_collections_title": {
+    "message": "Sammlungen"
+  },
+  "dashboard_collections_saveWindow": {
+    "message": "Fenster speichern"
+  },
+  "dashboard_collections_searchPlaceholder": {
+    "message": "Sammlungen durchsuchen..."
+  },
+  "dashboard_collections_filterAll": {
+    "message": "Alle Sammlungen"
+  },
+  "dashboard_collections_filterActive": {
+    "message": "Aktiv"
+  },
+  "dashboard_collections_filterSaved": {
+    "message": "Gespeichert"
+  },
+  "dashboard_collections_filterArchived": {
+    "message": "Archiviert"
+  },
+  "dashboard_collections_sortLastAccessed": {
+    "message": "Zuletzt aufgerufen"
+  },
+  "dashboard_collections_sortName": {
+    "message": "Name (A-Z)"
+  },
+  "dashboard_collections_sortCreated": {
+    "message": "Erstellungsdatum"
+  },
+  "dashboard_collections_sortTabCount": {
+    "message": "Anzahl der Tabs"
+  },
+  "dashboard_collections_listViewTitle": {
+    "message": "Listenansicht"
+  },
+  "dashboard_collections_exportAllTitle": {
+    "message": "Alle Sammlungen als JSON exportieren"
+  },
+  "dashboard_collections_exportAll": {
+    "message": "Alle exportieren"
+  },
+  "dashboard_collections_importTitle": {
+    "message": "Sammlungen aus JSON-Datei importieren"
+  },
+  "dashboard_collections_import": {
+    "message": "Importieren"
+  },
+  "dashboard_collections_sectionActive": {
+    "message": "Aktive Sammlungen"
+  },
+  "dashboard_collections_sectionSaved": {
+    "message": "Gespeicherte Sammlungen"
+  },
+  "dashboard_collections_sectionArchived": {
+    "message": "Archiviert"
+  },
+  "dashboard_collections_never": {
+    "message": "Nie"
+  },
+  "dashboard_collections_windowBadge": {
+    "message": "Fenster #$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_moreTags": {
+    "message": "+$count$ weitere",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_noDescription": {
+    "message": "Keine Beschreibung"
+  },
+  "dashboard_collections_statTabs": {
+    "message": "Tabs"
+  },
+  "dashboard_collections_statFolders": {
+    "message": "Ordner"
+  },
+  "dashboard_collections_statTasks": {
+    "message": "Aufgaben"
+  },
+  "dashboard_collections_statAccessed": {
+    "message": "aufgerufen"
+  },
+  "dashboard_collections_syncLastLabel": {
+    "message": "Letzte Synchronisierung:"
+  },
+  "dashboard_collections_syncLoading": {
+    "message": "Wird geladen..."
+  },
+  "dashboard_collections_syncPendingLabel": {
+    "message": "Ausstehend:"
+  },
+  "dashboard_collections_syncPendingPlaceholder": {
+    "message": "..."
+  },
+  "dashboard_collections_focusWindow": {
+    "message": "Fenster fokussieren"
+  },
+  "dashboard_collections_open": {
+    "message": "Öffnen"
+  },
+  "dashboard_collections_details": {
+    "message": "Details"
+  },
+  "dashboard_collections_exportCardTitle": {
+    "message": "Diese Sammlung als JSON exportieren"
+  },
+  "dashboard_collections_export": {
+    "message": "Exportieren"
+  },
+  "dashboard_collections_emptyTitle": {
+    "message": "Noch keine Sammlungen"
+  },
+  "dashboard_collections_emptyText": {
+    "message": "Sammlungen helfen Ihnen, Ihre Browserfenster und Aufgaben zu organisieren. Erstellen Sie Ihre erste Sammlung, um loszulegen!"
+  },
+  "dashboard_collections_saveCurrentWindow": {
+    "message": "Aktuelles Fenster speichern"
+  },
+  "dashboard_collections_errorTitle": {
+    "message": "Sammlungen konnten nicht geladen werden"
+  },
+  "dashboard_collections_errorDefault": {
+    "message": "Beim Laden der Sammlungen ist ein Fehler aufgetreten."
+  },
+  "dashboard_collections_retry": {
+    "message": "Erneut versuchen"
+  },
+  "dashboard_collections_actionFailed": {
+    "message": "Sammlungsaktion fehlgeschlagen"
+  },
+  "dashboard_collections_restoring": {
+    "message": "Sammlung wird wiederhergestellt..."
+  },
+  "dashboard_collections_openedInWindow": {
+    "message": "Sammlung in Fenster $id$ geöffnet",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_openFailed": {
+    "message": "Sammlung konnte nicht geöffnet werden"
+  },
+  "dashboard_collections_notActive": {
+    "message": "Sammlung ist nicht aktiv"
+  },
+  "dashboard_collections_windowFocused": {
+    "message": "Fenster fokussiert"
+  },
+  "dashboard_collections_focusFailed": {
+    "message": "Fenster konnte nicht fokussiert werden"
+  },
+  "dashboard_collections_confirmCloseWindow": {
+    "message": "Fenster schließen und Sammlung \"$name$\" speichern?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_windowClosedSaved": {
+    "message": "Fenster geschlossen, Sammlung gespeichert"
+  },
+  "dashboard_collections_closeFailed": {
+    "message": "Fenster konnte nicht geschlossen werden"
+  },
+  "dashboard_collections_loadingDetails": {
+    "message": "Sammlungsdetails werden geladen..."
+  },
+  "dashboard_collections_detailsFailed": {
+    "message": "Sammlungsdetails konnten nicht geladen werden"
+  },
+  "dashboard_collections_detailsTitle": {
+    "message": "Sammlungsdetails"
+  },
+  "dashboard_collections_unknown": {
+    "message": "Unbekannt"
+  },
+  "dashboard_collections_information": {
+    "message": "Informationen"
+  },
+  "dashboard_collections_statusLabel": {
+    "message": "Status:"
+  },
+  "dashboard_collections_statusActive": {
+    "message": "🟢 Aktiv"
+  },
+  "dashboard_collections_statusSaved": {
+    "message": "💾 Gespeichert"
+  },
+  "dashboard_collections_windowLabel": {
+    "message": "Fenster:"
+  },
+  "dashboard_collections_createdLabel": {
+    "message": "Erstellt:"
+  },
+  "dashboard_collections_lastAccessedLabel": {
+    "message": "Zuletzt aufgerufen:"
+  },
+  "dashboard_collections_tabsLabel": {
+    "message": "Tabs:"
+  },
+  "dashboard_collections_foldersLabel": {
+    "message": "Ordner:"
+  },
+  "dashboard_collections_tasksLabel": {
+    "message": "Aufgaben:"
+  },
+  "dashboard_collections_tags": {
+    "message": "Tags"
+  },
+  "dashboard_collections_foldersAndTabs": {
+    "message": "Ordner & Tabs"
+  },
+  "dashboard_collections_untitledFolder": {
+    "message": "Unbenannter Ordner"
+  },
+  "dashboard_collections_folderTabCount": {
+    "message": "($count$ Tabs)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_untitled": {
+    "message": "Unbenannt"
+  },
+  "dashboard_collections_ungrouped": {
+    "message": "Nicht gruppiert"
+  },
+  "dashboard_collections_tasksHeading": {
+    "message": "Aufgaben ($count$)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_taskTabCount_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_taskTabCount_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_notFound": {
+    "message": "Sammlung nicht gefunden"
+  },
+  "dashboard_collections_formName": {
+    "message": "Name *"
+  },
+  "dashboard_collections_formNamePlaceholder": {
+    "message": "Sammlungsname"
+  },
+  "dashboard_collections_formDescription": {
+    "message": "Beschreibung"
+  },
+  "dashboard_collections_formDescriptionPlaceholder": {
+    "message": "Optionale Beschreibung"
+  },
+  "dashboard_collections_formIcon": {
+    "message": "Symbol"
+  },
+  "dashboard_collections_formColor": {
+    "message": "Farbe"
+  },
+  "dashboard_collections_formTags": {
+    "message": "Tags (durch Komma getrennt)"
+  },
+  "dashboard_collections_formTagsPlaceholder": {
+    "message": "Arbeit, wichtig, Projekt"
+  },
+  "dashboard_collections_syncSettingsLabel": {
+    "message": "Einstellungen für progressive Synchronisierung"
+  },
+  "dashboard_collections_enableTracking": {
+    "message": "Echtzeit-Verfolgung aktivieren"
+  },
+  "dashboard_collections_enableTrackingHelp": {
+    "message": "Tab-/Gruppenänderungen automatisch verfolgen und speichern"
+  },
+  "dashboard_collections_syncDelay": {
+    "message": "Synchronisierungsverzögerung (Sekunden)"
+  },
+  "dashboard_collections_syncDelayHelp": {
+    "message": "Wartezeit vor dem Speichern von Änderungen"
+  },
+  "dashboard_collections_saveChanges": {
+    "message": "Änderungen speichern"
+  },
+  "dashboard_collections_editTitle": {
+    "message": "Sammlung bearbeiten"
+  },
+  "dashboard_collections_nameRequired": {
+    "message": "Sammlungsname ist erforderlich"
+  },
+  "dashboard_collections_updated": {
+    "message": "Sammlung aktualisiert"
+  },
+  "dashboard_collections_updateFailed": {
+    "message": "Sammlung konnte nicht aktualisiert werden"
+  },
+  "dashboard_collections_confirmDelete": {
+    "message": "Sammlung \"$name$\" löschen? Dadurch werden auch alle zugehörigen Aufgaben gelöscht.",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_deleted": {
+    "message": "Sammlung gelöscht"
+  },
+  "dashboard_collections_deleteFailed": {
+    "message": "Sammlung konnte nicht gelöscht werden"
+  },
+  "dashboard_collections_savingWindow": {
+    "message": "Aktuelles Fenster wird gespeichert..."
+  },
+  "dashboard_collections_created": {
+    "message": "Sammlung erstellt!"
+  },
+  "dashboard_collections_createFailed": {
+    "message": "Sammlung konnte nicht erstellt werden"
+  },
+  "dashboard_collections_exporting": {
+    "message": "Sammlung wird exportiert..."
+  },
+  "dashboard_collections_exportFailed": {
+    "message": "Sammlung konnte nicht exportiert werden"
+  },
+  "dashboard_collections_exportFailedMsg": {
+    "message": "Export fehlgeschlagen: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_noneToExport": {
+    "message": "Keine Sammlungen zum Exportieren"
+  },
+  "dashboard_collections_exportingCount_one": {
+    "message": "$count$ Sammlung wird exportiert...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_exportingCount_other": {
+    "message": "$count$ Sammlungen werden exportiert...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_exportAllFailed": {
+    "message": "Sammlungen konnten nicht exportiert werden"
+  },
+  "dashboard_collections_importing": {
+    "message": "Sammlungen werden importiert..."
+  },
+  "dashboard_collections_importFailed": {
+    "message": "Sammlungen konnten nicht importiert werden"
+  },
+  "dashboard_collections_importFailedMsg": {
+    "message": "Import fehlgeschlagen: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_opened": {
+    "message": "Sammlung geöffnet"
+  },
+  "dashboard_collections_syncJustNow": {
+    "message": "Gerade eben"
+  },
+  "dashboard_collections_syncSecondsAgo": {
+    "message": "vor $count$ s",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncMinutesAgo": {
+    "message": "vor $count$ Min.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncHoursAgo": {
+    "message": "vor $count$ Std.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncDaysAgo": {
+    "message": "vor $count$ T.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_title": {
+    "message": "Aufgaben"
+  },
+  "dashboard_tasks_kanban": {
+    "message": "Kanban"
+  },
+  "dashboard_tasks_kanbanTitle": {
+    "message": "Kanban-Ansicht"
+  },
+  "dashboard_tasks_list": {
+    "message": "Liste"
+  },
+  "dashboard_tasks_listTitle": {
+    "message": "Listenansicht"
+  },
+  "dashboard_tasks_newTask": {
+    "message": "Neue Aufgabe"
+  },
+  "dashboard_tasks_searchPlaceholder": {
+    "message": "Aufgaben durchsuchen..."
+  },
+  "dashboard_tasks_filters": {
+    "message": "Filter"
+  },
+  "dashboard_tasks_filtersTitle": {
+    "message": "Filter umschalten"
+  },
+  "dashboard_tasks_clear": {
+    "message": "Zurücksetzen"
+  },
+  "dashboard_tasks_filterStatus": {
+    "message": "Status"
+  },
+  "dashboard_tasks_statusOpen": {
+    "message": "Offen"
+  },
+  "dashboard_tasks_statusActive": {
+    "message": "Aktiv"
+  },
+  "dashboard_tasks_statusFixed": {
+    "message": "Erledigt"
+  },
+  "dashboard_tasks_statusAbandoned": {
+    "message": "Verworfen"
+  },
+  "dashboard_tasks_filterPriority": {
+    "message": "Priorität"
+  },
+  "dashboard_tasks_priorityLow": {
+    "message": "Niedrig"
+  },
+  "dashboard_tasks_priorityMedium": {
+    "message": "Mittel"
+  },
+  "dashboard_tasks_priorityHigh": {
+    "message": "Hoch"
+  },
+  "dashboard_tasks_priorityCritical": {
+    "message": "Kritisch"
+  },
+  "dashboard_tasks_filterCollection": {
+    "message": "Sammlung"
+  },
+  "dashboard_tasks_uncategorized": {
+    "message": "Nicht kategorisiert"
+  },
+  "dashboard_tasks_bulkSelected": {
+    "message": "0 Aufgaben ausgewählt"
+  },
+  "dashboard_tasks_selectAll": {
+    "message": "Alle auswählen"
+  },
+  "dashboard_tasks_bulkChangeStatus": {
+    "message": "Status ändern"
+  },
+  "dashboard_tasks_bulkChangePriority": {
+    "message": "Priorität ändern"
+  },
+  "dashboard_tasks_bulkDelete": {
+    "message": "Ausgewählte löschen"
+  },
+  "dashboard_tasks_detailTitle": {
+    "message": "Aufgabendetails"
+  },
+  "dashboard_tasks_fieldSummary": {
+    "message": "Zusammenfassung"
+  },
+  "dashboard_tasks_summaryPlaceholder": {
+    "message": "Aufgabenzusammenfassung"
+  },
+  "dashboard_tasks_fieldNotes": {
+    "message": "Notizen"
+  },
+  "dashboard_tasks_notesPlaceholder": {
+    "message": "Aufgabennotizen"
+  },
+  "dashboard_tasks_fieldStatus": {
+    "message": "Status"
+  },
+  "dashboard_tasks_fieldPriority": {
+    "message": "Priorität"
+  },
+  "dashboard_tasks_fieldDueDate": {
+    "message": "Fälligkeitsdatum"
+  },
+  "dashboard_tasks_fieldCollection": {
+    "message": "Sammlung"
+  },
+  "dashboard_tasks_fieldTags": {
+    "message": "Tags (durch Komma getrennt)"
+  },
+  "dashboard_tasks_tagsPlaceholder": {
+    "message": "Tag1, Tag2, Tag3"
+  },
+  "dashboard_tasks_summaryRequired": {
+    "message": "Zusammenfassung ist erforderlich"
+  },
+  "dashboard_tasks_created": {
+    "message": "Aufgabe erstellt"
+  },
+  "dashboard_tasks_updated": {
+    "message": "Aufgabe aktualisiert"
+  },
+  "dashboard_tasks_createFailed": {
+    "message": "Aufgabe konnte nicht erstellt werden"
+  },
+  "dashboard_tasks_updateFailed": {
+    "message": "Aufgabe konnte nicht aktualisiert werden"
+  },
+  "dashboard_tasks_deleteConfirm": {
+    "message": "Aufgabe \"$summary$\" löschen?",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_deleted": {
+    "message": "Aufgabe gelöscht"
+  },
+  "dashboard_tasks_deleteFailed": {
+    "message": "Aufgabe konnte nicht gelöscht werden"
+  },
+  "dashboard_tasks_noneSelected": {
+    "message": "Keine Aufgaben ausgewählt"
+  },
+  "dashboard_tasks_actionFailed": {
+    "message": "Aktion fehlgeschlagen"
+  },
+  "dashboard_tasks_promptStatus": {
+    "message": "Status eingeben (open/active/fixed/abandoned):"
+  },
+  "dashboard_tasks_promptPriority": {
+    "message": "Priorität eingeben (low/medium/high/critical):"
+  },
+  "dashboard_tasks_bulkDeleteConfirm_one": {
+    "message": "$count$ Aufgabe löschen?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_bulkDeleteConfirm_other": {
+    "message": "$count$ Aufgaben löschen?",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_unknownAction": {
+    "message": "Unbekannte Aktion: $action$",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_bulkUpdated": {
+    "message": "$done$ von $total$ Aufgaben aktualisiert",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tasks_bulkDeleted": {
+    "message": "$done$ von $total$ Aufgaben gelöscht",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tasks_selectedCount_one": {
+    "message": "$count$ Aufgabe ausgewählt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_selectedCount_other": {
+    "message": "$count$ Aufgaben ausgewählt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_tabCount_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_tabCount_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_emptyTitle": {
+    "message": "Noch keine Aufgaben"
+  },
+  "dashboard_tasks_emptyDescription": {
+    "message": "Erstellen Sie Aufgaben, um Ihre Arbeit in Sammlungen zu verfolgen."
+  },
+  "dashboard_tasks_emptyAction": {
+    "message": "Erste Aufgabe erstellen"
+  },
+  "dashboard_tasks_errorTitle": {
+    "message": "Aufgaben konnten nicht geladen werden"
+  },
+  "dashboard_tasks_errorDescription": {
+    "message": "Beim Laden der Aufgaben ist ein Fehler aufgetreten."
+  },
+  "dashboard_tasks_retry": {
+    "message": "Erneut versuchen"
+  },
+  "dashboard_tasks_noResultsTitle": {
+    "message": "Keine Ergebnisse gefunden"
+  },
+  "dashboard_tasks_noResultsDescription": {
+    "message": "Versuchen Sie, Ihre Such- oder Filterkriterien anzupassen."
+  },
+  "dashboard_tasks_loadFailed": {
+    "message": "Aufgaben konnten nicht geladen werden"
+  },
+  "dashboard_tasks_notFound": {
+    "message": "Aufgabe nicht gefunden"
+  },
+  "dashboard_tasks_openTabsFailed": {
+    "message": "Aufgaben-Tabs konnten nicht geöffnet werden"
+  },
+  "dashboard_tasks_openedTabs_one": {
+    "message": "$count$ Tab geöffnet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_openedTabs_other": {
+    "message": "$count$ Tabs geöffnet",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_colTask": {
+    "message": "Aufgabe"
+  },
+  "dashboard_tasks_colCollection": {
+    "message": "Sammlung"
+  },
+  "dashboard_tasks_colPriority": {
+    "message": "Priorität"
+  },
+  "dashboard_tasks_colStatus": {
+    "message": "Status"
+  },
+  "dashboard_tasks_colDueDate": {
+    "message": "Fälligkeitsdatum"
+  },
+  "dashboard_tasks_colActions": {
+    "message": "Aktionen"
+  },
+  "dashboard_tasks_dragReorder": {
+    "message": "Zum Umsortieren ziehen"
+  },
+  "dashboard_tasks_actionEdit": {
+    "message": "Bearbeiten"
+  },
+  "dashboard_tasks_actionDelete": {
+    "message": "Löschen"
+  },
+  "dashboard_tasks_actionOpenTabs": {
+    "message": "Tabs öffnen"
+  },
+  "dashboard_tasks_columnEmpty": {
+    "message": "Keine Aufgaben mit Status $status$",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_movedTo": {
+    "message": "Aufgabe nach $status$ verschoben",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_statusUpdateFailed": {
+    "message": "Aufgabenstatus konnte nicht aktualisiert werden"
+  },
+  "dashboard_tasks_toastCreate": {
+    "message": "Neue Aufgabe erstellen (n)"
+  },
+  "dashboard_tasks_deleteConfirmGeneric": {
+    "message": "Möchten Sie diese Aufgabe wirklich löschen?"
+  },
+  "dashboard_tasks_updatePriorityFailed": {
+    "message": "Priorität konnte nicht aktualisiert werden"
+  },
+  "dashboard_tasks_prioritySet": {
+    "message": "Priorität auf $priority$ gesetzt",
+    "placeholders": {
+      "priority": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_statusChanged": {
+    "message": "Status zu $status$ geändert",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_openedTabsForTask": {
+    "message": "Tabs für Aufgabe geöffnet"
+  },
+  "dashboard_tasks_openTabsActionFailed": {
+    "message": "Tabs konnten nicht geöffnet werden"
+  },
+  "dashboard_tasks_noTabsForTask": {
+    "message": "Keine Tabs mit dieser Aufgabe verknüpft"
+  },
+  "dashboard_tasks_filteringByStatus": {
+    "message": "Nach Status filtern: $status$",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_modal_confirmTitle": {
+    "message": "Aktion bestätigen"
+  },
+  "dashboard_modal_proceed": {
+    "message": "Fortfahren"
+  },
+  "dashboard_modal_processing": {
+    "message": "Wird verarbeitet..."
+  },
+  "dashboard_modal_confirmMessage": {
+    "message": "Möchten Sie wirklich fortfahren?"
+  },
+  "dashboard_organize_title": {
+    "message": "Schnell organisieren"
+  },
+  "dashboard_organize_closeDupes": {
+    "message": "Doppelte Tabs schließen"
+  },
+  "dashboard_organize_dupeCount": {
+    "message": "($count$ gefunden)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_groupDomains": {
+    "message": "Tabs nach Domain gruppieren"
+  },
+  "dashboard_organize_groupCount": {
+    "message": "($count$ Gruppen)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_snoozeInactive": {
+    "message": "Inaktive Tabs schlummern"
+  },
+  "dashboard_organize_inactiveCount": {
+    "message": "($count$ Tabs)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_suspendHeavy": {
+    "message": "Speicherintensive Tabs aussetzen"
+  },
+  "dashboard_organize_heavyCount": {
+    "message": "($count$ Tabs)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_organizeNow": {
+    "message": "Jetzt organisieren"
+  },
+  "dashboard_rule_addNew": {
+    "message": "Neue Regel hinzufügen"
+  },
+  "dashboard_rule_name": {
+    "message": "Regelname"
+  },
+  "dashboard_rule_namePlaceholder": {
+    "message": "Geben Sie einen aussagekräftigen Namen für diese Regel ein"
+  },
+  "dashboard_rule_conditions": {
+    "message": "Bedingungen"
+  },
+  "dashboard_rule_preview": {
+    "message": "Vorschau"
+  },
+  "dashboard_rule_previewDefault": {
+    "message": "ALLE Tabs zuordnen, deren URL \"example.com\" enthält"
+  },
+  "dashboard_rule_actions": {
+    "message": "Aktionen (der Reihe nach)"
+  },
+  "dashboard_rule_addAction": {
+    "message": "+ Aktion hinzufügen"
+  },
+  "dashboard_rule_whenToApply": {
+    "message": "Wann anwenden"
+  },
+  "dashboard_rule_triggerImmediate": {
+    "message": "Bei Tab-Ereignissen (sofort)"
+  },
+  "dashboard_rule_triggerRepeat": {
+    "message": "Regelmäßig wiederholen"
+  },
+  "dashboard_rule_triggerOnce": {
+    "message": "Einmal zu bestimmter Zeit"
+  },
+  "dashboard_rule_triggerManual": {
+    "message": "Nur manuell"
+  },
+  "dashboard_rule_enableNow": {
+    "message": "Regel sofort aktivieren"
+  },
+  "dashboard_rule_enableHelp": {
+    "message": "Sie können die Regel testen, bevor Sie sie aktivieren"
+  },
+  "dashboard_rule_save": {
+    "message": "Regel speichern"
+  },
+  "dashboard_emoji_catFolders": {
+    "message": "Ordner & Dateien"
+  },
+  "dashboard_emoji_catWork": {
+    "message": "Arbeit & Produktivität"
+  },
+  "dashboard_emoji_catDev": {
+    "message": "Entwicklung & Technik"
+  },
+  "dashboard_emoji_catMisc": {
+    "message": "Sonstiges"
+  },
+  "dashboard_time_justNow": {
+    "message": "Gerade eben"
+  },
+  "dashboard_time_minutesAgo": {
+    "message": "vor $count$ Min.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_hoursAgo": {
+    "message": "vor $count$ Std.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_daysAgo": {
+    "message": "vor $count$ T.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_now": {
+    "message": "Jetzt"
+  },
+  "dashboard_time_unknown": {
+    "message": "Unbekannt"
+  },
+  "dashboard_tabState_suspended": {
+    "message": "💤 Ausgesetzt"
+  },
+  "dashboard_tabState_active": {
+    "message": "👁 Aktiv"
+  },
+  "dashboard_tabState_playing": {
+    "message": "🔊 Läuft"
+  },
+  "dashboard_tabState_pinned": {
+    "message": "📌 Angeheftet"
+  },
+  "dashboard_tabState_loaded": {
+    "message": "Geladen"
+  },
+  "dashboard_notify_savingWindow": {
+    "message": "Aktuelles Fenster wird gespeichert..."
+  },
+  "dashboard_notify_collectionCreated": {
+    "message": "Sammlung erstellt!"
+  },
+  "dashboard_notify_collectionFailed": {
+    "message": "Sammlung konnte nicht erstellt werden"
+  },
+  "dashboard_notify_closedTabs": {
+    "message": "$count$ Tabs geschlossen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_notify_groupCreated": {
+    "message": "Gruppe \"$name$\" mit $count$ Tabs erstellt",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_actionFailed": {
+    "message": "Fehler bei Aktion $action$ für Tabs: $error$",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      },
+      "error": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_noTabsToSnooze": {
+    "message": "Keine Tabs zum Schlummern"
+  },
+  "dashboard_notify_snoozeUnavailable": {
+    "message": "Schlummerfunktion ist nicht verfügbar"
+  },
+  "dashboard_notify_snoozedWindows": {
+    "message": "$windows$ für $duration$ geschlummert",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_snoozedTabs": {
+    "message": "$tabs$ für $duration$ geschlummert",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_snoozeErrors": {
+    "message": "Schlummern mit $count$ Fehler(n) abgeschlossen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_notify_snoozeFailed": {
+    "message": "Schlummern fehlgeschlagen"
+  },
+  "dashboard_notify_prepareSnoozeFailed": {
+    "message": "Schlummern konnte nicht vorbereitet werden"
+  },
+  "dashboard_notify_movedTabs": {
+    "message": "$tabs$ nach $window$ verschoben",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "window": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_moveTabsFailed": {
+    "message": "Tabs konnten nicht verschoben werden"
+  },
+  "dashboard_notify_wakeAllSuccess": {
+    "message": "Alle schlummernden Tabs wurden wiederhergestellt"
+  },
+  "dashboard_notify_wakeAllFailed": {
+    "message": "Schlummernde Tabs konnten nicht aufgeweckt werden"
+  },
+  "dashboard_notify_windowNamesSaved": {
+    "message": "Fensternamen gespeichert"
+  },
+  "dashboard_progress_processingTabs": {
+    "message": "$count$ Tabs werden verarbeitet...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_confirm_actionTitle": {
+    "message": "$action$ bestätigen",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_confirm_actionMessage": {
+    "message": "Möchten Sie wirklich $count$ Tabs $action$? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_prompt_groupName": {
+    "message": "Geben Sie einen Namen für die Gruppe ein:"
+  },
+  "dashboard_group_untitled": {
+    "message": "Unbenannt"
+  },
+  "dashboard_moveDialog_title": {
+    "message": "$count$ verschieben nach...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_moveDialog_currentWindow": {
+    "message": "Aktuelles Fenster"
+  },
+  "dashboard_moveDialog_windowName": {
+    "message": "Fenster $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_moveDialog_currentLocation": {
+    "message": "(aktueller Ort)"
+  },
+  "dashboard_moveDialog_createNew": {
+    "message": "Neues Fenster erstellen"
+  },
+  "dashboard_moveDialog_newWindow": {
+    "message": "neues Fenster"
+  },
+  "dashboard_count_tabs_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_tabs_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_windows_one": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_windows_other": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rename_title": {
+    "message": "Fenster umbenennen"
+  },
+  "dashboard_rename_windowLabel": {
+    "message": "Fenster $index$",
+    "placeholders": {
+      "index": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rename_placeholder": {
+    "message": "Name eingeben..."
+  },
+  "dashboard_rename_save": {
+    "message": "Namen speichern"
+  },
+  "dashboard_state_selectedCount": {
+    "message": "$count$ ausgewählt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_help_title": {
+    "message": "Tastenkombinationen"
+  },
+  "dashboard_help_closeLabel": {
+    "message": "Hilfe zu Tastenkombinationen schließen"
+  },
+  "dashboard_help_searchPlaceholder": {
+    "message": "Tastenkombinationen durchsuchen..."
+  },
+  "dashboard_help_searchLabel": {
+    "message": "Tastenkombinationen durchsuchen"
+  },
+  "dashboard_help_listLabel": {
+    "message": "Liste der Tastenkombinationen"
+  },
+  "dashboard_help_noShortcuts": {
+    "message": "Keine Tastenkombinationen gefunden"
+  },
+  "dashboard_help_noDescription": {
+    "message": "Keine Beschreibung"
+  },
+  "dashboard_help_sequenceThen": {
+    "message": "dann"
+  },
+  "dashboard_help_catNavigation": {
+    "message": "Navigation"
+  },
+  "dashboard_help_catTasks": {
+    "message": "Aufgaben"
+  },
+  "dashboard_help_catCollections": {
+    "message": "Sammlungen"
+  },
+  "dashboard_help_catGeneral": {
+    "message": "Allgemein"
+  },
+  "dashboard_shortcuts_tooltip": {
+    "message": "Eingabetaste zum Öffnen • Leertaste zum Auswählen"
+  },
+  "dashboard_backup_exporting": {
+    "message": "Wird als $format$ exportiert...",
+    "placeholders": {
+      "format": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportedSummary": {
+    "message": "Exportiert: $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportedFormat": {
+    "message": "Als $format$ exportiert",
+    "placeholders": {
+      "format": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportFailed": {
+    "message": "Export fehlgeschlagen: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryTabs_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryTabs_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryRules_one": {
+    "message": "$count$ Regel",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryRules_other": {
+    "message": "$count$ Regeln",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summarySnoozed_one": {
+    "message": "$count$ schlummernder Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summarySnoozed_other": {
+    "message": "$count$ schlummernde Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryWindows_one": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryWindows_other": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryGroups_one": {
+    "message": "$count$ Gruppe",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryGroups_other": {
+    "message": "$count$ Gruppen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_selectJsonFile": {
+    "message": "Bitte wählen Sie eine JSON-Datei"
+  },
+  "dashboard_backup_fileTooLarge": {
+    "message": "Datei zu groß (max. 10 MB)"
+  },
+  "dashboard_backup_invalidFile": {
+    "message": "Ungültige TabMaster-Exportdatei"
+  },
+  "dashboard_backup_fileSizeKB": {
+    "message": "$size$ KB",
+    "placeholders": {
+      "size": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_formatUnknown": {
+    "message": "Unbekannt"
+  },
+  "dashboard_backup_previewTabs_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewTabs_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewTabsInWindows": {
+    "message": "$tabs$ in $windows$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "windows": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_previewWindowCount_one": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewWindowCount_other": {
+    "message": "$count$ Fenster",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRestricted": {
+    "message": "$base$ ($count$ eingeschränkte URLs ausgeschlossen)",
+    "placeholders": {
+      "base": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_previewGroups_one": {
+    "message": "$count$ Tab-Gruppe",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewGroups_other": {
+    "message": "$count$ Tab-Gruppen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRules_one": {
+    "message": "$count$ Regel",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRules_other": {
+    "message": "$count$ Regeln",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewSnoozed_one": {
+    "message": "$count$ schlummernder Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewSnoozed_other": {
+    "message": "$count$ schlummernde Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnManyTabs_one": {
+    "message": "⚠️ Dadurch wird $count$ Tab geöffnet. Erwägen Sie den Import in kleineren Stapeln.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnManyTabs_other": {
+    "message": "⚠️ Dadurch werden $count$ Tabs geöffnet. Erwägen Sie den Import in kleineren Stapeln.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnOpenTabs_one": {
+    "message": "Dadurch wird $count$ Tab geöffnet.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnOpenTabs_other": {
+    "message": "Dadurch werden $count$ Tabs geöffnet.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnAllRestricted_one": {
+    "message": "⚠️ Der $count$ Tab hat eine eingeschränkte URL und kann nicht importiert werden.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnAllRestricted_other": {
+    "message": "⚠️ Alle $count$ Tabs haben eingeschränkte URLs und können nicht importiert werden.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_fileReadFailed": {
+    "message": "Datei konnte nicht gelesen werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_noFileSelected": {
+    "message": "Keine Datei ausgewählt"
+  },
+  "dashboard_backup_importing": {
+    "message": "Daten werden importiert..."
+  },
+  "dashboard_backup_importSuccess": {
+    "message": "Erfolgreich importiert: $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_importNoItems": {
+    "message": "Import abgeschlossen, aber keine Elemente wurden importiert"
+  },
+  "dashboard_backup_importFailed": {
+    "message": "Import fehlgeschlagen: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_nextEveryHour": {
+    "message": "Stündlich"
+  },
+  "dashboard_backup_nextEveryDay": {
+    "message": "Täglich"
+  },
+  "dashboard_backup_nextEveryWeek": {
+    "message": "Wöchentlich"
+  },
+  "dashboard_backup_nextInHM": {
+    "message": "Nächste Sicherung in $hours$ Std. $minutes$ Min.",
+    "placeholders": {
+      "hours": {
+        "content": "$1"
+      },
+      "minutes": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_nextInM": {
+    "message": "Nächste Sicherung in $minutes$ Min.",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_nextSoon": {
+    "message": "Nächste Sicherung in Kürze"
+  },
+  "dashboard_backup_enabledFirstBackup": {
+    "message": "Automatische Sicherungen aktiviert – erste Sicherung erstellt"
+  },
+  "dashboard_backup_enabled": {
+    "message": "Automatische Sicherungen aktiviert"
+  },
+  "dashboard_backup_disabled": {
+    "message": "Automatische Sicherungen deaktiviert"
+  },
+  "dashboard_backup_updateSettingsFailed": {
+    "message": "Sicherungseinstellungen konnten nicht aktualisiert werden"
+  },
+  "dashboard_backup_scheduleUpdated": {
+    "message": "Sicherungszeitplan aktualisiert"
+  },
+  "dashboard_backup_saveSettingsFailed": {
+    "message": "Einstellungen konnten nicht gespeichert werden"
+  },
+  "dashboard_backup_noBackups": {
+    "message": "Noch keine Sicherungen"
+  },
+  "dashboard_backup_noBackupsHint": {
+    "message": "Klicken Sie auf \"Jetzt sichern\" oder aktivieren Sie automatische Sicherungen"
+  },
+  "dashboard_backup_badgeAuto": {
+    "message": "AUTO"
+  },
+  "dashboard_backup_badgeManual": {
+    "message": "MANUELL"
+  },
+  "dashboard_backup_itemDetails": {
+    "message": "$date$ • $tabs$ • $windows$ • $size$ MB",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      },
+      "windows": {
+        "content": "$3"
+      },
+      "size": {
+        "content": "$4"
+      }
+    }
+  },
+  "dashboard_backup_showFileTitle": {
+    "message": "Datei im Downloads-Ordner anzeigen"
+  },
+  "dashboard_backup_showFile": {
+    "message": "📁 Anzeigen"
+  },
+  "dashboard_backup_fileMoved": {
+    "message": "Die Sicherungsdatei wurde möglicherweise verschoben. Suchen Sie im Downloads-Ordner nach Dateien, die mit \"tabmaster-backup-\" beginnen"
+  },
+  "dashboard_backup_openFolderFailed": {
+    "message": "Downloads-Ordner konnte nicht geöffnet werden"
+  },
+  "dashboard_backup_scopeCurrent_one": {
+    "message": "Aktuelles Fenster ($count$ Tab)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeCurrent_other": {
+    "message": "Aktuelles Fenster ($count$ Tabs)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeAll_one": {
+    "message": "Alle Fenster ($count$ Tab)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeAll_other": {
+    "message": "Alle Fenster ($count$ Tabs)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_tabsChange": {
+    "message": "+$count$ heute",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_collapsed_one": {
+    "message": "$count$ eingeklappt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_collapsed_other": {
+    "message": "$count$ eingeklappt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_nextInHours": {
+    "message": "Nächste in $hours$ Std.",
+    "placeholders": {
+      "hours": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_noneScheduled": {
+    "message": "Keine geplant"
+  },
+  "dashboard_overview_clickToCleanup": {
+    "message": "Zum Bereinigen klicken"
+  },
+  "dashboard_overview_noneFound": {
+    "message": "Keine gefunden"
+  },
+  "dashboard_overview_chartTabsOpened": {
+    "message": "Geöffnete Tabs"
+  },
+  "dashboard_overview_chartTabsClosed": {
+    "message": "Geschlossene Tabs"
+  },
+  "dashboard_overview_filterAll": {
+    "message": "Alle"
+  },
+  "dashboard_overview_filterManual": {
+    "message": "Manuell"
+  },
+  "dashboard_overview_filterAuto": {
+    "message": "Automatisch"
+  },
+  "dashboard_overview_filterRules": {
+    "message": "Regeln"
+  },
+  "dashboard_overview_noActivity": {
+    "message": "Keine aktuelle Aktivität"
+  },
+  "dashboard_history_today": {
+    "message": "Heute"
+  },
+  "dashboard_history_yesterday": {
+    "message": "Gestern"
+  },
+  "dashboard_history_daysAgo_one": {
+    "message": "vor $count$ Tag",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_history_daysAgo_other": {
+    "message": "vor $count$ Tagen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_history_emptyTitle": {
+    "message": "Kein Tab-Verlauf"
+  },
+  "dashboard_history_emptyText": {
+    "message": "Ihre Tab-Verwaltungsaktivitäten erscheinen hier, während Sie TabMaster Pro verwenden"
+  },
+  "dashboard_history_badgeAuto": {
+    "message": "Auto"
+  },
+  "dashboard_history_badgeRule": {
+    "message": "Regel"
+  },
+  "dashboard_history_confirmClear": {
+    "message": "Möchten Sie wirklich den gesamten Verlauf löschen? Dies kann nicht rückgängig gemacht werden."
+  },
+  "dashboard_history_cleared": {
+    "message": "Verlauf erfolgreich gelöscht"
+  },
+  "dashboard_history_clearFailed": {
+    "message": "Verlauf konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+  },
+  "dashboard_groups_noGroupedTabs": {
+    "message": "Keine gruppierten Tabs, deren Gruppierung aufgehoben werden könnte"
+  },
+  "dashboard_groups_ungroupedTabs_one": {
+    "message": "Gruppierung von $count$ Tab aufgehoben",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_ungroupedTabs_other": {
+    "message": "Gruppierung von $count$ Tabs aufgehoben",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_ungroupFailed": {
+    "message": "Gruppierung der Tabs konnte nicht aufgehoben werden"
+  },
+  "dashboard_groups_emptyTitle": {
+    "message": "Keine Tab-Gruppen"
+  },
+  "dashboard_groups_emptyText": {
+    "message": "Erstellen Sie Gruppen, um Ihre Tabs besser zu organisieren"
+  },
+  "dashboard_groups_groupByDomainBtn": {
+    "message": "Nach Domain gruppieren"
+  },
+  "dashboard_groups_untitled": {
+    "message": "Unbenannte Gruppe"
+  },
+  "dashboard_groups_tabCount_one": {
+    "message": "$count$ Tab",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_tabCount_other": {
+    "message": "$count$ Tabs",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_groupedResult": {
+    "message": "$created$ neue Gruppen erstellt, $reused$ vorhandene Gruppen wiederverwendet",
+    "placeholders": {
+      "created": {
+        "content": "$1"
+      },
+      "reused": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_groups_noTabsToGroup": {
+    "message": "Keine Tabs zum Gruppieren nach Domain"
+  },
+  "dashboard_groups_groupByDomainFailed": {
+    "message": "Tabs konnten nicht nach Domain gruppiert werden"
+  },
+  "dashboard_snoozed_emptyTitle": {
+    "message": "Keine schlummernden Tabs"
+  },
+  "dashboard_snoozed_emptyText": {
+    "message": "Lassen Sie Tabs schlummern, um sie vorübergehend auszublenden und später wieder zu öffnen"
+  },
+  "dashboard_snoozed_window_one": {
+    "message": "Schlummerndes Fenster ($count$ Tab)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_window_other": {
+    "message": "Schlummerndes Fenster ($count$ Tabs)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_moreTabs": {
+    "message": "+$count$ weitere",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_restoreWindow": {
+    "message": "Fenster wiederherstellen"
+  },
+  "dashboard_snoozed_deleteAll": {
+    "message": "Alle löschen"
+  },
+  "dashboard_snoozed_grouped": {
+    "message": "📁 Gruppiert"
+  },
+  "dashboard_snoozed_reasonManual": {
+    "message": "manuell"
+  },
+  "dashboard_snoozed_wakeNow": {
+    "message": "Jetzt aufwecken"
+  },
+  "dashboard_snoozed_deleteTitle": {
+    "message": "Schlummernden Tab löschen"
+  },
+  "dashboard_snoozed_within1Hour": {
+    "message": "Innerhalb 1 Stunde"
+  },
+  "dashboard_snoozed_today": {
+    "message": "Heute"
+  },
+  "dashboard_snoozed_tomorrow": {
+    "message": "Morgen"
+  },
+  "dashboard_snoozed_thisWeek": {
+    "message": "Diese Woche"
+  },
+  "dashboard_snoozed_later": {
+    "message": "Später"
+  },
+  "dashboard_snoozed_wakeAtToday": {
+    "message": "Heute um $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_wakeAtTomorrow": {
+    "message": "Morgen um $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_wakeTabFailed": {
+    "message": "Tab konnte nicht aufgeweckt werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_confirmDeleteTab": {
+    "message": "Diesen schlummernden Tab löschen?"
+  },
+  "dashboard_snoozed_confirmDeleteWindow": {
+    "message": "Alle Tabs in diesem schlummernden Fenster löschen?"
+  },
+  "dashboard_snoozed_restoreWindowFailed": {
+    "message": "Fenster konnte nicht wiederhergestellt werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_deleteWindowFailed": {
+    "message": "Fenster konnte nicht gelöscht werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_dragToReorder": {
+    "message": "Zum Umsortieren ziehen"
+  },
+  "dashboard_rules_disableRule": {
+    "message": "Regel deaktivieren"
+  },
+  "dashboard_rules_enableRule": {
+    "message": "Regel aktivieren"
+  },
+  "dashboard_rules_testRuleTitle": {
+    "message": "Diese Regel testen (nur Vorschau)"
+  },
+  "dashboard_rules_runRuleTitle": {
+    "message": "Diese Regel jetzt ausführen"
+  },
+  "dashboard_rules_cardWhen": {
+    "message": "Wenn:"
+  },
+  "dashboard_rules_cardThen": {
+    "message": "Dann:"
+  },
+  "dashboard_rules_cardRuns": {
+    "message": "Läuft:"
+  },
+  "dashboard_rules_runsEvery": {
+    "message": "Alle $interval$",
+    "placeholders": {
+      "interval": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextRun": {
+    "message": "(nächste: $time$)",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_runsOnceAt": {
+    "message": "Einmal um $datetime$",
+    "placeholders": {
+      "datetime": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_runsImmediate": {
+    "message": "Bei Tab-Ereignissen (sofort)"
+  },
+  "dashboard_rules_runsOnCreate": {
+    "message": "Wenn Tabs erstellt werden"
+  },
+  "dashboard_rules_interval_minutes_one": {
+    "message": "$count$ Minute",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_minutes_other": {
+    "message": "$count$ Minuten",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_hours_one": {
+    "message": "$count$ Stunde",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_hours_other": {
+    "message": "$count$ Stunden",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_days_one": {
+    "message": "$count$ Tag",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_days_other": {
+    "message": "$count$ Tage",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_seconds_one": {
+    "message": "$count$ Sekunde",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_seconds_other": {
+    "message": "$count$ Sekunden",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_days_one": {
+    "message": "in $count$ Tag",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_days_other": {
+    "message": "in $count$ Tagen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_hours_one": {
+    "message": "in $count$ Stunde",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_hours_other": {
+    "message": "in $count$ Stunden",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_minutes_one": {
+    "message": "in $count$ Minute",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_minutes_other": {
+    "message": "in $count$ Minuten",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_seconds_one": {
+    "message": "in $count$ Sekunde",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_seconds_other": {
+    "message": "in $count$ Sekunden",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextOverdue": {
+    "message": "überfällig"
+  },
+  "dashboard_rules_allTemplatesInstalled": {
+    "message": "Alle Vorlagen installiert"
+  },
+  "dashboard_rules_condNoConditions": {
+    "message": "Keine Bedingungen"
+  },
+  "dashboard_rules_condUnknown": {
+    "message": "Unbekannte Bedingung"
+  },
+  "dashboard_rules_condJunctionOf": {
+    "message": "$junction$ von: $conditions$",
+    "placeholders": {
+      "junction": {
+        "content": "$1"
+      },
+      "conditions": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_rules_condTriple": {
+    "message": "$subject$ $operator$ $value$",
+    "placeholders": {
+      "subject": {
+        "content": "$1"
+      },
+      "operator": {
+        "content": "$2"
+      },
+      "value": {
+        "content": "$3"
+      }
+    }
+  },
+  "dashboard_rules_junctionAll": {
+    "message": "ALLE"
+  },
+  "dashboard_rules_junctionAny": {
+    "message": "BELIEBIGE"
+  },
+  "dashboard_rules_junctionNone": {
+    "message": "KEINE"
+  },
+  "dashboard_rules_valueYes": {
+    "message": "ja"
+  },
+  "dashboard_rules_valueNo": {
+    "message": "nein"
+  },
+  "dashboard_rules_subject_url": {
+    "message": "URL"
+  },
+  "dashboard_rules_subject_title": {
+    "message": "Titel"
+  },
+  "dashboard_rules_subject_domain": {
+    "message": "Domain"
+  },
+  "dashboard_rules_subject_domainCount": {
+    "message": "Anzahl der Domain-Tabs"
+  },
+  "dashboard_rules_subject_origin": {
+    "message": "Ursprung"
+  },
+  "dashboard_rules_subject_age": {
+    "message": "Tab-Alter"
+  },
+  "dashboard_rules_subject_lastAccess": {
+    "message": "Zuletzt aufgerufen"
+  },
+  "dashboard_rules_subject_pinned": {
+    "message": "Angeheftet"
+  },
+  "dashboard_rules_subject_audible": {
+    "message": "Audio läuft"
+  },
+  "dashboard_rules_subject_muted": {
+    "message": "Stummgeschaltet"
+  },
+  "dashboard_rules_subject_group": {
+    "message": "In Gruppe"
+  },
+  "dashboard_rules_subject_groupName": {
+    "message": "Gruppenname"
+  },
+  "dashboard_rules_subject_windowId": {
+    "message": "Fenster-ID"
+  },
+  "dashboard_rules_subject_duplicate": {
+    "message": "Ist Duplikat"
+  },
+  "dashboard_rules_subject_category": {
+    "message": "Kategorie"
+  },
+  "dashboard_rules_subject_index": {
+    "message": "Tab-Index"
+  },
+  "dashboard_rules_subject_active": {
+    "message": "Ist aktiv"
+  },
+  "dashboard_rules_op_eq": {
+    "message": "ist gleich"
+  },
+  "dashboard_rules_op_neq": {
+    "message": "ist ungleich"
+  },
+  "dashboard_rules_op_equals": {
+    "message": "ist"
+  },
+  "dashboard_rules_op_gt": {
+    "message": "größer als"
+  },
+  "dashboard_rules_op_gte": {
+    "message": "mindestens"
+  },
+  "dashboard_rules_op_lt": {
+    "message": "kleiner als"
+  },
+  "dashboard_rules_op_lte": {
+    "message": "höchstens"
+  },
+  "dashboard_rules_op_greaterThan": {
+    "message": "mehr als"
+  },
+  "dashboard_rules_op_lessThan": {
+    "message": "weniger als"
+  },
+  "dashboard_rules_op_contains": {
+    "message": "enthält"
+  },
+  "dashboard_rules_op_notContains": {
+    "message": "enthält nicht"
+  },
+  "dashboard_rules_op_startsWith": {
+    "message": "beginnt mit"
+  },
+  "dashboard_rules_op_endsWith": {
+    "message": "endet mit"
+  },
+  "dashboard_rules_op_regex": {
+    "message": "entspricht"
+  },
+  "dashboard_rules_op_in": {
+    "message": "in"
+  },
+  "dashboard_rules_op_nin": {
+    "message": "nicht in"
+  },
+  "dashboard_rules_op_is": {
+    "message": "ist"
+  },
+  "dashboard_rules_condDuplicate": {
+    "message": "Doppelte Tabs"
+  },
+  "dashboard_rules_condDomainCount": {
+    "message": "$count$+ Tabs von derselben Domain",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condAllTabs": {
+    "message": "Alle Tabs"
+  },
+  "dashboard_rules_condTabsFrom": {
+    "message": "Tabs von $patterns$",
+    "placeholders": {
+      "patterns": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condUrlsMatching": {
+    "message": "URLs, die \"$pattern$\" entsprechen",
+    "placeholders": {
+      "pattern": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condSitesInCategories": {
+    "message": "Websites in Kategorien: $categories$",
+    "placeholders": {
+      "categories": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condNoneCategories": {
+    "message": "keine"
+  },
+  "dashboard_rules_condInactiveFor": {
+    "message": "inaktiv seit $minutes$ Min.",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condOlderThan": {
+    "message": "älter als $minutes$ Min.",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condNotAccessedFor": {
+    "message": "nicht aufgerufen seit $minutes$ Min.",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_action_close": {
+    "message": "Tabs schließen"
+  },
+  "dashboard_rules_action_closeDuplicates": {
+    "message": "Duplikate schließen"
+  },
+  "dashboard_rules_action_group": {
+    "message": "Tabs gruppieren"
+  },
+  "dashboard_rules_action_snooze": {
+    "message": "Tabs schlummern"
+  },
+  "dashboard_rules_action_moveToWindow": {
+    "message": "In Fenster verschieben"
+  },
+  "dashboard_rules_action_pin": {
+    "message": "Tabs anheften"
+  },
+  "dashboard_rules_action_unpin": {
+    "message": "Tabs loslösen"
+  },
+  "dashboard_rules_action_mute": {
+    "message": "Tabs stummschalten"
+  },
+  "dashboard_rules_action_unmute": {
+    "message": "Stummschaltung der Tabs aufheben"
+  },
+  "dashboard_rules_actionNoActions": {
+    "message": "Keine Aktionen"
+  },
+  "dashboard_rules_actionUnknown": {
+    "message": "Unbekannte Aktion"
+  },
+  "dashboard_rules_actionKeep": {
+    "message": "($keep$ behalten)",
+    "placeholders": {
+      "keep": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionScope": {
+    "message": "[$scope$]",
+    "placeholders": {
+      "scope": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionBy": {
+    "message": "nach $by$",
+    "placeholders": {
+      "by": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionFor": {
+    "message": "für $duration$",
+    "placeholders": {
+      "duration": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionGroupByOld": {
+    "message": "Tabs nach $by$ gruppieren",
+    "placeholders": {
+      "by": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSnoozeMinutesOld": {
+    "message": "Für $minutes$ Minuten schlummern",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSuspendOld": {
+    "message": "Tabs aussetzen $excludePinned$",
+    "placeholders": {
+      "excludePinned": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSuspendExcludePinned": {
+    "message": "(angeheftete ausschließen)"
+  },
+  "dashboard_rules_confirmDelete": {
+    "message": "Möchten Sie diese Regel wirklich löschen?"
+  },
+  "dashboard_rules_confirmPurge": {
+    "message": "Möchten Sie wirklich ALLE Regeln löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+  },
+  "dashboard_rules_templateInstalled": {
+    "message": "Regelvorlage erfolgreich installiert"
+  },
+  "dashboard_rules_deleted": {
+    "message": "Regel gelöscht"
+  },
+  "dashboard_rules_purged": {
+    "message": "Alle Regeln wurden gelöscht"
+  },
+  "dashboard_rules_purgeFailed": {
+    "message": "Regeln konnten nicht gelöscht werden"
+  },
+  "dashboard_rules_allEnabled": {
+    "message": "Alle Regeln aktiviert"
+  },
+  "dashboard_rules_allDisabled": {
+    "message": "Alle Regeln deaktiviert"
+  },
+  "dashboard_rules_updated": {
+    "message": "Regel erfolgreich aktualisiert"
+  },
+  "dashboard_rules_created": {
+    "message": "Regel erfolgreich erstellt"
+  },
+  "dashboard_rules_prioritiesUpdated": {
+    "message": "Regelprioritäten aktualisiert"
+  },
+  "dashboard_rules_modalTitleEdit": {
+    "message": "Regel bearbeiten"
+  },
+  "dashboard_rules_modalTitleCreate": {
+    "message": "Neue Regel erstellen"
+  },
+  "dashboard_rules_noActionsDefined": {
+    "message": "Keine Aktionen definiert. Klicken Sie auf \"Aktion hinzufügen\", um eine hinzuzufügen."
+  },
+  "dashboard_rules_closeNotCombinable": {
+    "message": "Die Aktion \"Schließen\" kann nicht mit anderen Aktionen kombiniert werden"
+  },
+  "dashboard_rules_noMoreCompatible": {
+    "message": "Keine weiteren kompatiblen Aktionen verfügbar"
+  },
+  "dashboard_rules_paramKeep": {
+    "message": "Behalten:"
+  },
+  "dashboard_rules_paramKeepOldest": {
+    "message": "Ältester Tab"
+  },
+  "dashboard_rules_paramKeepNewest": {
+    "message": "Neuester Tab"
+  },
+  "dashboard_rules_paramKeepNone": {
+    "message": "Keine (alle schließen)"
+  },
+  "dashboard_rules_paramScope": {
+    "message": "Umfang:"
+  },
+  "dashboard_rules_paramScopeGlobal": {
+    "message": "Global (alle Fenster)"
+  },
+  "dashboard_rules_paramScopePerWindow": {
+    "message": "Pro Fenster (jeweils einzeln)"
+  },
+  "dashboard_rules_paramGroupBy": {
+    "message": "Gruppieren nach:"
+  },
+  "dashboard_rules_paramGroupByDomain": {
+    "message": "Domain"
+  },
+  "dashboard_rules_paramGroupByCategory": {
+    "message": "Kategorie"
+  },
+  "dashboard_rules_paramGroupByWindow": {
+    "message": "Fenster"
+  },
+  "dashboard_rules_paramName": {
+    "message": "Name:"
+  },
+  "dashboard_rules_paramNamePlaceholder": {
+    "message": "Automatisch generiert"
+  },
+  "dashboard_rules_paramSnoozeFor": {
+    "message": "Schlummern für:"
+  },
+  "dashboard_rules_paramUnitMinutes": {
+    "message": "Minuten"
+  },
+  "dashboard_rules_paramUnitHours": {
+    "message": "Stunden"
+  },
+  "dashboard_rules_paramUnitDays": {
+    "message": "Tage"
+  },
+  "dashboard_rules_paramTargetWindow": {
+    "message": "Zielfenster:"
+  },
+  "dashboard_rules_paramTargetNew": {
+    "message": "Neues Fenster"
+  },
+  "dashboard_rules_paramTargetCurrent": {
+    "message": "Aktuelles Fenster"
+  },
+  "dashboard_rules_removeAction": {
+    "message": "Entfernen"
+  },
+  "dashboard_rules_triggerRepeatEvery": {
+    "message": "Wiederholen alle:"
+  },
+  "dashboard_rules_triggerRunAt": {
+    "message": "Ausführen um:"
+  },
+  "dashboard_rules_triggerDebounce": {
+    "message": "Entprellen"
+  },
+  "dashboard_rules_triggerDebounceHelp": {
+    "message": "Wenn aktiviert, wird auf eine Pause in der Tab-Aktivität gewartet, bevor die Regel ausgeführt wird. Dadurch wird verhindert, dass die Regel bei Aktivitätsschüben wie dem gleichzeitigen Öffnen vieler Tabs mehrfach ausgeführt wird. Wenn Sie beispielsweise 10 Tabs schnell öffnen, wird die Regel einmal nach Abschluss ausgeführt, statt 10-mal."
+  },
+  "dashboard_rules_triggerWaitFor": {
+    "message": "Warten auf:"
+  },
+  "dashboard_rules_triggerSeconds": {
+    "message": "Sekunden"
+  },
+  "dashboard_rules_addAction": {
+    "message": "Aktion hinzufügen"
+  },
+  "dashboard_rules_noMoreActions": {
+    "message": "Es können keine weiteren Aktionen hinzugefügt werden. Die aktuellen Aktionen sind nicht mit zusätzlichen Aktionen kompatibel."
+  },
+  "dashboard_rules_closeNotCombinableNote": {
+    "message": "$note$ Die Aktion \"Schließen\" kann nicht mit anderen Aktionen kombiniert werden.",
+    "placeholders": {
+      "note": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_noteLabel": {
+    "message": "Hinweis:"
+  },
+  "dashboard_rules_actionType": {
+    "message": "Aktionstyp:"
+  },
+  "dashboard_rules_onlyCompatible": {
+    "message": "Es werden nur Aktionen angezeigt, die mit vorhandenen Aktionen kompatibel sind."
+  },
+  "dashboard_rules_enterName": {
+    "message": "Bitte geben Sie einen Regelnamen ein"
+  },
+  "dashboard_rules_conditionsNotInit": {
+    "message": "Bedingungen nicht ordnungsgemäß initialisiert"
+  },
+  "dashboard_rules_invalidConditions": {
+    "message": "Ungültige Bedingungen: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_addAtLeastOneAction": {
+    "message": "Bitte fügen Sie mindestens eine Aktion hinzu"
+  },
+  "dashboard_rules_invalidActions": {
+    "message": "Ungültige Aktionen: $errors$",
+    "placeholders": {
+      "errors": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecuted": {
+    "message": "Regel ausgeführt: $details$",
+    "placeholders": {
+      "details": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecutionFailed": {
+    "message": "Regelausführung fehlgeschlagen: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecutionError": {
+    "message": "Fehler beim Ausführen der Regel: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewAffected_one": {
+    "message": "Regelvorschau: $count$ Tab wäre betroffen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewAffected_other": {
+    "message": "Regelvorschau: $count$ Tabs wären betroffen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewNoMatch": {
+    "message": "Regelvorschau: Keine passenden Tabs gefunden"
+  },
+  "dashboard_rules_testFailed": {
+    "message": "Regeltest fehlgeschlagen: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testError": {
+    "message": "Fehler beim Testen der Regel: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_unableToPreview": {
+    "message": "Regel kann nicht in der Vorschau angezeigt werden"
+  },
+  "dashboard_rules_noEnabledToTest": {
+    "message": "Keine aktivierten Regeln zum Testen"
+  },
+  "dashboard_rules_testing": {
+    "message": "Wird getestet..."
+  },
+  "dashboard_rules_testAll": {
+    "message": "Alle Regeln testen"
+  },
+  "dashboard_rules_testCompleteAffected_one": {
+    "message": "Test abgeschlossen: insgesamt $count$ Tab wäre betroffen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testCompleteAffected_other": {
+    "message": "Test abgeschlossen: insgesamt $count$ Tabs wären betroffen",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testNoneAffected": {
+    "message": "Keine Tabs wären von den aktuellen Regeln betroffen"
+  },
+  "dashboard_rules_testResultsTitle": {
+    "message": "Testergebnisse: $name$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_wouldBeAffected_one": {
+    "message": "$count$ Tab wäre betroffen:",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_wouldBeAffected_other": {
+    "message": "$count$ Tabs wären betroffen:",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_untitled": {
+    "message": "Unbenannt"
+  },
+  "dashboard_rules_duplicateTag": {
+    "message": "[DUPLIKAT]"
+  },
+  "dashboard_rules_executeRule": {
+    "message": "Regel ausführen"
+  },
+  "dashboard_rules_ruleExecutedActions": {
+    "message": "Regel ausgeführt: $count$ Aktionen durchgeführt",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_executeFailed": {
+    "message": "Regel konnte nicht ausgeführt werden: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  }
+}

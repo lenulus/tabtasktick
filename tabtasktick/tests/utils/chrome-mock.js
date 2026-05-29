@@ -2,8 +2,49 @@
 // Provides mock implementations of Chrome Extension APIs used in the rules engine
 
 import { jest } from '@jest/globals';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Load the English messages so tests exercise real strings via chrome.i18n.
+let enMessages = {};
+try {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const enPath = join(here, '..', '..', '_locales', 'en', 'messages.json');
+  enMessages = JSON.parse(readFileSync(enPath, 'utf8'));
+} catch {
+  enMessages = {};
+}
+
+// Mirrors chrome.i18n.getMessage: expands named placeholders ($name$) then
+// positional substitutions ($1..$9), and $$ -> $.
+function getI18nMessage(key, subs) {
+  const entry = enMessages[key];
+  if (!entry) return '';
+  const list = subs == null ? [] : (Array.isArray(subs) ? subs : [subs]);
+  let msg = entry.message;
+  if (entry.placeholders) {
+    const lowered = {};
+    for (const [name, def] of Object.entries(entry.placeholders)) {
+      lowered[name.toLowerCase()] = def;
+    }
+    msg = msg.replace(/\$(\w+)\$/g, (m, name) => {
+      const def = lowered[name.toLowerCase()];
+      return def ? def.content : m;
+    });
+  }
+  msg = msg.replace(/\$(\d)/g, (m, d) => list[Number(d) - 1] ?? '');
+  msg = msg.replace(/\$\$/g, '$');
+  return msg;
+}
 
 export const chromeMock = {
+  i18n: {
+    getMessage: jest.fn((key, subs) => getI18nMessage(key, subs)),
+    getUILanguage: jest.fn(() => 'en'),
+    getAcceptLanguages: jest.fn(() => Promise.resolve(['en-US', 'en']))
+  },
+
   tabs: {
     query: jest.fn(() => Promise.resolve([])),
     remove: jest.fn(() => Promise.resolve()),

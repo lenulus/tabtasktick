@@ -8,6 +8,8 @@
  * - Custom content support
  */
 
+import { t } from '../../services/utils/i18n.js';
+
 class ModalManager {
   constructor() {
     this.container = null;
@@ -103,7 +105,7 @@ class ModalManager {
           <h2 id="modal-title" class="modal-title">${this.escapeHtml(title)}</h2>
           <button
             class="modal-close"
-            aria-label="Close dialog"
+            aria-label="${this.escapeHtml(t('sidepanel_modal_closeLabel'))}"
             type="button"
           >×</button>
         </div>

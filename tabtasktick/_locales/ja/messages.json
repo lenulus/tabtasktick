@@ -1,0 +1,6015 @@
+{
+  "appName": {
+    "message": "TabTaskTick"
+  },
+  "appDesc": {
+    "message": "コレクション、ルールエンジン、自動グループ化、スヌーズを備えたスマートなタブ・タスク管理"
+  },
+  "cmd_quickSnooze": {
+    "message": "現在のタブをクイックスヌーズ"
+  },
+  "cmd_groupByDomain": {
+    "message": "すべてのタブをドメインでグループ化"
+  },
+  "cmd_closeDuplicates": {
+    "message": "重複タブを閉じる"
+  },
+  "common_cancel": {
+    "message": "キャンセル"
+  },
+  "common_save": {
+    "message": "保存"
+  },
+  "common_close": {
+    "message": "閉じる"
+  },
+  "common_delete": {
+    "message": "削除"
+  },
+  "common_edit": {
+    "message": "編集"
+  },
+  "common_loading": {
+    "message": "読み込み中..."
+  },
+  "common_errorLoading": {
+    "message": "読み込みエラー"
+  },
+  "common_settings": {
+    "message": "設定"
+  },
+  "popup_collectionsDetail": {
+    "message": "アクティブ $active$ 件、保存済み $saved$ 件",
+    "placeholders": {
+      "active": {
+        "content": "$1",
+        "example": "3"
+      },
+      "saved": {
+        "content": "$2",
+        "example": "12"
+      }
+    }
+  },
+  "snooze_title_tabs_one": {
+    "message": "$count$個のタブをスヌーズ",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "snooze_title_tabs_other": {
+    "message": "$count$個のタブをスヌーズ",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "popup_debug_title": {
+    "message": "デバッグ情報をコピー"
+  },
+  "popup_testMode_title": {
+    "message": "テストモード有効"
+  },
+  "popup_testMode_body": {
+    "message": "本番ルールは無効です"
+  },
+  "popup_testMode_exit": {
+    "message": "テストモードを終了"
+  },
+  "popup_banner_collections_title": {
+    "message": "コレクションを試す"
+  },
+  "popup_banner_collections_body": {
+    "message": "ウィンドウをコレクションとして保存し、いつでも復元できます"
+  },
+  "popup_banner_dismiss": {
+    "message": "バナーを閉じる"
+  },
+  "popup_saveWindow": {
+    "message": "このウィンドウを保存"
+  },
+  "popup_collections_label": {
+    "message": "コレクション"
+  },
+  "popup_tasks_label": {
+    "message": "タスク"
+  },
+  "popup_stat_allTabs": {
+    "message": "すべてのタブ"
+  },
+  "popup_stat_groups": {
+    "message": "グループ"
+  },
+  "popup_stat_snoozed": {
+    "message": "スヌーズ中"
+  },
+  "popup_stat_duplicates": {
+    "message": "重複"
+  },
+  "popup_quickActions": {
+    "message": "クイックアクション"
+  },
+  "popup_action_closeDuplicates": {
+    "message": "重複を閉じる"
+  },
+  "popup_action_groupByDomain": {
+    "message": "ドメインでグループ化"
+  },
+  "popup_action_snoozeCurrent": {
+    "message": "現在のタブをスヌーズ"
+  },
+  "popup_action_snoozeWindow": {
+    "message": "ウィンドウをスヌーズ"
+  },
+  "popup_action_suspendInactive": {
+    "message": "非アクティブを休止"
+  },
+  "popup_activeRules": {
+    "message": "有効なルール"
+  },
+  "popup_manageRules_title": {
+    "message": "ルールを管理"
+  },
+  "popup_manage": {
+    "message": "管理"
+  },
+  "popup_topDomains": {
+    "message": "上位ドメイン"
+  },
+  "popup_snoozedTabs": {
+    "message": "スヌーズ中のタブ"
+  },
+  "popup_wakeAll_title": {
+    "message": "スヌーズ中のすべてのタブを復帰"
+  },
+  "popup_wakeAll": {
+    "message": "すべて復帰"
+  },
+  "popup_dashboard": {
+    "message": "ダッシュボード"
+  },
+  "popup_backup_title": {
+    "message": "すべてのタブ、設定、ルール、スヌーズ中のタブをバックアップ"
+  },
+  "popup_backup": {
+    "message": "バックアップ"
+  },
+  "popup_restore_title": {
+    "message": "タブ、設定、ルール、スヌーズ中のタブを復元"
+  },
+  "popup_restore": {
+    "message": "復元"
+  },
+  "popup_testPanel_title": {
+    "message": "テストパネルを開く"
+  },
+  "popup_test": {
+    "message": "テスト"
+  },
+  "popup_help": {
+    "message": "ヘルプ"
+  },
+  "popup_tasksDetail": {
+    "message": "未着手 $open$ 件、アクティブ $active$ 件",
+    "placeholders": {
+      "open": {
+        "content": "$1",
+        "example": "2"
+      },
+      "active": {
+        "content": "$2",
+        "example": "1"
+      }
+    }
+  },
+  "popup_rules_empty": {
+    "message": "有効なルールがありません"
+  },
+  "popup_domains_empty": {
+    "message": "表示するドメインがありません"
+  },
+  "popup_snoozed_windowLabel_one": {
+    "message": "ウィンドウ（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_snoozed_windowLabel_other": {
+    "message": "ウィンドウ（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_snoozed_restoreWindow": {
+    "message": "ウィンドウを復元"
+  },
+  "popup_snoozed_deleteWindow": {
+    "message": "ウィンドウを削除"
+  },
+  "popup_snoozed_wakeNow": {
+    "message": "今すぐ復帰"
+  },
+  "popup_snoozed_reschedule": {
+    "message": "再スケジュール"
+  },
+  "popup_confirm_deleteWindow_one": {
+    "message": "$count$個のタブを含むスヌーズ中のウィンドウを削除しますか？",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_confirm_deleteWindow_other": {
+    "message": "$count$個のタブを含むスヌーズ中のウィンドウを削除しますか？",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_confirm_deleteTab": {
+    "message": "スヌーズ中のタブ「$title$」を削除しますか？",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_group_nextHour": {
+    "message": "1時間以内"
+  },
+  "popup_group_today": {
+    "message": "今日"
+  },
+  "popup_group_tomorrow": {
+    "message": "明日"
+  },
+  "popup_group_later": {
+    "message": "後で"
+  },
+  "popup_time_now": {
+    "message": "今"
+  },
+  "popup_notify_loadStatsFailed": {
+    "message": "統計の読み込みに失敗しました"
+  },
+  "popup_notify_sidePanelFailed": {
+    "message": "サイドパネルを開けませんでした"
+  },
+  "popup_notify_closedDuplicates_one": {
+    "message": "$count$個の重複タブを閉じました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_closedDuplicates_other": {
+    "message": "$count$個の重複タブを閉じました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noDuplicates": {
+    "message": "重複タブは見つかりませんでした"
+  },
+  "popup_notify_closeDuplicatesFailed": {
+    "message": "重複タブを閉じられませんでした"
+  },
+  "popup_notify_createdGroups_one": {
+    "message": "$count$個のグループを作成しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_createdGroups_other": {
+    "message": "$count$個のグループを作成しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noTabsToGroup": {
+    "message": "グループ化するタブがありません"
+  },
+  "popup_notify_groupTabsFailed": {
+    "message": "タブのグループ化に失敗しました"
+  },
+  "popup_notify_tabsSnoozed_one": {
+    "message": "$duration$ タブをスヌーズしました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_tabsSnoozed_other": {
+    "message": "$count$個のタブを $duration$ スヌーズしました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_snoozeTabsFailed": {
+    "message": "タブのスヌーズに失敗しました"
+  },
+  "popup_notify_noTabsToSnooze": {
+    "message": "スヌーズするタブがありません"
+  },
+  "popup_notify_windowsSnoozed_one": {
+    "message": "$count$個のウィンドウを $duration$ スヌーズしました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_windowsSnoozed_other": {
+    "message": "$count$個のウィンドウを $duration$ スヌーズしました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_totalTabsSnoozed_one": {
+    "message": "$count$個のタブを $duration$ スヌーズしました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_totalTabsSnoozed_other": {
+    "message": "$count$個のタブを $duration$ スヌーズしました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "popup_notify_snoozeErrors_one": {
+    "message": "スヌーズは完了しましたが $count$ 件のエラーがあります",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_snoozeErrors_other": {
+    "message": "スヌーズは完了しましたが $count$ 件のエラーがあります",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_snoozeWindowFailed": {
+    "message": "ウィンドウのスヌーズに失敗しました"
+  },
+  "popup_notify_prepareSnoozeFailed": {
+    "message": "ウィンドウのスヌーズ準備に失敗しました"
+  },
+  "popup_notify_tabRescheduled": {
+    "message": "タブを再スケジュールしました"
+  },
+  "popup_notify_rescheduleFailed": {
+    "message": "タブの再スケジュールに失敗しました"
+  },
+  "popup_notify_restoredTabs_one": {
+    "message": "スヌーズ中の $count$個のタブを復元しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_restoredTabs_other": {
+    "message": "スヌーズ中の $count$個のタブを復元しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noSnoozedToRestore": {
+    "message": "復元するスヌーズ中のタブがありません"
+  },
+  "popup_notify_wakeAllFailed": {
+    "message": "スヌーズ中のタブの復帰に失敗しました"
+  },
+  "popup_notify_suspended_one": {
+    "message": "$count$個の非アクティブなタブを休止しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_suspended_other": {
+    "message": "$count$個の非アクティブなタブを休止しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_noInactive": {
+    "message": "休止する非アクティブなタブがありません"
+  },
+  "popup_notify_suspendFailed": {
+    "message": "タブの休止に失敗しました"
+  },
+  "popup_notify_toggleRuleFailed": {
+    "message": "ルールの更新に失敗しました"
+  },
+  "popup_notify_tabRestored": {
+    "message": "タブを復元しました"
+  },
+  "popup_notify_wakeTabFailedDetail": {
+    "message": "タブの復帰に失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_wakeTabFailed": {
+    "message": "タブの復帰に失敗しました"
+  },
+  "popup_notify_snoozedTabDeleted": {
+    "message": "スヌーズ中のタブを削除しました"
+  },
+  "popup_notify_deleteTabFailedDetail": {
+    "message": "タブの削除に失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_deleteTabFailed": {
+    "message": "タブの削除に失敗しました"
+  },
+  "popup_notify_windowRestored": {
+    "message": "ウィンドウを復元しました"
+  },
+  "popup_notify_restoreWindowFailedDetail": {
+    "message": "ウィンドウの復元に失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_restoreWindowFailed": {
+    "message": "ウィンドウの復元に失敗しました"
+  },
+  "popup_notify_snoozedWindowDeleted": {
+    "message": "スヌーズ中のウィンドウを削除しました"
+  },
+  "popup_notify_deleteWindowFailedDetail": {
+    "message": "ウィンドウの削除に失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_deleteWindowFailed": {
+    "message": "ウィンドウの削除に失敗しました"
+  },
+  "popup_notify_debugCopied": {
+    "message": "デバッグ情報をクリップボードにコピーしました"
+  },
+  "popup_notify_debugFailed": {
+    "message": "デバッグ情報のコピーに失敗しました"
+  },
+  "popup_notify_testPanelFailedDetail": {
+    "message": "テストパネルを開けませんでした: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_notify_genericError": {
+    "message": "エラーが発生しました"
+  },
+  "common_unknownError": {
+    "message": "不明なエラー"
+  },
+  "common_days_one": {
+    "message": "$count$日",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_days_other": {
+    "message": "$count$日",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_hours_one": {
+    "message": "$count$時間",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_hours_other": {
+    "message": "$count$時間",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_minutes_one": {
+    "message": "$count$分",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "common_minutes_other": {
+    "message": "$count$分",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_docTitle": {
+    "message": "コレクションに追加"
+  },
+  "modal_collection_title": {
+    "message": "コレクションに追加"
+  },
+  "modal_collection_searchPlaceholder": {
+    "message": "コレクションを検索..."
+  },
+  "modal_collection_nameLabel": {
+    "message": "コレクション名"
+  },
+  "modal_collection_namePlaceholder": {
+    "message": "例: プロジェクトX"
+  },
+  "modal_collection_create": {
+    "message": "作成"
+  },
+  "modal_collection_creating": {
+    "message": "作成中..."
+  },
+  "modal_collection_emptyTitle": {
+    "message": "まだコレクションがありません"
+  },
+  "modal_collection_emptyHint": {
+    "message": "下から最初のコレクションを作成しましょう"
+  },
+  "modal_collection_noMatch": {
+    "message": "検索に一致するコレクションがありません"
+  },
+  "modal_collection_createNew": {
+    "message": "+ 新しいコレクションを作成"
+  },
+  "modal_collection_active": {
+    "message": "アクティブ"
+  },
+  "modal_collection_moreCount_one": {
+    "message": "+ 他 $count$ 件のコレクション（検索を絞り込んでください）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_moreCount_other": {
+    "message": "+ 他 $count$ 件のコレクション（検索を絞り込んでください）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_tabCount_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_tabCount_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_loadFailed": {
+    "message": "コレクションの読み込みに失敗しました"
+  },
+  "modal_collection_loadError": {
+    "message": "コレクションの読み込みエラー"
+  },
+  "modal_collection_nameRequired": {
+    "message": "コレクション名を入力してください"
+  },
+  "modal_collection_createFailed": {
+    "message": "コレクションの作成に失敗しました"
+  },
+  "modal_collection_createdTitle": {
+    "message": "コレクションを作成しました"
+  },
+  "modal_collection_createdMessage": {
+    "message": "コレクション「$name$」を作成し、タブを追加しました",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_addedTitle": {
+    "message": "タブを追加しました"
+  },
+  "modal_collection_addedMessage": {
+    "message": "$name$ に追加しました",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_collection_fallbackName": {
+    "message": "コレクション"
+  },
+  "modal_collection_noTabData": {
+    "message": "利用可能なタブデータがありません"
+  },
+  "modal_collection_loadCollectionFailed": {
+    "message": "コレクションの読み込みに失敗しました"
+  },
+  "modal_collection_createFolderFailed": {
+    "message": "フォルダの作成に失敗しました"
+  },
+  "modal_collection_addTabFailed": {
+    "message": "タブの追加に失敗しました"
+  },
+  "modal_collection_errorMessage": {
+    "message": "エラー: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_note_docTitle": {
+    "message": "タブにメモを追加"
+  },
+  "modal_note_title": {
+    "message": "タブにメモを追加"
+  },
+  "modal_note_placeholder": {
+    "message": "ここにメモを入力（最大255文字）..."
+  },
+  "modal_note_charCount": {
+    "message": "$current$ / 255",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_note_save": {
+    "message": "メモを保存"
+  },
+  "modal_note_saving": {
+    "message": "保存中..."
+  },
+  "modal_note_noTab": {
+    "message": "タブが指定されていません"
+  },
+  "modal_note_notFound": {
+    "message": "タブが見つかりません"
+  },
+  "modal_note_notInCollection": {
+    "message": "このタブはコレクションに含まれていません。先に「コレクションに追加」を使用してください。"
+  },
+  "modal_note_saveFailed": {
+    "message": "メモの保存に失敗しました"
+  },
+  "modal_note_savedTitle": {
+    "message": "メモを保存しました"
+  },
+  "modal_note_savedAdded": {
+    "message": "タブにメモを追加しました"
+  },
+  "modal_note_savedRemoved": {
+    "message": "タブからメモを削除しました"
+  },
+  "modal_note_errorMessage": {
+    "message": "エラー: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_docTitle": {
+    "message": "タスクを作成"
+  },
+  "modal_task_title": {
+    "message": "タスクを作成"
+  },
+  "modal_task_summaryLabel": {
+    "message": "概要"
+  },
+  "modal_task_summaryPlaceholder": {
+    "message": "例: PR #234 をレビュー"
+  },
+  "modal_task_summaryError": {
+    "message": "概要は必須です"
+  },
+  "modal_task_notesLabel": {
+    "message": "メモ"
+  },
+  "modal_task_notesPlaceholder": {
+    "message": "詳細..."
+  },
+  "modal_task_collectionLabel": {
+    "message": "コレクション"
+  },
+  "modal_task_uncategorized": {
+    "message": "未分類"
+  },
+  "modal_task_collectionActive": {
+    "message": "$name$（アクティブ）",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_priorityLabel": {
+    "message": "優先度"
+  },
+  "modal_task_priorityLow": {
+    "message": "低"
+  },
+  "modal_task_priorityMedium": {
+    "message": "中"
+  },
+  "modal_task_priorityHigh": {
+    "message": "高"
+  },
+  "modal_task_priorityCritical": {
+    "message": "最重要"
+  },
+  "modal_task_statusLabel": {
+    "message": "ステータス"
+  },
+  "modal_task_statusOpen": {
+    "message": "未着手"
+  },
+  "modal_task_statusActive": {
+    "message": "アクティブ"
+  },
+  "modal_task_dueDateLabel": {
+    "message": "期限"
+  },
+  "modal_task_tagsLabel": {
+    "message": "タグ"
+  },
+  "modal_task_tagPlaceholder": {
+    "message": "タグを入力..."
+  },
+  "modal_task_addTag": {
+    "message": "タグを追加"
+  },
+  "modal_task_referencedTabs": {
+    "message": "関連タブ"
+  },
+  "modal_task_selectCollection": {
+    "message": "タブを表示するにはコレクションを選択してください"
+  },
+  "modal_task_create": {
+    "message": "タスクを作成"
+  },
+  "modal_task_creating": {
+    "message": "作成中..."
+  },
+  "modal_task_errorLoadingTabs": {
+    "message": "タブの読み込みエラー"
+  },
+  "modal_task_noTabsInCollection": {
+    "message": "このコレクションにはタブがありません"
+  },
+  "modal_task_createFailed": {
+    "message": "タスクの作成に失敗しました"
+  },
+  "modal_task_createdTitle": {
+    "message": "タスクを作成しました"
+  },
+  "modal_task_createdMessage": {
+    "message": "タスクを作成しました: $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "modal_task_errorCreating": {
+    "message": "タスク作成エラー: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "options_docTitle": {
+    "message": "TabTaskTick - 設定"
+  },
+  "options_title": {
+    "message": "TabTaskTick の設定"
+  },
+  "options_subtitle": {
+    "message": "タブとタスクの管理設定を構成します"
+  },
+  "options_tab_general": {
+    "message": "一般"
+  },
+  "options_tab_keybinds": {
+    "message": "キーボードショートカット"
+  },
+  "options_tab_data": {
+    "message": "データ管理"
+  },
+  "options_tab_about": {
+    "message": "情報"
+  },
+  "options_section_tabBehavior": {
+    "message": "タブの動作"
+  },
+  "options_protectPinned_label": {
+    "message": "ピン留めタブを保護"
+  },
+  "options_protectPinned_desc": {
+    "message": "ルール実行時にピン留めタブを自動的にスキップします（誤って閉じるのを防ぎます）"
+  },
+  "options_section_snooze": {
+    "message": "スヌーズの動作"
+  },
+  "options_restoration_label": {
+    "message": "タブの復元先"
+  },
+  "options_restoration_desc": {
+    "message": "スヌーズした個々のタブが復帰したときに開く場所"
+  },
+  "options_restoration_original": {
+    "message": "元のウィンドウに戻す（デフォルト）"
+  },
+  "options_restoration_current": {
+    "message": "現在のウィンドウ内"
+  },
+  "options_restoration_new": {
+    "message": "新しいウィンドウ内"
+  },
+  "options_section_developer": {
+    "message": "開発者オプション"
+  },
+  "options_devMode_label": {
+    "message": "開発者モード"
+  },
+  "options_devMode_desc": {
+    "message": "デバッグ機能と詳細なログを有効にします"
+  },
+  "options_logLevel_label": {
+    "message": "ログレベル"
+  },
+  "options_logLevel_desc": {
+    "message": "デバッグ用にどのログメッセージを記録するかを制御します"
+  },
+  "options_logLevel_debug": {
+    "message": "DEBUG（詳細）"
+  },
+  "options_logLevel_info": {
+    "message": "INFO"
+  },
+  "options_logLevel_warn": {
+    "message": "WARN（デフォルト）"
+  },
+  "options_logLevel_error": {
+    "message": "ERROR（最小限）"
+  },
+  "options_testLog_label": {
+    "message": "ログフィルタのテスト"
+  },
+  "options_testLog_desc": {
+    "message": "各レベルでテストログを出力してフィルタを確認します（ブラウザのコンソールを確認してください）"
+  },
+  "options_testLog_btn": {
+    "message": "ログレベルをテスト"
+  },
+  "options_section_keybinds": {
+    "message": "キーボードショートカット"
+  },
+  "options_keybinds_howto_title": {
+    "message": "ショートカットの変更方法"
+  },
+  "options_keybinds_howto_p1": {
+    "message": "Chrome拡張機能のショートカットは Chrome の組み込み設定からのみ変更できます。"
+  },
+  "options_keybinds_howto_p2": {
+    "message": " でこれらのショートカットをカスタマイズできます。"
+  },
+  "options_shortcut_popup_title": {
+    "message": "ポップアップを開く"
+  },
+  "options_shortcut_popup_desc": {
+    "message": "TabTaskTick のポップアップを開く"
+  },
+  "options_shortcut_snooze_title": {
+    "message": "クイックスヌーズ"
+  },
+  "options_shortcut_snooze_desc": {
+    "message": "ダイアログで現在のタブをスヌーズ"
+  },
+  "options_shortcut_group_title": {
+    "message": "ドメインでグループ化"
+  },
+  "options_shortcut_group_desc": {
+    "message": "すべてのタブをドメイングループに整理"
+  },
+  "options_shortcut_dupes_title": {
+    "message": "重複を閉じる"
+  },
+  "options_shortcut_dupes_desc": {
+    "message": "すべての重複タブを削除"
+  },
+  "options_section_data": {
+    "message": "データ管理"
+  },
+  "options_data_desc": {
+    "message": "拡張機能のデータを管理し、設定をリセットします"
+  },
+  "options_clearHistory_label": {
+    "message": "アクティビティ履歴を消去"
+  },
+  "options_clearHistory_desc": {
+    "message": "記録されたすべてのタブアクティビティ履歴を削除します"
+  },
+  "options_clearHistory_btn": {
+    "message": "履歴を消去"
+  },
+  "options_clearData_label": {
+    "message": "すべてのデータを消去"
+  },
+  "options_clearData_desc": {
+    "message": "スヌーズ中のタブ、ルール、設定を含むすべての拡張機能データを削除します"
+  },
+  "options_clearData_btn": {
+    "message": "すべてのデータを消去"
+  },
+  "options_reset_label": {
+    "message": "デフォルトにリセット"
+  },
+  "options_reset_desc": {
+    "message": "すべての設定をデフォルト値に戻します"
+  },
+  "options_reset_btn": {
+    "message": "デフォルトにリセット"
+  },
+  "options_section_importExport": {
+    "message": "インポートとエクスポート"
+  },
+  "options_importExport_desc": {
+    "message": "スケジュールバックアップを含む完全なデータのエクスポート/インポートにはダッシュボードを使用してください"
+  },
+  "options_openDashboard_label": {
+    "message": "ダッシュボードを開く"
+  },
+  "options_openDashboard_desc": {
+    "message": "複数の形式とスケジュール機能を備えた高度なエクスポート/インポート機能にアクセスします"
+  },
+  "options_openDashboard_btn": {
+    "message": "ダッシュボードを開く"
+  },
+  "options_version_loading": {
+    "message": "バージョンを読み込み中..."
+  },
+  "options_about_desc": {
+    "message": "スマートな自動化機能を備えた高度なタブ・ブックマーク管理拡張機能。"
+  },
+  "options_link_github": {
+    "message": "GitHub"
+  },
+  "options_link_reportIssue": {
+    "message": "問題を報告"
+  },
+  "options_saved": {
+    "message": "設定を保存しました!"
+  },
+  "options_version": {
+    "message": "バージョン $version$",
+    "placeholders": {
+      "version": {
+        "content": "$1",
+        "example": "1.4.11"
+      }
+    }
+  },
+  "options_notify_loadFailed": {
+    "message": "設定の読み込みに失敗しました"
+  },
+  "options_notify_saveFailed": {
+    "message": "設定の保存に失敗しました"
+  },
+  "options_confirm_clearHistory": {
+    "message": "すべての履歴を消去してもよろしいですか？"
+  },
+  "options_notify_historyCleared": {
+    "message": "履歴を消去しました"
+  },
+  "options_notify_clearHistoryFailed": {
+    "message": "履歴の消去に失敗しました"
+  },
+  "options_confirm_clearData": {
+    "message": "すべてのデータを消去してもよろしいですか？この操作は元に戻せません。"
+  },
+  "options_notify_dataCleared": {
+    "message": "すべてのデータを消去しました"
+  },
+  "options_notify_clearDataFailed": {
+    "message": "データの消去に失敗しました"
+  },
+  "options_confirm_reset": {
+    "message": "すべての設定をデフォルトにリセットしてもよろしいですか？"
+  },
+  "options_notify_reset": {
+    "message": "設定をデフォルトにリセットしました"
+  },
+  "options_notify_resetFailed": {
+    "message": "設定のリセットに失敗しました"
+  },
+  "options_notify_logLevel": {
+    "message": "レベル: $level$",
+    "placeholders": {
+      "level": {
+        "content": "$1",
+        "example": "WARN"
+      }
+    }
+  },
+  "options_notify_urlCopied": {
+    "message": "URLをコピーしました! アドレスバーに貼り付けてください。"
+  },
+  "options_notify_openManually": {
+    "message": "chrome://extensions/shortcuts を手動で開いてください"
+  },
+  "snooze_title_window": {
+    "message": "ウィンドウをスヌーズ: $title$",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_windows_one": {
+    "message": "$count$個のウィンドウをスヌーズ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_windows_other": {
+    "message": "$count$個のウィンドウをスヌーズ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_windowOne": {
+    "message": "ウィンドウ 1"
+  },
+  "snooze_part_windows_one": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_windows_other": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_otherTabs_one": {
+    "message": "他 $count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_part_otherTabs_other": {
+    "message": "他 $count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_title_mixed": {
+    "message": "$windows$と$tabs$をスヌーズ",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_desc_windows_one": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_windows_other": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabCount_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabCount_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_windowPart": {
+    "message": "$windows$（$tabs$）",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_desc_otherTabs_one": {
+    "message": "他 $count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_otherTabs_other": {
+    "message": "他 $count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_tabsFromCurrent": {
+    "message": "現在のウィンドウの$tabs$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_desc_join": {
+    "message": "と"
+  },
+  "snooze_desc_prefix": {
+    "message": "$parts$をスヌーズします",
+    "placeholders": {
+      "parts": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_windows_one": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_windows_other": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_tabs_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_tabs_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "snooze_count_mixed": {
+    "message": "$windows$ + $tabs$",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "snooze_restoration_original": {
+    "message": "元のウィンドウに戻す"
+  },
+  "snooze_restoration_current": {
+    "message": "現在のウィンドウへ"
+  },
+  "snooze_restoration_new": {
+    "message": "新しいウィンドウ内"
+  },
+  "activity_noActions": {
+    "message": "$rule$: アクションなし（$trigger$）",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "trigger": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_noSuccess": {
+    "message": "$rule$: 成功したアクションなし（$trigger$）",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "trigger": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_summary": {
+    "message": "$rule$: $actions$（$trigger$）",
+    "placeholders": {
+      "rule": {
+        "content": "$1"
+      },
+      "actions": {
+        "content": "$2"
+      },
+      "trigger": {
+        "content": "$3"
+      }
+    }
+  },
+  "activity_join": {
+    "message": "、"
+  },
+  "activity_actionPart_one": {
+    "message": "$count$個のタブを$verb$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "verb": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_actionPart_other": {
+    "message": "$count$個のタブを$verb$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "verb": {
+        "content": "$2"
+      }
+    }
+  },
+  "activity_verb_close": {
+    "message": "閉じた"
+  },
+  "activity_verb_closeDuplicate": {
+    "message": "重複を閉じた"
+  },
+  "activity_verb_group": {
+    "message": "グループ化した"
+  },
+  "activity_verb_snooze": {
+    "message": "スヌーズした"
+  },
+  "activity_verb_bookmark": {
+    "message": "ブックマークした"
+  },
+  "activity_verb_pin": {
+    "message": "ピン留めした"
+  },
+  "activity_verb_unpin": {
+    "message": "ピン留めを解除した"
+  },
+  "activity_verb_mute": {
+    "message": "ミュートした"
+  },
+  "activity_verb_unmute": {
+    "message": "ミュートを解除した"
+  },
+  "activity_verb_discard": {
+    "message": "休止した"
+  },
+  "activity_verb_move": {
+    "message": "移動した"
+  },
+  "activity_actionNoun_one": {
+    "message": "アクション"
+  },
+  "activity_actionNoun_other": {
+    "message": "アクション"
+  },
+  "activity_noMatching": {
+    "message": "一致するタブが見つかりません"
+  },
+  "sidepanel_docTitle": {
+    "message": "TabTaskTick"
+  },
+  "sidepanel_searchPlaceholder": {
+    "message": "コレクションとタスクを検索..."
+  },
+  "sidepanel_searchLabel": {
+    "message": "コレクションとタスクを検索"
+  },
+  "sidepanel_createCollection_title": {
+    "message": "新しいコレクションを作成"
+  },
+  "sidepanel_createCollection_btn": {
+    "message": "📁 コレクションを作成"
+  },
+  "sidepanel_createTask_title": {
+    "message": "新しいタスクを作成"
+  },
+  "sidepanel_createTask_btn": {
+    "message": "✓ タスクを作成"
+  },
+  "sidepanel_import_title": {
+    "message": "JSONファイルからコレクションをインポート"
+  },
+  "sidepanel_import_btn": {
+    "message": "📥 インポート"
+  },
+  "sidepanel_view_collections": {
+    "message": "📁 コレクション"
+  },
+  "sidepanel_view_tasks": {
+    "message": "✓ タスク"
+  },
+  "sidepanel_toggleFilters_label": {
+    "message": "フィルタを切り替え"
+  },
+  "sidepanel_toggleFilters_title": {
+    "message": "フィルタの表示/非表示"
+  },
+  "sidepanel_toggleFilters_btn": {
+    "message": "🔍 フィルタ"
+  },
+  "sidepanel_filtersPanel_label": {
+    "message": "フィルタ"
+  },
+  "sidepanel_collections_loading": {
+    "message": "コレクションを読み込み中..."
+  },
+  "sidepanel_collections_errorTitle": {
+    "message": "コレクションを読み込めません"
+  },
+  "sidepanel_collections_emptyTitle": {
+    "message": "まだコレクションがありません"
+  },
+  "sidepanel_collections_emptyDescription": {
+    "message": "最初のコレクションを作成して、タブのグループを整理・管理しましょう。コレクションを使うと作業を整理して簡単にアクセスできます。"
+  },
+  "sidepanel_collections_emptyAction": {
+    "message": "📁 最初のコレクションを作成"
+  },
+  "sidepanel_collections_sectionActive": {
+    "message": "アクティブ"
+  },
+  "sidepanel_collections_sectionSaved": {
+    "message": "保存済み"
+  },
+  "sidepanel_common_retry": {
+    "message": "再試行"
+  },
+  "sidepanel_tasks_loading": {
+    "message": "タスクを読み込み中..."
+  },
+  "sidepanel_tasks_errorTitle": {
+    "message": "タスクを読み込めません"
+  },
+  "sidepanel_tasks_emptyTitle": {
+    "message": "まだタスクがありません"
+  },
+  "sidepanel_tasks_emptyDescription": {
+    "message": "タスクを作成してコレクション内の作業を追跡しましょう。タスクは作業中の内容を覚えておくのに役立ちます。"
+  },
+  "sidepanel_tasks_emptyAction": {
+    "message": "✓ 最初のタスクを作成"
+  },
+  "sidepanel_panel_saveWindowFailed": {
+    "message": "ウィンドウの保存に失敗しました"
+  },
+  "sidepanel_panel_newCollectionName": {
+    "message": "新しいコレクション"
+  },
+  "sidepanel_panel_saveWindowIntro_oneTab_oneFolder": {
+    "message": "$tabs$個のタブと$folders$個のフォルダを含む現在のウィンドウから新しいコレクションを作成します。",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_oneTab_otherFolders": {
+    "message": "$tabs$個のタブと$folders$個のフォルダを含む現在のウィンドウから新しいコレクションを作成します。",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_oneFolder": {
+    "message": "$tabs$個のタブと$folders$個のフォルダを含む現在のウィンドウから新しいコレクションを作成します。",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_panel_saveWindowIntro_otherTabs_otherFolders": {
+    "message": "$tabs$個のタブと$folders$個のフォルダを含む現在のウィンドウから新しいコレクションを作成します。",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "folders": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_form_nameLabel": {
+    "message": "名前 *"
+  },
+  "sidepanel_form_namePlaceholder": {
+    "message": "コレクション名を入力"
+  },
+  "sidepanel_form_descriptionLabel": {
+    "message": "説明"
+  },
+  "sidepanel_form_descriptionPlaceholder": {
+    "message": "このコレクションの用途は？"
+  },
+  "sidepanel_form_iconLabel": {
+    "message": "アイコン"
+  },
+  "sidepanel_form_emojiSuggested": {
+    "message": "✨ おすすめ"
+  },
+  "sidepanel_form_tagsLabel": {
+    "message": "タグ（カンマ区切り）"
+  },
+  "sidepanel_form_tagsPlaceholder": {
+    "message": "仕事, プロジェクト, 調査"
+  },
+  "sidepanel_panel_createCollectionTitle": {
+    "message": "コレクションを作成"
+  },
+  "sidepanel_panel_createCollectionSubmit": {
+    "message": "コレクションを作成"
+  },
+  "sidepanel_panel_nameRequired": {
+    "message": "コレクション名は必須です"
+  },
+  "sidepanel_panel_savedCollection": {
+    "message": "✓ $name$ を保存しました（タブ $tabs$ 個、フォルダ $folders$ 個）",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      },
+      "folders": {
+        "content": "$3"
+      }
+    }
+  },
+  "sidepanel_panel_importing": {
+    "message": "コレクションをインポート中..."
+  },
+  "sidepanel_panel_importFailed": {
+    "message": "コレクションのインポートに失敗しました"
+  },
+  "sidepanel_panel_createTaskFailed": {
+    "message": "タスクの作成に失敗しました"
+  },
+  "sidepanel_panel_createTaskTitle": {
+    "message": "新しいタスクを作成"
+  },
+  "sidepanel_task_summaryLabel": {
+    "message": "概要 *"
+  },
+  "sidepanel_task_summaryPlaceholder": {
+    "message": "何をする必要がありますか？"
+  },
+  "sidepanel_task_contextLabel": {
+    "message": "コンテキスト"
+  },
+  "sidepanel_task_contextHelperThis": {
+    "message": "このタブにすばやくアクセス"
+  },
+  "sidepanel_task_contextHelper": {
+    "message": "タブにすばやくアクセス"
+  },
+  "sidepanel_task_notesLabel": {
+    "message": "メモ"
+  },
+  "sidepanel_task_notesPlaceholder": {
+    "message": "詳細..."
+  },
+  "sidepanel_task_priorityLabel": {
+    "message": "優先度"
+  },
+  "sidepanel_task_priorityLow": {
+    "message": "低"
+  },
+  "sidepanel_task_priorityMedium": {
+    "message": "中"
+  },
+  "sidepanel_task_priorityHigh": {
+    "message": "高"
+  },
+  "sidepanel_task_priorityCritical": {
+    "message": "最重要"
+  },
+  "sidepanel_task_collectionLabel": {
+    "message": "コレクション"
+  },
+  "sidepanel_task_uncategorized": {
+    "message": "未分類"
+  },
+  "sidepanel_task_unnamed": {
+    "message": "名称未設定"
+  },
+  "sidepanel_task_dueDateLabel": {
+    "message": "期限"
+  },
+  "sidepanel_task_tagsLabel": {
+    "message": "タグ（カンマ区切り）"
+  },
+  "sidepanel_task_tagsPlaceholderUrgent": {
+    "message": "緊急, 仕事, レビュー"
+  },
+  "sidepanel_task_createSubmit": {
+    "message": "タスクを作成"
+  },
+  "sidepanel_task_statusLabel": {
+    "message": "ステータス"
+  },
+  "sidepanel_task_statusOpen": {
+    "message": "未着手"
+  },
+  "sidepanel_task_statusActive": {
+    "message": "アクティブ"
+  },
+  "sidepanel_task_statusFixed": {
+    "message": "完了"
+  },
+  "sidepanel_task_statusAbandoned": {
+    "message": "中止"
+  },
+  "sidepanel_task_summaryRequired": {
+    "message": "概要は必須です"
+  },
+  "sidepanel_task_created": {
+    "message": "タスクを作成しました"
+  },
+  "sidepanel_panel_noResultsTitle_collections": {
+    "message": "コレクションが見つかりません"
+  },
+  "sidepanel_panel_noResultsTitle_tasks": {
+    "message": "タスクが見つかりません"
+  },
+  "sidepanel_panel_noResultsDescription_collections": {
+    "message": "検索クエリ「$query$」に一致するコレクションがありません。別の検索語を試してください。",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_panel_noResultsDescription_tasks": {
+    "message": "検索クエリ「$query$」に一致するタスクがありません。別の検索語を試してください。",
+    "placeholders": {
+      "query": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_panel_genericError": {
+    "message": "エラーが発生しました"
+  },
+  "sidepanel_panel_initError": {
+    "message": "初期化エラー"
+  },
+  "sidepanel_collections_untitled": {
+    "message": "名称未設定のコレクション"
+  },
+  "sidepanel_collections_windowBadge": {
+    "message": "ウィンドウ #$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_metaTabs": {
+    "message": "タブ"
+  },
+  "sidepanel_collections_metaFolders": {
+    "message": "フォルダ"
+  },
+  "sidepanel_collections_metaLastAccessed": {
+    "message": "最終アクセス"
+  },
+  "sidepanel_collections_moreTags": {
+    "message": "+$count$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_viewDetails": {
+    "message": "👁️ 詳細を表示"
+  },
+  "sidepanel_collections_focusWindow": {
+    "message": "ウィンドウにフォーカス"
+  },
+  "sidepanel_collections_open": {
+    "message": "📂 開く"
+  },
+  "sidepanel_collections_edit": {
+    "message": "✏️ 編集"
+  },
+  "sidepanel_collections_close": {
+    "message": "❌ 閉じる"
+  },
+  "sidepanel_collections_delete": {
+    "message": "🗑️ 削除"
+  },
+  "sidepanel_collections_export": {
+    "message": "💾 エクスポート"
+  },
+  "sidepanel_collections_exportTitle": {
+    "message": "このコレクションをエクスポート"
+  },
+  "sidepanel_collections_detailViewUnavailable": {
+    "message": "詳細ビューは利用できません"
+  },
+  "sidepanel_collections_showDetailsFailed": {
+    "message": "コレクションの詳細表示に失敗しました"
+  },
+  "sidepanel_collections_windowNotFound": {
+    "message": "ウィンドウが見つかりません"
+  },
+  "sidepanel_collections_windowFocused": {
+    "message": "ウィンドウにフォーカスしました"
+  },
+  "sidepanel_collections_focusFailed": {
+    "message": "ウィンドウへのフォーカスに失敗しました"
+  },
+  "sidepanel_collections_openedNewWindow": {
+    "message": "コレクションを新しいウィンドウで開きました"
+  },
+  "sidepanel_collections_openFailed": {
+    "message": "コレクションを開けませんでした"
+  },
+  "sidepanel_collections_viewingTasks": {
+    "message": "コレクションのタスクを表示しています"
+  },
+  "sidepanel_collections_viewTasksFailed": {
+    "message": "タスクの表示に失敗しました"
+  },
+  "sidepanel_collections_notFound": {
+    "message": "コレクションが見つかりません"
+  },
+  "sidepanel_collections_editTitle": {
+    "message": "コレクションを編集"
+  },
+  "sidepanel_collections_editFailed": {
+    "message": "コレクションの編集に失敗しました"
+  },
+  "sidepanel_collections_windowClosedSaved": {
+    "message": "ウィンドウを閉じました - コレクションを保存しました"
+  },
+  "sidepanel_collections_closeWindowFailed": {
+    "message": "ウィンドウを閉じられませんでした"
+  },
+  "sidepanel_collections_deleteTitle": {
+    "message": "コレクションを削除"
+  },
+  "sidepanel_collections_deleteFailed": {
+    "message": "コレクションの削除に失敗しました"
+  },
+  "sidepanel_collections_deleted": {
+    "message": "コレクション「$name$」を削除しました",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_deleteWarningActive": {
+    "message": "⚠️ このコレクションは現在アクティブです。ウィンドウは開いたままになりますが、コレクションのデータは完全に削除されます。"
+  },
+  "sidepanel_collections_deleteConfirmQuestion": {
+    "message": "「$name$」を削除してもよろしいですか？",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_collections_deleteWillDelete": {
+    "message": "以下が完全に削除されます:"
+  },
+  "sidepanel_collections_deleteItemFolders": {
+    "message": "このコレクション内のすべてのフォルダとタブ"
+  },
+  "sidepanel_collections_deleteItemTasks": {
+    "message": "このコレクションに関連付けられたすべてのタスク"
+  },
+  "sidepanel_collections_actionUndone": {
+    "message": "この操作は元に戻せません。"
+  },
+  "sidepanel_collections_nameLabel": {
+    "message": "名前"
+  },
+  "sidepanel_collections_tagsPlaceholder": {
+    "message": "仕事, 調査, 個人"
+  },
+  "sidepanel_collections_updated": {
+    "message": "コレクションを更新しました"
+  },
+  "sidepanel_collections_saveChangesFailed": {
+    "message": "変更の保存に失敗しました"
+  },
+  "sidepanel_collections_exporting": {
+    "message": "コレクションをエクスポート中..."
+  },
+  "sidepanel_collections_exportFailedNotify": {
+    "message": "コレクションのエクスポートに失敗しました"
+  },
+  "sidepanel_collections_exportFailedDetail": {
+    "message": "エクスポートに失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_never": {
+    "message": "なし"
+  },
+  "sidepanel_time_justNow": {
+    "message": "たった今"
+  },
+  "sidepanel_time_minAgo": {
+    "message": "$count$分前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_hoursAgo": {
+    "message": "$count$時間前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_daysAgo": {
+    "message": "$count$日前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_weeksAgo": {
+    "message": "$count$週間前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_time_monthsAgo": {
+    "message": "$count$か月前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_filters_state": {
+    "message": "状態"
+  },
+  "sidepanel_filters_stateAll": {
+    "message": "すべて"
+  },
+  "sidepanel_filters_stateActive": {
+    "message": "アクティブ"
+  },
+  "sidepanel_filters_stateSaved": {
+    "message": "保存済み"
+  },
+  "sidepanel_filters_tags": {
+    "message": "タグ"
+  },
+  "sidepanel_filters_sortBy": {
+    "message": "並べ替え"
+  },
+  "sidepanel_filters_sortLastAccessed": {
+    "message": "最終アクセス"
+  },
+  "sidepanel_filters_sortCreated": {
+    "message": "作成日"
+  },
+  "sidepanel_filters_sortName": {
+    "message": "名前"
+  },
+  "sidepanel_filters_status": {
+    "message": "ステータス"
+  },
+  "sidepanel_filters_statusOpen": {
+    "message": "未着手"
+  },
+  "sidepanel_filters_statusActive": {
+    "message": "アクティブ"
+  },
+  "sidepanel_filters_statusFixed": {
+    "message": "完了"
+  },
+  "sidepanel_filters_statusAbandoned": {
+    "message": "中止"
+  },
+  "sidepanel_filters_priority": {
+    "message": "優先度"
+  },
+  "sidepanel_filters_priorityLow": {
+    "message": "低"
+  },
+  "sidepanel_filters_priorityMedium": {
+    "message": "中"
+  },
+  "sidepanel_filters_priorityHigh": {
+    "message": "高"
+  },
+  "sidepanel_filters_priorityCritical": {
+    "message": "最重要"
+  },
+  "sidepanel_filters_collection": {
+    "message": "コレクション"
+  },
+  "sidepanel_filters_uncategorized": {
+    "message": "未分類"
+  },
+  "sidepanel_filters_unnamed": {
+    "message": "名称未設定"
+  },
+  "sidepanel_filters_clear": {
+    "message": "フィルタをクリア（$count$）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_presentation_groupBy": {
+    "message": "グループ化:"
+  },
+  "sidepanel_presentation_groupByLabel": {
+    "message": "タスクのグループ化"
+  },
+  "sidepanel_presentation_groupCollection": {
+    "message": "コレクション"
+  },
+  "sidepanel_presentation_groupPriority": {
+    "message": "優先度"
+  },
+  "sidepanel_presentation_groupStatus": {
+    "message": "ステータス"
+  },
+  "sidepanel_presentation_groupNone": {
+    "message": "なし"
+  },
+  "sidepanel_presentation_sortBy": {
+    "message": "並べ替え:"
+  },
+  "sidepanel_presentation_sortByLabel": {
+    "message": "タスクの並べ替え"
+  },
+  "sidepanel_presentation_sortPriority": {
+    "message": "優先度"
+  },
+  "sidepanel_presentation_sortDueDate": {
+    "message": "期限"
+  },
+  "sidepanel_presentation_sortCreated": {
+    "message": "作成日"
+  },
+  "sidepanel_presentation_sortAlpha": {
+    "message": "アルファベット順"
+  },
+  "sidepanel_presentation_directionLabel": {
+    "message": "並べ替え方向を切り替え"
+  },
+  "sidepanel_presentation_directionAsc": {
+    "message": "昇順"
+  },
+  "sidepanel_presentation_directionDesc": {
+    "message": "降順"
+  },
+  "sidepanel_tasks_uncategorized": {
+    "message": "未分類"
+  },
+  "sidepanel_tasks_unnamedCollection": {
+    "message": "名称未設定のコレクション"
+  },
+  "sidepanel_tasks_unnamed": {
+    "message": "名称未設定"
+  },
+  "sidepanel_tasks_completed": {
+    "message": "完了"
+  },
+  "sidepanel_tasks_groupCritical": {
+    "message": "最重要"
+  },
+  "sidepanel_tasks_groupHigh": {
+    "message": "高優先度"
+  },
+  "sidepanel_tasks_groupMedium": {
+    "message": "中優先度"
+  },
+  "sidepanel_tasks_groupLow": {
+    "message": "低優先度"
+  },
+  "sidepanel_tasks_groupNoPriority": {
+    "message": "優先度なし"
+  },
+  "sidepanel_tasks_statusOpen": {
+    "message": "未着手"
+  },
+  "sidepanel_tasks_statusActive": {
+    "message": "アクティブ"
+  },
+  "sidepanel_tasks_statusFixed": {
+    "message": "完了"
+  },
+  "sidepanel_tasks_statusAbandoned": {
+    "message": "中止"
+  },
+  "sidepanel_tasks_viewCollection": {
+    "message": "コレクションを表示"
+  },
+  "sidepanel_tasks_delete": {
+    "message": "削除"
+  },
+  "sidepanel_tasks_openTabs": {
+    "message": "タブを開く"
+  },
+  "sidepanel_tasks_markFixed": {
+    "message": "完了にする"
+  },
+  "sidepanel_tasks_edit": {
+    "message": "編集"
+  },
+  "sidepanel_tasks_dueOverdue": {
+    "message": "⚠️ 期限 $date$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_due": {
+    "message": "期限 $date$",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadge_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadge_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_one": {
+    "message": "関連する $count$個のタブを開く",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsBadgeTitle_other": {
+    "message": "関連する $count$個のタブを開く",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openingTabs": {
+    "message": "タスクのタブを開いています..."
+  },
+  "sidepanel_tasks_openedTabs_one": {
+    "message": "$count$個のタブを開きました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openedTabs_other": {
+    "message": "$count$個のタブを開きました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_openTabsFailed": {
+    "message": "タスクのタブを開けませんでした"
+  },
+  "sidepanel_tasks_markedFixed": {
+    "message": "タスクを完了にしました"
+  },
+  "sidepanel_tasks_markFixedFailed": {
+    "message": "タスクを完了にできませんでした"
+  },
+  "sidepanel_tasks_loadFailed": {
+    "message": "タスクの読み込みに失敗しました"
+  },
+  "sidepanel_tasks_deleted": {
+    "message": "タスク「$summary$」を削除しました",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_tasks_deleteFailed": {
+    "message": "タスクの削除に失敗しました"
+  },
+  "sidepanel_tasks_deleteTitle": {
+    "message": "タスクを削除"
+  },
+  "sidepanel_tasks_deleteQuestion": {
+    "message": "このタスクを削除してもよろしいですか？"
+  },
+  "sidepanel_tasks_deleteCollectionInfo": {
+    "message": "このタスクはコレクションの一部です。コレクションには影響しません。"
+  },
+  "sidepanel_tasks_editTitle": {
+    "message": "タスクを編集"
+  },
+  "sidepanel_task_saveChanges": {
+    "message": "変更を保存"
+  },
+  "sidepanel_tasks_updated": {
+    "message": "タスクを更新しました"
+  },
+  "sidepanel_tasks_saveEditsFailed": {
+    "message": "タスクの編集の保存に失敗しました"
+  },
+  "sidepanel_tabchip_closed": {
+    "message": "閉じました"
+  },
+  "sidepanel_tabchip_removeLabel": {
+    "message": "タブの参照を削除"
+  },
+  "sidepanel_tabchip_removeAssociation": {
+    "message": "タブの関連付けを削除"
+  },
+  "sidepanel_tabchip_linkCurrent": {
+    "message": "現在のタブにリンク"
+  },
+  "sidepanel_tabchip_alreadyLinked": {
+    "message": "このタブはすでにリンクされています"
+  },
+  "sidepanel_tabchip_noActiveTab": {
+    "message": "アクティブなタブが見つかりません"
+  },
+  "sidepanel_detail_back": {
+    "message": "← コレクションに戻る"
+  },
+  "sidepanel_detail_notFound": {
+    "message": "コレクションが見つかりません"
+  },
+  "sidepanel_detail_loadFailed": {
+    "message": "コレクションの読み込みに失敗しました"
+  },
+  "sidepanel_detail_syncNever": {
+    "message": "なし"
+  },
+  "sidepanel_detail_tasksHeader": {
+    "message": "✓ タスク"
+  },
+  "sidepanel_detail_newTask": {
+    "message": "+ 新しいタスク"
+  },
+  "sidepanel_detail_noTasks": {
+    "message": "まだタスクがありません。作成して作業を追跡しましょう。"
+  },
+  "sidepanel_detail_tasksOpen": {
+    "message": "未着手（$count$）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_tasksActive": {
+    "message": "アクティブ（$count$）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_tasksCompleted": {
+    "message": "完了（$count$）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_moreTabs": {
+    "message": "、他 $count$ 件",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_openTabsTitle": {
+    "message": "タブを開く"
+  },
+  "sidepanel_detail_markFixedTitle": {
+    "message": "完了にする"
+  },
+  "sidepanel_detail_editTaskTitle": {
+    "message": "タスクを編集"
+  },
+  "sidepanel_detail_foldersHeader": {
+    "message": "📂 フォルダとタブ"
+  },
+  "sidepanel_detail_foldersCount": {
+    "message": "フォルダ $folders$ 個、タブ $tabs$ 個",
+    "placeholders": {
+      "folders": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      }
+    }
+  },
+  "sidepanel_detail_noFolders": {
+    "message": "まだフォルダやタブがありません。"
+  },
+  "sidepanel_detail_untitledFolder": {
+    "message": "名称未設定のフォルダ"
+  },
+  "sidepanel_detail_folderTabsCount": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_ungroupedTabs": {
+    "message": "グループ化されていないタブ"
+  },
+  "sidepanel_detail_notePlaceholder": {
+    "message": "メモを追加（最大255文字）..."
+  },
+  "sidepanel_detail_noteChars": {
+    "message": "$count$/255",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_settingsHeader": {
+    "message": "⚙️ 段階的同期の設定"
+  },
+  "sidepanel_detail_settingsInfo": {
+    "message": "有効にすると、タブとグループへの変更が自動的に同期され、コレクションの状態が保持されます。"
+  },
+  "sidepanel_detail_trackingTitle": {
+    "message": "リアルタイム追跡を有効にする"
+  },
+  "sidepanel_detail_trackingDesc": {
+    "message": "タブ/グループの変更を自動的に追跡して保存します"
+  },
+  "sidepanel_detail_syncDelayTitle": {
+    "message": "同期の遅延"
+  },
+  "sidepanel_detail_syncDelayDesc": {
+    "message": "変更を保存するまでの待機時間（$value$）",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_syncStatus": {
+    "message": "同期ステータス"
+  },
+  "sidepanel_detail_lastSynced": {
+    "message": "最終同期:"
+  },
+  "sidepanel_detail_pendingChanges": {
+    "message": "保留中の変更:"
+  },
+  "sidepanel_detail_saveSettings": {
+    "message": "設定を保存"
+  },
+  "sidepanel_detail_syncDelayInstant": {
+    "message": "0秒（即時）"
+  },
+  "sidepanel_detail_syncDelayMs": {
+    "message": "$ms$ミリ秒",
+    "placeholders": {
+      "ms": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_syncDelaySeconds": {
+    "message": "$seconds$秒",
+    "placeholders": {
+      "seconds": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_refresh": {
+    "message": "🔄 更新"
+  },
+  "sidepanel_detail_focusWindow": {
+    "message": "👁️ ウィンドウにフォーカス"
+  },
+  "sidepanel_detail_closeWindow": {
+    "message": "❌ ウィンドウを閉じる"
+  },
+  "sidepanel_detail_openCollection": {
+    "message": "📂 コレクションを開く"
+  },
+  "sidepanel_detail_editCollection": {
+    "message": "✏️ コレクションを編集"
+  },
+  "sidepanel_detail_createTaskTitle": {
+    "message": "タスクを作成"
+  },
+  "sidepanel_detail_createTaskFailed": {
+    "message": "タスクの作成に失敗しました"
+  },
+  "sidepanel_detail_create": {
+    "message": "作成"
+  },
+  "sidepanel_detail_taskNotFound": {
+    "message": "タスクが見つかりません"
+  },
+  "sidepanel_detail_editTaskFailed": {
+    "message": "タスクの編集に失敗しました"
+  },
+  "sidepanel_detail_form_summaryLabel": {
+    "message": "概要 *"
+  },
+  "sidepanel_detail_form_contextLabel": {
+    "message": "コンテキスト"
+  },
+  "sidepanel_detail_form_contextHelper": {
+    "message": "タブにすばやくアクセス"
+  },
+  "sidepanel_detail_form_notesLabel": {
+    "message": "メモ"
+  },
+  "sidepanel_detail_form_priorityLabel": {
+    "message": "優先度"
+  },
+  "sidepanel_detail_form_priorityLow": {
+    "message": "低"
+  },
+  "sidepanel_detail_form_priorityMedium": {
+    "message": "中"
+  },
+  "sidepanel_detail_form_priorityHigh": {
+    "message": "高"
+  },
+  "sidepanel_detail_form_priorityCritical": {
+    "message": "最重要"
+  },
+  "sidepanel_detail_form_statusLabel": {
+    "message": "ステータス"
+  },
+  "sidepanel_detail_form_statusOpen": {
+    "message": "未着手"
+  },
+  "sidepanel_detail_form_statusActive": {
+    "message": "アクティブ"
+  },
+  "sidepanel_detail_form_statusFixed": {
+    "message": "完了"
+  },
+  "sidepanel_detail_form_statusAbandoned": {
+    "message": "中止"
+  },
+  "sidepanel_detail_form_dueDateLabel": {
+    "message": "期限"
+  },
+  "sidepanel_detail_form_tagsLabel": {
+    "message": "タグ（カンマ区切り）"
+  },
+  "sidepanel_detail_form_tagsPlaceholder": {
+    "message": "バグ, 機能, 緊急"
+  },
+  "sidepanel_detail_taskUpdated": {
+    "message": "タスクを更新しました"
+  },
+  "sidepanel_detail_taskCreated": {
+    "message": "タスクを作成しました"
+  },
+  "sidepanel_detail_saveTaskFailed": {
+    "message": "タスクの保存に失敗しました"
+  },
+  "sidepanel_detail_openedTabs": {
+    "message": "タスクの $count$個のタブを開きました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_detail_openTaskTabsFailed": {
+    "message": "タスクのタブを開けませんでした"
+  },
+  "sidepanel_detail_markedFixed": {
+    "message": "タスクを完了にしました"
+  },
+  "sidepanel_detail_updateTaskFailed": {
+    "message": "タスクの更新に失敗しました"
+  },
+  "sidepanel_detail_saveNoteFailed": {
+    "message": "メモの保存に失敗しました"
+  },
+  "sidepanel_detail_syncing": {
+    "message": "コレクションを同期中..."
+  },
+  "sidepanel_detail_upToDate": {
+    "message": "コレクションは最新です"
+  },
+  "sidepanel_detail_refreshed": {
+    "message": "更新しました: 追加 $added$ 件、更新 $updated$ 件、削除 $removed$ 件",
+    "placeholders": {
+      "added": {
+        "content": "$1"
+      },
+      "updated": {
+        "content": "$2"
+      },
+      "removed": {
+        "content": "$3"
+      }
+    }
+  },
+  "sidepanel_detail_syncFailed": {
+    "message": "同期に失敗しました"
+  },
+  "sidepanel_detail_syncCollectionFailed": {
+    "message": "コレクションの同期に失敗しました"
+  },
+  "sidepanel_detail_windowNotFound": {
+    "message": "ウィンドウが見つかりません"
+  },
+  "sidepanel_detail_windowFocused": {
+    "message": "ウィンドウにフォーカスしました"
+  },
+  "sidepanel_detail_focusWindowFailed": {
+    "message": "ウィンドウへのフォーカスに失敗しました"
+  },
+  "sidepanel_detail_windowClosedSaved": {
+    "message": "ウィンドウを閉じました - コレクションを保存しました"
+  },
+  "sidepanel_detail_closeWindowFailed": {
+    "message": "ウィンドウを閉じられませんでした"
+  },
+  "sidepanel_detail_openedNewWindow": {
+    "message": "コレクションを新しいウィンドウで開きました"
+  },
+  "sidepanel_detail_openCollectionFailed": {
+    "message": "コレクションを開けませんでした"
+  },
+  "sidepanel_detail_editCollectionTitle": {
+    "message": "コレクションを編集"
+  },
+  "sidepanel_detail_editCollectionFailed": {
+    "message": "コレクションの編集に失敗しました"
+  },
+  "sidepanel_detail_form_nameLabel": {
+    "message": "名前"
+  },
+  "sidepanel_detail_form_descriptionLabel": {
+    "message": "説明"
+  },
+  "sidepanel_detail_form_iconLabel": {
+    "message": "アイコン"
+  },
+  "sidepanel_detail_form_collectionTagsLabel": {
+    "message": "タグ（カンマ区切り）"
+  },
+  "sidepanel_detail_form_collectionTagsPlaceholder": {
+    "message": "仕事, 調査, 個人"
+  },
+  "sidepanel_detail_collectionUpdated": {
+    "message": "コレクションを更新しました"
+  },
+  "sidepanel_detail_saveChangesFailed": {
+    "message": "変更の保存に失敗しました"
+  },
+  "sidepanel_detail_settingsSaved": {
+    "message": "設定を保存しました"
+  },
+  "sidepanel_detail_saveSettingsFailed": {
+    "message": "設定の保存に失敗しました"
+  },
+  "sidepanel_detail_untitledCollection": {
+    "message": "名称未設定のコレクション"
+  },
+  "sidepanel_detail_metaCreated": {
+    "message": "作成日:"
+  },
+  "sidepanel_detail_metaLastAccessed": {
+    "message": "最終アクセス:"
+  },
+  "sidepanel_detail_loading": {
+    "message": "読み込み中..."
+  },
+  "sidepanel_detail_windowBadge": {
+    "message": "ウィンドウ #$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "sidepanel_modal_closeLabel": {
+    "message": "ダイアログを閉じる"
+  },
+  "sidepanel_notification_closeLabel": {
+    "message": "通知を閉じる"
+  },
+  "sidepanel_state_connectionMessage": {
+    "message": "接続が切れました。拡張機能が再起動した可能性があります。"
+  },
+  "sidepanel_state_connectionSuggestion": {
+    "message": "「再試行」をクリックしてデータを再読み込みしてください。"
+  },
+  "sidepanel_state_quotaMessage": {
+    "message": "ストレージがいっぱいです。"
+  },
+  "sidepanel_state_quotaSuggestion": {
+    "message": "古いコレクションを削除して空き容量を確保してください。"
+  },
+  "sidepanel_state_notFoundMessage": {
+    "message": "アイテムはもう存在しません。"
+  },
+  "sidepanel_state_notFoundSuggestion": {
+    "message": "削除された可能性があります。"
+  },
+  "sidepanel_state_permissionMessage": {
+    "message": "権限が拒否されました。"
+  },
+  "sidepanel_state_permissionSuggestion": {
+    "message": "chrome://extensions で拡張機能の権限を確認してください"
+  },
+  "sidepanel_state_unknownMessage": {
+    "message": "エラーが発生しました。"
+  },
+  "sidepanel_state_unknownSuggestion": {
+    "message": "「再試行」をクリックしてもう一度お試しください。"
+  },
+  "dashboard_docTitle": {
+    "message": "TabTaskTick - ダッシュボード"
+  },
+  "dashboard_nav_overview": {
+    "message": "概要"
+  },
+  "dashboard_nav_allTabs": {
+    "message": "すべてのタブ"
+  },
+  "dashboard_nav_groups": {
+    "message": "グループ"
+  },
+  "dashboard_nav_snoozed": {
+    "message": "スヌーズ中"
+  },
+  "dashboard_nav_history": {
+    "message": "履歴"
+  },
+  "dashboard_nav_collections": {
+    "message": "コレクション"
+  },
+  "dashboard_nav_tasks": {
+    "message": "タスク"
+  },
+  "dashboard_nav_rulesEngine": {
+    "message": "ルールエンジン"
+  },
+  "dashboard_nav_backupRestore": {
+    "message": "バックアップと復元"
+  },
+  "dashboard_footer_shortcuts": {
+    "message": "ショートカット"
+  },
+  "dashboard_footer_shortcutsTitle": {
+    "message": "キーボードショートカット（Shift+?）"
+  },
+  "dashboard_footer_settings": {
+    "message": "設定"
+  },
+  "dashboard_overview_title": {
+    "message": "ダッシュボード概要"
+  },
+  "dashboard_overview_quickOrganize": {
+    "message": "クイック整理"
+  },
+  "dashboard_overview_refresh": {
+    "message": "更新"
+  },
+  "dashboard_overview_statTotalTabs": {
+    "message": "総タブ数"
+  },
+  "dashboard_overview_statTotalTabsTitle": {
+    "message": "すべてのタブを表示"
+  },
+  "dashboard_overview_statTabsChange": {
+    "message": "今日 +0"
+  },
+  "dashboard_overview_statTabGroups": {
+    "message": "タブグループ"
+  },
+  "dashboard_overview_statTabGroupsTitle": {
+    "message": "タブグループを表示"
+  },
+  "dashboard_overview_statGroupsInfo": {
+    "message": "折りたたみ 0 件"
+  },
+  "dashboard_overview_statSnoozed": {
+    "message": "スヌーズ中"
+  },
+  "dashboard_overview_statSnoozedTitle": {
+    "message": "スヌーズ中のタブを表示"
+  },
+  "dashboard_overview_statNextWake": {
+    "message": "次は --"
+  },
+  "dashboard_overview_statDuplicates": {
+    "message": "重複"
+  },
+  "dashboard_overview_statDuplicatesTitle": {
+    "message": "重複タブを表示"
+  },
+  "dashboard_overview_statDuplicatesInfo": {
+    "message": "クリックして整理"
+  },
+  "dashboard_overview_chartActivity": {
+    "message": "タブのアクティビティ（過去7日間）"
+  },
+  "dashboard_overview_chartTopDomains": {
+    "message": "上位ドメイン"
+  },
+  "dashboard_overview_recentActivity": {
+    "message": "最近のアクティビティ"
+  },
+  "dashboard_tabs_title": {
+    "message": "すべてのタブ"
+  },
+  "dashboard_tabs_searchPlaceholder": {
+    "message": "タブを検索..."
+  },
+  "dashboard_tabs_filterAll": {
+    "message": "すべてのタブ"
+  },
+  "dashboard_tabs_filterActive": {
+    "message": "アクティブ"
+  },
+  "dashboard_tabs_filterSuspended": {
+    "message": "休止中"
+  },
+  "dashboard_tabs_filterPinned": {
+    "message": "ピン留め"
+  },
+  "dashboard_tabs_filterAudible": {
+    "message": "音声再生中"
+  },
+  "dashboard_tabs_filterMuted": {
+    "message": "ミュート"
+  },
+  "dashboard_tabs_filterGrouped": {
+    "message": "グループ内"
+  },
+  "dashboard_tabs_filterUngrouped": {
+    "message": "グループなし"
+  },
+  "dashboard_tabs_filterDuplicates": {
+    "message": "重複"
+  },
+  "dashboard_tabs_windowAll": {
+    "message": "すべてのウィンドウ"
+  },
+  "dashboard_tabs_sortDefault": {
+    "message": "デフォルトの順序"
+  },
+  "dashboard_tabs_sortWindow": {
+    "message": "ウィンドウでグループ化"
+  },
+  "dashboard_tabs_sortRecent": {
+    "message": "最近使用した順"
+  },
+  "dashboard_tabs_sortOldest": {
+    "message": "最も使用していない順"
+  },
+  "dashboard_tabs_sortSuspended": {
+    "message": "休止中を先頭"
+  },
+  "dashboard_tabs_sortActive": {
+    "message": "アクティブを先頭"
+  },
+  "dashboard_tabs_sortTitle": {
+    "message": "タイトル（A-Z）"
+  },
+  "dashboard_tabs_sortDomain": {
+    "message": "ドメイン（A-Z）"
+  },
+  "dashboard_tabs_sortCategory": {
+    "message": "カテゴリ（A-Z）"
+  },
+  "dashboard_tabs_gridViewTitle": {
+    "message": "グリッド表示"
+  },
+  "dashboard_tabs_treeViewTitle": {
+    "message": "ツリー表示"
+  },
+  "dashboard_tabs_selected": {
+    "message": "個のタブを選択中"
+  },
+  "dashboard_tabs_selectAll": {
+    "message": "すべて選択"
+  },
+  "dashboard_tabs_clear": {
+    "message": "クリア"
+  },
+  "dashboard_tabs_bulkClose": {
+    "message": "閉じる"
+  },
+  "dashboard_tabs_bulkSnooze": {
+    "message": "スヌーズ"
+  },
+  "dashboard_tabs_bulkGroup": {
+    "message": "グループ化"
+  },
+  "dashboard_tabs_bulkMove": {
+    "message": "移動"
+  },
+  "dashboard_tabs_smartWindowName": {
+    "message": "$name$ ウィンドウ",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_defaultWindowName": {
+    "message": "ウィンドウ $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_defaultGroupName": {
+    "message": "グループ $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_countOfTotal": {
+    "message": "（$total$ 中 $displayed$）",
+    "placeholders": {
+      "displayed": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tabs_noTabsTitle": {
+    "message": "タブが見つかりません"
+  },
+  "dashboard_tabs_noTabsText": {
+    "message": "現在のフィルタに一致するタブがありません"
+  },
+  "dashboard_tabs_badgePinned": {
+    "message": "ピン留め"
+  },
+  "dashboard_tabs_badgePlaying": {
+    "message": "再生中"
+  },
+  "dashboard_tabs_unknownWindow": {
+    "message": "不明なウィンドウ"
+  },
+  "dashboard_tabs_lastAccessed": {
+    "message": "• 最終アクセス: $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_selectAllInWindow": {
+    "message": "ウィンドウ内のすべてのタブを選択"
+  },
+  "dashboard_tabs_closeWindowTitle": {
+    "message": "ウィンドウを閉じる"
+  },
+  "dashboard_tabs_selectAllInGroup": {
+    "message": "グループ内のすべてのタブを選択"
+  },
+  "dashboard_tabs_renameGroupTitle": {
+    "message": "グループ名を変更"
+  },
+  "dashboard_tabs_closeGroupTitle": {
+    "message": "グループを閉じる"
+  },
+  "dashboard_tabs_windowTabCount_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowTabCount_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_ungroupedTabs": {
+    "message": "グループ化されていないタブ"
+  },
+  "dashboard_tabs_confirmCloseWindow": {
+    "message": "このウィンドウとすべてのタブを閉じますか？"
+  },
+  "dashboard_tabs_confirmCloseGroup": {
+    "message": "このグループ内のすべてのタブを閉じますか？"
+  },
+  "dashboard_tabs_removedFromGroup_one": {
+    "message": "グループから $count$個のタブを削除しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_removedFromGroup_other": {
+    "message": "グループから $count$個のタブを削除しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_ungroupFailed": {
+    "message": "タブのグループ解除に失敗しました"
+  },
+  "dashboard_tabs_movedToWindow_one": {
+    "message": "$count$個のタブをウィンドウに移動しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_movedToWindow_other": {
+    "message": "$count$個のタブをウィンドウに移動しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_addedToGroup_one": {
+    "message": "グループに $count$個のタブを追加しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_addedToGroup_other": {
+    "message": "グループに $count$個のタブを追加しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_moveToGroupFailed": {
+    "message": "タブをグループに移動できませんでした"
+  },
+  "dashboard_tabs_treeBadgePin": {
+    "message": "ピン"
+  },
+  "dashboard_tabs_treeBadgeAudio": {
+    "message": "音声"
+  },
+  "dashboard_tabs_detailsBtnTitle": {
+    "message": "デバッグ用にタブの状態の詳細を表示"
+  },
+  "dashboard_tabs_gotoTabTitle": {
+    "message": "タブに移動"
+  },
+  "dashboard_tabs_windowOptionCurrent_one": {
+    "message": "$name$（現在、$count$個のタブ）",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOptionCurrent_other": {
+    "message": "$name$（現在、$count$個のタブ）",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOption_one": {
+    "message": "$name$（$count$個のタブ）",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_windowOption_other": {
+    "message": "$name$（$count$個のタブ）",
+    "placeholders": {
+      "name": {
+        "content": "$2"
+      },
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tabs_renameWindowsOption": {
+    "message": "✏️ ウィンドウ名を変更..."
+  },
+  "dashboard_tabs_detailsTitle": {
+    "message": "タブの状態の詳細"
+  },
+  "dashboard_tabs_detailsAttribute": {
+    "message": "属性"
+  },
+  "dashboard_tabs_detailsValue": {
+    "message": "値"
+  },
+  "dashboard_tabs_copyJson": {
+    "message": "JSONとしてコピー"
+  },
+  "dashboard_tabs_copied": {
+    "message": "コピーしました!"
+  },
+  "dashboard_groups_title": {
+    "message": "タブグループ"
+  },
+  "dashboard_groups_ungroupAll": {
+    "message": "すべてグループ解除"
+  },
+  "dashboard_groups_groupByDomain": {
+    "message": "ドメインでグループ化"
+  },
+  "dashboard_snoozed_title": {
+    "message": "スヌーズ中のタブ"
+  },
+  "dashboard_snoozed_wakeAll": {
+    "message": "すべて復帰"
+  },
+  "dashboard_history_title": {
+    "message": "タブ履歴"
+  },
+  "dashboard_history_clear": {
+    "message": "履歴を消去"
+  },
+  "dashboard_rules_title": {
+    "message": "ルールエンジン"
+  },
+  "dashboard_rules_runNow": {
+    "message": "今すぐルールを実行"
+  },
+  "dashboard_rules_purgeAll": {
+    "message": "すべて消去"
+  },
+  "dashboard_rules_purgeAllTitle": {
+    "message": "すべてのルールを削除"
+  },
+  "dashboard_rules_addRule": {
+    "message": "ルールを追加"
+  },
+  "dashboard_rules_createCustom": {
+    "message": "カスタムルールを作成"
+  },
+  "dashboard_rules_startFromTemplate": {
+    "message": "テンプレートから開始:"
+  },
+  "dashboard_rules_description": {
+    "message": "タブを管理する自動ルールを作成します。ルールは上から下へ順番に実行されます。ドラッグして並べ替えできます。"
+  },
+  "dashboard_rules_warning": {
+    "message": "ルールはタブを自動的に閉じたり変更したりできます。有効にする前にルールを慎重にテストしてください。"
+  },
+  "dashboard_rules_disableAll": {
+    "message": "すべて無効"
+  },
+  "dashboard_rules_enableAll": {
+    "message": "すべて有効"
+  },
+  "dashboard_rules_emptyTitle": {
+    "message": "ルールが作成されていません"
+  },
+  "dashboard_rules_emptyText": {
+    "message": "最初のルールを作成してタブ管理を自動化するか、テンプレートから始めましょう。"
+  },
+  "dashboard_rules_addFirst": {
+    "message": "最初のルールを追加"
+  },
+  "dashboard_backup_title": {
+    "message": "バックアップと復元"
+  },
+  "dashboard_backup_createTitle": {
+    "message": "バックアップを作成"
+  },
+  "dashboard_backup_createDesc": {
+    "message": "タブ、グループ、ルール、設定を保存します。"
+  },
+  "dashboard_backup_scope": {
+    "message": "範囲"
+  },
+  "dashboard_backup_include": {
+    "message": "含める項目"
+  },
+  "dashboard_backup_includeGroups": {
+    "message": "タブグループと整理"
+  },
+  "dashboard_backup_includeRules": {
+    "message": "ルールと自動化"
+  },
+  "dashboard_backup_includeSnoozed": {
+    "message": "スヌーズ中のタブ"
+  },
+  "dashboard_backup_includeSettings": {
+    "message": "設定と環境設定"
+  },
+  "dashboard_backup_includeStatistics": {
+    "message": "使用統計"
+  },
+  "dashboard_backup_includeCollections": {
+    "message": "コレクションとタスク"
+  },
+  "dashboard_backup_format": {
+    "message": "形式"
+  },
+  "dashboard_backup_formatJSON": {
+    "message": "完全バックアップ（.json）"
+  },
+  "dashboard_backup_formatJSONHint": {
+    "message": "完全なバックアップ - 復元可能"
+  },
+  "dashboard_backup_formatCSV": {
+    "message": "スプレッドシート（.csv）"
+  },
+  "dashboard_backup_formatCSVHint": {
+    "message": "Excel/Google スプレッドシートでの分析用"
+  },
+  "dashboard_backup_formatMarkdown": {
+    "message": "ドキュメント（.md）"
+  },
+  "dashboard_backup_formatMarkdownHint": {
+    "message": "人が読めるリスト"
+  },
+  "dashboard_backup_backupNow": {
+    "message": "今すぐバックアップ"
+  },
+  "dashboard_backup_restoreTitle": {
+    "message": "バックアップから復元"
+  },
+  "dashboard_backup_restoreDesc": {
+    "message": "以前のバックアップからタブ、グループ、ルール、設定を復元します。"
+  },
+  "dashboard_backup_dropFile": {
+    "message": "ここにファイルをドロップするかクリックして選択"
+  },
+  "dashboard_backup_dropHint": {
+    "message": "TabTaskTick からエクスポートした .json ファイルを受け付けます"
+  },
+  "dashboard_backup_fileInfo": {
+    "message": "ファイル情報"
+  },
+  "dashboard_backup_fileLabel": {
+    "message": "ファイル:"
+  },
+  "dashboard_backup_sizeLabel": {
+    "message": "サイズ:"
+  },
+  "dashboard_backup_formatLabel": {
+    "message": "形式:"
+  },
+  "dashboard_backup_importPreview": {
+    "message": "インポートのプレビュー"
+  },
+  "dashboard_backup_importTo": {
+    "message": "インポート先"
+  },
+  "dashboard_backup_importNewWindows": {
+    "message": "新しいウィンドウ"
+  },
+  "dashboard_backup_importNewWindowsHint": {
+    "message": "最も安全 - 新しいウィンドウを作成"
+  },
+  "dashboard_backup_importCurrentWindow": {
+    "message": "現在のウィンドウ"
+  },
+  "dashboard_backup_importCurrentWindowHint": {
+    "message": "現在のウィンドウに追加"
+  },
+  "dashboard_backup_importReplaceAll": {
+    "message": "すべてのウィンドウを置き換え"
+  },
+  "dashboard_backup_importReplaceAllHint": {
+    "message": "⚠️ 既存のすべてのウィンドウを閉じます"
+  },
+  "dashboard_backup_options": {
+    "message": "オプション"
+  },
+  "dashboard_backup_importGroups": {
+    "message": "タブグループをインポート"
+  },
+  "dashboard_backup_importRules": {
+    "message": "ルールをインポート（マージ）"
+  },
+  "dashboard_backup_importSnoozed": {
+    "message": "スヌーズ中のタブをインポート"
+  },
+  "dashboard_backup_importSettings": {
+    "message": "設定をインポート（上書き）"
+  },
+  "dashboard_backup_importCollections": {
+    "message": "コレクションとタスクをインポート"
+  },
+  "dashboard_backup_restoreBackup": {
+    "message": "バックアップを復元"
+  },
+  "dashboard_backup_scheduledTitle": {
+    "message": "スケジュールバックアップ"
+  },
+  "dashboard_backup_scheduledDesc": {
+    "message": "障害復旧のため、スケジュールに従って完全バックアップを自動作成します。"
+  },
+  "dashboard_backup_enableAuto": {
+    "message": "自動バックアップを有効にする"
+  },
+  "dashboard_backup_frequency": {
+    "message": "頻度:"
+  },
+  "dashboard_backup_freqHourly": {
+    "message": "毎時"
+  },
+  "dashboard_backup_freqDaily": {
+    "message": "毎日"
+  },
+  "dashboard_backup_freqWeekly": {
+    "message": "毎週"
+  },
+  "dashboard_backup_time": {
+    "message": "時刻:"
+  },
+  "dashboard_backup_recentBackups": {
+    "message": "最近のバックアップ"
+  },
+  "dashboard_backup_loadingHistory": {
+    "message": "バックアップ履歴を読み込み中..."
+  },
+  "dashboard_collections_title": {
+    "message": "コレクション"
+  },
+  "dashboard_collections_saveWindow": {
+    "message": "ウィンドウを保存"
+  },
+  "dashboard_collections_searchPlaceholder": {
+    "message": "コレクションを検索..."
+  },
+  "dashboard_collections_filterAll": {
+    "message": "すべてのコレクション"
+  },
+  "dashboard_collections_filterActive": {
+    "message": "アクティブ"
+  },
+  "dashboard_collections_filterSaved": {
+    "message": "保存済み"
+  },
+  "dashboard_collections_filterArchived": {
+    "message": "アーカイブ済み"
+  },
+  "dashboard_collections_sortLastAccessed": {
+    "message": "最終アクセス"
+  },
+  "dashboard_collections_sortName": {
+    "message": "名前（A-Z）"
+  },
+  "dashboard_collections_sortCreated": {
+    "message": "作成日"
+  },
+  "dashboard_collections_sortTabCount": {
+    "message": "タブ数"
+  },
+  "dashboard_collections_listViewTitle": {
+    "message": "リスト表示"
+  },
+  "dashboard_collections_exportAllTitle": {
+    "message": "すべてのコレクションをJSONにエクスポート"
+  },
+  "dashboard_collections_exportAll": {
+    "message": "すべてエクスポート"
+  },
+  "dashboard_collections_importTitle": {
+    "message": "JSONファイルからコレクションをインポート"
+  },
+  "dashboard_collections_import": {
+    "message": "インポート"
+  },
+  "dashboard_collections_sectionActive": {
+    "message": "アクティブなコレクション"
+  },
+  "dashboard_collections_sectionSaved": {
+    "message": "保存済みのコレクション"
+  },
+  "dashboard_collections_sectionArchived": {
+    "message": "アーカイブ済み"
+  },
+  "dashboard_collections_never": {
+    "message": "なし"
+  },
+  "dashboard_collections_windowBadge": {
+    "message": "ウィンドウ #$id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_moreTags": {
+    "message": "+$count$ 件",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_noDescription": {
+    "message": "説明なし"
+  },
+  "dashboard_collections_statTabs": {
+    "message": "タブ"
+  },
+  "dashboard_collections_statFolders": {
+    "message": "フォルダ"
+  },
+  "dashboard_collections_statTasks": {
+    "message": "タスク"
+  },
+  "dashboard_collections_statAccessed": {
+    "message": "アクセス"
+  },
+  "dashboard_collections_syncLastLabel": {
+    "message": "最終同期:"
+  },
+  "dashboard_collections_syncLoading": {
+    "message": "読み込み中..."
+  },
+  "dashboard_collections_syncPendingLabel": {
+    "message": "保留中:"
+  },
+  "dashboard_collections_syncPendingPlaceholder": {
+    "message": "..."
+  },
+  "dashboard_collections_focusWindow": {
+    "message": "ウィンドウにフォーカス"
+  },
+  "dashboard_collections_open": {
+    "message": "開く"
+  },
+  "dashboard_collections_details": {
+    "message": "詳細"
+  },
+  "dashboard_collections_exportCardTitle": {
+    "message": "このコレクションをJSONにエクスポート"
+  },
+  "dashboard_collections_export": {
+    "message": "エクスポート"
+  },
+  "dashboard_collections_emptyTitle": {
+    "message": "まだコレクションがありません"
+  },
+  "dashboard_collections_emptyText": {
+    "message": "コレクションを使うとブラウザウィンドウとタスクを整理できます。最初のコレクションを作成して始めましょう!"
+  },
+  "dashboard_collections_saveCurrentWindow": {
+    "message": "現在のウィンドウを保存"
+  },
+  "dashboard_collections_errorTitle": {
+    "message": "コレクションの読み込みに失敗しました"
+  },
+  "dashboard_collections_errorDefault": {
+    "message": "コレクションの読み込み中にエラーが発生しました。"
+  },
+  "dashboard_collections_retry": {
+    "message": "再試行"
+  },
+  "dashboard_collections_actionFailed": {
+    "message": "コレクションの操作に失敗しました"
+  },
+  "dashboard_collections_restoring": {
+    "message": "コレクションを復元中..."
+  },
+  "dashboard_collections_openedInWindow": {
+    "message": "コレクションをウィンドウ $id$ で開きました",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_openFailed": {
+    "message": "コレクションを開けませんでした"
+  },
+  "dashboard_collections_notActive": {
+    "message": "コレクションはアクティブではありません"
+  },
+  "dashboard_collections_windowFocused": {
+    "message": "ウィンドウにフォーカスしました"
+  },
+  "dashboard_collections_focusFailed": {
+    "message": "ウィンドウへのフォーカスに失敗しました"
+  },
+  "dashboard_collections_confirmCloseWindow": {
+    "message": "ウィンドウを閉じてコレクション「$name$」を保存しますか？",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_windowClosedSaved": {
+    "message": "ウィンドウを閉じ、コレクションを保存しました"
+  },
+  "dashboard_collections_closeFailed": {
+    "message": "ウィンドウを閉じられませんでした"
+  },
+  "dashboard_collections_loadingDetails": {
+    "message": "コレクションの詳細を読み込み中..."
+  },
+  "dashboard_collections_detailsFailed": {
+    "message": "コレクションの詳細の読み込みに失敗しました"
+  },
+  "dashboard_collections_detailsTitle": {
+    "message": "コレクションの詳細"
+  },
+  "dashboard_collections_unknown": {
+    "message": "不明"
+  },
+  "dashboard_collections_information": {
+    "message": "情報"
+  },
+  "dashboard_collections_statusLabel": {
+    "message": "ステータス:"
+  },
+  "dashboard_collections_statusActive": {
+    "message": "🟢 アクティブ"
+  },
+  "dashboard_collections_statusSaved": {
+    "message": "💾 保存済み"
+  },
+  "dashboard_collections_windowLabel": {
+    "message": "ウィンドウ:"
+  },
+  "dashboard_collections_createdLabel": {
+    "message": "作成日:"
+  },
+  "dashboard_collections_lastAccessedLabel": {
+    "message": "最終アクセス:"
+  },
+  "dashboard_collections_tabsLabel": {
+    "message": "タブ:"
+  },
+  "dashboard_collections_foldersLabel": {
+    "message": "フォルダ:"
+  },
+  "dashboard_collections_tasksLabel": {
+    "message": "タスク:"
+  },
+  "dashboard_collections_tags": {
+    "message": "タグ"
+  },
+  "dashboard_collections_foldersAndTabs": {
+    "message": "フォルダとタブ"
+  },
+  "dashboard_collections_untitledFolder": {
+    "message": "名称未設定のフォルダ"
+  },
+  "dashboard_collections_folderTabCount": {
+    "message": "（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_untitled": {
+    "message": "名称未設定"
+  },
+  "dashboard_collections_ungrouped": {
+    "message": "グループなし"
+  },
+  "dashboard_collections_tasksHeading": {
+    "message": "タスク（$count$）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_taskTabCount_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_taskTabCount_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_notFound": {
+    "message": "コレクションが見つかりません"
+  },
+  "dashboard_collections_formName": {
+    "message": "名前 *"
+  },
+  "dashboard_collections_formNamePlaceholder": {
+    "message": "コレクション名"
+  },
+  "dashboard_collections_formDescription": {
+    "message": "説明"
+  },
+  "dashboard_collections_formDescriptionPlaceholder": {
+    "message": "任意の説明"
+  },
+  "dashboard_collections_formIcon": {
+    "message": "アイコン"
+  },
+  "dashboard_collections_formColor": {
+    "message": "色"
+  },
+  "dashboard_collections_formTags": {
+    "message": "タグ（カンマ区切り）"
+  },
+  "dashboard_collections_formTagsPlaceholder": {
+    "message": "仕事, 重要, プロジェクト"
+  },
+  "dashboard_collections_syncSettingsLabel": {
+    "message": "段階的同期の設定"
+  },
+  "dashboard_collections_enableTracking": {
+    "message": "リアルタイム追跡を有効にする"
+  },
+  "dashboard_collections_enableTrackingHelp": {
+    "message": "タブ/グループの変更を自動的に追跡して保存します"
+  },
+  "dashboard_collections_syncDelay": {
+    "message": "同期の遅延（秒）"
+  },
+  "dashboard_collections_syncDelayHelp": {
+    "message": "変更を保存するまでの待機時間"
+  },
+  "dashboard_collections_saveChanges": {
+    "message": "変更を保存"
+  },
+  "dashboard_collections_editTitle": {
+    "message": "コレクションを編集"
+  },
+  "dashboard_collections_nameRequired": {
+    "message": "コレクション名は必須です"
+  },
+  "dashboard_collections_updated": {
+    "message": "コレクションを更新しました"
+  },
+  "dashboard_collections_updateFailed": {
+    "message": "コレクションの更新に失敗しました"
+  },
+  "dashboard_collections_confirmDelete": {
+    "message": "コレクション「$name$」を削除しますか？関連するすべてのタスクも削除されます。",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_deleted": {
+    "message": "コレクションを削除しました"
+  },
+  "dashboard_collections_deleteFailed": {
+    "message": "コレクションの削除に失敗しました"
+  },
+  "dashboard_collections_savingWindow": {
+    "message": "現在のウィンドウを保存中..."
+  },
+  "dashboard_collections_created": {
+    "message": "コレクションを作成しました!"
+  },
+  "dashboard_collections_createFailed": {
+    "message": "コレクションの作成に失敗しました"
+  },
+  "dashboard_collections_exporting": {
+    "message": "コレクションをエクスポート中..."
+  },
+  "dashboard_collections_exportFailed": {
+    "message": "コレクションのエクスポートに失敗しました"
+  },
+  "dashboard_collections_exportFailedMsg": {
+    "message": "エクスポートに失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_noneToExport": {
+    "message": "エクスポートするコレクションがありません"
+  },
+  "dashboard_collections_exportingCount_one": {
+    "message": "$count$ 件のコレクションをエクスポート中...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_exportingCount_other": {
+    "message": "$count$ 件のコレクションをエクスポート中...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_exportAllFailed": {
+    "message": "コレクションのエクスポートに失敗しました"
+  },
+  "dashboard_collections_importing": {
+    "message": "コレクションをインポート中..."
+  },
+  "dashboard_collections_importFailed": {
+    "message": "コレクションのインポートに失敗しました"
+  },
+  "dashboard_collections_importFailedMsg": {
+    "message": "インポートに失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_opened": {
+    "message": "コレクションを開きました"
+  },
+  "dashboard_collections_syncJustNow": {
+    "message": "たった今"
+  },
+  "dashboard_collections_syncSecondsAgo": {
+    "message": "$count$秒前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncMinutesAgo": {
+    "message": "$count$分前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncHoursAgo": {
+    "message": "$count$時間前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_collections_syncDaysAgo": {
+    "message": "$count$日前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_title": {
+    "message": "タスク"
+  },
+  "dashboard_tasks_kanban": {
+    "message": "カンバン"
+  },
+  "dashboard_tasks_kanbanTitle": {
+    "message": "カンバン表示"
+  },
+  "dashboard_tasks_list": {
+    "message": "リスト"
+  },
+  "dashboard_tasks_listTitle": {
+    "message": "リスト表示"
+  },
+  "dashboard_tasks_newTask": {
+    "message": "新しいタスク"
+  },
+  "dashboard_tasks_searchPlaceholder": {
+    "message": "タスクを検索..."
+  },
+  "dashboard_tasks_filters": {
+    "message": "フィルタ"
+  },
+  "dashboard_tasks_filtersTitle": {
+    "message": "フィルタを切り替え"
+  },
+  "dashboard_tasks_clear": {
+    "message": "クリア"
+  },
+  "dashboard_tasks_filterStatus": {
+    "message": "ステータス"
+  },
+  "dashboard_tasks_statusOpen": {
+    "message": "未着手"
+  },
+  "dashboard_tasks_statusActive": {
+    "message": "アクティブ"
+  },
+  "dashboard_tasks_statusFixed": {
+    "message": "完了"
+  },
+  "dashboard_tasks_statusAbandoned": {
+    "message": "中止"
+  },
+  "dashboard_tasks_filterPriority": {
+    "message": "優先度"
+  },
+  "dashboard_tasks_priorityLow": {
+    "message": "低"
+  },
+  "dashboard_tasks_priorityMedium": {
+    "message": "中"
+  },
+  "dashboard_tasks_priorityHigh": {
+    "message": "高"
+  },
+  "dashboard_tasks_priorityCritical": {
+    "message": "最重要"
+  },
+  "dashboard_tasks_filterCollection": {
+    "message": "コレクション"
+  },
+  "dashboard_tasks_uncategorized": {
+    "message": "未分類"
+  },
+  "dashboard_tasks_bulkSelected": {
+    "message": "0個のタスクを選択中"
+  },
+  "dashboard_tasks_selectAll": {
+    "message": "すべて選択"
+  },
+  "dashboard_tasks_bulkChangeStatus": {
+    "message": "ステータスを変更"
+  },
+  "dashboard_tasks_bulkChangePriority": {
+    "message": "優先度を変更"
+  },
+  "dashboard_tasks_bulkDelete": {
+    "message": "選択項目を削除"
+  },
+  "dashboard_tasks_detailTitle": {
+    "message": "タスクの詳細"
+  },
+  "dashboard_tasks_fieldSummary": {
+    "message": "概要"
+  },
+  "dashboard_tasks_summaryPlaceholder": {
+    "message": "タスクの概要"
+  },
+  "dashboard_tasks_fieldNotes": {
+    "message": "メモ"
+  },
+  "dashboard_tasks_notesPlaceholder": {
+    "message": "タスクのメモ"
+  },
+  "dashboard_tasks_fieldStatus": {
+    "message": "ステータス"
+  },
+  "dashboard_tasks_fieldPriority": {
+    "message": "優先度"
+  },
+  "dashboard_tasks_fieldDueDate": {
+    "message": "期限"
+  },
+  "dashboard_tasks_fieldCollection": {
+    "message": "コレクション"
+  },
+  "dashboard_tasks_fieldTags": {
+    "message": "タグ（カンマ区切り）"
+  },
+  "dashboard_tasks_tagsPlaceholder": {
+    "message": "タグ1, タグ2, タグ3"
+  },
+  "dashboard_tasks_summaryRequired": {
+    "message": "概要は必須です"
+  },
+  "dashboard_tasks_created": {
+    "message": "タスクを作成しました"
+  },
+  "dashboard_tasks_updated": {
+    "message": "タスクを更新しました"
+  },
+  "dashboard_tasks_createFailed": {
+    "message": "タスクの作成に失敗しました"
+  },
+  "dashboard_tasks_updateFailed": {
+    "message": "タスクの更新に失敗しました"
+  },
+  "dashboard_tasks_deleteConfirm": {
+    "message": "タスク「$summary$」を削除しますか？",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_deleted": {
+    "message": "タスクを削除しました"
+  },
+  "dashboard_tasks_deleteFailed": {
+    "message": "タスクの削除に失敗しました"
+  },
+  "dashboard_tasks_noneSelected": {
+    "message": "タスクが選択されていません"
+  },
+  "dashboard_tasks_actionFailed": {
+    "message": "操作に失敗しました"
+  },
+  "dashboard_tasks_promptStatus": {
+    "message": "ステータスを入力（open/active/fixed/abandoned）:"
+  },
+  "dashboard_tasks_promptPriority": {
+    "message": "優先度を入力（low/medium/high/critical）:"
+  },
+  "dashboard_tasks_bulkDeleteConfirm_one": {
+    "message": "$count$個のタスクを削除しますか？",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_bulkDeleteConfirm_other": {
+    "message": "$count$個のタスクを削除しますか？",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_unknownAction": {
+    "message": "不明なアクション: $action$",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_bulkUpdated": {
+    "message": "$total$ 個中 $done$ 個のタスクを更新しました",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tasks_bulkDeleted": {
+    "message": "$total$ 個中 $done$ 個のタスクを削除しました",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_tasks_selectedCount_one": {
+    "message": "$count$個のタスクを選択中",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_selectedCount_other": {
+    "message": "$count$個のタスクを選択中",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_tabCount_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_tabCount_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_emptyTitle": {
+    "message": "まだタスクがありません"
+  },
+  "dashboard_tasks_emptyDescription": {
+    "message": "タスクを作成してコレクション内の作業を追跡しましょう。"
+  },
+  "dashboard_tasks_emptyAction": {
+    "message": "最初のタスクを作成"
+  },
+  "dashboard_tasks_errorTitle": {
+    "message": "タスクの読み込みに失敗しました"
+  },
+  "dashboard_tasks_errorDescription": {
+    "message": "タスクの読み込み中にエラーが発生しました。"
+  },
+  "dashboard_tasks_retry": {
+    "message": "再試行"
+  },
+  "dashboard_tasks_noResultsTitle": {
+    "message": "結果が見つかりません"
+  },
+  "dashboard_tasks_noResultsDescription": {
+    "message": "検索条件やフィルタ条件を調整してみてください。"
+  },
+  "dashboard_tasks_loadFailed": {
+    "message": "タスクの読み込みに失敗しました"
+  },
+  "dashboard_tasks_notFound": {
+    "message": "タスクが見つかりません"
+  },
+  "dashboard_tasks_openTabsFailed": {
+    "message": "タスクのタブを開けませんでした"
+  },
+  "dashboard_tasks_openedTabs_one": {
+    "message": "$count$個のタブを開きました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_openedTabs_other": {
+    "message": "$count$個のタブを開きました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_colTask": {
+    "message": "タスク"
+  },
+  "dashboard_tasks_colCollection": {
+    "message": "コレクション"
+  },
+  "dashboard_tasks_colPriority": {
+    "message": "優先度"
+  },
+  "dashboard_tasks_colStatus": {
+    "message": "ステータス"
+  },
+  "dashboard_tasks_colDueDate": {
+    "message": "期限"
+  },
+  "dashboard_tasks_colActions": {
+    "message": "操作"
+  },
+  "dashboard_tasks_dragReorder": {
+    "message": "ドラッグして並べ替え"
+  },
+  "dashboard_tasks_actionEdit": {
+    "message": "編集"
+  },
+  "dashboard_tasks_actionDelete": {
+    "message": "削除"
+  },
+  "dashboard_tasks_actionOpenTabs": {
+    "message": "タブを開く"
+  },
+  "dashboard_tasks_columnEmpty": {
+    "message": "$status$ のタスクはありません",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_movedTo": {
+    "message": "タスクを $status$ に移動しました",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_statusUpdateFailed": {
+    "message": "タスクのステータス更新に失敗しました"
+  },
+  "dashboard_tasks_toastCreate": {
+    "message": "新しいタスクを作成（n）"
+  },
+  "dashboard_tasks_deleteConfirmGeneric": {
+    "message": "このタスクを削除してもよろしいですか？"
+  },
+  "dashboard_tasks_updatePriorityFailed": {
+    "message": "優先度の更新に失敗しました"
+  },
+  "dashboard_tasks_prioritySet": {
+    "message": "優先度を $priority$ に設定しました",
+    "placeholders": {
+      "priority": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_statusChanged": {
+    "message": "ステータスを $status$ に変更しました",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_tasks_openedTabsForTask": {
+    "message": "タスクのタブを開きました"
+  },
+  "dashboard_tasks_openTabsActionFailed": {
+    "message": "タブを開けませんでした"
+  },
+  "dashboard_tasks_noTabsForTask": {
+    "message": "このタスクに関連付けられたタブがありません"
+  },
+  "dashboard_tasks_filteringByStatus": {
+    "message": "ステータスでフィルタ中: $status$",
+    "placeholders": {
+      "status": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_modal_confirmTitle": {
+    "message": "操作の確認"
+  },
+  "dashboard_modal_proceed": {
+    "message": "続行"
+  },
+  "dashboard_modal_processing": {
+    "message": "処理中..."
+  },
+  "dashboard_modal_confirmMessage": {
+    "message": "続行してもよろしいですか？"
+  },
+  "dashboard_organize_title": {
+    "message": "クイック整理"
+  },
+  "dashboard_organize_closeDupes": {
+    "message": "重複タブを閉じる"
+  },
+  "dashboard_organize_dupeCount": {
+    "message": "（$count$ 件見つかりました）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_groupDomains": {
+    "message": "タブをドメインでグループ化"
+  },
+  "dashboard_organize_groupCount": {
+    "message": "（$count$ グループ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_snoozeInactive": {
+    "message": "非アクティブなタブをスヌーズ"
+  },
+  "dashboard_organize_inactiveCount": {
+    "message": "（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_suspendHeavy": {
+    "message": "メモリを多く使うタブを休止"
+  },
+  "dashboard_organize_heavyCount": {
+    "message": "（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_organize_organizeNow": {
+    "message": "今すぐ整理"
+  },
+  "dashboard_rule_addNew": {
+    "message": "新しいルールを追加"
+  },
+  "dashboard_rule_name": {
+    "message": "ルール名"
+  },
+  "dashboard_rule_namePlaceholder": {
+    "message": "このルールのわかりやすい名前を入力"
+  },
+  "dashboard_rule_conditions": {
+    "message": "条件"
+  },
+  "dashboard_rule_preview": {
+    "message": "プレビュー"
+  },
+  "dashboard_rule_previewDefault": {
+    "message": "URLに「example.com」を含むすべてのタブに一致"
+  },
+  "dashboard_rule_actions": {
+    "message": "アクション（順番に）"
+  },
+  "dashboard_rule_addAction": {
+    "message": "+ アクションを追加"
+  },
+  "dashboard_rule_whenToApply": {
+    "message": "適用するタイミング"
+  },
+  "dashboard_rule_triggerImmediate": {
+    "message": "タブイベント時（即時）"
+  },
+  "dashboard_rule_triggerRepeat": {
+    "message": "定期的に繰り返す"
+  },
+  "dashboard_rule_triggerOnce": {
+    "message": "指定時刻に1回"
+  },
+  "dashboard_rule_triggerManual": {
+    "message": "手動のみ"
+  },
+  "dashboard_rule_enableNow": {
+    "message": "ルールをすぐに有効にする"
+  },
+  "dashboard_rule_enableHelp": {
+    "message": "有効にする前にルールをテストできます"
+  },
+  "dashboard_rule_save": {
+    "message": "ルールを保存"
+  },
+  "dashboard_emoji_catFolders": {
+    "message": "フォルダとファイル"
+  },
+  "dashboard_emoji_catWork": {
+    "message": "仕事と生産性"
+  },
+  "dashboard_emoji_catDev": {
+    "message": "開発と技術"
+  },
+  "dashboard_emoji_catMisc": {
+    "message": "その他"
+  },
+  "dashboard_time_justNow": {
+    "message": "たった今"
+  },
+  "dashboard_time_minutesAgo": {
+    "message": "$count$分前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_hoursAgo": {
+    "message": "$count$時間前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_daysAgo": {
+    "message": "$count$日前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_time_now": {
+    "message": "今"
+  },
+  "dashboard_time_unknown": {
+    "message": "不明"
+  },
+  "dashboard_tabState_suspended": {
+    "message": "💤 休止中"
+  },
+  "dashboard_tabState_active": {
+    "message": "👁 アクティブ"
+  },
+  "dashboard_tabState_playing": {
+    "message": "🔊 再生中"
+  },
+  "dashboard_tabState_pinned": {
+    "message": "📌 ピン留め"
+  },
+  "dashboard_tabState_loaded": {
+    "message": "読み込み済み"
+  },
+  "dashboard_notify_savingWindow": {
+    "message": "現在のウィンドウを保存中..."
+  },
+  "dashboard_notify_collectionCreated": {
+    "message": "コレクションを作成しました!"
+  },
+  "dashboard_notify_collectionFailed": {
+    "message": "コレクションの作成に失敗しました"
+  },
+  "dashboard_notify_closedTabs": {
+    "message": "$count$個のタブを閉じました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_notify_groupCreated": {
+    "message": "グループ「$name$」を $count$個のタブで作成しました",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_actionFailed": {
+    "message": "タブの$action$に失敗しました: $error$",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      },
+      "error": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_noTabsToSnooze": {
+    "message": "スヌーズするタブがありません"
+  },
+  "dashboard_notify_snoozeUnavailable": {
+    "message": "スヌーズ機能は利用できません"
+  },
+  "dashboard_notify_snoozedWindows": {
+    "message": "$windows$を $duration$ スヌーズしました",
+    "placeholders": {
+      "windows": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_snoozedTabs": {
+    "message": "$tabs$を $duration$ スヌーズしました",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "duration": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_snoozeErrors": {
+    "message": "スヌーズは完了しましたが $count$ 件のエラーがあります",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_notify_snoozeFailed": {
+    "message": "スヌーズに失敗しました"
+  },
+  "dashboard_notify_prepareSnoozeFailed": {
+    "message": "スヌーズの準備に失敗しました"
+  },
+  "dashboard_notify_movedTabs": {
+    "message": "$tabs$を $window$ に移動しました",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "window": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_notify_moveTabsFailed": {
+    "message": "タブの移動に失敗しました"
+  },
+  "dashboard_notify_wakeAllSuccess": {
+    "message": "スヌーズ中のすべてのタブを復元しました"
+  },
+  "dashboard_notify_wakeAllFailed": {
+    "message": "スヌーズ中のタブの復帰に失敗しました"
+  },
+  "dashboard_notify_windowNamesSaved": {
+    "message": "ウィンドウ名を保存しました"
+  },
+  "dashboard_progress_processingTabs": {
+    "message": "$count$個のタブを処理中...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_confirm_actionTitle": {
+    "message": "$action$ の確認",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_confirm_actionMessage": {
+    "message": "$count$個のタブを$action$してもよろしいですか？この操作は元に戻せません。",
+    "placeholders": {
+      "action": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_prompt_groupName": {
+    "message": "グループの名前を入力:"
+  },
+  "dashboard_group_untitled": {
+    "message": "名称未設定"
+  },
+  "dashboard_moveDialog_title": {
+    "message": "$count$ の移動先...",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_moveDialog_currentWindow": {
+    "message": "現在のウィンドウ"
+  },
+  "dashboard_moveDialog_windowName": {
+    "message": "ウィンドウ $id$",
+    "placeholders": {
+      "id": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_moveDialog_currentLocation": {
+    "message": "（現在の場所）"
+  },
+  "dashboard_moveDialog_createNew": {
+    "message": "新しいウィンドウを作成"
+  },
+  "dashboard_moveDialog_newWindow": {
+    "message": "新しいウィンドウ"
+  },
+  "dashboard_count_tabs_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_tabs_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_windows_one": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_count_windows_other": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rename_title": {
+    "message": "ウィンドウ名を変更"
+  },
+  "dashboard_rename_windowLabel": {
+    "message": "ウィンドウ $index$",
+    "placeholders": {
+      "index": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rename_placeholder": {
+    "message": "名前を入力..."
+  },
+  "dashboard_rename_save": {
+    "message": "名前を保存"
+  },
+  "dashboard_state_selectedCount": {
+    "message": "$count$ 個選択中",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_help_title": {
+    "message": "キーボードショートカット"
+  },
+  "dashboard_help_closeLabel": {
+    "message": "キーボードショートカットのヘルプを閉じる"
+  },
+  "dashboard_help_searchPlaceholder": {
+    "message": "ショートカットを検索..."
+  },
+  "dashboard_help_searchLabel": {
+    "message": "キーボードショートカットを検索"
+  },
+  "dashboard_help_listLabel": {
+    "message": "キーボードショートカット一覧"
+  },
+  "dashboard_help_noShortcuts": {
+    "message": "ショートカットが見つかりません"
+  },
+  "dashboard_help_noDescription": {
+    "message": "説明なし"
+  },
+  "dashboard_help_sequenceThen": {
+    "message": "次に"
+  },
+  "dashboard_help_catNavigation": {
+    "message": "ナビゲーション"
+  },
+  "dashboard_help_catTasks": {
+    "message": "タスク"
+  },
+  "dashboard_help_catCollections": {
+    "message": "コレクション"
+  },
+  "dashboard_help_catGeneral": {
+    "message": "一般"
+  },
+  "dashboard_shortcuts_tooltip": {
+    "message": "Enterで開く • Spaceで選択"
+  },
+  "dashboard_backup_exporting": {
+    "message": "$format$ としてエクスポート中...",
+    "placeholders": {
+      "format": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportedSummary": {
+    "message": "エクスポートしました: $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportedFormat": {
+    "message": "$format$ としてエクスポートしました",
+    "placeholders": {
+      "format": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_exportFailed": {
+    "message": "エクスポートに失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryTabs_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryTabs_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryRules_one": {
+    "message": "$count$個のルール",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryRules_other": {
+    "message": "$count$個のルール",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summarySnoozed_one": {
+    "message": "スヌーズ中の $count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summarySnoozed_other": {
+    "message": "スヌーズ中の $count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryWindows_one": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryWindows_other": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryGroups_one": {
+    "message": "$count$個のグループ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_summaryGroups_other": {
+    "message": "$count$個のグループ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_selectJsonFile": {
+    "message": "JSONファイルを選択してください"
+  },
+  "dashboard_backup_fileTooLarge": {
+    "message": "ファイルが大きすぎます（最大10MB）"
+  },
+  "dashboard_backup_invalidFile": {
+    "message": "無効な TabMaster エクスポートファイルです"
+  },
+  "dashboard_backup_fileSizeKB": {
+    "message": "$size$ KB",
+    "placeholders": {
+      "size": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_formatUnknown": {
+    "message": "不明"
+  },
+  "dashboard_backup_previewTabs_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewTabs_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewTabsInWindows": {
+    "message": "$windows$ 内に $tabs$",
+    "placeholders": {
+      "tabs": {
+        "content": "$1"
+      },
+      "windows": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_previewWindowCount_one": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewWindowCount_other": {
+    "message": "$count$個のウィンドウ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRestricted": {
+    "message": "$base$（制限付きURL $count$ 件を除外）",
+    "placeholders": {
+      "base": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_previewGroups_one": {
+    "message": "$count$個のタブグループ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewGroups_other": {
+    "message": "$count$個のタブグループ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRules_one": {
+    "message": "$count$個のルール",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewRules_other": {
+    "message": "$count$個のルール",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewSnoozed_one": {
+    "message": "スヌーズ中の $count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_previewSnoozed_other": {
+    "message": "スヌーズ中の $count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnManyTabs_one": {
+    "message": "⚠️ $count$個のタブが開きます。小分けにしてインポートすることを検討してください。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnManyTabs_other": {
+    "message": "⚠️ $count$個のタブが開きます。小分けにしてインポートすることを検討してください。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnOpenTabs_one": {
+    "message": "$count$個のタブが開きます。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnOpenTabs_other": {
+    "message": "$count$個のタブが開きます。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnAllRestricted_one": {
+    "message": "⚠️ $count$個のタブは制限付きURLのためインポートできません。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_warnAllRestricted_other": {
+    "message": "⚠️ $count$個のタブはすべて制限付きURLのためインポートできません。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_fileReadFailed": {
+    "message": "ファイルの読み込みに失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_noFileSelected": {
+    "message": "ファイルが選択されていません"
+  },
+  "dashboard_backup_importing": {
+    "message": "データをインポート中..."
+  },
+  "dashboard_backup_importSuccess": {
+    "message": "インポートに成功しました: $summary$",
+    "placeholders": {
+      "summary": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_importNoItems": {
+    "message": "インポートは完了しましたが、項目はインポートされませんでした"
+  },
+  "dashboard_backup_importFailed": {
+    "message": "インポートに失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_nextEveryHour": {
+    "message": "毎時"
+  },
+  "dashboard_backup_nextEveryDay": {
+    "message": "毎日"
+  },
+  "dashboard_backup_nextEveryWeek": {
+    "message": "毎週"
+  },
+  "dashboard_backup_nextInHM": {
+    "message": "次のバックアップまで $hours$ 時間 $minutes$ 分",
+    "placeholders": {
+      "hours": {
+        "content": "$1"
+      },
+      "minutes": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_backup_nextInM": {
+    "message": "次のバックアップまで $minutes$ 分",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_nextSoon": {
+    "message": "まもなく次のバックアップ"
+  },
+  "dashboard_backup_enabledFirstBackup": {
+    "message": "自動バックアップを有効にしました - 最初のバックアップを作成しました"
+  },
+  "dashboard_backup_enabled": {
+    "message": "自動バックアップを有効にしました"
+  },
+  "dashboard_backup_disabled": {
+    "message": "自動バックアップを無効にしました"
+  },
+  "dashboard_backup_updateSettingsFailed": {
+    "message": "バックアップ設定の更新に失敗しました"
+  },
+  "dashboard_backup_scheduleUpdated": {
+    "message": "バックアップスケジュールを更新しました"
+  },
+  "dashboard_backup_saveSettingsFailed": {
+    "message": "設定の保存に失敗しました"
+  },
+  "dashboard_backup_noBackups": {
+    "message": "まだバックアップがありません"
+  },
+  "dashboard_backup_noBackupsHint": {
+    "message": "「今すぐバックアップ」をクリックするか、自動バックアップを有効にしてください"
+  },
+  "dashboard_backup_badgeAuto": {
+    "message": "自動"
+  },
+  "dashboard_backup_badgeManual": {
+    "message": "手動"
+  },
+  "dashboard_backup_itemDetails": {
+    "message": "$date$ • $tabs$ • $windows$ • $size$ MB",
+    "placeholders": {
+      "date": {
+        "content": "$1"
+      },
+      "tabs": {
+        "content": "$2"
+      },
+      "windows": {
+        "content": "$3"
+      },
+      "size": {
+        "content": "$4"
+      }
+    }
+  },
+  "dashboard_backup_showFileTitle": {
+    "message": "ダウンロードフォルダでファイルを表示"
+  },
+  "dashboard_backup_showFile": {
+    "message": "📁 表示"
+  },
+  "dashboard_backup_fileMoved": {
+    "message": "バックアップファイルが移動された可能性があります。ダウンロードフォルダで「tabmaster-backup-」で始まるファイルを確認してください"
+  },
+  "dashboard_backup_openFolderFailed": {
+    "message": "ダウンロードフォルダを開けませんでした"
+  },
+  "dashboard_backup_scopeCurrent_one": {
+    "message": "現在のウィンドウ（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeCurrent_other": {
+    "message": "現在のウィンドウ（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeAll_one": {
+    "message": "すべてのウィンドウ（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_backup_scopeAll_other": {
+    "message": "すべてのウィンドウ（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_tabsChange": {
+    "message": "今日 +$count$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_collapsed_one": {
+    "message": "折りたたみ $count$ 件",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_collapsed_other": {
+    "message": "折りたたみ $count$ 件",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_nextInHours": {
+    "message": "次は $hours$ 時間後",
+    "placeholders": {
+      "hours": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_overview_noneScheduled": {
+    "message": "スケジュールなし"
+  },
+  "dashboard_overview_clickToCleanup": {
+    "message": "クリックして整理"
+  },
+  "dashboard_overview_noneFound": {
+    "message": "見つかりません"
+  },
+  "dashboard_overview_chartTabsOpened": {
+    "message": "開いたタブ"
+  },
+  "dashboard_overview_chartTabsClosed": {
+    "message": "閉じたタブ"
+  },
+  "dashboard_overview_filterAll": {
+    "message": "すべて"
+  },
+  "dashboard_overview_filterManual": {
+    "message": "手動"
+  },
+  "dashboard_overview_filterAuto": {
+    "message": "自動"
+  },
+  "dashboard_overview_filterRules": {
+    "message": "ルール"
+  },
+  "dashboard_overview_noActivity": {
+    "message": "最近のアクティビティはありません"
+  },
+  "dashboard_history_today": {
+    "message": "今日"
+  },
+  "dashboard_history_yesterday": {
+    "message": "昨日"
+  },
+  "dashboard_history_daysAgo_one": {
+    "message": "$count$日前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_history_daysAgo_other": {
+    "message": "$count$日前",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_history_emptyTitle": {
+    "message": "タブ履歴がありません"
+  },
+  "dashboard_history_emptyText": {
+    "message": "TabMaster Pro を使用すると、タブ管理のアクティビティがここに表示されます"
+  },
+  "dashboard_history_badgeAuto": {
+    "message": "自動"
+  },
+  "dashboard_history_badgeRule": {
+    "message": "ルール"
+  },
+  "dashboard_history_confirmClear": {
+    "message": "すべての履歴を消去してもよろしいですか？この操作は元に戻せません。"
+  },
+  "dashboard_history_cleared": {
+    "message": "履歴を消去しました"
+  },
+  "dashboard_history_clearFailed": {
+    "message": "履歴の消去に失敗しました。もう一度お試しください。"
+  },
+  "dashboard_groups_noGroupedTabs": {
+    "message": "グループ解除するグループ化されたタブがありません"
+  },
+  "dashboard_groups_ungroupedTabs_one": {
+    "message": "$count$個のタブをグループ解除しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_ungroupedTabs_other": {
+    "message": "$count$個のタブをグループ解除しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_ungroupFailed": {
+    "message": "タブのグループ解除に失敗しました"
+  },
+  "dashboard_groups_emptyTitle": {
+    "message": "タブグループがありません"
+  },
+  "dashboard_groups_emptyText": {
+    "message": "グループを作成してタブをより上手に整理しましょう"
+  },
+  "dashboard_groups_groupByDomainBtn": {
+    "message": "ドメインでグループ化"
+  },
+  "dashboard_groups_untitled": {
+    "message": "名称未設定のグループ"
+  },
+  "dashboard_groups_tabCount_one": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_tabCount_other": {
+    "message": "$count$個のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_groups_groupedResult": {
+    "message": "$created$ 個の新規グループを作成し、$reused$ 個の既存グループを再利用しました",
+    "placeholders": {
+      "created": {
+        "content": "$1"
+      },
+      "reused": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_groups_noTabsToGroup": {
+    "message": "ドメインでグループ化するタブがありません"
+  },
+  "dashboard_groups_groupByDomainFailed": {
+    "message": "タブのドメイン別グループ化に失敗しました"
+  },
+  "dashboard_snoozed_emptyTitle": {
+    "message": "スヌーズ中のタブがありません"
+  },
+  "dashboard_snoozed_emptyText": {
+    "message": "タブをスヌーズすると一時的に非表示にして後で再び開けます"
+  },
+  "dashboard_snoozed_window_one": {
+    "message": "スヌーズ中のウィンドウ（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_window_other": {
+    "message": "スヌーズ中のウィンドウ（$count$個のタブ）",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_moreTabs": {
+    "message": "+$count$ 件",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_restoreWindow": {
+    "message": "ウィンドウを復元"
+  },
+  "dashboard_snoozed_deleteAll": {
+    "message": "すべて削除"
+  },
+  "dashboard_snoozed_grouped": {
+    "message": "📁 グループ化済み"
+  },
+  "dashboard_snoozed_reasonManual": {
+    "message": "手動"
+  },
+  "dashboard_snoozed_wakeNow": {
+    "message": "今すぐ復帰"
+  },
+  "dashboard_snoozed_deleteTitle": {
+    "message": "スヌーズ中のタブを削除"
+  },
+  "dashboard_snoozed_within1Hour": {
+    "message": "1時間以内"
+  },
+  "dashboard_snoozed_today": {
+    "message": "今日"
+  },
+  "dashboard_snoozed_tomorrow": {
+    "message": "明日"
+  },
+  "dashboard_snoozed_thisWeek": {
+    "message": "今週"
+  },
+  "dashboard_snoozed_later": {
+    "message": "後で"
+  },
+  "dashboard_snoozed_wakeAtToday": {
+    "message": "今日 $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_wakeAtTomorrow": {
+    "message": "明日 $time$",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_wakeTabFailed": {
+    "message": "タブの復帰に失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_confirmDeleteTab": {
+    "message": "このスヌーズ中のタブを削除しますか？"
+  },
+  "dashboard_snoozed_confirmDeleteWindow": {
+    "message": "このスヌーズ中のウィンドウのすべてのタブを削除しますか？"
+  },
+  "dashboard_snoozed_restoreWindowFailed": {
+    "message": "ウィンドウの復元に失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_snoozed_deleteWindowFailed": {
+    "message": "ウィンドウの削除に失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_dragToReorder": {
+    "message": "ドラッグして並べ替え"
+  },
+  "dashboard_rules_disableRule": {
+    "message": "ルールを無効にする"
+  },
+  "dashboard_rules_enableRule": {
+    "message": "ルールを有効にする"
+  },
+  "dashboard_rules_testRuleTitle": {
+    "message": "このルールをテスト（プレビューのみ）"
+  },
+  "dashboard_rules_runRuleTitle": {
+    "message": "このルールを今すぐ実行"
+  },
+  "dashboard_rules_cardWhen": {
+    "message": "条件:"
+  },
+  "dashboard_rules_cardThen": {
+    "message": "実行:"
+  },
+  "dashboard_rules_cardRuns": {
+    "message": "実行タイミング:"
+  },
+  "dashboard_rules_runsEvery": {
+    "message": "$interval$ ごと",
+    "placeholders": {
+      "interval": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextRun": {
+    "message": "（次回: $time$）",
+    "placeholders": {
+      "time": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_runsOnceAt": {
+    "message": "$datetime$ に1回",
+    "placeholders": {
+      "datetime": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_runsImmediate": {
+    "message": "タブイベント時（即時）"
+  },
+  "dashboard_rules_runsOnCreate": {
+    "message": "タブ作成時"
+  },
+  "dashboard_rules_interval_minutes_one": {
+    "message": "$count$分",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_minutes_other": {
+    "message": "$count$分",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_hours_one": {
+    "message": "$count$時間",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_hours_other": {
+    "message": "$count$時間",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_days_one": {
+    "message": "$count$日",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_days_other": {
+    "message": "$count$日",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_seconds_one": {
+    "message": "$count$秒",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_interval_seconds_other": {
+    "message": "$count$秒",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_days_one": {
+    "message": "$count$日後",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_days_other": {
+    "message": "$count$日後",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_hours_one": {
+    "message": "$count$時間後",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_hours_other": {
+    "message": "$count$時間後",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_minutes_one": {
+    "message": "$count$分後",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_minutes_other": {
+    "message": "$count$分後",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_seconds_one": {
+    "message": "$count$秒後",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextIn_seconds_other": {
+    "message": "$count$秒後",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_nextOverdue": {
+    "message": "期限超過"
+  },
+  "dashboard_rules_allTemplatesInstalled": {
+    "message": "すべてのテンプレートがインストール済み"
+  },
+  "dashboard_rules_condNoConditions": {
+    "message": "条件なし"
+  },
+  "dashboard_rules_condUnknown": {
+    "message": "不明な条件"
+  },
+  "dashboard_rules_condJunctionOf": {
+    "message": "$junction$: $conditions$",
+    "placeholders": {
+      "junction": {
+        "content": "$1"
+      },
+      "conditions": {
+        "content": "$2"
+      }
+    }
+  },
+  "dashboard_rules_condTriple": {
+    "message": "$subject$ が $value$ $operator$",
+    "placeholders": {
+      "subject": {
+        "content": "$1"
+      },
+      "operator": {
+        "content": "$2"
+      },
+      "value": {
+        "content": "$3"
+      }
+    }
+  },
+  "dashboard_rules_junctionAll": {
+    "message": "すべて"
+  },
+  "dashboard_rules_junctionAny": {
+    "message": "いずれか"
+  },
+  "dashboard_rules_junctionNone": {
+    "message": "なし"
+  },
+  "dashboard_rules_valueYes": {
+    "message": "はい"
+  },
+  "dashboard_rules_valueNo": {
+    "message": "いいえ"
+  },
+  "dashboard_rules_subject_url": {
+    "message": "URL"
+  },
+  "dashboard_rules_subject_title": {
+    "message": "タイトル"
+  },
+  "dashboard_rules_subject_domain": {
+    "message": "ドメイン"
+  },
+  "dashboard_rules_subject_domainCount": {
+    "message": "ドメインのタブ数"
+  },
+  "dashboard_rules_subject_origin": {
+    "message": "オリジン"
+  },
+  "dashboard_rules_subject_age": {
+    "message": "タブの経過時間"
+  },
+  "dashboard_rules_subject_lastAccess": {
+    "message": "最終アクセス"
+  },
+  "dashboard_rules_subject_pinned": {
+    "message": "ピン留め"
+  },
+  "dashboard_rules_subject_audible": {
+    "message": "音声再生中"
+  },
+  "dashboard_rules_subject_muted": {
+    "message": "ミュート"
+  },
+  "dashboard_rules_subject_group": {
+    "message": "グループ内"
+  },
+  "dashboard_rules_subject_groupName": {
+    "message": "グループ名"
+  },
+  "dashboard_rules_subject_windowId": {
+    "message": "ウィンドウID"
+  },
+  "dashboard_rules_subject_duplicate": {
+    "message": "重複している"
+  },
+  "dashboard_rules_subject_category": {
+    "message": "カテゴリ"
+  },
+  "dashboard_rules_subject_index": {
+    "message": "タブインデックス"
+  },
+  "dashboard_rules_subject_active": {
+    "message": "アクティブである"
+  },
+  "dashboard_rules_op_eq": {
+    "message": "と等しい"
+  },
+  "dashboard_rules_op_neq": {
+    "message": "と等しくない"
+  },
+  "dashboard_rules_op_equals": {
+    "message": "である"
+  },
+  "dashboard_rules_op_gt": {
+    "message": "より大きい"
+  },
+  "dashboard_rules_op_gte": {
+    "message": "以上"
+  },
+  "dashboard_rules_op_lt": {
+    "message": "より小さい"
+  },
+  "dashboard_rules_op_lte": {
+    "message": "以下"
+  },
+  "dashboard_rules_op_greaterThan": {
+    "message": "より多い"
+  },
+  "dashboard_rules_op_lessThan": {
+    "message": "より少ない"
+  },
+  "dashboard_rules_op_contains": {
+    "message": "を含む"
+  },
+  "dashboard_rules_op_notContains": {
+    "message": "を含まない"
+  },
+  "dashboard_rules_op_startsWith": {
+    "message": "で始まる"
+  },
+  "dashboard_rules_op_endsWith": {
+    "message": "で終わる"
+  },
+  "dashboard_rules_op_regex": {
+    "message": "に一致する"
+  },
+  "dashboard_rules_op_in": {
+    "message": "に含まれる"
+  },
+  "dashboard_rules_op_nin": {
+    "message": "に含まれない"
+  },
+  "dashboard_rules_op_is": {
+    "message": "である"
+  },
+  "dashboard_rules_condDuplicate": {
+    "message": "重複タブ"
+  },
+  "dashboard_rules_condDomainCount": {
+    "message": "同一ドメインから $count$個以上のタブ",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condAllTabs": {
+    "message": "すべてのタブ"
+  },
+  "dashboard_rules_condTabsFrom": {
+    "message": "$patterns$ のタブ",
+    "placeholders": {
+      "patterns": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condUrlsMatching": {
+    "message": "「$pattern$」に一致するURL",
+    "placeholders": {
+      "pattern": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condSitesInCategories": {
+    "message": "カテゴリ内のサイト: $categories$",
+    "placeholders": {
+      "categories": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condNoneCategories": {
+    "message": "なし"
+  },
+  "dashboard_rules_condInactiveFor": {
+    "message": "$minutes$ 分間非アクティブ",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condOlderThan": {
+    "message": "$minutes$ 分より古い",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_condNotAccessedFor": {
+    "message": "$minutes$ 分間アクセスなし",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_action_close": {
+    "message": "タブを閉じる"
+  },
+  "dashboard_rules_action_closeDuplicates": {
+    "message": "重複を閉じる"
+  },
+  "dashboard_rules_action_group": {
+    "message": "タブをグループ化"
+  },
+  "dashboard_rules_action_snooze": {
+    "message": "タブをスヌーズ"
+  },
+  "dashboard_rules_action_moveToWindow": {
+    "message": "ウィンドウに移動"
+  },
+  "dashboard_rules_action_pin": {
+    "message": "タブをピン留め"
+  },
+  "dashboard_rules_action_unpin": {
+    "message": "タブのピン留めを解除"
+  },
+  "dashboard_rules_action_mute": {
+    "message": "タブをミュート"
+  },
+  "dashboard_rules_action_unmute": {
+    "message": "タブのミュートを解除"
+  },
+  "dashboard_rules_actionNoActions": {
+    "message": "アクションなし"
+  },
+  "dashboard_rules_actionUnknown": {
+    "message": "不明なアクション"
+  },
+  "dashboard_rules_actionKeep": {
+    "message": "（$keep$ を残す）",
+    "placeholders": {
+      "keep": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionScope": {
+    "message": "[$scope$]",
+    "placeholders": {
+      "scope": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionBy": {
+    "message": "$by$ で",
+    "placeholders": {
+      "by": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionFor": {
+    "message": "$duration$ の間",
+    "placeholders": {
+      "duration": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionGroupByOld": {
+    "message": "タブを $by$ でグループ化",
+    "placeholders": {
+      "by": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSnoozeMinutesOld": {
+    "message": "$minutes$ 分間スヌーズ",
+    "placeholders": {
+      "minutes": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSuspendOld": {
+    "message": "タブを休止 $excludePinned$",
+    "placeholders": {
+      "excludePinned": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_actionSuspendExcludePinned": {
+    "message": "（ピン留めを除く）"
+  },
+  "dashboard_rules_confirmDelete": {
+    "message": "このルールを削除してもよろしいですか？"
+  },
+  "dashboard_rules_confirmPurge": {
+    "message": "すべてのルールを削除してもよろしいですか？この操作は元に戻せません。"
+  },
+  "dashboard_rules_templateInstalled": {
+    "message": "ルールテンプレートをインストールしました"
+  },
+  "dashboard_rules_deleted": {
+    "message": "ルールを削除しました"
+  },
+  "dashboard_rules_purged": {
+    "message": "すべてのルールを消去しました"
+  },
+  "dashboard_rules_purgeFailed": {
+    "message": "ルールの消去に失敗しました"
+  },
+  "dashboard_rules_allEnabled": {
+    "message": "すべてのルールを有効にしました"
+  },
+  "dashboard_rules_allDisabled": {
+    "message": "すべてのルールを無効にしました"
+  },
+  "dashboard_rules_updated": {
+    "message": "ルールを更新しました"
+  },
+  "dashboard_rules_created": {
+    "message": "ルールを作成しました"
+  },
+  "dashboard_rules_prioritiesUpdated": {
+    "message": "ルールの優先順位を更新しました"
+  },
+  "dashboard_rules_modalTitleEdit": {
+    "message": "ルールを編集"
+  },
+  "dashboard_rules_modalTitleCreate": {
+    "message": "新しいルールを作成"
+  },
+  "dashboard_rules_noActionsDefined": {
+    "message": "アクションが定義されていません。「アクションを追加」をクリックして追加してください。"
+  },
+  "dashboard_rules_closeNotCombinable": {
+    "message": "閉じるアクションは他のアクションと組み合わせられません"
+  },
+  "dashboard_rules_noMoreCompatible": {
+    "message": "互換性のあるアクションはこれ以上ありません"
+  },
+  "dashboard_rules_paramKeep": {
+    "message": "残す:"
+  },
+  "dashboard_rules_paramKeepOldest": {
+    "message": "最も古いタブ"
+  },
+  "dashboard_rules_paramKeepNewest": {
+    "message": "最も新しいタブ"
+  },
+  "dashboard_rules_paramKeepNone": {
+    "message": "なし（すべて閉じる）"
+  },
+  "dashboard_rules_paramScope": {
+    "message": "範囲:"
+  },
+  "dashboard_rules_paramScopeGlobal": {
+    "message": "グローバル（すべてのウィンドウ）"
+  },
+  "dashboard_rules_paramScopePerWindow": {
+    "message": "ウィンドウごと（個別に）"
+  },
+  "dashboard_rules_paramGroupBy": {
+    "message": "グループ化の基準:"
+  },
+  "dashboard_rules_paramGroupByDomain": {
+    "message": "ドメイン"
+  },
+  "dashboard_rules_paramGroupByCategory": {
+    "message": "カテゴリ"
+  },
+  "dashboard_rules_paramGroupByWindow": {
+    "message": "ウィンドウ"
+  },
+  "dashboard_rules_paramName": {
+    "message": "名前:"
+  },
+  "dashboard_rules_paramNamePlaceholder": {
+    "message": "自動生成"
+  },
+  "dashboard_rules_paramSnoozeFor": {
+    "message": "スヌーズする時間:"
+  },
+  "dashboard_rules_paramUnitMinutes": {
+    "message": "分"
+  },
+  "dashboard_rules_paramUnitHours": {
+    "message": "時間"
+  },
+  "dashboard_rules_paramUnitDays": {
+    "message": "日"
+  },
+  "dashboard_rules_paramTargetWindow": {
+    "message": "移動先ウィンドウ:"
+  },
+  "dashboard_rules_paramTargetNew": {
+    "message": "新しいウィンドウ"
+  },
+  "dashboard_rules_paramTargetCurrent": {
+    "message": "現在のウィンドウ"
+  },
+  "dashboard_rules_removeAction": {
+    "message": "削除"
+  },
+  "dashboard_rules_triggerRepeatEvery": {
+    "message": "繰り返し間隔:"
+  },
+  "dashboard_rules_triggerRunAt": {
+    "message": "実行時刻:"
+  },
+  "dashboard_rules_triggerDebounce": {
+    "message": "デバウンス"
+  },
+  "dashboard_rules_triggerDebounceHelp": {
+    "message": "有効にすると、ルールを実行する前にタブアクティビティの停止を待ちます。これにより、多くのタブを一度に開くなどのバースト操作中にルールが複数回実行されるのを防ぎます。例えば10個のタブをすばやく開いた場合、ルールは10回ではなく完了後に1回だけ実行されます。"
+  },
+  "dashboard_rules_triggerWaitFor": {
+    "message": "待機時間:"
+  },
+  "dashboard_rules_triggerSeconds": {
+    "message": "秒"
+  },
+  "dashboard_rules_addAction": {
+    "message": "アクションを追加"
+  },
+  "dashboard_rules_noMoreActions": {
+    "message": "これ以上アクションを追加できません。現在のアクションは追加のアクションと互換性がありません。"
+  },
+  "dashboard_rules_closeNotCombinableNote": {
+    "message": "$note$ 閉じるアクションは他のアクションと組み合わせられません。",
+    "placeholders": {
+      "note": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_noteLabel": {
+    "message": "注意:"
+  },
+  "dashboard_rules_actionType": {
+    "message": "アクションの種類:"
+  },
+  "dashboard_rules_onlyCompatible": {
+    "message": "既存のアクションと互換性のあるアクションのみ表示しています。"
+  },
+  "dashboard_rules_enterName": {
+    "message": "ルール名を入力してください"
+  },
+  "dashboard_rules_conditionsNotInit": {
+    "message": "条件が正しく初期化されていません"
+  },
+  "dashboard_rules_invalidConditions": {
+    "message": "無効な条件: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_addAtLeastOneAction": {
+    "message": "少なくとも1つのアクションを追加してください"
+  },
+  "dashboard_rules_invalidActions": {
+    "message": "無効なアクション: $errors$",
+    "placeholders": {
+      "errors": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecuted": {
+    "message": "ルールを実行しました: $details$",
+    "placeholders": {
+      "details": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecutionFailed": {
+    "message": "ルールの実行に失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_ruleExecutionError": {
+    "message": "ルールの実行エラー: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewAffected_one": {
+    "message": "ルールのプレビュー: $count$個のタブが対象になります",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewAffected_other": {
+    "message": "ルールのプレビュー: $count$個のタブが対象になります",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_previewNoMatch": {
+    "message": "ルールのプレビュー: 一致するタブが見つかりません"
+  },
+  "dashboard_rules_testFailed": {
+    "message": "ルールのテストに失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testError": {
+    "message": "ルールのテストエラー: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_unableToPreview": {
+    "message": "ルールをプレビューできません"
+  },
+  "dashboard_rules_noEnabledToTest": {
+    "message": "テストする有効なルールがありません"
+  },
+  "dashboard_rules_testing": {
+    "message": "テスト中..."
+  },
+  "dashboard_rules_testAll": {
+    "message": "すべてのルールをテスト"
+  },
+  "dashboard_rules_testCompleteAffected_one": {
+    "message": "テスト完了: 合計 $count$個のタブが対象になります",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testCompleteAffected_other": {
+    "message": "テスト完了: 合計 $count$個のタブが対象になります",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_testNoneAffected": {
+    "message": "現在のルールで対象になるタブはありません"
+  },
+  "dashboard_rules_testResultsTitle": {
+    "message": "テスト結果: $name$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_wouldBeAffected_one": {
+    "message": "$count$個のタブが対象になります:",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_wouldBeAffected_other": {
+    "message": "$count$個のタブが対象になります:",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_untitled": {
+    "message": "名称未設定"
+  },
+  "dashboard_rules_duplicateTag": {
+    "message": "[重複]"
+  },
+  "dashboard_rules_executeRule": {
+    "message": "ルールを実行"
+  },
+  "dashboard_rules_ruleExecutedActions": {
+    "message": "ルールを実行しました: $count$個のアクションを実行しました",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "dashboard_rules_executeFailed": {
+    "message": "ルールの実行に失敗しました: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  }
+}

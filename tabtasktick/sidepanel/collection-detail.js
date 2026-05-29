@@ -14,6 +14,7 @@ import { modal } from './components/modal.js';
 import { EmojiPicker } from './components/emoji-picker.js';
 import { getCurrentTabSnapshot } from '../services/utils/tab-snapshot.js';
 import { TabChipRenderer } from './components/tab-chip-renderer.js';
+import { t } from '../services/utils/i18n.js';
 
 export class CollectionDetailView {
   constructor(controller) {
@@ -40,7 +41,7 @@ export class CollectionDetailView {
       // Load collection data
       const collection = await this.loadCollection(collectionId);
       if (!collection) {
-        notifications.error('Collection not found');
+        notifications.error(t('sidepanel_detail_notFound'));
         return;
       }
 
@@ -55,7 +56,7 @@ export class CollectionDetailView {
       this.render(collection, folders, tabs, tasks);
     } catch (error) {
       console.error('Failed to load collection detail:', error);
-      notifications.error('Failed to load collection');
+      notifications.error(t('sidepanel_detail_loadFailed'));
     }
   }
 
@@ -146,7 +147,7 @@ export class CollectionDetailView {
           lastSyncElement.textContent = timeAgo;
           lastSyncElement.title = new Date(response.lastSyncTime).toLocaleString();
         } else {
-          lastSyncElement.textContent = 'Never';
+          lastSyncElement.textContent = t('sidepanel_detail_syncNever');
         }
       }
 
@@ -171,10 +172,10 @@ export class CollectionDetailView {
     const now = Date.now();
     const diff = now - timestamp;
 
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return `${Math.floor(diff / 86400000)}d ago`;
+    if (diff < 60000) return t('sidepanel_time_justNow');
+    if (diff < 3600000) return t('sidepanel_time_minAgo', String(Math.floor(diff / 60000)));
+    if (diff < 86400000) return t('sidepanel_time_hoursAgo', String(Math.floor(diff / 3600000)));
+    return t('sidepanel_time_daysAgo', String(Math.floor(diff / 86400000)));
   }
 
   /**
@@ -217,7 +218,7 @@ export class CollectionDetailView {
     return `
       <div class="detail-header">
         <button class="btn-back" data-action="back">
-          ← Back to Collections
+          ${t('sidepanel_detail_back')}
         </button>
       </div>
 
@@ -234,13 +235,13 @@ export class CollectionDetailView {
    */
   renderCollectionHeader(collection) {
     const icon = collection.icon || '📁';
-    const name = this.escapeHtml(collection.name || 'Untitled Collection');
+    const name = this.escapeHtml(collection.name || t('sidepanel_detail_untitledCollection'));
     const description = collection.description
       ? this.escapeHtml(collection.description)
       : '';
 
     const windowInfo = collection.isActive && collection.windowId
-      ? `<span class="window-badge">Window #${collection.windowId}</span>`
+      ? `<span class="window-badge">${this.escapeHtml(t('sidepanel_detail_windowBadge', String(collection.windowId)))}</span>`
       : '';
 
     return `
@@ -267,11 +268,11 @@ export class CollectionDetailView {
 
         <div class="collection-metadata">
           <span class="meta-item">
-            <span class="meta-label">Created:</span>
+            <span class="meta-label">${t('sidepanel_detail_metaCreated')}</span>
             <span class="meta-value">${this.formatDateTime(collection.createdAt)}</span>
           </span>
           <span class="meta-item">
-            <span class="meta-label">Last accessed:</span>
+            <span class="meta-label">${t('sidepanel_detail_metaLastAccessed')}</span>
             <span class="meta-value">${this.formatDateTime(collection.metadata?.lastAccessed)}</span>
           </span>
         </div>
@@ -292,38 +293,38 @@ export class CollectionDetailView {
       <section class="detail-section tasks-section">
         <div class="section-header-detail">
           <h3 class="section-title-detail">
-            ✓ Tasks
+            ${t('sidepanel_detail_tasksHeader')}
             <span class="section-count-detail">${tasks.length}</span>
           </h3>
           <button class="btn btn-primary btn-sm" data-action="create-task">
-            + New Task
+            ${t('sidepanel_detail_newTask')}
           </button>
         </div>
 
         <div class="tasks-container">
           ${tasks.length === 0 ? `
             <div class="empty-state-inline">
-              <p>No tasks yet. Create one to track your work.</p>
+              <p>${t('sidepanel_detail_noTasks')}</p>
             </div>
           ` : ''}
 
           ${openTasks.length > 0 ? `
             <div class="task-group">
-              <h4 class="task-group-title">Open (${openTasks.length})</h4>
+              <h4 class="task-group-title">${this.escapeHtml(t('sidepanel_detail_tasksOpen', String(openTasks.length)))}</h4>
               ${openTasks.map(task => this.renderTaskCard(task, tabs)).join('')}
             </div>
           ` : ''}
 
           ${activeTasks.length > 0 ? `
             <div class="task-group">
-              <h4 class="task-group-title">Active (${activeTasks.length})</h4>
+              <h4 class="task-group-title">${this.escapeHtml(t('sidepanel_detail_tasksActive', String(activeTasks.length)))}</h4>
               ${activeTasks.map(task => this.renderTaskCard(task, tabs)).join('')}
             </div>
           ` : ''}
 
           ${completedTasks.length > 0 ? `
             <div class="task-group">
-              <h4 class="task-group-title">Completed (${completedTasks.length})</h4>
+              <h4 class="task-group-title">${this.escapeHtml(t('sidepanel_detail_tasksCompleted', String(completedTasks.length)))}</h4>
               ${completedTasks.map(task => this.renderTaskCard(task, tabs)).join('')}
             </div>
           ` : ''}
@@ -350,27 +351,35 @@ export class CollectionDetailView {
 
     const tabsPreview = referencedTabs.length > 0
       ? `<div class="task-tabs-preview">
-           → ${referencedTabs.slice(0, 2).map(t => this.escapeHtml(t.title || t.url)).join(', ')}
-           ${referencedTabs.length > 2 ? `, +${referencedTabs.length - 2} more` : ''}
+           → ${referencedTabs.slice(0, 2).map(tabRef => this.escapeHtml(tabRef.title || tabRef.url)).join(', ')}
+           ${referencedTabs.length > 2 ? this.escapeHtml(t('sidepanel_detail_moreTabs', String(referencedTabs.length - 2))) : ''}
          </div>`
       : '';
+
+    const statusLabels = {
+      open: t('sidepanel_detail_form_statusOpen'),
+      active: t('sidepanel_detail_form_statusActive'),
+      fixed: t('sidepanel_detail_form_statusFixed'),
+      abandoned: t('sidepanel_detail_form_statusAbandoned')
+    };
+    const statusLabel = statusLabels[task.status] || task.status;
 
     return `
       <div class="task-card-detail" data-task-id="${task.id}">
         <div class="task-header-detail">
           <span class="task-priority-icon">${priorityIcon}</span>
           <span class="task-summary">${this.escapeHtml(task.summary)}</span>
-          <span class="task-status-badge status-${task.status}">${task.status}</span>
+          <span class="task-status-badge status-${task.status}">${this.escapeHtml(statusLabel)}</span>
         </div>
         ${tabsPreview}
         <div class="task-actions-detail">
-          <button class="btn-icon" data-action="open-task-tabs" data-task-id="${task.id}" title="Open tabs">
+          <button class="btn-icon" data-action="open-task-tabs" data-task-id="${task.id}" title="${this.escapeHtml(t('sidepanel_detail_openTabsTitle'))}">
             📂
           </button>
-          <button class="btn-icon" data-action="mark-fixed" data-task-id="${task.id}" title="Mark as fixed">
+          <button class="btn-icon" data-action="mark-fixed" data-task-id="${task.id}" title="${this.escapeHtml(t('sidepanel_detail_markFixedTitle'))}">
             ✓
           </button>
-          <button class="btn-icon" data-action="edit-task" data-task-id="${task.id}" title="Edit task">
+          <button class="btn-icon" data-action="edit-task" data-task-id="${task.id}" title="${this.escapeHtml(t('sidepanel_detail_editTaskTitle'))}">
             ✏️
           </button>
         </div>
@@ -388,15 +397,15 @@ export class CollectionDetailView {
       <section class="detail-section folders-section">
         <div class="section-header-detail">
           <h3 class="section-title-detail">
-            📂 Folders & Tabs
-            <span class="section-count-detail">${folders.length} folders, ${tabs.length} tabs</span>
+            ${t('sidepanel_detail_foldersHeader')}
+            <span class="section-count-detail">${this.escapeHtml(t('sidepanel_detail_foldersCount', [String(folders.length), String(tabs.length)]))}</span>
           </h3>
         </div>
 
         <div class="folders-container">
           ${folders.length === 0 && ungroupedTabs.length === 0 ? `
             <div class="empty-state-inline">
-              <p>No folders or tabs yet.</p>
+              <p>${t('sidepanel_detail_noFolders')}</p>
             </div>
           ` : ''}
 
@@ -419,8 +428,8 @@ export class CollectionDetailView {
       <div class="folder-card" data-folder-id="${folder.id}">
         <div class="folder-header" data-action="toggle-folder" data-folder-id="${folder.id}">
           <span class="folder-toggle">${isExpanded ? '▼' : '▶'}</span>
-          <span class="folder-name">${this.escapeHtml(folder.name || 'Untitled Folder')}</span>
-          <span class="folder-count">${folderTabs.length} tabs</span>
+          <span class="folder-name">${this.escapeHtml(folder.name || t('sidepanel_detail_untitledFolder'))}</span>
+          <span class="folder-count">${this.escapeHtml(t('sidepanel_detail_folderTabsCount', String(folderTabs.length)))}</span>
         </div>
 
         <div class="folder-tabs ${isExpanded ? 'expanded' : 'collapsed'}">
@@ -440,8 +449,8 @@ export class CollectionDetailView {
       <div class="folder-card" data-folder-id="ungrouped">
         <div class="folder-header" data-action="toggle-folder" data-folder-id="ungrouped">
           <span class="folder-toggle">${isExpanded ? '▼' : '▶'}</span>
-          <span class="folder-name">Ungrouped Tabs</span>
-          <span class="folder-count">${ungroupedTabs.length} tabs</span>
+          <span class="folder-name">${t('sidepanel_detail_ungroupedTabs')}</span>
+          <span class="folder-count">${this.escapeHtml(t('sidepanel_detail_folderTabsCount', String(ungroupedTabs.length)))}</span>
         </div>
 
         <div class="folder-tabs ${isExpanded ? 'expanded' : 'collapsed'}">
@@ -470,11 +479,11 @@ export class CollectionDetailView {
           <textarea
             class="tab-note-input"
             data-tab-id="${tab.id}"
-            placeholder="Add note (255 chars max)..."
+            placeholder="${this.escapeHtml(t('sidepanel_detail_notePlaceholder'))}"
             maxlength="255"
             rows="1"
           >${note}</textarea>
-          <span class="tab-note-chars">${note.length}/255</span>
+          <span class="tab-note-chars">${this.escapeHtml(t('sidepanel_detail_noteChars', String(note.length)))}</span>
         </div>
       </div>
     `;
@@ -502,12 +511,12 @@ export class CollectionDetailView {
       <section class="detail-section settings-section">
         <details class="settings-details">
           <summary class="section-header-detail">
-            <h3 class="section-title-detail">⚙️ Progressive Sync Settings</h3>
+            <h3 class="section-title-detail">${t('sidepanel_detail_settingsHeader')}</h3>
           </summary>
 
           <div class="settings-content">
             <p class="settings-info">
-              When enabled, changes to tabs and groups sync automatically to preserve your collection's state.
+              ${t('sidepanel_detail_settingsInfo')}
             </p>
 
             <div class="setting-row">
@@ -519,8 +528,8 @@ export class CollectionDetailView {
                   ${settings.trackingEnabled ? 'checked' : ''}
                 >
                 <span class="setting-text">
-                  <strong>Enable real-time tracking</strong>
-                  <span class="setting-description">Automatically track and save tab/group changes</span>
+                  <strong>${t('sidepanel_detail_trackingTitle')}</strong>
+                  <span class="setting-description">${t('sidepanel_detail_trackingDesc')}</span>
                 </span>
               </label>
             </div>
@@ -528,8 +537,8 @@ export class CollectionDetailView {
             <div class="setting-row">
               <label class="setting-label setting-label-slider">
                 <span class="setting-text">
-                  <strong>Sync delay</strong>
-                  <span class="setting-description">Time to wait before saving changes (${this.formatSyncDelay(settings.syncDebounceMs)})</span>
+                  <strong>${t('sidepanel_detail_syncDelayTitle')}</strong>
+                  <span class="setting-description">${this.escapeHtml(t('sidepanel_detail_syncDelayDesc', this.formatSyncDelay(settings.syncDebounceMs)))}</span>
                 </span>
                 <div class="slider-container">
                   <input
@@ -553,23 +562,23 @@ export class CollectionDetailView {
 
             <div class="sync-status" data-collection-id="${collection.id}">
               <div class="sync-status-header">
-                <strong>Sync Status</strong>
+                <strong>${t('sidepanel_detail_syncStatus')}</strong>
               </div>
               <div class="sync-status-info">
                 <div class="sync-status-row">
-                  <span class="sync-status-label">Last synced:</span>
-                  <span class="sync-status-value" data-status="last-sync">Loading...</span>
+                  <span class="sync-status-label">${t('sidepanel_detail_lastSynced')}</span>
+                  <span class="sync-status-value" data-status="last-sync">${t('sidepanel_detail_loading')}</span>
                 </div>
                 <div class="sync-status-row">
-                  <span class="sync-status-label">Pending changes:</span>
-                  <span class="sync-status-value" data-status="pending-changes">Loading...</span>
+                  <span class="sync-status-label">${t('sidepanel_detail_pendingChanges')}</span>
+                  <span class="sync-status-value" data-status="pending-changes">${t('sidepanel_detail_loading')}</span>
                 </div>
               </div>
             </div>
 
             <div class="settings-footer">
               <button class="btn btn-sm btn-secondary" data-action="save-settings">
-                Save Settings
+                ${t('sidepanel_detail_saveSettings')}
               </button>
             </div>
           </div>
@@ -582,9 +591,9 @@ export class CollectionDetailView {
    * Format sync delay for display
    */
   formatSyncDelay(ms) {
-    if (ms === 0) return '0s (instant)';
-    if (ms < 1000) return `${ms}ms`;
-    return `${(ms / 1000).toFixed(1)}s`;
+    if (ms === 0) return t('sidepanel_detail_syncDelayInstant');
+    if (ms < 1000) return t('sidepanel_detail_syncDelayMs', String(ms));
+    return t('sidepanel_detail_syncDelaySeconds', (ms / 1000).toFixed(1));
   }
 
   renderCollectionActions(collection) {
@@ -592,21 +601,21 @@ export class CollectionDetailView {
       <div class="collection-actions-detail">
         ${collection.isActive ? `
           <button class="btn btn-secondary" data-action="sync-collection">
-            🔄 Refresh
+            ${t('sidepanel_detail_refresh')}
           </button>
           <button class="btn btn-secondary" data-action="focus-window">
-            👁️ Focus Window
+            ${t('sidepanel_detail_focusWindow')}
           </button>
           <button class="btn btn-secondary" data-action="close-window">
-            ❌ Close Window
+            ${t('sidepanel_detail_closeWindow')}
           </button>
         ` : `
           <button class="btn btn-primary" data-action="open-collection">
-            📂 Open Collection
+            ${t('sidepanel_detail_openCollection')}
           </button>
         `}
         <button class="btn btn-secondary" data-action="edit-collection">
-          ✏️ Edit Collection
+          ${t('sidepanel_detail_editCollection')}
         </button>
       </div>
     `;
@@ -676,7 +685,7 @@ export class CollectionDetailView {
       if (e.target.classList.contains('tab-note-input')) {
         const charsSpan = e.target.nextElementSibling;
         if (charsSpan) {
-          charsSpan.textContent = `${e.target.value.length}/255`;
+          charsSpan.textContent = t('sidepanel_detail_noteChars', String(e.target.value.length));
         }
       }
 
@@ -685,7 +694,7 @@ export class CollectionDetailView {
         const description = e.target.closest('.setting-label-slider').querySelector('.setting-description');
         if (description) {
           const value = parseInt(e.target.value);
-          description.textContent = `Time to wait before saving changes (${this.formatSyncDelay(value)})`;
+          description.textContent = t('sidepanel_detail_syncDelayDesc', this.formatSyncDelay(value));
         }
       }
     });
@@ -720,17 +729,17 @@ export class CollectionDetailView {
       const form = await this.createTaskForm();
 
       modal.open({
-        title: 'Create Task',
+        title: t('sidepanel_detail_createTaskTitle'),
         content: form,
         size: 'medium',
         actions: [
           {
-            label: 'Cancel',
+            label: t('common_cancel'),
             variant: 'secondary',
             autoClose: true
           },
           {
-            label: 'Create',
+            label: t('sidepanel_detail_create'),
             variant: 'primary',
             onClick: async () => {
               await this.saveTask(null, form);
@@ -740,7 +749,7 @@ export class CollectionDetailView {
       });
     } catch (error) {
       console.error('Failed to create task:', error);
-      notifications.error('Failed to create task');
+      notifications.error(t('sidepanel_detail_createTaskFailed'));
     }
   }
 
@@ -753,24 +762,24 @@ export class CollectionDetailView {
       const task = response?.task;
 
       if (!task) {
-        notifications.error('Task not found');
+        notifications.error(t('sidepanel_detail_taskNotFound'));
         return;
       }
 
       const form = await this.createTaskForm(task);
 
       modal.open({
-        title: 'Edit Task',
+        title: t('sidepanel_tasks_editTitle'),
         content: form,
         size: 'medium',
         actions: [
           {
-            label: 'Cancel',
+            label: t('common_cancel'),
             variant: 'secondary',
             autoClose: true
           },
           {
-            label: 'Save',
+            label: t('common_save'),
             variant: 'primary',
             onClick: async () => {
               await this.saveTask(taskId, form);
@@ -780,7 +789,7 @@ export class CollectionDetailView {
       });
     } catch (error) {
       console.error('Failed to edit task:', error);
-      notifications.error('Failed to edit task');
+      notifications.error(t('sidepanel_detail_editTaskFailed'));
     }
   }
 
@@ -807,7 +816,7 @@ export class CollectionDetailView {
 
     form.innerHTML = `
       <div class="form-group">
-        <label for="task-summary">Summary *</label>
+        <label for="task-summary">${t('sidepanel_detail_form_summaryLabel')}</label>
         <input
           type="text"
           id="task-summary"
@@ -820,15 +829,15 @@ export class CollectionDetailView {
 
       <!-- Phase 11: Tab Association Section -->
       <div class="tab-association-section" id="tab-association-section">
-        <label class="section-label">Context</label>
+        <label class="section-label">${t('sidepanel_detail_form_contextLabel')}</label>
         <div class="tab-chip-container" id="tab-chip-container">
           ${tabReferencesHtml}
         </div>
-        <p class="helper-text">Quick access to tabs</p>
+        <p class="helper-text">${t('sidepanel_detail_form_contextHelper')}</p>
       </div>
 
       <div class="form-group">
-        <label for="task-notes">Notes</label>
+        <label for="task-notes">${t('sidepanel_detail_form_notesLabel')}</label>
         <textarea
           id="task-notes"
           name="notes"
@@ -839,28 +848,28 @@ export class CollectionDetailView {
 
       <div class="form-row">
         <div class="form-group">
-          <label for="task-priority">Priority</label>
+          <label for="task-priority">${t('sidepanel_detail_form_priorityLabel')}</label>
           <select id="task-priority" name="priority" class="form-select">
-            <option value="low" ${task?.priority === 'low' ? 'selected' : ''}>Low</option>
-            <option value="medium" ${!task || task.priority === 'medium' ? 'selected' : ''}>Medium</option>
-            <option value="high" ${task?.priority === 'high' ? 'selected' : ''}>High</option>
-            <option value="critical" ${task?.priority === 'critical' ? 'selected' : ''}>Critical</option>
+            <option value="low" ${task?.priority === 'low' ? 'selected' : ''}>${t('sidepanel_detail_form_priorityLow')}</option>
+            <option value="medium" ${!task || task.priority === 'medium' ? 'selected' : ''}>${t('sidepanel_detail_form_priorityMedium')}</option>
+            <option value="high" ${task?.priority === 'high' ? 'selected' : ''}>${t('sidepanel_detail_form_priorityHigh')}</option>
+            <option value="critical" ${task?.priority === 'critical' ? 'selected' : ''}>${t('sidepanel_detail_form_priorityCritical')}</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="task-status">Status</label>
+          <label for="task-status">${t('sidepanel_detail_form_statusLabel')}</label>
           <select id="task-status" name="status" class="form-select">
-            <option value="open" ${!task || task.status === 'open' ? 'selected' : ''}>Open</option>
-            <option value="active" ${task?.status === 'active' ? 'selected' : ''}>Active</option>
-            <option value="fixed" ${task?.status === 'fixed' ? 'selected' : ''}>Fixed</option>
-            <option value="abandoned" ${task?.status === 'abandoned' ? 'selected' : ''}>Abandoned</option>
+            <option value="open" ${!task || task.status === 'open' ? 'selected' : ''}>${t('sidepanel_detail_form_statusOpen')}</option>
+            <option value="active" ${task?.status === 'active' ? 'selected' : ''}>${t('sidepanel_detail_form_statusActive')}</option>
+            <option value="fixed" ${task?.status === 'fixed' ? 'selected' : ''}>${t('sidepanel_detail_form_statusFixed')}</option>
+            <option value="abandoned" ${task?.status === 'abandoned' ? 'selected' : ''}>${t('sidepanel_detail_form_statusAbandoned')}</option>
           </select>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="task-due-date">Due Date</label>
+        <label for="task-due-date">${t('sidepanel_detail_form_dueDateLabel')}</label>
         <input
           type="date"
           id="task-due-date"
@@ -871,14 +880,14 @@ export class CollectionDetailView {
       </div>
 
       <div class="form-group">
-        <label for="task-tags">Tags (comma-separated)</label>
+        <label for="task-tags">${t('sidepanel_detail_form_tagsLabel')}</label>
         <input
           type="text"
           id="task-tags"
           name="tags"
           value="${task?.tags ? task.tags.join(', ') : ''}"
           class="form-input"
-          placeholder="bug, feature, urgent"
+          placeholder="${this.escapeHtml(t('sidepanel_detail_form_tagsPlaceholder'))}"
         >
       </div>
     `;
@@ -931,14 +940,14 @@ export class CollectionDetailView {
       const response = await this.controller.sendMessage(action, taskId ? { id: taskId, updates: params } : { params });
 
       if (response?.success || response?.task) {
-        notifications.success(taskId ? 'Task updated' : 'Task created');
+        notifications.success(taskId ? t('sidepanel_detail_taskUpdated') : t('sidepanel_detail_taskCreated'));
         await this.show(this.currentCollectionId); // Refresh view
       } else {
-        throw new Error(response?.error || 'Failed to save task');
+        throw new Error(response?.error || t('sidepanel_detail_saveTaskFailed'));
       }
     } catch (error) {
       console.error('Failed to save task:', error);
-      notifications.error('Failed to save task');
+      notifications.error(t('sidepanel_detail_saveTaskFailed'));
       throw error;
     }
   }
@@ -951,13 +960,13 @@ export class CollectionDetailView {
       const result = await this.controller.sendMessage('openTaskTabs', { taskId });
 
       if (result?.success) {
-        notifications.success(`Opened ${result.tabsOpened || 0} tab(s) for task`);
+        notifications.success(t('sidepanel_detail_openedTabs', String(result.tabsOpened || 0)));
       } else {
-        notifications.error('Failed to open task tabs');
+        notifications.error(t('sidepanel_detail_openTaskTabsFailed'));
       }
     } catch (error) {
       console.error('Failed to open task tabs:', error);
-      notifications.error('Failed to open task tabs');
+      notifications.error(t('sidepanel_detail_openTaskTabsFailed'));
     }
   }
 
@@ -972,14 +981,14 @@ export class CollectionDetailView {
       });
 
       if (response?.success) {
-        notifications.success('Task marked as fixed');
+        notifications.success(t('sidepanel_detail_markedFixed'));
         await this.show(this.currentCollectionId); // Refresh view
       } else {
-        throw new Error(response?.error || 'Failed to update task');
+        throw new Error(response?.error || t('sidepanel_detail_updateTaskFailed'));
       }
     } catch (error) {
       console.error('Failed to mark task as fixed:', error);
-      notifications.error('Failed to update task');
+      notifications.error(t('sidepanel_detail_updateTaskFailed'));
     }
   }
 
@@ -1025,11 +1034,11 @@ export class CollectionDetailView {
           textarea.style.borderColor = '';
         }, 1000);
       } else {
-        throw new Error(response?.error || 'Failed to update tab note');
+        throw new Error(response?.error || t('sidepanel_detail_saveNoteFailed'));
       }
     } catch (error) {
       console.error('Failed to save tab note:', error);
-      notifications.error('Failed to save note');
+      notifications.error(t('sidepanel_detail_saveNoteFailed'));
     }
   }
 
@@ -1042,7 +1051,7 @@ export class CollectionDetailView {
   async handleSyncCollection() {
     try {
       // Show loading state
-      notifications.info('Syncing collection...');
+      notifications.info(t('sidepanel_detail_syncing'));
 
       // Call background to sync
       const response = await this.controller.sendMessage('syncCollectionFromWindow', {
@@ -1053,19 +1062,19 @@ export class CollectionDetailView {
         const changes = response.tabsAdded + response.tabsRemoved + response.tabsUpdated;
 
         if (changes === 0) {
-          notifications.success('Collection is up to date');
+          notifications.success(t('sidepanel_detail_upToDate'));
         } else {
-          notifications.success(`Refreshed: ${response.tabsAdded} added, ${response.tabsUpdated} updated, ${response.tabsRemoved} removed`);
+          notifications.success(t('sidepanel_detail_refreshed', [String(response.tabsAdded), String(response.tabsUpdated), String(response.tabsRemoved)]));
         }
 
         // Refresh the view to show updated data
         await this.show(this.currentCollectionId);
       } else {
-        notifications.error(response?.reason || 'Sync failed');
+        notifications.error(response?.reason || t('sidepanel_detail_syncFailed'));
       }
     } catch (error) {
       console.error('Failed to sync collection:', error);
-      notifications.error('Failed to sync collection');
+      notifications.error(t('sidepanel_detail_syncCollectionFailed'));
     }
   }
 
@@ -1073,15 +1082,15 @@ export class CollectionDetailView {
     try {
       const collection = await this.loadCollection(this.currentCollectionId);
       if (!collection || !collection.windowId) {
-        notifications.error('Window not found');
+        notifications.error(t('sidepanel_detail_windowNotFound'));
         return;
       }
 
       await chrome.windows.update(collection.windowId, { focused: true });
-      notifications.success('Window focused');
+      notifications.success(t('sidepanel_detail_windowFocused'));
     } catch (error) {
       console.error('Failed to focus window:', error);
-      notifications.error('Failed to focus window');
+      notifications.error(t('sidepanel_detail_focusWindowFailed'));
     }
   }
 
@@ -1092,17 +1101,17 @@ export class CollectionDetailView {
     try {
       const collection = await this.loadCollection(this.currentCollectionId);
       if (!collection || !collection.windowId) {
-        notifications.error('Window not found');
+        notifications.error(t('sidepanel_detail_windowNotFound'));
         return;
       }
 
       await chrome.windows.remove(collection.windowId);
-      notifications.success('Window closed - collection saved');
+      notifications.success(t('sidepanel_detail_windowClosedSaved'));
       this.hide();
       await this.controller.loadData();
     } catch (error) {
       console.error('Failed to close window:', error);
-      notifications.error('Failed to close window');
+      notifications.error(t('sidepanel_detail_closeWindowFailed'));
     }
   }
 
@@ -1118,15 +1127,15 @@ export class CollectionDetailView {
       });
 
       if (result?.success) {
-        notifications.success('Collection opened in new window');
+        notifications.success(t('sidepanel_detail_openedNewWindow'));
         // Reload collection to show updated active state
         await this.show(this.currentCollectionId);
       } else {
-        notifications.error('Failed to open collection');
+        notifications.error(t('sidepanel_detail_openCollectionFailed'));
       }
     } catch (error) {
       console.error('Failed to open collection:', error);
-      notifications.error('Failed to open collection');
+      notifications.error(t('sidepanel_detail_openCollectionFailed'));
     }
   }
 
@@ -1137,24 +1146,24 @@ export class CollectionDetailView {
     try {
       const collection = await this.loadCollection(this.currentCollectionId);
       if (!collection) {
-        notifications.error('Collection not found');
+        notifications.error(t('sidepanel_detail_notFound'));
         return;
       }
 
       const form = this.createCollectionEditForm(collection);
 
       modal.open({
-        title: 'Edit Collection',
+        title: t('sidepanel_detail_editCollectionTitle'),
         content: form,
         size: 'medium',
         actions: [
           {
-            label: 'Cancel',
+            label: t('common_cancel'),
             variant: 'secondary',
             autoClose: true
           },
           {
-            label: 'Save',
+            label: t('common_save'),
             variant: 'primary',
             onClick: async () => {
               await this.saveCollectionEdits(form);
@@ -1164,7 +1173,7 @@ export class CollectionDetailView {
       });
     } catch (error) {
       console.error('Failed to edit collection:', error);
-      notifications.error('Failed to edit collection');
+      notifications.error(t('sidepanel_detail_editCollectionFailed'));
     }
   }
 
@@ -1176,7 +1185,7 @@ export class CollectionDetailView {
     form.className = 'collection-edit-form';
     form.innerHTML = `
       <div class="form-group">
-        <label for="edit-name">Name</label>
+        <label for="edit-name">${t('sidepanel_detail_form_nameLabel')}</label>
         <input
           type="text"
           id="edit-name"
@@ -1188,7 +1197,7 @@ export class CollectionDetailView {
       </div>
 
       <div class="form-group">
-        <label for="edit-description">Description</label>
+        <label for="edit-description">${t('sidepanel_detail_form_descriptionLabel')}</label>
         <textarea
           id="edit-description"
           name="description"
@@ -1198,18 +1207,18 @@ export class CollectionDetailView {
       </div>
 
       <div class="form-group" id="icon-group">
-        <label for="edit-icon">Icon</label>
+        <label for="edit-icon">${t('sidepanel_detail_form_iconLabel')}</label>
       </div>
 
       <div class="form-group">
-        <label for="edit-tags">Tags (comma-separated)</label>
+        <label for="edit-tags">${t('sidepanel_detail_form_collectionTagsLabel')}</label>
         <input
           type="text"
           id="edit-tags"
           name="tags"
           value="${collection.tags ? collection.tags.join(', ') : ''}"
           class="form-input"
-          placeholder="work, research, personal"
+          placeholder="${this.escapeHtml(t('sidepanel_detail_form_collectionTagsPlaceholder'))}"
         >
       </div>
     `;
@@ -1247,14 +1256,14 @@ export class CollectionDetailView {
       });
 
       if (response?.success) {
-        notifications.success('Collection updated');
+        notifications.success(t('sidepanel_detail_collectionUpdated'));
         await this.show(this.currentCollectionId); // Refresh view
       } else {
         throw new Error(response?.error || 'Update failed');
       }
     } catch (error) {
       console.error('Failed to save collection:', error);
-      notifications.error('Failed to save changes');
+      notifications.error(t('sidepanel_detail_saveChangesFailed'));
       throw error;
     }
   }
@@ -1280,7 +1289,7 @@ export class CollectionDetailView {
       });
 
       if (response?.success) {
-        notifications.success('Settings saved');
+        notifications.success(t('sidepanel_detail_settingsSaved'));
         // Refresh view to show updated settings
         await this.show(this.currentCollectionId);
       } else {
@@ -1288,7 +1297,7 @@ export class CollectionDetailView {
       }
     } catch (error) {
       console.error('Failed to save settings:', error);
-      notifications.error('Failed to save settings');
+      notifications.error(t('sidepanel_detail_saveSettingsFailed'));
     }
   }
 
@@ -1296,7 +1305,7 @@ export class CollectionDetailView {
    * Format date/time
    */
   formatDateTime(timestamp) {
-    if (!timestamp) return 'Never';
+    if (!timestamp) return t('sidepanel_time_never');
     return new Date(timestamp).toLocaleString();
   }
 

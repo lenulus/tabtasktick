@@ -3,6 +3,7 @@
 
 import { getTimeAgo, getActivityIcon } from '../core/utils.js';
 import state from '../core/state.js';
+import { t } from '../../../services/utils/i18n.js';
 
 // Store chart instances globally to ensure proper cleanup
 const chartInstances = {
@@ -33,10 +34,10 @@ export async function loadOverviewData(filter = null) {
 
     // Update stat cards
     document.getElementById('statTotalTabs').textContent = stats.totalTabs;
-    document.getElementById('statTabsChange').textContent = '+0 today'; // Would need tracking
+    document.getElementById('statTabsChange').textContent = t('dashboard_overview_statTabsChange'); // Would need tracking
 
     document.getElementById('statGroups').textContent = stats.groupedTabs;
-    document.getElementById('statGroupsInfo').textContent = '0 collapsed'; // Would need tracking
+    document.getElementById('statGroupsInfo').textContent = t('dashboard_overview_statGroupsInfo'); // Would need tracking
     
     document.getElementById('statSnoozed').textContent = stats.snoozedTabs;
     updateNextWakeTime(stats.snoozedTabs);
@@ -44,9 +45,9 @@ export async function loadOverviewData(filter = null) {
     // Update duplicates count (already in stats from getStatistics)
     document.getElementById('statDuplicates').textContent = stats.duplicates || 0;
     if (stats.duplicates > 0) {
-      document.getElementById('statDuplicatesInfo').textContent = 'Click to clean up';
+      document.getElementById('statDuplicatesInfo').textContent = t('dashboard_overview_clickToCleanup');
     } else {
-      document.getElementById('statDuplicatesInfo').textContent = 'None found';
+      document.getElementById('statDuplicatesInfo').textContent = t('dashboard_overview_noneFound');
     }
     
     // Update charts with sample data
@@ -65,9 +66,9 @@ export async function loadOverviewData(filter = null) {
 
 function updateNextWakeTime(snoozedCount) {
   if (snoozedCount > 0) {
-    document.getElementById('statNextWake').textContent = 'Next in 2h'; // Would need actual calculation
+    document.getElementById('statNextWake').textContent = t('dashboard_overview_nextInHours', '2'); // Would need actual calculation
   } else {
-    document.getElementById('statNextWake').textContent = 'None scheduled';
+    document.getElementById('statNextWake').textContent = t('dashboard_overview_noneScheduled');
   }
 }
 
@@ -107,10 +108,10 @@ export async function updateRecentActivity(filter = 'all') {
     filterContainer.id = 'activityFilter';
     filterContainer.style.cssText = 'display: flex; gap: 8px; margin-bottom: 12px;';
     filterContainer.innerHTML = `
-      <button class="activity-filter-btn ${filter === 'all' ? 'active' : ''}" data-filter="all">All</button>
-      <button class="activity-filter-btn ${filter === 'manual' ? 'active' : ''}" data-filter="manual">Manual</button>
-      <button class="activity-filter-btn ${filter === 'auto' ? 'active' : ''}" data-filter="auto">Auto</button>
-      <button class="activity-filter-btn ${filter === 'rule' ? 'active' : ''}" data-filter="rule">Rules</button>
+      <button class="activity-filter-btn ${filter === 'all' ? 'active' : ''}" data-filter="all">${t('dashboard_overview_filterAll')}</button>
+      <button class="activity-filter-btn ${filter === 'manual' ? 'active' : ''}" data-filter="manual">${t('dashboard_overview_filterManual')}</button>
+      <button class="activity-filter-btn ${filter === 'auto' ? 'active' : ''}" data-filter="auto">${t('dashboard_overview_filterAuto')}</button>
+      <button class="activity-filter-btn ${filter === 'rule' ? 'active' : ''}" data-filter="rule">${t('dashboard_overview_filterRules')}</button>
     `;
     
     // Add event listeners for filter buttons
@@ -135,7 +136,7 @@ export async function updateRecentActivity(filter = 'all') {
   if (formattedActivities.length === 0) {
     container.innerHTML = `
       <div class="empty-state" style="padding: 20px;">
-        <p style="margin: 0; color: #6c757d; text-align: center;">No recent activity</p>
+        <p style="margin: 0; color: #6c757d; text-align: center;">${t('dashboard_overview_noActivity')}</p>
       </div>
     `;
     return;
@@ -189,13 +190,13 @@ export function updateActivityChart() {
       data: {
         labels: last7Days.labels,
         datasets: [{
-          label: 'Tabs Opened',
+          label: t('dashboard_overview_chartTabsOpened'),
           data: last7Days.opened,
           borderColor: 'rgb(102, 126, 234)',
           backgroundColor: 'rgba(102, 126, 234, 0.1)',
           tension: 0.4
         }, {
-          label: 'Tabs Closed',
+          label: t('dashboard_overview_chartTabsClosed'),
           data: last7Days.closed,
           borderColor: 'rgb(245, 87, 108)',
           backgroundColor: 'rgba(245, 87, 108, 0.1)',

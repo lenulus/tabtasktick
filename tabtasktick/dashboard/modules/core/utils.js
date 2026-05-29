@@ -2,6 +2,8 @@
  * Core utility functions for TabMaster Pro
  */
 
+import { t } from '../../../services/utils/i18n.js';
+
 /**
  * Normalize URL by removing query parameters and hash fragments
  * @param {string} urlString - URL to normalize
@@ -68,10 +70,10 @@ export function getTimeAgo(timestamp) {
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
   
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
+  if (minutes < 1) return t('dashboard_time_justNow');
+  if (minutes < 60) return t('dashboard_time_minutesAgo', [String(minutes)]);
+  if (hours < 24) return t('dashboard_time_hoursAgo', [String(hours)]);
+  if (days < 7) return t('dashboard_time_daysAgo', [String(days)]);
   return new Date(timestamp).toLocaleDateString();
 }
 
@@ -116,11 +118,11 @@ export function getGroupColor(chromeColor) {
  * @returns {string} Tab state
  */
 export function getTabState(tab) {
-  if (tab.discarded) return '💤 Suspended';
-  if (tab.active) return '👁 Active';
-  if (tab.audible) return '🔊 Playing';
-  if (tab.pinned) return '📌 Pinned';
-  return 'Loaded';
+  if (tab.discarded) return t('dashboard_tabState_suspended');
+  if (tab.active) return t('dashboard_tabState_active');
+  if (tab.audible) return t('dashboard_tabState_playing');
+  if (tab.pinned) return t('dashboard_tabState_pinned');
+  return t('dashboard_tabState_loaded');
 }
 
 /**
@@ -129,19 +131,19 @@ export function getTabState(tab) {
  * @returns {string} Last access text
  */
 export function getLastAccessText(tab) {
-  if (tab.active) return 'Now';
-  if (!tab.lastAccessed) return 'Unknown';
-  
+  if (tab.active) return t('dashboard_time_now');
+  if (!tab.lastAccessed) return t('dashboard_time_unknown');
+
   const now = Date.now();
   const diff = now - tab.lastAccessed;
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${days}d ago`;
+
+  if (minutes < 1) return t('dashboard_time_justNow');
+  if (minutes < 60) return t('dashboard_time_minutesAgo', [String(minutes)]);
+  if (hours < 24) return t('dashboard_time_hoursAgo', [String(hours)]);
+  return t('dashboard_time_daysAgo', [String(days)]);
 }
 
 
