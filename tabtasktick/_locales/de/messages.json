@@ -6,7 +6,7 @@
     "message": "Tab-Manager mit integrierten Aufgaben, Kanban, automatischer Gruppierung und Schlummerfunktion. Nur lokal, kein Konto, kein Tracking. Für GTD entwickelt."
   },
   "cmd_quickSnooze": {
-    "message": "Aktuellen Tab schnell schlummern"
+    "message": "Aktuellen Tab schnell zurückstellen"
   },
   "cmd_groupByDomain": {
     "message": "Alle Tabs nach Domain gruppieren"
@@ -972,10 +972,10 @@
     "message": "Das TabTaskTick-Popup öffnen"
   },
   "options_shortcut_snooze_title": {
-    "message": "Schnellschlummern"
+    "message": "Schnell zurückstellen"
   },
   "options_shortcut_snooze_desc": {
-    "message": "Aktuellen Tab mit Dialog schlummern"
+    "message": "Aktuellen Tab mit Dialog zurückstellen"
   },
   "options_shortcut_group_title": {
     "message": "Nach Domain gruppieren"
