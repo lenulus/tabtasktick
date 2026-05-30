@@ -81,59 +81,59 @@ Before the prompt is *eligible* to fire, every one of these must be true:
 | Gate | Threshold | Rationale |
 |---|---|---|
 | **Days since install** | ≥ 14 | Don't ask strangers — give them time to form an opinion |
-| **Meaningful actions** | ≥ 5 | Evidence the user is using the extension, not just installed and ignored it. Counted actions in §4. |
-| **Active days** | ≥ 5 distinct calendar days with any tracked action | Filters out the "tried it once for an hour" user |
-| **Prompt cooldown** | No prompt shown in last 7 days (any surface) | Anti-spam between surfaces if we later add both |
+| **Dashboard opened from popup** | ≥ 2 distinct sessions | Evidence the user has actively engaged beyond the quick-action popup surface. One open could be exploratory; two is intent. Works for users who go to the dashboard for *any* reason — Tasks, Rules, Snoozed, Collections, History — not feature-specific. |
+| **Prompt cooldown** | No prompt shown in last 7 days | Anti-spam guard |
 | **Not previously rated/declined** | `rated !== true && declined !== true` | Lifetime suppression once they've made a definitive choice |
-| **Last action was successful** | The triggering action did not error or get rolled back | Don't ask after a bad experience |
-| **No errors in last 5 minutes** | `recentErrorAt < now - 5min` | Same — don't ask while frustration is fresh |
+| **No errors in last 5 minutes** | `recentErrorAt < now - 5min` | Don't ask while frustration is fresh |
 
-A user who installs today, opens the extension twice, and closes it without
-saving anything would *never* see the prompt. That's the point.
+A user who installs today, opens the popup a few times, and never visits the
+dashboard would *never* see the prompt. That's the point.
 
-### What counts as a "meaningful action"
+### Why "dashboard opened from popup" specifically
 
-Defined narrowly — these are moments of evidence that the user got value:
-
-- Saved a Collection (window → collection)
-- Restored a Collection (collection → window)
-- Snoozed a tab or window and the wake-up fired successfully
-- Created a Task or Rule that subsequently ran without error
-- Closed 10+ duplicate tabs in one operation
-- Used the same Collection on 3+ separate days
-
-Notably **not** counted: opening the popup, viewing the dashboard, scrolling
-the tab list. Passive engagement isn't evidence of value.
+- **Feature-neutral.** Captures engagement signal regardless of *which*
+  TabTaskTick features the user values. A heavy Tasks user qualifies as
+  easily as a heavy Collections user.
+- **Single, cheap instrumentation point.** One counter, one call site in
+  the popup's dashboard-open handler. No wiring into N execution services,
+  no granular action-counting logic.
+- **Hard to game accidentally.** Unlike "opened the popup" (which fires
+  every time a user reaches for any extension), opening the dashboard from
+  the popup is a deliberate navigation — clicking past the lightweight
+  surface to the heavier one is meaningful intent.
+- **"Through the popup" matters.** Direct dashboard URL opens (via
+  bookmark, tab restore, deep-link) don't count — the user has to make
+  that navigation choice from the popup itself.
 
 ---
 
-## 4. Trigger: popup open + recency window
+## 4. Trigger: popup open + first-open-of-day
 
 The popup is itself a deliberate user action — opening it is the trigger.
 The prompt renders in the slot currently occupied by the Collections promo,
-and only when both these *additional* conditions hold (beyond the §3 gates):
+gated by:
 
-| Additional condition | Reason |
+| Condition | Reason |
 |---|---|
-| **Last meaningful action ≤ 7 days ago** | Show while the positive memory of the extension is fresh, not weeks later when the user opens the popup to do something tangential. |
-| **Mutex with Collections promo** — never both in the same session | The Collections promo nudges users *to* save a collection; the review prompt is for users who already have. They can't both apply. |
-| **First popup open of the day** only | Popup opens are frequent — many users hit it dozens of times daily. Capping to first-open per day prevents accidental re-renders mid-session. |
+| **All §3 gates pass** | The bar for being shown at all |
+| **First popup open of the day** | Popup opens are frequent — many users hit it dozens of times daily. Capping to first-open per day prevents accidental re-renders mid-session. |
+| **Last dashboard-open from popup ≤ 14 days ago** | Show while the positive memory of recent engagement is fresh. A user who actively used the dashboard last month but hasn't since may have drifted away — don't ambush them. |
 
 ### Display logic when popup opens
 
 ```
-1. User has rated or declined?     → no promo slot at all
-2. User has never saved a Collection?
-                                   → show Collections promo (existing behavior)
-3. All §3 gates pass + last action ≤ 7 days + first-open-today?
-                                   → show review prompt
-4. Otherwise                       → empty promo slot (or other future promo)
+1. User has rated or declined?       → no review prompt slot
+                                       (Collections promo unaffected)
+2. All §3 gates pass + first-open-today + recent dashboard-from-popup?
+                                     → show review prompt in the promo slot
+3. Otherwise                         → show whatever the slot would have
+                                       shown anyway (Collections promo, etc.)
 ```
 
-Step 2 is the elegant part — the Collections promo and the review prompt are
-naturally mutually exclusive. A user hasn't saved a Collection? They see the
-promo. They have? The promo is wasted screen, and the review prompt earns the
-slot. No competing CTAs.
+The review prompt and the Collections promo are not feature-coupled — they're
+just two pieces of content that compete for the same UI real-estate when
+both are eligible. Precedence: review prompt wins when its (stricter) gates
+pass, since it has a 4-month effective cap and won't dominate the slot.
 
 ### What about the dashboard?
 
@@ -153,10 +153,9 @@ conditions all pass.
 ### Why this surface
 
 - **Highest reach** — most users see the popup multiple times per day.
-  Dashboard reach is much lower (many TabTaskTick users never open it).
-- **Clean mutex with the Collections promo** — by the time a user is eligible
-  for the review prompt, the Collections promo is moot for them (they've
-  already saved a Collection). One slot, two states, no competing CTAs.
+  Dashboard reach is much lower (many TabTaskTick users never open it,
+  which is precisely why "opened the dashboard from the popup ≥ 2 times"
+  is the right engagement gate).
 - **Popup-open is itself a deliberate user action** — the user came here to
   do something, so showing the prompt isn't interrupting work, just
   occupying the same slot they were already going to see.
@@ -198,9 +197,9 @@ services/
 ### `ReviewPromptService.js` — public API
 
 ```js
-// Increment a counter for a tracked action category.
-// Categories defined in §3 ("meaningful actions").
-trackAction(category)
+// Increment the dashboard-from-popup counter. Idempotent within a session
+// (multiple opens of the dashboard from the same popup session count as 1).
+trackDashboardOpenFromPopup()
 
 // Returns { eligible, reason, version } where:
 //   eligible: boolean — all gates §3 pass right now
@@ -219,36 +218,30 @@ Single key `reviewPrompt`:
 
 ```js
 {
-  installedAt: 1748000000000,        // epoch ms, set on first run
-  actionCounts: {                    // counted §3 actions
-    collection_saved: 0,
-    collection_restored: 0,
-    snooze_fired: 0,
-    rule_ran_clean: 0,
-    duplicates_closed: 0,
-  },
-  activeDays: ['2026-05-14', ...],   // ISO date strings, distinct
-  lastPromptAt: null,                // suppresses §3 cooldown
-  lastDeferredAt: null,              // 30-day re-ask window
-  lastDismissedAt: null,             // 90-day re-ask window
-  rated: false,                      // lifetime suppression
-  declined: false,                   // lifetime suppression
-  recentErrorAt: null,               // anti-frustration window
+  installedAt: 1748000000000,            // epoch ms, set on first run
+  dashboardOpensFromPopup: 0,            // counter, gated by §3 (≥ 2)
+  lastDashboardOpenFromPopupAt: null,    // for the §4 14-day recency window
+  lastPromptAt: null,                    // §3 cooldown
+  lastDeferredAt: null,                  // 30-day re-ask window
+  lastDismissedAt: null,                 // 90-day re-ask window
+  rated: false,                          // lifetime suppression
+  declined: false,                       // lifetime suppression
+  recentErrorAt: null,                   // anti-frustration window
 }
 ```
 
-### Where to call `trackAction`
+### Single call site for `trackDashboardOpenFromPopup`
 
-Following the separation-of-concerns rule, tracking calls live in the
-execution services that actually perform the action:
+Just one — wherever the popup currently handles its "Open dashboard" button:
 
-- `CollectionService.saveCollection()` → `trackAction('collection_saved')`
-- `RestoreCollectionService.restore()` → `trackAction('collection_restored')`
-- `SnoozeService.handleSnoozeAlarm()` (on successful wake) → `trackAction('snooze_fired')`
-- `DeduplicationOrchestrator.deduplicate()` (when closed ≥10) → `trackAction('duplicates_closed')`
-- Rules engine on a successful clean run → `trackAction('rule_ran_clean')`
+- `popup/popup.js` → on the dashboard-link click handler, before opening
+  the dashboard tab.
 
-UI surfaces never call `trackAction` directly.
+A session deduper inside the service prevents a user who opens the dashboard,
+returns to the popup, and opens it again from incrementing twice in the same
+popup session.
+
+UI surfaces never call `trackDashboardOpenFromPopup` from anywhere else.
 
 ---
 
@@ -345,12 +338,14 @@ Pick one phase per release; ship and observe before the next.
 
 ### Phase A — instrument only (one PR)
 
-- Add `ReviewPromptService.js` with storage and `trackAction()` only.
-- Wire `trackAction()` calls into the 5 execution services in §6.
-- No UI surface yet.
+- Add `ReviewPromptService.js` with storage and `trackDashboardOpenFromPopup()`
+  only.
+- Add one call site in `popup/popup.js` on the dashboard-open click handler.
+- No `shouldPrompt()` / `recordOutcome()` / UI yet.
 - Lets the next release start accumulating real data so by the time the
-  prompt ships, existing users already meet the eligibility gates and the
-  "last action ≤ 7 days" recency window is meaningful.
+  prompt ships, existing users already have a dashboard-from-popup counter
+  building toward the ≥ 2 threshold and the §4 14-day recency window is
+  meaningful.
 - **Minimum 14 days between Phase A and Phase B** so the install-age gate
   has time to accumulate (existing users pass instantly; users who installed
   Phase A as their first version need to age in).
@@ -358,9 +353,9 @@ Pick one phase per release; ship and observe before the next.
 ### Phase B — popup review prompt (one PR)
 
 - Add `shouldPrompt()` and `recordOutcome()` to the service.
-- Add the prompt component to the popup, occupying the Collections promo slot.
-- Implement the §4 display logic (mutex with Collections promo, first-open-of-day,
-  recency window).
+- Add the prompt component to the popup, occupying the Collections promo slot
+  when its gates pass.
+- Implement the §4 display logic (first-open-of-day + 14-day recency window).
 - Wire Step 1 → Step 2 transitions; persist outcomes per §2.
 - Ship.
 
@@ -398,10 +393,11 @@ Worth a decision before Phase B:
    include extension version, locale, install date — useful for triage, but
    adds an "this extension knows things about me" surface. Lean: no
    pre-population, plain link only.
-4. **What happens to the Collections promo slot after Phase B ships?** For
-   users who never become eligible (light users), the Collections promo keeps
-   running indefinitely. Is that OK, or should there be a "stop showing
-   Collections promo after N popup opens" cap independent of this work?
+4. **Precedence when both promos are eligible.** The plan says the review
+   prompt wins when its (stricter) gates pass, which is the right default.
+   Worth a sanity check: are there cases where a brand-new feature promo
+   would deserve priority over the review prompt? If so, add a
+   `promoPriority` constant rather than scattering precedence logic.
 5. **Phase A timing** — is there an upcoming release in the next ~2 weeks
    we can piggyback the Phase A tracking onto? If so, the 14-day install-age
    delay between Phase A and Phase B is "free" — we don't have to wait for
