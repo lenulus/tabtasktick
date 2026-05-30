@@ -4,8 +4,9 @@
 > without bothering anyone — fewer than ~1 in 50 sessions ever sees the prompt,
 > and nobody sees it twice unless they explicitly defer.
 >
-> **Surfaces under consideration:** popup (where we currently advertise
-> Collections) and dashboard. Recommendation in §5.
+> **Surface decided:** **popup**, occupying the same slot where we currently
+> advertise Collections. Rationale in §5. Dashboard surfaces are out of scope
+> for the first release.
 
 ---
 
@@ -106,53 +107,78 @@ the tab list. Passive engagement isn't evidence of value.
 
 ---
 
-## 4. Trigger moments (when eligible, *when* exactly does it fire?)
+## 4. Trigger: popup open + recency window
 
-The prompt should appear at moments of completed success, not mid-flow.
+The popup is itself a deliberate user action — opening it is the trigger.
+The prompt renders in the slot currently occupied by the Collections promo,
+and only when both these *additional* conditions hold (beyond the §3 gates):
 
-| Trigger | Why this moment |
+| Additional condition | Reason |
 |---|---|
-| After **saving a Collection** — show inline on the dashboard's collections view, ~1.5s after the success toast | The user just experienced "this saved my work" — the highest-affinity moment we have |
-| After **restoring a Collection** with ≥ 5 tabs — show inline on the dashboard | Restoration is the magic moment for Collections users |
-| After a **scheduled backup completes** and the user opens the dashboard within 24h of it | They've experienced "TabTaskTick saved me" peace of mind |
-| **Never** during a snooze flow, task edit, rule edit, or any user-initiated modal | Don't interrupt active work |
+| **Last meaningful action ≤ 7 days ago** | Show while the positive memory of the extension is fresh, not weeks later when the user opens the popup to do something tangential. |
+| **Mutex with Collections promo** — never both in the same session | The Collections promo nudges users *to* save a collection; the review prompt is for users who already have. They can't both apply. |
+| **First popup open of the day** only | Popup opens are frequent — many users hit it dozens of times daily. Capping to first-open per day prevents accidental re-renders mid-session. |
 
-Pick *one* of these triggers per release — start with "after saving a
-Collection" (§5 placement), measure (anecdotal review count change) for a few
-weeks, then consider adding triggers.
+### Display logic when popup opens
+
+```
+1. User has rated or declined?     → no promo slot at all
+2. User has never saved a Collection?
+                                   → show Collections promo (existing behavior)
+3. All §3 gates pass + last action ≤ 7 days + first-open-today?
+                                   → show review prompt
+4. Otherwise                       → empty promo slot (or other future promo)
+```
+
+Step 2 is the elegant part — the Collections promo and the review prompt are
+naturally mutually exclusive. A user hasn't saved a Collection? They see the
+promo. They have? The promo is wasted screen, and the review prompt earns the
+slot. No competing CTAs.
+
+### What about the dashboard?
+
+Out of scope for the first release. If popup-only doesn't move review numbers
+enough after 4–6 weeks of data, the dashboard banner (originally proposed as
+primary in earlier drafts) is a clean Phase D add-on with the same service
+backend.
 
 ---
 
-## 5. Placement: popup vs. dashboard
+## 5. Placement: popup Collections-promo slot
 
-| Surface | Pro | Con |
-|---|---|---|
-| **Popup** (current Collections promo slot) | High visibility — most users see the popup multiple times per day | Small space; risk of looking spammy next to functional content; popup is a "quick action" surface, the review ask is reflective |
-| **Dashboard** | More space for graceful UX; users who reach the dashboard are higher-intent; natural place after completed actions | Lower reach — many users never visit the dashboard |
+The popup already has a promotional slot used to advertise Collections. The
+review prompt replaces that slot's content when the §3 gates and §4 mutex
+conditions all pass.
 
-### Recommendation: **dashboard, with a popup fallback link**
+### Why this surface
 
-- **Primary trigger:** inline banner on the dashboard's collections view,
-  shown ~1.5s after a successful collection save. Quiet animation in. Same
-  visual weight as a status card, not a modal overlay.
-- **Secondary surface:** small, persistent "Enjoying TabTaskTick? Leave a
-  review" link in the popup footer (next to the existing Collections promo).
-  Text-link size only, no badge, no emphasis. Hidden when the user has rated
-  or declined.
+- **Highest reach** — most users see the popup multiple times per day.
+  Dashboard reach is much lower (many TabTaskTick users never open it).
+- **Clean mutex with the Collections promo** — by the time a user is eligible
+  for the review prompt, the Collections promo is moot for them (they've
+  already saved a Collection). One slot, two states, no competing CTAs.
+- **Popup-open is itself a deliberate user action** — the user came here to
+  do something, so showing the prompt isn't interrupting work, just
+  occupying the same slot they were already going to see.
+- **One surface to test** — no need to build dashboard logic and reconcile
+  two surfaces' suppression state for the first release.
 
-This gives high-intent users (dashboard visitors) the well-placed contextual
-ask, while letting popup-only users find it if they want to.
+### Visual treatment
 
-The popup footer link is the cheapest possible surface — it adds one DOM node
-and one click handler. No prompt management logic, no eligibility gates,
-nothing to dismiss. Just a discoverable invitation.
+Not a modal. Not an overlay. The prompt occupies the existing promo slot
+inline, matching the visual weight of the Collections promo it replaces —
+same border, same padding, same dismiss control. The user should be able to
+ignore it as easily as they ignore (or close) the Collections promo today.
+
+Animation: fade-in only. **No bouncing, no pulsing, no attention-grabbing
+microinteractions.** A respectful review prompt is quiet.
 
 ### Why not popup-as-modal
 
-A modal in the popup space is hostile — the user came to the popup to do *one
-specific thing* and the modal blocks it. If the popup is the only viable
-surface, use the inline-banner pattern from the dashboard instead, and keep
-the dismiss affordance at least as prominent as the CTA.
+A modal blocking the popup body is hostile — the user came to do *one
+specific thing* and the modal blocks it. The Collections promo today doesn't
+block the popup's primary content; the review prompt should match that
+restraint.
 
 ---
 
@@ -287,8 +313,11 @@ reviewPrompt_step2_positive_later     "Maybe later"
 reviewPrompt_step2_negative_question  "Sorry to hear it. Want to share what could be better?"
 reviewPrompt_step2_negative_feedback  "Open a GitHub issue"
 reviewPrompt_step2_negative_decline   "No thanks"
-reviewPrompt_popup_footer_link        "Enjoying TabTaskTick? Leave a review"
 ```
+
+(The popup occupies the existing Collections promo slot, so no separate
+footer-link string is needed for Phase B. If Phase D adds a dashboard banner,
+no new keys are needed — it reuses the same Step 1 / Step 2 strings.)
 
 All 6 translated locales must be updated before merge —
 `npm run i18n:parity` will block otherwise.
@@ -320,26 +349,37 @@ Pick one phase per release; ship and observe before the next.
 - Wire `trackAction()` calls into the 5 execution services in §6.
 - No UI surface yet.
 - Lets the next release start accumulating real data so by the time the
-  prompt ships, existing users already meet the eligibility gates.
+  prompt ships, existing users already meet the eligibility gates and the
+  "last action ≤ 7 days" recency window is meaningful.
+- **Minimum 14 days between Phase A and Phase B** so the install-age gate
+  has time to accumulate (existing users pass instantly; users who installed
+  Phase A as their first version need to age in).
 
-### Phase B — dashboard banner (one PR)
+### Phase B — popup review prompt (one PR)
 
 - Add `shouldPrompt()` and `recordOutcome()` to the service.
-- Add the banner component to the dashboard collections view.
-- Trigger only on "after saving a Collection" success.
+- Add the prompt component to the popup, occupying the Collections promo slot.
+- Implement the §4 display logic (mutex with Collections promo, first-open-of-day,
+  recency window).
+- Wire Step 1 → Step 2 transitions; persist outcomes per §2.
 - Ship.
 
-### Phase C — popup footer link (one PR, only if Phase B works)
+### Phase C — observe and decide (no code, 4–6 weeks)
 
-- Add the persistent popup footer link.
-- Suppress when `rated || declined`.
-- Ship.
+- Watch the Chrome Web Store review count.
+- No analytics — the review count itself is the signal.
+- If review velocity meaningfully increases, the popup-only design is
+  sufficient. Stop here.
+- If not, consider Phase D.
 
-### Phase D — additional triggers (optional, only if Phase B works)
+### Phase D — dashboard banner (optional, only if Phase C says popup is insufficient)
 
-- Add "after restoring a Collection (≥5 tabs)" trigger.
-- Add "after a backup completes" trigger.
-- Each is gated by `shouldPrompt()` so the safety net still applies.
+- Add the dashboard banner described in earlier drafts of this plan.
+- Trigger: ~1.5s after a successful Collection save, on the dashboard's
+  Collections view.
+- Same `ReviewPromptService` backend — the dashboard surface just calls
+  `shouldPrompt()` and reuses the same suppression state, so a user who
+  saw the prompt in the popup won't see it again on the dashboard.
 
 ---
 
@@ -347,24 +387,25 @@ Pick one phase per release; ship and observe before the next.
 
 Worth a decision before Phase B:
 
-1. **Banner visual weight** — same as the existing dashboard info banner, or
-   a slightly more emphasized variant? Lean: same. Less is more.
+1. **Prompt visual weight** — match the existing Collections promo's exact
+   border / padding / typography, or a slightly distinct variant so users
+   notice the slot's content has changed? Lean: match exactly. Differentiation
+   reads as "trying to grab attention," which the plan explicitly avoids.
 2. **GitHub feedback issue template** — does `feedback.md` exist already? If
    not, the negative path will dump users on a generic "New Issue" page,
    which is OK but not ideal.
-3. **Popup footer link wording** — "Enjoying TabTaskTick? Leave a review"
-   reads as marketing copy. Alternatives that read less salesy:
-   - "Leave a review"
-   - "Rate TabTaskTick"
-   - The current Collections promo phrasing, adapted
-4. **Should "Open GitHub issue" pre-populate the issue body?** Could
+3. **Should "Open GitHub issue" pre-populate the issue body?** Could
    include extension version, locale, install date — useful for triage, but
    adds an "this extension knows things about me" surface. Lean: no
    pre-population, plain link only.
-5. **Should the dashboard banner also appear on the side panel** in the
-   collections view? Same trigger logic, same suppression. Currently
-   recommending no — the side panel is a focused work surface and the
-   dashboard is the better place for reflection.
+4. **What happens to the Collections promo slot after Phase B ships?** For
+   users who never become eligible (light users), the Collections promo keeps
+   running indefinitely. Is that OK, or should there be a "stop showing
+   Collections promo after N popup opens" cap independent of this work?
+5. **Phase A timing** — is there an upcoming release in the next ~2 weeks
+   we can piggyback the Phase A tracking onto? If so, the 14-day install-age
+   delay between Phase A and Phase B is "free" — we don't have to wait for
+   it.
 
 ---
 
