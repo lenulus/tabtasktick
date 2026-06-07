@@ -114,9 +114,16 @@ export class TestMode {
       chrome.storage.local.get('statistics')
     ]);
 
-    // Snapshot all existing bookmarks
-    const bookmarkTree = await chrome.bookmarks.getTree();
-    const bookmarkSnapshot = this.serializeBookmarkTree(bookmarkTree);
+    // Snapshot all existing bookmarks — only when the bookmarks permission is
+    // present. It was intentionally removed from the manifest, so chrome.bookmarks
+    // is undefined; skip the snapshot rather than crashing test-mode activation.
+    // cleanupNewBookmarks() already no-ops when this snapshot is null.
+    let bookmarkSnapshot = null;
+    if (chrome.bookmarks) {
+      const bookmarkTree = await chrome.bookmarks.getTree();
+      bookmarkSnapshot = this.serializeBookmarkTree(bookmarkTree);
+      console.log('Captured bookmark snapshot with', this.countBookmarks(bookmarkTree), 'bookmarks');
+    }
 
     this.originalState = {
       rules: rules.rules || [],
@@ -127,8 +134,6 @@ export class TestMode {
 
     // Store original state for reconnection
     await chrome.storage.local.set({ testOriginalState: this.originalState });
-
-    console.log('Captured bookmark snapshot with', this.countBookmarks(bookmarkTree), 'bookmarks');
   }
 
   /**
