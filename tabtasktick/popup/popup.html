@@ -34,7 +34,7 @@
     </header>
 
     <!-- Test Mode Warning Banner -->
-    <div class="test-mode-banner" id="testModeBanner" style="display: none;">
+    <div class="popup-banner test-mode-banner hidden" id="testModeBanner">
       <div class="banner-content">
         <div class="banner-icon">⚠️</div>
         <div class="banner-text">
@@ -46,7 +46,7 @@
     </div>
 
     <!-- Collections Banner (Discovery) -->
-    <div class="collections-banner" id="collectionsBanner">
+    <div class="popup-banner collections-banner" id="collectionsBanner">
       <div class="banner-content">
         <div class="banner-icon">💡</div>
         <div class="banner-text">
@@ -55,6 +55,52 @@
         </div>
       </div>
       <button class="banner-close" id="bannerClose" data-i18n-label="popup_banner_dismiss" aria-label="Dismiss banner">×</button>
+    </div>
+
+    <!-- Review Prompt Banner (occupies the same promo slot as Collections) -->
+    <div class="popup-banner review-prompt-banner hidden" id="reviewPromptBanner" role="dialog" aria-labelledby="reviewPromptQuestion">
+      <!-- Step 1: initial ask -->
+      <div class="review-prompt-step" id="reviewPromptStep1">
+        <div class="banner-content">
+          <div class="banner-icon">⭐</div>
+          <div class="banner-text">
+            <strong id="reviewPromptQuestion" data-i18n="reviewPrompt_step1_question">Enjoying TabTaskTick?</strong>
+          </div>
+        </div>
+        <div class="review-prompt-actions">
+          <button class="banner-action" id="reviewPromptYes" data-i18n="reviewPrompt_step1_yes">Yes</button>
+          <button class="banner-action banner-action-secondary" id="reviewPromptNo" data-i18n="reviewPrompt_step1_no">Not yet</button>
+          <button class="banner-close" id="reviewPromptDismiss" data-i18n-label="reviewPrompt_dismiss" aria-label="Dismiss">×</button>
+        </div>
+      </div>
+
+      <!-- Step 2 (positive): ask for a review -->
+      <div class="review-prompt-step hidden" id="reviewPromptStep2Positive">
+        <div class="banner-content">
+          <div class="banner-icon">⭐</div>
+          <div class="banner-text">
+            <strong data-i18n="reviewPrompt_step2_positive_question">Mind leaving a review? It really helps.</strong>
+          </div>
+        </div>
+        <div class="review-prompt-actions">
+          <button class="banner-action" id="reviewPromptRate" data-i18n="reviewPrompt_step2_positive_rate">Rate on Chrome Web Store</button>
+          <button class="banner-action banner-action-secondary" id="reviewPromptLater" data-i18n="reviewPrompt_step2_positive_later">Maybe later</button>
+        </div>
+      </div>
+
+      <!-- Step 2 (negative): route to feedback -->
+      <div class="review-prompt-step hidden" id="reviewPromptStep2Negative">
+        <div class="banner-content">
+          <div class="banner-icon">💬</div>
+          <div class="banner-text">
+            <strong data-i18n="reviewPrompt_step2_negative_question">Sorry to hear it. Want to share what could be better?</strong>
+          </div>
+        </div>
+        <div class="review-prompt-actions">
+          <button class="banner-action" id="reviewPromptGithub" data-i18n="reviewPrompt_step2_negative_feedback">Open a GitHub issue</button>
+          <button class="banner-action banner-action-secondary" id="reviewPromptDecline" data-i18n="reviewPrompt_step2_negative_decline">No thanks</button>
+        </div>
+      </div>
     </div>
 
     <!-- Collections & Tasks Counts -->

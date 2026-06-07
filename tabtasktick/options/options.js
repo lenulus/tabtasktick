@@ -3,6 +3,8 @@
 // Console capture for logging
 import { initConsoleCapture, getEffectiveLevel } from '../services/utils/console-capture.js';
 import { t, localizeDocument } from '../services/utils/i18n.js';
+import { safeAsyncListener } from '../services/utils/listeners.js';
+import * as ReviewPromptService from '../services/execution/ReviewPromptService.js';
 initConsoleCapture();
 
 // ============================================================================
@@ -96,9 +98,79 @@ async function loadDeveloperSettings() {
     if (developerSettingsPanel) {
       developerSettingsPanel.classList.toggle('hidden', !developerMode);
     }
+
+    // Review-prompt dev controls — read from the single `reviewPrompt` service key.
+    const { reviewPrompt } = await chrome.storage.local.get('reviewPrompt');
+
+    const rpForceShow = document.getElementById('rpForceShow');
+    if (rpForceShow) {
+      rpForceShow.checked = !!(reviewPrompt && reviewPrompt.devForceShow);
+    }
+
+    const rpVariant = document.getElementById('rpVariant');
+    if (rpVariant) {
+      rpVariant.value = (reviewPrompt && reviewPrompt.devVariant) || 'fresh';
+    }
+
+    await renderReviewPromptState();
   } catch (error) {
     console.error('Failed to load developer settings:', error);
   }
+}
+
+/**
+ * Render the review-prompt debug state block from getDebugState(): a ✓/✗
+ * checklist of gates plus a raw JSON dump of stored state. Built with
+ * createElement + textContent so no UI string literals reach a DOM sink
+ * (the gate ids and JSON dump are data/CallExpressions, not literals).
+ */
+async function renderReviewPromptState() {
+  const container = document.getElementById('rpState');
+  if (!container) return;
+
+  let debug;
+  try {
+    debug = await ReviewPromptService.getDebugState();
+  } catch (error) {
+    console.error('Failed to read review-prompt debug state:', error);
+    return;
+  }
+
+  container.textContent = '';
+
+  // Verdict line (eligible + reason)
+  const verdict = document.createElement('div');
+  verdict.className = 'rp-state-verdict';
+  const verdictMark = document.createElement('span');
+  verdictMark.className = debug.shouldPrompt.eligible ? 'rp-gate-pass' : 'rp-gate-fail';
+  verdictMark.textContent = debug.shouldPrompt.eligible ? '✓' : '✗';
+  verdict.appendChild(verdictMark);
+  const verdictText = document.createElement('span');
+  verdictText.textContent = ` ${debug.shouldPrompt.reason} (${debug.shouldPrompt.version})`;
+  verdict.appendChild(verdictText);
+  container.appendChild(verdict);
+
+  // Gate checklist
+  const list = document.createElement('ul');
+  list.className = 'rp-gate-list';
+  for (const gate of debug.gates) {
+    const item = document.createElement('li');
+    const mark = document.createElement('span');
+    mark.className = gate.pass ? 'rp-gate-pass' : 'rp-gate-fail';
+    mark.textContent = gate.pass ? '✓' : '✗';
+    item.appendChild(mark);
+    const label = document.createElement('span');
+    label.textContent = ` ${gate.id}: ${gate.detail}`;
+    item.appendChild(label);
+    list.appendChild(item);
+  }
+  container.appendChild(list);
+
+  // Raw stored state (CallExpression → ESLint-safe)
+  const pre = document.createElement('pre');
+  pre.className = 'rp-state-json';
+  pre.textContent = JSON.stringify(debug.storage, null, 2);
+  container.appendChild(pre);
 }
 
 async function saveSetting(key, value) {
@@ -211,6 +283,15 @@ function setupEventListeners() {
       if (settingsPanel) {
         settingsPanel.classList.toggle('hidden', !enabled);
       }
+      // Guardrail: never let the dev-only force-show override leak to normal
+      // users — clear it whenever Developer Mode is switched off.
+      if (!enabled) {
+        await ReviewPromptService.setForceShow(false);
+        const rpForceShow = document.getElementById('rpForceShow');
+        if (rpForceShow) {
+          rpForceShow.checked = false;
+        }
+      }
       showSaveNotification();
     });
   }
@@ -241,6 +322,52 @@ function setupEventListeners() {
       showNotification(t('options_notify_logLevel', [levelNames[effectiveLevel]]));
     });
   }
+
+  // Review-prompt dev controls
+  const rpForceShow = document.getElementById('rpForceShow');
+  if (rpForceShow) {
+    rpForceShow.addEventListener('change', async (e) => {
+      await ReviewPromptService.setForceShow(e.target.checked);
+      showSaveNotification();
+    });
+  }
+
+  const rpVariant = document.getElementById('rpVariant');
+  if (rpVariant) {
+    rpVariant.addEventListener('change', async (e) => {
+      await ReviewPromptService.setVariant(e.target.value);
+      await renderReviewPromptState();
+      showSaveNotification();
+    });
+  }
+
+  const rpApplyScenario = document.getElementById('rpApplyScenario');
+  const rpScenario = document.getElementById('rpScenario');
+  if (rpApplyScenario && rpScenario) {
+    rpApplyScenario.addEventListener('click', async () => {
+      await ReviewPromptService.applyTestScenario(rpScenario.value);
+      await renderReviewPromptState();
+      showSaveNotification();
+    });
+  }
+
+  const rpReset = document.getElementById('rpReset');
+  if (rpReset) {
+    rpReset.addEventListener('click', async () => {
+      await ReviewPromptService.resetState();
+      await renderReviewPromptState();
+      showSaveNotification();
+    });
+  }
+
+  // Live refresh: when the reviewPrompt key changes in any context (e.g. the
+  // popup increments a counter), drop the stale module cache and re-render so a
+  // tester can watch gates flip live.
+  chrome.storage.onChanged.addListener(safeAsyncListener(async (changes, areaName) => {
+    if (areaName !== 'local' || !changes.reviewPrompt) return;
+    ReviewPromptService.reloadState();
+    await renderReviewPromptState();
+  }));
 
   // Data Management
   const clearHistoryBtn = document.getElementById('clearHistory');

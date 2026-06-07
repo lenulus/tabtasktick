@@ -57,6 +57,7 @@ import {
 
 // TabTaskTick Phase 8: Import ProgressiveSyncService for real-time collection sync
 import * as ProgressiveSyncService from './services/execution/ProgressiveSyncService.js';
+import * as ReviewPromptService from './services/execution/ReviewPromptService.js';
 
 // Console log level filtering (reference swap approach - preserves caller info)
 import { initConsoleCapture } from './services/utils/console-capture.js';
@@ -383,7 +384,11 @@ async function loadActivityLog() {
 // Extension Lifecycle
 // ============================================================================
 
-chrome.runtime.onInstalled.addListener(safeAsyncListener(async () => {
+chrome.runtime.onInstalled.addListener(safeAsyncListener(async (details) => {
+  if (details?.reason === 'install') {
+    // Seed via the service so the storage key/shape stay a single source of truth.
+    await ReviewPromptService.seedInstall();
+  }
   console.log('TabTaskTick installed');
   await loadDomainCategories();
   await initializeExtension();

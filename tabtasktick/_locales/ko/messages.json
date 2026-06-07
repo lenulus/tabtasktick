@@ -6011,5 +6011,26 @@
         "content": "$1"
       }
     }
-  }
+  },
+
+  "reviewPrompt_step1_question": { "message": "TabTaskTick이 마음에 드시나요?" },
+  "reviewPrompt_step1_question_afterDefer": { "message": "여전히 TabTaskTick이 마음에 드시나요?" },
+  "reviewPrompt_step1_yes": { "message": "예" },
+  "reviewPrompt_step1_no": { "message": "아직요" },
+  "reviewPrompt_dismiss": { "message": "닫기" },
+  "reviewPrompt_step2_positive_question": { "message": "리뷰를 남겨 주시겠어요? 큰 도움이 됩니다." },
+  "reviewPrompt_step2_positive_rate": { "message": "Chrome 웹 스토어에서 평가하기" },
+  "reviewPrompt_step2_positive_later": { "message": "나중에" },
+  "reviewPrompt_step2_negative_question": { "message": "아쉽네요. 어떤 점을 개선하면 좋을지 알려 주시겠어요?" },
+  "reviewPrompt_step2_negative_feedback": { "message": "GitHub 이슈 열기" },
+  "reviewPrompt_step2_negative_decline": { "message": "괜찮습니다" },
+
+  "options_reviewPrompt_forceShow_label": { "message": "Force-show review prompt" },
+  "options_reviewPrompt_forceShow_desc": { "message": "Bypass all eligibility gates and show the prompt on every popup open" },
+  "options_reviewPrompt_variant_label": { "message": "Prompt copy variant" },
+  "options_reviewPrompt_scenario_label": { "message": "Load test scenario" },
+  "options_reviewPrompt_apply_btn": { "message": "Apply" },
+  "options_reviewPrompt_state_label": { "message": "Review-prompt state" },
+  "options_reviewPrompt_state_desc": { "message": "Live gate checklist + stored metadata for verifying organic triggering" },
+  "options_reviewPrompt_reset_btn": { "message": "Reset review-prompt state" }
 }
