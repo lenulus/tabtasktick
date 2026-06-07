@@ -88,13 +88,14 @@ body {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #ffffff;
+  color: #2c3e50;
+  border: 1px solid #d1d5db;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #f3f4f6;
+  border-color: #9ca3af;
 }
 
 .btn-danger {

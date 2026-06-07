@@ -6011,5 +6011,26 @@
         "content": "$1"
       }
     }
-  }
+  },
+
+  "reviewPrompt_step1_question": { "message": "Gefällt dir TabTaskTick?" },
+  "reviewPrompt_step1_question_afterDefer": { "message": "Gefällt dir TabTaskTick immer noch?" },
+  "reviewPrompt_step1_yes": { "message": "Ja" },
+  "reviewPrompt_step1_no": { "message": "Noch nicht" },
+  "reviewPrompt_dismiss": { "message": "Schließen" },
+  "reviewPrompt_step2_positive_question": { "message": "Magst du eine Bewertung hinterlassen? Das hilft wirklich." },
+  "reviewPrompt_step2_positive_rate": { "message": "Im Chrome Web Store bewerten" },
+  "reviewPrompt_step2_positive_later": { "message": "Vielleicht später" },
+  "reviewPrompt_step2_negative_question": { "message": "Schade. Möchtest du uns sagen, was besser sein könnte?" },
+  "reviewPrompt_step2_negative_feedback": { "message": "Ein GitHub-Issue eröffnen" },
+  "reviewPrompt_step2_negative_decline": { "message": "Nein danke" },
+
+  "options_reviewPrompt_forceShow_label": { "message": "Force-show review prompt" },
+  "options_reviewPrompt_forceShow_desc": { "message": "Bypass all eligibility gates and show the prompt on every popup open" },
+  "options_reviewPrompt_variant_label": { "message": "Prompt copy variant" },
+  "options_reviewPrompt_scenario_label": { "message": "Load test scenario" },
+  "options_reviewPrompt_apply_btn": { "message": "Apply" },
+  "options_reviewPrompt_state_label": { "message": "Review-prompt state" },
+  "options_reviewPrompt_state_desc": { "message": "Live gate checklist + stored metadata for verifying organic triggering" },
+  "options_reviewPrompt_reset_btn": { "message": "Reset review-prompt state" }
 }

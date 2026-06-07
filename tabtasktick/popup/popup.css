@@ -147,19 +147,24 @@ body.modal-open {
   letter-spacing: 0.5px;
 }
 
-/* Collections Banner */
-.collections-banner {
+/* Promo banners — shared box model (Collections, Test Mode, Review Prompt) */
+.popup-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #e7f3ff 0%, #f0f7ff 100%);
-  border-bottom: 1px solid #b3d9ff;
   animation: slideIn 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
-.collections-banner.hidden {
+.popup-banner.hidden {
   display: none;
+}
+
+/* Collections Banner */
+.collections-banner {
+  background: linear-gradient(135deg, #e7f3ff 0%, #f0f7ff 100%);
+  border-bottom: 1px solid #b3d9ff;
 }
 
 .banner-content {
@@ -214,13 +219,8 @@ body.modal-open {
 
 /* Test Mode Warning Banner */
 .test-mode-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
   background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
   border-bottom: 2px solid #ffc107;
-  animation: slideIn 0.3s ease;
   gap: 12px;
 }
 
@@ -270,6 +270,54 @@ body.modal-open {
 
 .banner-action:active {
   transform: translateY(0);
+}
+
+/* Review Prompt Banner — thin modifier over .popup-banner.
+   Fade-in only (design §5): no bouncing/pulsing microinteractions. */
+.review-prompt-banner {
+  background: linear-gradient(135deg, #e7f3ff 0%, #f0f7ff 100%);
+  border-bottom: 1px solid #b3d9ff;
+}
+
+/* Each step block reuses the banner flex layout. */
+.review-prompt-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 1;
+}
+
+.review-prompt-step.hidden {
+  display: none;
+}
+
+.review-prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Primary action: blue CTA (override the yellow test-mode .banner-action). */
+.review-prompt-banner .banner-action {
+  background: #2c7be5;
+  color: #fff;
+}
+
+.review-prompt-banner .banner-action:hover {
+  background: #1a68d1;
+}
+
+/* Secondary action: quiet, low-emphasis. */
+.review-prompt-banner .banner-action.banner-action-secondary {
+  background: transparent;
+  color: #2c7be5;
+  font-weight: 500;
+}
+
+.review-prompt-banner .banner-action.banner-action-secondary:hover {
+  background: rgba(44, 123, 229, 0.08);
+  box-shadow: none;
 }
 
 /* Collections Section */

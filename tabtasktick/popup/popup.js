@@ -1,5 +1,9 @@
 // Popup JavaScript for TabTaskTick
 
+/* global SnoozeModal */
+// SnoozeModal is loaded as a non-module global via <script src="../components/snooze-modal.js">
+// in popup.html (before this module), so it is not imported here.
+
 // ============================================================================
 // Imports
 // ============================================================================
@@ -8,6 +12,7 @@ import { exitTestMode } from '../services/execution/TestModeService.js';
 import { initConsoleCapture } from '../services/utils/console-capture.js';
 import { setPendingAction } from '../services/execution/SidePanelNavigationService.js';
 import { t, tPlural, localizeDocument } from '../services/utils/i18n.js';
+import * as ReviewPromptService from '../services/execution/ReviewPromptService.js';
 
 // Initialize console capture immediately
 initConsoleCapture();
@@ -26,6 +31,19 @@ const elements = {
   // Collections & Tasks
   collectionsBanner: document.getElementById('collectionsBanner'),
   bannerClose: document.getElementById('bannerClose'),
+
+  // Review prompt
+  reviewPromptBanner: document.getElementById('reviewPromptBanner'),
+  reviewPromptStep1: document.getElementById('reviewPromptStep1'),
+  reviewPromptStep2Positive: document.getElementById('reviewPromptStep2Positive'),
+  reviewPromptStep2Negative: document.getElementById('reviewPromptStep2Negative'),
+  reviewPromptYes: document.getElementById('reviewPromptYes'),
+  reviewPromptNo: document.getElementById('reviewPromptNo'),
+  reviewPromptDismiss: document.getElementById('reviewPromptDismiss'),
+  reviewPromptRate: document.getElementById('reviewPromptRate'),
+  reviewPromptLater: document.getElementById('reviewPromptLater'),
+  reviewPromptGithub: document.getElementById('reviewPromptGithub'),
+  reviewPromptDecline: document.getElementById('reviewPromptDecline'),
   saveWindowBtn: document.getElementById('saveWindowBtn'),
   collectionsCard: document.getElementById('collectionsCard'),
   tasksCard: document.getElementById('tasksCard'),
@@ -77,12 +95,24 @@ const elements = {
 let snoozeModal = null;
 let currentTab = null;
 
+// Review prompt render-once-per-popup-open guards (see implementation plan §6.2).
+// reviewPromptActive: the prompt owns the promo slot for this session (mutex with
+//   the Collections banner — checked before any collectionsBanner show-path).
+// reviewPromptEvaluated: shouldPrompt() has already run this session.
+let reviewPromptActive = false;
+let reviewPromptEvaluated = false;
+
 // ============================================================================
 // Initialization
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
   localizeDocument();
+  // Evaluate/render the review prompt BEFORE any banner show-path so the mutex
+  // guards (loadBannerState + loadCollectionsAndTasks) see reviewPromptActive
+  // already set — otherwise the Collections banner paints first and flashes
+  // (implementation plan §6.2).
+  await maybeShowReviewPrompt();
   await loadTestModeStatus();
   await loadBannerState();
   await loadCollectionsAndTasks();
@@ -126,8 +156,10 @@ async function loadBannerState() {
       }
     }
 
-    // Show banner
-    elements.collectionsBanner.classList.remove('hidden');
+    // Show banner (unless the review prompt owns the promo slot this session)
+    if (!reviewPromptActive) {
+      elements.collectionsBanner.classList.remove('hidden');
+    }
   } catch (error) {
     console.error('Failed to load banner state:', error);
   }
@@ -139,11 +171,7 @@ async function loadTestModeStatus() {
     const testModeActive = storage.testModeActive;
 
     const testModeBanner = document.getElementById('testModeBanner');
-    if (testModeActive) {
-      testModeBanner.style.display = 'flex';
-    } else {
-      testModeBanner.style.display = 'none';
-    }
+    testModeBanner.classList.toggle('hidden', !testModeActive);
   } catch (error) {
     console.error('Failed to load test mode status:', error);
   }
@@ -195,8 +223,10 @@ async function loadCollectionsAndTasks() {
 
     // Progressive discovery: update banner visibility
     if (totalCollections === 0) {
-      // First time user - show banner
-      elements.collectionsBanner.classList.remove('hidden');
+      // First time user - show banner (unless the review prompt owns the slot)
+      if (!reviewPromptActive) {
+        elements.collectionsBanner.classList.remove('hidden');
+      }
     } else if (totalCollections > 0 && totalTasks === 0) {
       // Has collections but no tasks - could show task creation prompt
       // For now, just hide banner
@@ -584,6 +614,9 @@ function setupEventListeners() {
   elements.bannerClose?.addEventListener('click', handleBannerDismiss);
   elements.saveWindowBtn?.addEventListener('click', handleSaveWindow);
 
+  // Review prompt
+  setupReviewPromptListeners();
+
   // Quick Actions
   elements.closeDuplicates.addEventListener('click', handleCloseDuplicates);
   elements.groupByDomain.addEventListener('click', handleGroupByDomain);
@@ -632,6 +665,20 @@ function setupCollectionsLinks() {
   });
 }
 
+/**
+ * Fade a banner out, then hide it via the `.hidden` class.
+ * Single source of truth for the banner fade-out sequence used by the
+ * Collections banner, the test-mode banner, and the review prompt.
+ */
+function fadeOutAndHide(el, ms = 300) {
+  if (!el) return;
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.classList.add('hidden');
+    el.style.opacity = '1';
+  }, ms);
+}
+
 async function handleBannerDismiss() {
   try {
     // Save dismissal timestamp
@@ -640,14 +687,113 @@ async function handleBannerDismiss() {
     });
 
     // Hide banner with fade animation
-    elements.collectionsBanner.style.opacity = '0';
-    setTimeout(() => {
-      elements.collectionsBanner.classList.add('hidden');
-      elements.collectionsBanner.style.opacity = '1';
-    }, 300);
+    fadeOutAndHide(elements.collectionsBanner);
   } catch (error) {
     console.error('Failed to dismiss banner:', error);
   }
+}
+
+// ============================================================================
+// Review Prompt (implementation plan §6)
+// ============================================================================
+
+/**
+ * Evaluate eligibility and, if eligible, render Step 1 in the promo slot.
+ * Runs at most once per popup open (reviewPromptEvaluated guard) and BEFORE any
+ * Collections banner show-path, so reviewPromptActive wins the slot mutex.
+ */
+async function maybeShowReviewPrompt() {
+  if (reviewPromptEvaluated) return;
+  reviewPromptEvaluated = true;
+
+  try {
+    const { eligible, version } = await ReviewPromptService.shouldPrompt();
+    if (!eligible) return;
+
+    reviewPromptActive = true;
+    // Mutex: the review prompt owns the promo slot — hide the Collections banner.
+    elements.collectionsBanner?.classList.add('hidden');
+
+    renderReviewStep1(version);
+    elements.reviewPromptBanner.classList.remove('hidden');
+
+    // Persist that the prompt was actually displayed (lastPromptAt + shownCount).
+    await ReviewPromptService.markShown();
+  } catch (error) {
+    console.error('Failed to evaluate review prompt:', error);
+  }
+}
+
+/**
+ * Show Step 1. `version` ('fresh' | 'after_defer') selects the copy variant.
+ */
+function renderReviewStep1(version) {
+  // Override the load-time localized question (data-i18n) with the version-specific
+  // copy: 'after_defer' gets the re-show wording, everything else the fresh wording.
+  const question = document.getElementById('reviewPromptQuestion');
+  if (question) {
+    question.textContent =
+      version === 'after_defer'
+        ? t('reviewPrompt_step1_question_afterDefer')
+        : t('reviewPrompt_step1_question');
+  }
+  showReviewStep('reviewPromptStep1');
+}
+
+/**
+ * Toggle which inner step block is visible inside the review prompt banner.
+ */
+function showReviewStep(stepId) {
+  [elements.reviewPromptStep1, elements.reviewPromptStep2Positive, elements.reviewPromptStep2Negative]
+    .forEach((el) => el?.classList.toggle('hidden', el.id !== stepId));
+}
+
+/**
+ * Wire all review-prompt button handlers (outcomes per implementation plan §6.5).
+ */
+function setupReviewPromptListeners() {
+  // Step 1: 👍 Yes → swap to Step-2 positive (no outcome recorded yet).
+  elements.reviewPromptYes?.addEventListener('click', () => {
+    showReviewStep('reviewPromptStep2Positive');
+  });
+
+  // Step 1: 👎 Not yet → record thumbsDown, swap to Step-2 negative.
+  elements.reviewPromptNo?.addEventListener('click', async () => {
+    await ReviewPromptService.recordOutcome({ step: 1, action: 'thumbsDown' });
+    showReviewStep('reviewPromptStep2Negative');
+  });
+
+  // Step 1: Dismiss × → record dismiss, fade out.
+  elements.reviewPromptDismiss?.addEventListener('click', async () => {
+    await ReviewPromptService.recordOutcome({ step: 1, action: 'dismiss' });
+    fadeOutAndHide(elements.reviewPromptBanner);
+  });
+
+  // Step 2a: Rate → record rated, then open the Web Store review page.
+  // Await BEFORE chrome.tabs.create: creating the tab closes the popup and would
+  // abort an un-awaited storage write, re-prompting a user who already rated.
+  elements.reviewPromptRate?.addEventListener('click', async () => {
+    await ReviewPromptService.recordOutcome({ step: 2, action: 'rated' });
+    chrome.tabs.create({ url: ReviewPromptService.URLS.review });
+  });
+
+  // Step 2a: Maybe later → record later, fade out.
+  elements.reviewPromptLater?.addEventListener('click', async () => {
+    await ReviewPromptService.recordOutcome({ step: 2, action: 'later' });
+    fadeOutAndHide(elements.reviewPromptBanner);
+  });
+
+  // Step 2b: Open GitHub issue → record github, then open the feedback page.
+  elements.reviewPromptGithub?.addEventListener('click', async () => {
+    await ReviewPromptService.recordOutcome({ step: 2, action: 'github' });
+    chrome.tabs.create({ url: ReviewPromptService.URLS.feedback });
+  });
+
+  // Step 2b: No thanks → record noThanks, fade out.
+  elements.reviewPromptDecline?.addEventListener('click', async () => {
+    await ReviewPromptService.recordOutcome({ step: 2, action: 'noThanks' });
+    fadeOutAndHide(elements.reviewPromptBanner);
+  });
 }
 
 async function handleExitTestMode() {
@@ -657,12 +803,7 @@ async function handleExitTestMode() {
 
     if (result.success) {
       // Hide banner with fade animation (UI concern only)
-      const testModeBanner = document.getElementById('testModeBanner');
-      testModeBanner.style.opacity = '0';
-      setTimeout(() => {
-        testModeBanner.style.display = 'none';
-        testModeBanner.style.opacity = '1';
-      }, 300);
+      fadeOutAndHide(document.getElementById('testModeBanner'));
 
       console.log('Test mode disabled from popup');
     }
@@ -1280,7 +1421,7 @@ function openSettings() {
   chrome.runtime.openOptionsPage();
 }
 
-function openDashboard(view = 'overview', filter = null) {
+async function openDashboard(view = 'overview', filter = null) {
   let url = chrome.runtime.getURL('dashboard/dashboard.html');
 
   // Add filter parameter first (before hash)
@@ -1292,6 +1433,12 @@ function openDashboard(view = 'overview', filter = null) {
   if (view) {
     url += `#${view}`;
   }
+
+  // Count this as an engaged dashboard-open from the popup (review-prompt gate).
+  // MUST be awaited before chrome.tabs.create: creating the tab closes the popup
+  // and tears down this context, which would abort an un-awaited storage write —
+  // losing the engagement counter that feeds the not_enough_engagement gate.
+  await ReviewPromptService.trackDashboardOpenFromPopup();
 
   chrome.tabs.create({ url });
 }

@@ -5,6 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TabTaskTick - Settings</title>
   <link rel="stylesheet" href="options.css">
+  <style>
+    .rp-state { width: 100%; font-size: 12px; }
+    .rp-state-verdict { font-weight: 600; margin-bottom: 6px; }
+    .rp-gate-list { list-style: none; margin: 0 0 8px; padding: 0; }
+    .rp-gate-list li { margin: 2px 0; }
+    .rp-gate-pass { color: #2e7d32; font-weight: 700; }
+    .rp-gate-fail { color: #c62828; font-weight: 700; }
+    .rp-state-json {
+      margin: 0;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      max-height: 240px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -99,6 +117,63 @@
                 <p class="setting-description" data-i18n="options_testLog_desc">Emit a test log at each level to verify filtering (check browser console)</p>
               </div>
               <button class="btn btn-secondary" id="testLogLevels" data-i18n="options_testLog_btn">Test Log Levels</button>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <label for="rpForceShow" data-i18n="options_reviewPrompt_forceShow_label">Force-show review prompt</label>
+                <p class="setting-description" data-i18n="options_reviewPrompt_forceShow_desc">Override all eligibility gates so the review prompt always appears in the popup</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="rpForceShow">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <label for="rpVariant" data-i18n="options_reviewPrompt_variant_label">Prompt copy variant</label>
+              </div>
+              <select id="rpVariant" class="setting-select">
+                <option value="fresh">fresh</option>
+                <option value="after_defer">after_defer</option>
+              </select>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <label for="rpScenario" data-i18n="options_reviewPrompt_scenario_label">Load test scenario</label>
+              </div>
+              <select id="rpScenario" class="setting-select">
+                <option value="all_pass">all_pass</option>
+                <option value="install_13d">install_13d</option>
+                <option value="install_14d">install_14d</option>
+                <option value="opens_1">opens_1</option>
+                <option value="opens_2">opens_2</option>
+                <option value="cooldown_6d">cooldown_6d</option>
+                <option value="cooldown_7d">cooldown_7d</option>
+                <option value="rated">rated</option>
+                <option value="declined">declined</option>
+                <option value="recency_15d">recency_15d</option>
+                <option value="defer_29d">defer_29d</option>
+                <option value="defer_31d">defer_31d</option>
+                <option value="dismiss_89d">dismiss_89d</option>
+                <option value="dismiss_91d">dismiss_91d</option>
+                <option value="cap_reached">cap_reached</option>
+              </select>
+              <button class="btn btn-secondary" id="rpApplyScenario" data-i18n="options_reviewPrompt_apply_btn">Apply Scenario</button>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-info">
+                <label data-i18n="options_reviewPrompt_state_label">Review-prompt state</label>
+                <p class="setting-description" data-i18n="options_reviewPrompt_state_desc">Live gate checklist and raw stored state (updates as you use the extension)</p>
+              </div>
+              <div id="rpState" class="rp-state"></div>
+            </div>
+
+            <div class="setting-item">
+              <button class="btn btn-secondary" id="rpReset" data-i18n="options_reviewPrompt_reset_btn">Reset State</button>
             </div>
           </div>
         </section>
