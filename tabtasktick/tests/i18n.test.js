@@ -54,7 +54,7 @@ describe('i18n helper', () => {
       document.body.innerHTML = '';
       localizeDocument('appName');
       expect(document.documentElement.lang).toBe('en');
-      expect(document.title).toBe('TabTaskTick');
+      expect(document.title).toBe('TabTaskTick: Tab & Task Manager');
     });
   });
 });
