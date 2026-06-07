@@ -20,7 +20,6 @@ export class Assertions {
       groupNotExists: this.assertGroupNotExists.bind(this),
       ruleExecutions: this.assertRuleExecutions.bind(this),
       statistics: this.assertStatistics.bind(this),
-      bookmarkCreated: this.assertBookmarkCreated.bind(this),
       memory: this.assertMemory.bind(this),
       performance: this.assertPerformance.bind(this),
       duplicatesFound: this.assertDuplicatesFound.bind(this),
@@ -29,7 +28,6 @@ export class Assertions {
       triggerScheduled: this.assertTriggerScheduled.bind(this),
       groupCount: this.assertGroupCount.bind(this),
       tabNotExists: this.assertTabNotExists.bind(this),
-      bookmarkExists: this.assertBookmarkExists.bind(this),
       windowExists: this.assertWindowExists.bind(this),
       windowProperty: this.assertWindowProperty.bind(this),
       windowTabCount: this.assertWindowTabCount.bind(this)
@@ -359,62 +357,6 @@ export class Assertions {
   }
 
   /**
-   * Assert bookmark exists
-   */
-  async assertBookmarkExists(params) {
-    const { url, folder } = params;
-
-    try {
-      // Search for bookmarks with the given URL
-      const bookmarks = await chrome.bookmarks.search({ url });
-
-      if (!bookmarks || bookmarks.length === 0) {
-        return {
-          passed: false,
-          message: `No bookmark found for URL: ${url}`,
-          expected: { url, folder },
-          actual: null
-        };
-      }
-
-      // If folder is specified, check if bookmark is in that folder
-      if (folder) {
-        for (const bookmark of bookmarks) {
-          // Get parent folder
-          const parent = await chrome.bookmarks.get(bookmark.parentId);
-          if (parent && parent[0] && parent[0].title === folder) {
-            return {
-              passed: true,
-              message: `Bookmark found in folder '${folder}' for URL: ${url}`,
-              actual: bookmark
-            };
-          }
-        }
-
-        return {
-          passed: false,
-          message: `Bookmark found but not in folder '${folder}' for URL: ${url}`,
-          expected: { url, folder },
-          actual: bookmarks[0]
-        };
-      }
-
-      // Just check if bookmark exists regardless of folder
-      return {
-        passed: true,
-        message: `Bookmark found for URL: ${url}`,
-        actual: bookmarks[0]
-      };
-    } catch (error) {
-      return {
-        passed: false,
-        message: `Error checking bookmark: ${error.message}`,
-        error: true
-      };
-    }
-  }
-
-  /**
    * Assert rule executions
    */
   async assertRuleExecutions(params) {
@@ -514,52 +456,6 @@ export class Assertions {
       passed: true,
       actual,
       message: `${field} is ${actual}`
-    };
-  }
-
-  /**
-   * Assert bookmark created
-   */
-  async assertBookmarkCreated(params) {
-    const { count, folder, url } = params;
-    
-    // Search bookmarks
-    let bookmarks;
-    if (url) {
-      bookmarks = await chrome.bookmarks.search({ url });
-    } else {
-      // Get recent bookmarks
-      const tree = await chrome.bookmarks.getTree();
-      bookmarks = this.flattenBookmarkTree(tree);
-      
-      // Filter by test time window (last 5 minutes)
-      const cutoff = Date.now() - (5 * 60 * 1000);
-      bookmarks = bookmarks.filter(b => b.dateAdded > cutoff);
-    }
-
-    // Filter by folder if specified
-    if (folder && bookmarks.length > 0) {
-      const folderBookmarks = [];
-      for (const bookmark of bookmarks) {
-        const parent = await chrome.bookmarks.get(bookmark.parentId);
-        if (parent[0].title === folder) {
-          folderBookmarks.push(bookmark);
-        }
-      }
-      bookmarks = folderBookmarks;
-    }
-
-    const actual = bookmarks.length;
-    const passed = count === undefined ? actual > 0 : actual === count;
-
-    return {
-      passed,
-      actual,
-      expected: count || 'any',
-      message: passed
-        ? `Found ${actual} bookmarks`
-        : `Expected ${count || 'some'} bookmarks, found ${actual}`,
-      bookmarks
     };
   }
 
@@ -1007,20 +903,5 @@ export class Assertions {
    */
   getNestedProperty(obj, path) {
     return path.split('.').reduce((current, prop) => current?.[prop], obj);
-  }
-
-  /**
-   * Flatten bookmark tree
-   */
-  flattenBookmarkTree(nodes, bookmarks = []) {
-    for (const node of nodes) {
-      if (node.url) {
-        bookmarks.push(node);
-      }
-      if (node.children) {
-        this.flattenBookmarkTree(node.children, bookmarks);
-      }
-    }
-    return bookmarks;
   }
 }

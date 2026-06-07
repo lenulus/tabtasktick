@@ -335,41 +335,6 @@ export class RuleBuilder {
     });
   }
 
-  createComplexRule(options = {}) {
-    return this.buildRule({
-      name: options.name || 'Complex Test Rule',
-      description: 'Tests nested conditions and multiple actions',
-      when: {
-        any: [
-          {
-            all: [
-              { contains: ['tab.url', 'youtube.com'] },
-              { eq: ['tab.isAudible', true] },
-              { eq: ['tab.isPinned', false] }
-            ]
-          },
-          {
-            all: [
-              { regex: ['tab.url', '/github\\.com\\/.*\\/pull/'] },
-              { gt: ['tab.age', '1d'] }
-            ]
-          },
-          {
-            none: [
-              { in: ['tab.domain', ['google.com', 'gmail.com']] },
-              { eq: ['tab.isPinned', true] }
-            ]
-          }
-        ]
-      },
-      then: [
-        { action: 'bookmark', to: 'Auto-Saved' },
-        { action: 'close' }
-      ],
-      ...options
-    });
-  }
-
   /**
    * Create rule with immediate trigger
    */

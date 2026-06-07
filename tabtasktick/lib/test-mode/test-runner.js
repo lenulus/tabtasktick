@@ -281,28 +281,6 @@ export class TestRunner {
     // Build rule using RuleBuilder
     const builtRule = this.ruleBuilder.buildRule(rule);
 
-    // If the rule contains bookmark actions, pre-create the folder
-    // (This ensures the folder exists but snapshot/restore handles cleanup)
-    if (builtRule.then) {
-      for (const action of builtRule.then) {
-        if (action.action === 'bookmark' && action.to) {
-          try {
-            const folders = await chrome.bookmarks.search({ title: action.to });
-            if (folders.length === 0 || folders[0].url) {
-              // Create the folder
-              const folder = await chrome.bookmarks.create({
-                title: action.to,
-                parentId: '1' // Bookmarks bar
-              });
-              console.log(`Created test bookmark folder: ${action.to} (${folder.id})`);
-            }
-          } catch (e) {
-            console.log(`Could not pre-create bookmark folder: ${e.message}`);
-          }
-        }
-      }
-    }
-
     // Send to background to create rule
     const response = await chrome.runtime.sendMessage({
       action: 'addRule',

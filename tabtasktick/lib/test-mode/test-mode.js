@@ -10,8 +10,6 @@ export class TestMode {
     this.testWindow = null;
     this.testTabIds = new Set();
     this.testRuleIds = new Set();
-    this.testBookmarkIds = new Set(); // Track bookmarks created during tests
-    this.testBookmarkFolders = new Set(); // Track bookmark folders created
     this.originalState = null;
     this.results = [];
     this.startTime = null;
@@ -114,61 +112,14 @@ export class TestMode {
       chrome.storage.local.get('statistics')
     ]);
 
-    // Snapshot all existing bookmarks — only when the bookmarks permission is
-    // present. It was intentionally removed from the manifest, so chrome.bookmarks
-    // is undefined; skip the snapshot rather than crashing test-mode activation.
-    // cleanupNewBookmarks() already no-ops when this snapshot is null.
-    let bookmarkSnapshot = null;
-    if (chrome.bookmarks) {
-      const bookmarkTree = await chrome.bookmarks.getTree();
-      bookmarkSnapshot = this.serializeBookmarkTree(bookmarkTree);
-      console.log('Captured bookmark snapshot with', this.countBookmarks(bookmarkTree), 'bookmarks');
-    }
-
     this.originalState = {
       rules: rules.rules || [],
       settings: settings.settings || {},
-      statistics: statistics.statistics || {},
-      bookmarks: bookmarkSnapshot
+      statistics: statistics.statistics || {}
     };
 
     // Store original state for reconnection
     await chrome.storage.local.set({ testOriginalState: this.originalState });
-  }
-
-  /**
-   * Serialize bookmark tree for comparison
-   */
-  serializeBookmarkTree(nodes) {
-    const serialized = [];
-    for (const node of nodes) {
-      const item = {
-        id: node.id,
-        title: node.title,
-        url: node.url,
-        parentId: node.parentId,
-        index: node.index
-      };
-      if (node.children) {
-        item.children = this.serializeBookmarkTree(node.children);
-      }
-      serialized.push(item);
-    }
-    return serialized;
-  }
-
-  /**
-   * Count bookmarks in tree
-   */
-  countBookmarks(nodes) {
-    let count = 0;
-    for (const node of nodes) {
-      if (node.url) count++;
-      if (node.children) {
-        count += this.countBookmarks(node.children);
-      }
-    }
-    return count;
   }
 
   /**
@@ -441,63 +392,6 @@ export class TestMode {
           { action: 'assert', type: 'tabActive', url: 'recent-tab.com' },
           { action: 'assert', type: 'tabActive', url: 'new-tab.com' },
           { action: 'assert', type: 'statistics', field: 'tabsSnoozed', minimum: 2 }
-        ]
-      },
-      {
-        name: 'complex-conditions',
-        description: 'Test complex nested conditions',
-        steps: [
-          // Setup diverse tabs
-          { action: 'createTab', url: 'https://youtube.com/watch?v=123', pinned: true },
-          { action: 'createTab', url: 'https://youtube.com/watch?v=456', muted: true },
-          { action: 'createTab', url: 'https://youtube.com/watch?v=789' },
-          { action: 'createTab', url: 'https://docs.google.com/doc1' },
-          { action: 'createTab', url: 'https://docs.google.com/doc2', muted: true },
-          { action: 'createTab', url: 'https://github.com/user/repo/pull/123', age: '2d' },
-          
-          // Rule with nested conditions
-          {
-            action: 'createRule',
-            rule: {
-              name: 'Complex Rule',
-              when: {
-                any: [
-                  {
-                    all: [
-                      { subject: 'url', operator: 'contains', value: 'youtube.com' },
-                      { subject: 'pinned', operator: 'equals', value: false },
-                      { subject: 'audible', operator: 'equals', value: false }
-                    ]
-                  },
-                  {
-                    all: [
-                      { subject: 'url', operator: 'regex', value: 'docs\\.google\\.com' },
-                      { subject: 'audible', operator: 'equals', value: false }
-                    ]
-                  },
-                  {
-                    all: [
-                      { subject: 'url', operator: 'regex', value: 'github\\.com\\/.*\\/pull' },
-                      { subject: 'age', operator: 'greater_than', value: '1d' }
-                    ]
-                  }
-                ]
-              },
-              then: [{ action: 'bookmark', to: 'Test Bookmarks' }]
-            }
-          },
-          
-          { action: 'executeRule', ruleId: 'Complex Rule' },
-          { action: 'wait', ms: 1000 },
-          // Should bookmark 5 tabs:
-          // - youtube/456 (not pinned, not audible, muted tabs are not audible)
-          // - youtube/789 (not pinned, not audible)
-          // - docs/doc1 (regex match, not audible)
-          // - docs/doc2 (regex match, not audible, muted tabs are not audible)
-          // - github PR (regex match, age > 1d)
-          // youtube/123 is excluded (pinned=true)
-          { action: 'assert', type: 'bookmarkCreated', count: 5, folder: 'Test Bookmarks' }
-          // Note: Can't verify exact URLs due to redirects (youtube adds www, docs.google redirects)
         ]
       },
       {
@@ -1166,27 +1060,7 @@ export class TestMode {
 
     const result = await this.testRunner.executeStep(step);
 
-    // Track bookmarks if created
-    if (step.action === 'bookmark' || (step.action === 'executeRule' && step.rule?.then?.some(a => a.action === 'bookmark'))) {
-      // The background script should notify us about created bookmarks
-      // For now, we'll track them in the assertions
-    }
-
     return result;
-  }
-
-  /**
-   * Register a test bookmark (kept for compatibility but not needed with snapshot approach)
-   * @param {string} bookmarkId - ID of the created bookmark
-   * @param {boolean} isFolder - Whether it's a folder
-   */
-  registerTestBookmark(bookmarkId, isFolder = false) {
-    // No longer needed with snapshot approach, but kept for compatibility
-    if (isFolder) {
-      this.testBookmarkFolders.add(bookmarkId);
-    } else {
-      this.testBookmarkIds.add(bookmarkId);
-    }
   }
 
   /**
@@ -1230,9 +1104,6 @@ export class TestMode {
    * Cleanup after a scenario
    */
   async cleanupScenario(scenario) {
-    // Clean up bookmarks created during this scenario
-    await this.cleanupNewBookmarks();
-
     // Clean up any remaining test data
     // This is scenario-specific cleanup
   }
@@ -1267,91 +1138,6 @@ export class TestMode {
     }
   }
 
-  /**
-   * Clean up bookmarks created since snapshot
-   */
-  async cleanupNewBookmarks() {
-    if (!this.originalState?.bookmarks) {
-      console.log('No bookmark snapshot available, skipping cleanup');
-      return;
-    }
-
-    try {
-      // Get current bookmark tree
-      const currentTree = await chrome.bookmarks.getTree();
-
-      // Find all bookmark IDs in original snapshot
-      const originalIds = new Set();
-      this.collectBookmarkIds(this.originalState.bookmarks, originalIds);
-
-      // Find all current bookmark IDs
-      const currentIds = [];
-      this.collectBookmarkIdsFlat(currentTree, currentIds);
-
-      // Remove any bookmarks not in original snapshot
-      let removedCount = 0;
-      for (const id of currentIds) {
-        if (!originalIds.has(id) && id !== '0') { // Don't try to remove root
-          try {
-            // Check if it's a folder or bookmark
-            const [bookmark] = await chrome.bookmarks.get(id);
-            if (bookmark) {
-              if (bookmark.url) {
-                // It's a bookmark
-                await chrome.bookmarks.remove(id);
-                console.log(`Removed test bookmark: ${bookmark.title} (${id})`);
-              } else {
-                // It's a folder - use removeTree to remove folder and contents
-                await chrome.bookmarks.removeTree(id);
-                console.log(`Removed test folder: ${bookmark.title} (${id})`);
-              }
-              removedCount++;
-            }
-          } catch (e) {
-            // Node might have been already removed as part of parent folder
-            if (!e.message.includes('No node with id')) {
-              console.log(`Could not remove bookmark ${id}:`, e.message);
-            }
-          }
-        }
-      }
-
-      if (removedCount > 0) {
-        console.log(`Cleaned up ${removedCount} test bookmarks/folders`);
-      }
-
-      // Clear tracking sets
-      this.testBookmarkIds.clear();
-      this.testBookmarkFolders.clear();
-
-    } catch (error) {
-      console.error('Error cleaning up bookmarks:', error);
-    }
-  }
-
-  /**
-   * Collect bookmark IDs from serialized tree
-   */
-  collectBookmarkIds(nodes, ids) {
-    for (const node of nodes) {
-      ids.add(node.id);
-      if (node.children) {
-        this.collectBookmarkIds(node.children, ids);
-      }
-    }
-  }
-
-  /**
-   * Collect bookmark IDs from live tree (flat list)
-   */
-  collectBookmarkIdsFlat(nodes, ids) {
-    for (const node of nodes) {
-      ids.push(node.id);
-      if (node.children) {
-        this.collectBookmarkIdsFlat(node.children, ids);
-      }
-    }
-  }
 
   /**
    * Remove a test rule
@@ -1485,9 +1271,6 @@ export class TestMode {
         await this.removeTestRule(ruleId);
       }
 
-      // Clean up all bookmarks created during tests
-      await this.cleanupNewBookmarks();
-
       // Clean up all snoozed tabs created during tests
       await this.cleanupSnoozedTabs();
 
@@ -1514,8 +1297,6 @@ export class TestMode {
       this.testWindow = null;
       this.testTabIds.clear();
       this.testRuleIds.clear();
-      this.testBookmarkIds.clear();
-      this.testBookmarkFolders.clear();
       this.currentScenario = null;
     }
 
