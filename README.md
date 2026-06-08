@@ -6,7 +6,7 @@ TabTaskTick is a Chrome extension that fuses **tab management** with **task mana
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-success.svg)](tabtasktick/manifest.json)
-[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-v1.4.11-orange.svg)](https://chromewebstore.google.com/detail/kninondobdcahcnbfknfeijdljkkbbgc)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-v1.4.16-orange.svg)](https://chromewebstore.google.com/detail/kninondobdcahcnbfknfeijdljkkbbgc)
 
 > **Built for** researchers juggling 100+ tabs, developers context-switching across projects, and GTD practitioners who keep a weekly review.
 
