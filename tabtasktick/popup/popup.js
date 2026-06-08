@@ -1531,7 +1531,9 @@ async function openImportModal() {
 }
 
 function openHelp() {
-  chrome.tabs.create({ url: 'https://github.com/lenulus/tabtasktick/wiki' });
+  // Repo root renders the README (overview, features, getting started) — the
+  // wiki it used to point at was empty.
+  chrome.tabs.create({ url: 'https://github.com/lenulus/tabtasktick#readme' });
 }
 
 async function openTestPanel() {
