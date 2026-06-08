@@ -32,6 +32,60 @@
     "placeholders": { "count": { "content": "$1", "example": "3" } }
   },
 
+  "snoozeModal_header_presets": { "message": "Quick Presets" },
+  "snoozeModal_header_custom": { "message": "Custom Time" },
+  "snoozeModal_custom_date": { "message": "Date" },
+  "snoozeModal_custom_time": { "message": "Time" },
+  "snoozeModal_cancel": { "message": "Cancel" },
+  "snoozeModal_close": { "message": "Close dialog" },
+  "snoozeModal_error_futureTime": { "message": "Please select a future time" },
+  "snoozeModal_info_mixed": {
+    "message": "Snoozing $parts$",
+    "placeholders": { "parts": { "content": "$1", "example": "1 window and 2 tabs" } }
+  },
+  "snoozeModal_info_tabsTogether": {
+    "message": "Snoozing $count$ selected tabs together",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "snoozeModal_preset_tomorrow_label": { "message": "Tomorrow" },
+  "snoozeModal_preset_tomorrow_sub": { "message": "9 AM" },
+  "snoozeModal_preset_afterLunch_label": { "message": "After Lunch" },
+  "snoozeModal_preset_endOfDay_label": { "message": "End of Day" },
+  "snoozeModal_preset_nextWeek_label": { "message": "Next Week" },
+  "snoozeModal_preset_nextWeek_sub": { "message": "Same time" },
+  "snoozeModal_preset_oneHour_label": { "message": "In 1 Hour" },
+  "snoozeModal_preset_monday_label": { "message": "Monday" },
+  "snoozeModal_preset_monday_sub": { "message": "9 AM" },
+  "snoozeModal_sub_1pm": { "message": "1 PM" },
+  "snoozeModal_sub_2pm": { "message": "2 PM" },
+  "snoozeModal_sub_tomorrow1pm": { "message": "Tomorrow 1 PM" },
+  "snoozeModal_sub_5pm": { "message": "5 PM" },
+  "snoozeModal_sub_tomorrow5pm": { "message": "Tomorrow 5 PM" },
+  "snoozeModal_relative_days_one": {
+    "message": "in $count$ day",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "snoozeModal_relative_days_other": {
+    "message": "in $count$ days",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "snoozeModal_relative_hours_one": {
+    "message": "in $count$ hour",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "snoozeModal_relative_hours_other": {
+    "message": "in $count$ hours",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+  "snoozeModal_relative_minutes_one": {
+    "message": "in $count$ minute",
+    "placeholders": { "count": { "content": "$1", "example": "1" } }
+  },
+  "snoozeModal_relative_minutes_other": {
+    "message": "in $count$ minutes",
+    "placeholders": { "count": { "content": "$1", "example": "3" } }
+  },
+
   "popup_debug_title": { "message": "Copy Debug Info" },
   "popup_testMode_title": { "message": "Test Mode Active" },
   "popup_testMode_body": { "message": "Production rules are disabled" },

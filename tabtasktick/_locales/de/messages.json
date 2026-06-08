@@ -69,6 +69,76 @@
       }
     }
   },
+
+  "snoozeModal_header_presets": { "message": "Schnellauswahl" },
+  "snoozeModal_header_custom": { "message": "Eigene Zeit" },
+  "snoozeModal_custom_date": { "message": "Datum" },
+  "snoozeModal_custom_time": { "message": "Uhrzeit" },
+  "snoozeModal_cancel": { "message": "Abbrechen" },
+  "snoozeModal_close": { "message": "Dialog schließen" },
+  "snoozeModal_error_futureTime": { "message": "Bitte eine zukünftige Zeit wählen" },
+  "snoozeModal_info_mixed": {
+    "message": "$parts$ werden geschlummert",
+    "placeholders": {
+      "parts": { "content": "$1", "example": "1 window and 2 tabs" }
+    }
+  },
+  "snoozeModal_info_tabsTogether": {
+    "message": "$count$ ausgewählte Tabs werden zusammen geschlummert",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_preset_tomorrow_label": { "message": "Morgen" },
+  "snoozeModal_preset_tomorrow_sub": { "message": "9 Uhr" },
+  "snoozeModal_preset_afterLunch_label": { "message": "Nach dem Mittagessen" },
+  "snoozeModal_preset_endOfDay_label": { "message": "Feierabend" },
+  "snoozeModal_preset_nextWeek_label": { "message": "Nächste Woche" },
+  "snoozeModal_preset_nextWeek_sub": { "message": "Gleiche Zeit" },
+  "snoozeModal_preset_oneHour_label": { "message": "In 1 Stunde" },
+  "snoozeModal_preset_monday_label": { "message": "Montag" },
+  "snoozeModal_preset_monday_sub": { "message": "9 Uhr" },
+  "snoozeModal_sub_1pm": { "message": "13 Uhr" },
+  "snoozeModal_sub_2pm": { "message": "14 Uhr" },
+  "snoozeModal_sub_tomorrow1pm": { "message": "Morgen 13 Uhr" },
+  "snoozeModal_sub_5pm": { "message": "17 Uhr" },
+  "snoozeModal_sub_tomorrow5pm": { "message": "Morgen 17 Uhr" },
+  "snoozeModal_relative_days_one": {
+    "message": "in $count$ Tag",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "snoozeModal_relative_days_other": {
+    "message": "in $count$ Tagen",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_hours_one": {
+    "message": "in $count$ Stunde",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "snoozeModal_relative_hours_other": {
+    "message": "in $count$ Stunden",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_minutes_one": {
+    "message": "in $count$ Minute",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "snoozeModal_relative_minutes_other": {
+    "message": "in $count$ Minuten",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
   "popup_debug_title": {
     "message": "Debug-Informationen kopieren"
   },

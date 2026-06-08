@@ -69,6 +69,58 @@
       }
     }
   },
+
+  "snoozeModal_header_presets": { "message": "빠른 설정" },
+  "snoozeModal_header_custom": { "message": "사용자 지정 시간" },
+  "snoozeModal_custom_date": { "message": "날짜" },
+  "snoozeModal_custom_time": { "message": "시간" },
+  "snoozeModal_cancel": { "message": "취소" },
+  "snoozeModal_close": { "message": "대화상자 닫기" },
+  "snoozeModal_error_futureTime": { "message": "미래의 시간을 선택하세요" },
+  "snoozeModal_info_mixed": {
+    "message": "$parts$을(를) 미룹니다",
+    "placeholders": {
+      "parts": { "content": "$1", "example": "1 window and 2 tabs" }
+    }
+  },
+  "snoozeModal_info_tabsTogether": {
+    "message": "선택한 탭 $count$개를 함께 미룹니다",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_preset_tomorrow_label": { "message": "내일" },
+  "snoozeModal_preset_tomorrow_sub": { "message": "오전 9시" },
+  "snoozeModal_preset_afterLunch_label": { "message": "점심 후" },
+  "snoozeModal_preset_endOfDay_label": { "message": "하루 끝" },
+  "snoozeModal_preset_nextWeek_label": { "message": "다음 주" },
+  "snoozeModal_preset_nextWeek_sub": { "message": "같은 시간" },
+  "snoozeModal_preset_oneHour_label": { "message": "1시간 후" },
+  "snoozeModal_preset_monday_label": { "message": "월요일" },
+  "snoozeModal_preset_monday_sub": { "message": "오전 9시" },
+  "snoozeModal_sub_1pm": { "message": "오후 1시" },
+  "snoozeModal_sub_2pm": { "message": "오후 2시" },
+  "snoozeModal_sub_tomorrow1pm": { "message": "내일 오후 1시" },
+  "snoozeModal_sub_5pm": { "message": "오후 5시" },
+  "snoozeModal_sub_tomorrow5pm": { "message": "내일 오후 5시" },
+  "snoozeModal_relative_days_other": {
+    "message": "$count$일 후",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_hours_other": {
+    "message": "$count$시간 후",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_minutes_other": {
+    "message": "$count$분 후",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
   "popup_debug_title": {
     "message": "디버그 정보 복사"
   },

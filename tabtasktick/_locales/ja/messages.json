@@ -69,6 +69,58 @@
       }
     }
   },
+
+  "snoozeModal_header_presets": { "message": "クイックプリセット" },
+  "snoozeModal_header_custom": { "message": "カスタム時刻" },
+  "snoozeModal_custom_date": { "message": "日付" },
+  "snoozeModal_custom_time": { "message": "時刻" },
+  "snoozeModal_cancel": { "message": "キャンセル" },
+  "snoozeModal_close": { "message": "ダイアログを閉じる" },
+  "snoozeModal_error_futureTime": { "message": "未来の時刻を選択してください" },
+  "snoozeModal_info_mixed": {
+    "message": "$parts$をスヌーズします",
+    "placeholders": {
+      "parts": { "content": "$1", "example": "1 window and 2 tabs" }
+    }
+  },
+  "snoozeModal_info_tabsTogether": {
+    "message": "選択した$count$個のタブをまとめてスヌーズします",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_preset_tomorrow_label": { "message": "明日" },
+  "snoozeModal_preset_tomorrow_sub": { "message": "9:00" },
+  "snoozeModal_preset_afterLunch_label": { "message": "昼食後" },
+  "snoozeModal_preset_endOfDay_label": { "message": "終業時" },
+  "snoozeModal_preset_nextWeek_label": { "message": "来週" },
+  "snoozeModal_preset_nextWeek_sub": { "message": "同じ時刻" },
+  "snoozeModal_preset_oneHour_label": { "message": "1時間後" },
+  "snoozeModal_preset_monday_label": { "message": "月曜日" },
+  "snoozeModal_preset_monday_sub": { "message": "9:00" },
+  "snoozeModal_sub_1pm": { "message": "13:00" },
+  "snoozeModal_sub_2pm": { "message": "14:00" },
+  "snoozeModal_sub_tomorrow1pm": { "message": "明日 13:00" },
+  "snoozeModal_sub_5pm": { "message": "17:00" },
+  "snoozeModal_sub_tomorrow5pm": { "message": "明日 17:00" },
+  "snoozeModal_relative_days_other": {
+    "message": "$count$日後",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_hours_other": {
+    "message": "$count$時間後",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_minutes_other": {
+    "message": "$count$分後",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
   "popup_debug_title": {
     "message": "デバッグ情報をコピー"
   },

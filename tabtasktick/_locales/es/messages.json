@@ -69,6 +69,94 @@
       }
     }
   },
+
+  "snoozeModal_header_presets": { "message": "Ajustes rápidos" },
+  "snoozeModal_header_custom": { "message": "Hora personalizada" },
+  "snoozeModal_custom_date": { "message": "Fecha" },
+  "snoozeModal_custom_time": { "message": "Hora" },
+  "snoozeModal_cancel": { "message": "Cancelar" },
+  "snoozeModal_close": { "message": "Cerrar diálogo" },
+  "snoozeModal_error_futureTime": { "message": "Selecciona una hora futura" },
+  "snoozeModal_info_mixed": {
+    "message": "Posponiendo $parts$",
+    "placeholders": {
+      "parts": { "content": "$1", "example": "1 window and 2 tabs" }
+    }
+  },
+  "snoozeModal_info_tabsTogether": {
+    "message": "Posponiendo $count$ pestañas seleccionadas juntas",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_preset_tomorrow_label": { "message": "Mañana" },
+  "snoozeModal_preset_tomorrow_sub": { "message": "9:00" },
+  "snoozeModal_preset_afterLunch_label": { "message": "Tras el almuerzo" },
+  "snoozeModal_preset_endOfDay_label": { "message": "Fin del día" },
+  "snoozeModal_preset_nextWeek_label": { "message": "Próxima semana" },
+  "snoozeModal_preset_nextWeek_sub": { "message": "Misma hora" },
+  "snoozeModal_preset_oneHour_label": { "message": "En 1 hora" },
+  "snoozeModal_preset_monday_label": { "message": "Lunes" },
+  "snoozeModal_preset_monday_sub": { "message": "9:00" },
+  "snoozeModal_sub_1pm": { "message": "13:00" },
+  "snoozeModal_sub_2pm": { "message": "14:00" },
+  "snoozeModal_sub_tomorrow1pm": { "message": "Mañana 13:00" },
+  "snoozeModal_sub_5pm": { "message": "17:00" },
+  "snoozeModal_sub_tomorrow5pm": { "message": "Mañana 17:00" },
+  "snoozeModal_relative_days_one": {
+    "message": "en $count$ día",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "snoozeModal_relative_days_other": {
+    "message": "en $count$ días",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_days_many": {
+    "message": "en $count$ días",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_hours_one": {
+    "message": "en $count$ hora",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "snoozeModal_relative_hours_other": {
+    "message": "en $count$ horas",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_hours_many": {
+    "message": "en $count$ horas",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_minutes_one": {
+    "message": "en $count$ minuto",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "snoozeModal_relative_minutes_other": {
+    "message": "en $count$ minutos",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_minutes_many": {
+    "message": "en $count$ minutos",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
   "popup_debug_title": {
     "message": "Copiar información de depuración"
   },

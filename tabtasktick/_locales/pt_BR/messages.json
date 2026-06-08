@@ -69,6 +69,94 @@
       }
     }
   },
+
+  "snoozeModal_header_presets": { "message": "Predefinições rápidas" },
+  "snoozeModal_header_custom": { "message": "Horário personalizado" },
+  "snoozeModal_custom_date": { "message": "Data" },
+  "snoozeModal_custom_time": { "message": "Hora" },
+  "snoozeModal_cancel": { "message": "Cancelar" },
+  "snoozeModal_close": { "message": "Fechar caixa de diálogo" },
+  "snoozeModal_error_futureTime": { "message": "Selecione um horário futuro" },
+  "snoozeModal_info_mixed": {
+    "message": "Adiando $parts$",
+    "placeholders": {
+      "parts": { "content": "$1", "example": "1 window and 2 tabs" }
+    }
+  },
+  "snoozeModal_info_tabsTogether": {
+    "message": "Adiando $count$ abas selecionadas juntas",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_preset_tomorrow_label": { "message": "Amanhã" },
+  "snoozeModal_preset_tomorrow_sub": { "message": "9h" },
+  "snoozeModal_preset_afterLunch_label": { "message": "Após o almoço" },
+  "snoozeModal_preset_endOfDay_label": { "message": "Fim do dia" },
+  "snoozeModal_preset_nextWeek_label": { "message": "Próxima semana" },
+  "snoozeModal_preset_nextWeek_sub": { "message": "Mesmo horário" },
+  "snoozeModal_preset_oneHour_label": { "message": "Em 1 hora" },
+  "snoozeModal_preset_monday_label": { "message": "Segunda-feira" },
+  "snoozeModal_preset_monday_sub": { "message": "9h" },
+  "snoozeModal_sub_1pm": { "message": "13h" },
+  "snoozeModal_sub_2pm": { "message": "14h" },
+  "snoozeModal_sub_tomorrow1pm": { "message": "Amanhã 13h" },
+  "snoozeModal_sub_5pm": { "message": "17h" },
+  "snoozeModal_sub_tomorrow5pm": { "message": "Amanhã 17h" },
+  "snoozeModal_relative_days_one": {
+    "message": "em $count$ dia",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "snoozeModal_relative_days_other": {
+    "message": "em $count$ dias",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_days_many": {
+    "message": "em $count$ dias",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_hours_one": {
+    "message": "em $count$ hora",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "snoozeModal_relative_hours_other": {
+    "message": "em $count$ horas",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_hours_many": {
+    "message": "em $count$ horas",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_minutes_one": {
+    "message": "em $count$ minuto",
+    "placeholders": {
+      "count": { "content": "$1", "example": "1" }
+    }
+  },
+  "snoozeModal_relative_minutes_other": {
+    "message": "em $count$ minutos",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
+  "snoozeModal_relative_minutes_many": {
+    "message": "em $count$ minutos",
+    "placeholders": {
+      "count": { "content": "$1", "example": "3" }
+    }
+  },
   "snooze_title_tabs_many": {
     "message": "Adiar $count$ abas",
     "placeholders": {

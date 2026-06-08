@@ -1,6 +1,11 @@
 // Snooze Modal Component for TabMaster Pro
 // Provides enhanced snooze interface with smart presets and custom scheduling
 
+// Classic (non-module) script: chrome.i18n.getMessage is globally available.
+// Local helper so source can use the t(...) / t(..., [subs]) call form that
+// scripts/i18n-extract-check.mjs validates against _locales/en.
+const t = (key, subs) => (chrome?.i18n?.getMessage(key, subs)) || key;
+
 class SnoozeModal {
   constructor() {
     this.modal = null;
@@ -13,8 +18,8 @@ class SnoozeModal {
     this.presets = [
       {
         id: 'tomorrow',
-        label: 'Tomorrow',
-        sublabel: '9 AM',
+        label: t('snoozeModal_preset_tomorrow_label'),
+        sublabel: t('snoozeModal_preset_tomorrow_sub'),
         icon: '🌅',
         getTime: () => {
           const tomorrow = new Date();
@@ -25,7 +30,7 @@ class SnoozeModal {
       },
       {
         id: 'after_lunch',
-        label: 'After Lunch',
+        label: t('snoozeModal_preset_afterLunch_label'),
         sublabel: this.getAfterLunchTime(),
         icon: '🍽️',
         getTime: () => {
@@ -49,7 +54,7 @@ class SnoozeModal {
       },
       {
         id: 'end_of_day',
-        label: 'End of Day',
+        label: t('snoozeModal_preset_endOfDay_label'),
         sublabel: this.getEndOfDayTime(),
         icon: '🌙',
         getTime: () => {
@@ -66,8 +71,8 @@ class SnoozeModal {
       },
       {
         id: 'next_week',
-        label: 'Next Week',
-        sublabel: 'Same time',
+        label: t('snoozeModal_preset_nextWeek_label'),
+        sublabel: t('snoozeModal_preset_nextWeek_sub'),
         icon: '📅',
         getTime: () => {
           const nextWeek = new Date();
@@ -77,15 +82,15 @@ class SnoozeModal {
       },
       {
         id: 'one_hour',
-        label: 'In 1 Hour',
+        label: t('snoozeModal_preset_oneHour_label'),
         sublabel: '',
         icon: '⏰',
         getTime: () => Date.now() + (60 * 60 * 1000)
       },
       {
         id: 'monday',
-        label: 'Monday',
-        sublabel: '9 AM',
+        label: t('snoozeModal_preset_monday_label'),
+        sublabel: t('snoozeModal_preset_monday_sub'),
         icon: '🔄',
         getTime: () => {
           const monday = new Date();
@@ -109,20 +114,20 @@ class SnoozeModal {
   getAfterLunchTime() {
     const now = new Date();
     if (now.getHours() < 12) {
-      return '1 PM';
+      return t('snoozeModal_sub_1pm');
     } else if (now.getHours() < 13) {
-      return '2 PM';
+      return t('snoozeModal_sub_2pm');
     } else {
-      return 'Tomorrow 1 PM';
+      return t('snoozeModal_sub_tomorrow1pm');
     }
   }
-  
+
   getEndOfDayTime() {
     const now = new Date();
     if (now.getHours() >= 17) {
-      return 'Tomorrow 5 PM';
+      return t('snoozeModal_sub_tomorrow5pm');
     } else {
-      return '5 PM';
+      return t('snoozeModal_sub_5pm');
     }
   }
   
@@ -191,14 +196,21 @@ class SnoozeModal {
       // Fallback formatting without service
       const { windowCount, individualTabCount } = this.summary;
       if (windowCount > 0 && individualTabCount === 0) {
-        return windowCount === 1 ? 'Snooze Window' : `Snooze ${windowCount} Windows`;
+        return windowCount === 1
+          ? t('snooze_title_windows_one', ['1'])
+          : t('snooze_title_windows_other', [String(windowCount)]);
       }
-      return `Snooze ${this.summary.totalTabs} Tab${this.summary.totalTabs !== 1 ? 's' : ''}`;
+      const n = this.summary.totalTabs;
+      return n === 1
+        ? t('snooze_title_tabs_one', ['1'])
+        : t('snooze_title_tabs_other', [String(n)]);
     }
 
     // Legacy: use tab count
     const tabCount = this.selectedTabs.length || 1;
-    return tabCount === 1 ? 'Snooze Tab' : `Snooze ${tabCount} Tabs`;
+    return tabCount === 1
+      ? t('snooze_title_tabs_one', ['1'])
+      : t('snooze_title_tabs_other', [String(tabCount)]);
   }
 
   /**
@@ -209,14 +221,21 @@ class SnoozeModal {
     if (this.summary && this.summary.totalTabs) {
       const { windowCount, individualTabCount } = this.summary;
       if (windowCount > 0 && individualTabCount === 0) {
-        return windowCount === 1 ? 'Snooze Window' : `Snooze ${windowCount} Windows`;
+        return windowCount === 1
+          ? t('snooze_title_windows_one', ['1'])
+          : t('snooze_title_windows_other', [String(windowCount)]);
       }
-      return `Snooze ${this.summary.totalTabs} Tab${this.summary.totalTabs !== 1 ? 's' : ''}`;
+      const n = this.summary.totalTabs;
+      return n === 1
+        ? t('snooze_title_tabs_one', ['1'])
+        : t('snooze_title_tabs_other', [String(n)]);
     }
 
     // Legacy: use tab count
     const tabCount = this.selectedTabs.length || 1;
-    return tabCount === 1 ? 'Snooze Tab' : `Snooze ${tabCount} Tabs`;
+    return tabCount === 1
+      ? t('snooze_title_tabs_one', ['1'])
+      : t('snooze_title_tabs_other', [String(tabCount)]);
   }
 
   /**
@@ -232,9 +251,16 @@ class SnoozeModal {
       // Fallback
       const { windowCount, individualTabCount, totalTabs } = this.summary;
       if (windowCount > 0 && individualTabCount > 0) {
-        return `Snoozing ${windowCount} window${windowCount !== 1 ? 's' : ''} and ${individualTabCount} tab${individualTabCount !== 1 ? 's' : ''}`;
+        const windowsPart = windowCount === 1
+          ? t('snooze_desc_windows_one', ['1'])
+          : t('snooze_desc_windows_other', [String(windowCount)]);
+        const tabsPart = individualTabCount === 1
+          ? t('snooze_desc_tabCount_one', ['1'])
+          : t('snooze_desc_tabCount_other', [String(individualTabCount)]);
+        const parts = windowsPart + t('snooze_desc_join') + tabsPart;
+        return t('snoozeModal_info_mixed', [parts]);
       }
-      return `Snoozing ${totalTabs} selected tabs together`;
+      return t('snoozeModal_info_tabsTogether', [String(totalTabs)]);
     }
     return null;
   }
@@ -258,7 +284,7 @@ class SnoozeModal {
     this.modal.innerHTML = `
       <div class="snooze-header">
         <h2 id="snooze-title">${modalTitle}</h2>
-        <button class="snooze-close" aria-label="Close dialog">
+        <button class="snooze-close" aria-label="${t('snoozeModal_close')}">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -268,7 +294,7 @@ class SnoozeModal {
 
       <div class="snooze-content">
         <div class="snooze-presets">
-          <h3>Quick Presets</h3>
+          <h3>${t('snoozeModal_header_presets')}</h3>
           <div class="preset-grid">
             ${this.presets.map(preset => `
               <button class="preset-button" data-preset-id="${preset.id}">
@@ -281,14 +307,14 @@ class SnoozeModal {
         </div>
 
         <div class="snooze-custom">
-          <h3>Custom Time</h3>
+          <h3>${t('snoozeModal_header_custom')}</h3>
           <div class="custom-inputs">
             <div class="input-group">
-              <label for="snooze-date">Date</label>
+              <label for="snooze-date">${t('snoozeModal_custom_date')}</label>
               <input type="date" id="snooze-date" min="${this.getMinDate()}">
             </div>
             <div class="input-group">
-              <label for="snooze-time">Time</label>
+              <label for="snooze-time">${t('snoozeModal_custom_time')}</label>
               <input type="time" id="snooze-time">
             </div>
           </div>
@@ -304,7 +330,7 @@ class SnoozeModal {
       </div>
 
       <div class="snooze-footer">
-        <button class="snooze-button secondary" id="snooze-cancel">Cancel</button>
+        <button class="snooze-button secondary" id="snooze-cancel">${t('snoozeModal_cancel')}</button>
         <button class="snooze-button primary" id="snooze-confirm" disabled>${buttonText}</button>
       </div>
     `;
@@ -438,7 +464,7 @@ class SnoozeModal {
     
     // Validate not in past
     if (timestamp <= Date.now()) {
-      this.showError('Please select a future time');
+      this.showError(t('snoozeModal_error_futureTime'));
       this.modal.querySelector('#snooze-confirm').disabled = true;
       return;
     }
@@ -464,7 +490,7 @@ class SnoozeModal {
       minute: '2-digit' 
     };
     
-    const formatted = date.toLocaleString('en-US', options);
+    const formatted = date.toLocaleString(chrome.i18n.getUILanguage() || undefined, options);
     const relative = this.getRelativeTime(timestamp);
     
     preview.innerHTML = `
@@ -479,9 +505,19 @@ class SnoozeModal {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
     
-    if (days > 0) return `in ${days} day${days > 1 ? 's' : ''}`;
-    if (hours > 0) return `in ${hours} hour${hours > 1 ? 's' : ''}`;
-    return `in ${minutes} minute${minutes > 1 ? 's' : ''}`;
+    if (days > 0) {
+      return days === 1
+        ? t('snoozeModal_relative_days_one', ['1'])
+        : t('snoozeModal_relative_days_other', [String(days)]);
+    }
+    if (hours > 0) {
+      return hours === 1
+        ? t('snoozeModal_relative_hours_one', ['1'])
+        : t('snoozeModal_relative_hours_other', [String(hours)]);
+    }
+    return minutes === 1
+      ? t('snoozeModal_relative_minutes_one', ['1'])
+      : t('snoozeModal_relative_minutes_other', [String(minutes)]);
   }
   
   clearCustomInputs() {
