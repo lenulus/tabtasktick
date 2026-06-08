@@ -77,7 +77,7 @@ const WEB_STORE_REVIEW_URL =
 
 /** GitHub feedback issue entry point (negative-path destination). */
 const GITHUB_FEEDBACK_URL =
-  'https://github.com/lenulus/tabtasktick/issues/new?labels=feedback';
+  'https://github.com/lenulus/tabtasktick/issues/new?labels=feedback&template=feedback.md';
 
 /**
  * First-run state for the `reviewPrompt` key. Every persisted state is a shallow

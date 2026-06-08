@@ -602,7 +602,7 @@ describe('ReviewPromptService', () => {
         'https://chromewebstore.google.com/detail/kninondobdcahcnbfknfeijdljkkbbgc/reviews'
       );
       expect(ReviewPromptService.URLS.feedback).toBe(
-        'https://github.com/lenulus/tabtasktick/issues/new?labels=feedback'
+        'https://github.com/lenulus/tabtasktick/issues/new?labels=feedback&template=feedback.md'
       );
     });
   });
