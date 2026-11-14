@@ -2765,6 +2765,15 @@
   "dashboard_overview_statTabsChange": {
     "message": "+0 hoy"
   },
+  "dashboard_overview_statTabsChangeToday": {
+    "message": "$change$ hoy",
+    "placeholders": {
+      "change": {
+        "content": "$1",
+        "example": "-12"
+      }
+    }
+  },
   "dashboard_overview_statTabGroups": {
     "message": "Grupos de pestañas"
   },

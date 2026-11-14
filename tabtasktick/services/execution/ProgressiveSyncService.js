@@ -1337,7 +1337,8 @@ async function processTabCreated(collectionId, change) {
   // Check if tab already exists in storage (e.g., during collection restoration)
   // This prevents duplicate entries when RestoreCollectionService creates tabs
   const existingTab = await findTabByRuntimeId(tabId);
-  if (existingTab) {
+  const existingCollectionId = existingTab ? await getStoredTabCollectionId(existingTab) : null;
+  if (existingTab && existingCollectionId === collectionId) {
     logAndBuffer('debug', `Skipping tab ${tabId} - already exists in storage with id ${existingTab.id}`);
     return;
   }
@@ -1357,6 +1358,29 @@ async function processTabCreated(collectionId, change) {
     logAndBuffer('info', `Tab is ungrouped (groupId: ${groupId}), saving with folderId: null`);
     // Ungrouped tabs are saved with folderId: null to preserve window-level ordering
     folderId = null;
+  }
+
+  // Tab was dragged here from another tracked collection's window, and that
+  // collection has not processed its removal yet (each collection flushes on
+  // its own debounce timer). Move the stored tab instead of skipping it, so it
+  // is not lost when the other collection's removal runs.
+  if (existingTab) {
+    await saveTab({
+      ...existingTab,
+      collectionId,
+      folderId,
+      url: tab.url,
+      title: tab.title,
+      favicon: tab.favIconUrl,
+      position,
+      isPinned: tab.pinned
+    });
+    logAndBuffer('info', `Moved tab ${tabId} from collection ${existingCollectionId} to ${collectionId}`);
+    if (existingCollectionId) {
+      await updateMetadataCounts(existingCollectionId);
+    }
+    await updateMetadataCounts(collectionId);
+    return;
   }
 
   // Create tab in IndexedDB
@@ -1389,6 +1413,24 @@ async function processTabCreated(collectionId, change) {
 }
 
 /**
+ * Returns the collection a stored tab belongs to. Tabs carry collectionId;
+ * older grouped tabs may only be linked through their folder.
+ *
+ * @param {Object} storedTab - Tab record from IndexedDB
+ * @returns {Promise<string|null>}
+ */
+async function getStoredTabCollectionId(storedTab) {
+  if (storedTab.collectionId) {
+    return storedTab.collectionId;
+  }
+  if (storedTab.folderId) {
+    const folder = await getFolder(storedTab.folderId);
+    return folder?.collectionId || null;
+  }
+  return null;
+}
+
+/**
  * Processes tab removed change.
  *
  * Deletes tab from IndexedDB.
@@ -1403,6 +1445,14 @@ async function processTabRemoved(collectionId, change) {
   const tab = await findTabByRuntimeId(tabId);
   if (!tab) {
     console.warn(`[ProgressiveSyncService] Tab ${tabId} not found in collection ${collectionId}`);
+    return;
+  }
+
+  // The tab was moved to another collection's window and that collection
+  // already claimed it; it is no longer this collection's to delete.
+  const storedCollectionId = await getStoredTabCollectionId(tab);
+  if (storedCollectionId && storedCollectionId !== collectionId) {
+    logAndBuffer('debug', `Tab ${tabId} now belongs to collection ${storedCollectionId}, not deleting from ${collectionId}`);
     return;
   }
 

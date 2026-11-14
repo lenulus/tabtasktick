@@ -2729,6 +2729,15 @@
   "dashboard_overview_statTabsChange": {
     "message": "오늘 +0"
   },
+  "dashboard_overview_statTabsChangeToday": {
+    "message": "오늘 $change$",
+    "placeholders": {
+      "change": {
+        "content": "$1",
+        "example": "-12"
+      }
+    }
+  },
   "dashboard_overview_statTabGroups": {
     "message": "탭 그룹"
   },

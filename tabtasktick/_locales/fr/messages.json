@@ -3005,6 +3005,15 @@
   "dashboard_overview_statTabsChange": {
     "message": "+0 aujourd'hui"
   },
+  "dashboard_overview_statTabsChangeToday": {
+    "message": "$change$ aujourd'hui",
+    "placeholders": {
+      "change": {
+        "content": "$1",
+        "example": "-12"
+      }
+    }
+  },
   "dashboard_overview_statTabGroups": {
     "message": "Groupes d'onglets"
   },

@@ -2747,6 +2747,15 @@
   "dashboard_overview_statTabsChange": {
     "message": "+0 heute"
   },
+  "dashboard_overview_statTabsChangeToday": {
+    "message": "$change$ heute",
+    "placeholders": {
+      "change": {
+        "content": "$1",
+        "example": "-12"
+      }
+    }
+  },
   "dashboard_overview_statTabGroups": {
     "message": "Tab-Gruppen"
   },

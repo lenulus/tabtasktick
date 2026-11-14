@@ -4,6 +4,7 @@
 import { getTimeAgo, getActivityIcon } from '../core/utils.js';
 import state from '../core/state.js';
 import { t } from '../../../services/utils/i18n.js';
+import { formatSignedCount } from '../../../services/execution/DailyTabCountService.js';
 
 // Store chart instances globally to ensure proper cleanup
 const chartInstances = {
@@ -34,7 +35,8 @@ export async function loadOverviewData(filter = null) {
 
     // Update stat cards
     document.getElementById('statTotalTabs').textContent = stats.totalTabs;
-    document.getElementById('statTabsChange').textContent = t('dashboard_overview_statTabsChange'); // Would need tracking
+    document.getElementById('statTabsChange').textContent =
+      t('dashboard_overview_statTabsChangeToday', [formatSignedCount(stats.tabsChangeToday)]);
 
     document.getElementById('statGroups').textContent = stats.groupedTabs;
     document.getElementById('statGroupsInfo').textContent = t('dashboard_overview_statGroupsInfo'); // Would need tracking

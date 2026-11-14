@@ -58,6 +58,8 @@ import {
 // TabTaskTick Phase 8: Import ProgressiveSyncService for real-time collection sync
 import * as ProgressiveSyncService from './services/execution/ProgressiveSyncService.js';
 import * as ReviewPromptService from './services/execution/ReviewPromptService.js';
+import * as DailyTabCountService from './services/execution/DailyTabCountService.js';
+import * as TabHistoryService from './services/execution/TabHistoryService.js';
 
 // Console log level filtering (reference swap approach - preserves caller info)
 import { initConsoleCapture } from './services/utils/console-capture.js';
@@ -303,23 +305,11 @@ async function initializeTabTimeTracking() {
 // Activity Tracking
 // ============================================================================
 
-// Track tab history for the activity chart
+// Track tab history for the activity chart.
+// Writes are serialized by TabHistoryService so that a burst of events (closing
+// a window fires one onRemoved per tab) records every entry.
 async function trackTabHistory(action) {
-  const history = await chrome.storage.local.get(['tabHistory']);
-  const tabHistory = history.tabHistory || [];
-
-  // Add new entry
-  tabHistory.push({
-    action,
-    timestamp: Date.now()
-  });
-
-  // Keep only last 30 days of history
-  const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-  const recentHistory = tabHistory.filter(h => h.timestamp > thirtyDaysAgo);
-
-  // Save back to storage
-  await chrome.storage.local.set({ tabHistory: recentHistory });
+  await TabHistoryService.recordTabHistory(action);
 }
 
 function logActivity(action, details, source = 'manual') {
@@ -639,8 +629,8 @@ async function executeRule(ruleId, triggerType = 'manual', testMode = false) {
           // Update statistics
           switch (action.action) {
           case 'close':
+            // 'closed' history is recorded by the tabs.onRemoved listener
             state.statistics.tabsClosed++;
-            await trackTabHistory('closed');
             break;
           case 'snooze':
             state.statistics.tabsSnoozed++;
@@ -741,6 +731,9 @@ async function getStatistics() {
   // Add activity statistics from background state
   stats.statistics = state.statistics;
 
+  // Net change in open tabs since the start of today (negative when tabs were closed)
+  stats.tabsChangeToday = await DailyTabCountService.getTabCountChangeToday(stats.totalTabs);
+
   return stats;
 }
 
@@ -832,6 +825,11 @@ async function executeAllRules() {
 
 // Handle tab creation for immediate triggers
 chrome.tabs.onCreated.addListener(safeAsyncListener(async (tab) => {
+  // First tab event of the day: record today's starting tab count (before this tab)
+  await DailyTabCountService.ensureDailyBaseline(
+    async () => (await chrome.tabs.query({})).length - 1
+  );
+
   // Track time
   tabTimeData.set(tab.id, {
     created: Date.now(),
@@ -853,6 +851,14 @@ chrome.tabs.onUpdated.addListener(safeAsyncListener(async (tabId, changeInfo, ta
   }
 }));
 
+// Handle a tab moved into a window (dragged from another window or "Move to
+// window"). Neither onCreated nor onUpdated(status: complete) fires for an
+// already-loaded tab, so without this, immediate rules such as "close
+// duplicates in the same window" waited for some unrelated tab event.
+chrome.tabs.onAttached.addListener(safeAsyncListener(async () => {
+  await checkImmediateTriggers('tab.attached');
+}));
+
 // Handle tab activation
 chrome.tabs.onActivated.addListener(safeAsyncListener(async (activeInfo) => {
   const timeData = tabTimeData.get(activeInfo.tabId);
@@ -864,6 +870,11 @@ chrome.tabs.onActivated.addListener(safeAsyncListener(async (activeInfo) => {
 
 // Handle tab removal
 chrome.tabs.onRemoved.addListener(safeAsyncListener(async (tabId) => {
+  // First tab event of the day: record today's starting tab count (including this tab)
+  await DailyTabCountService.ensureDailyBaseline(
+    async () => (await chrome.tabs.query({})).length + 1
+  );
+
   tabTimeData.delete(tabId);
   await trackTabHistory('closed');
 }));
@@ -2234,10 +2245,7 @@ async function findAndCloseDuplicates() {
     // Log activity
     logActivity('close', `Closed ${closedCount} duplicate tab${closedCount > 1 ? 's' : ''}`, 'manual');
 
-    // Track history
-    for (let i = 0; i < closedCount; i++) {
-      await trackTabHistory('closed');
-    }
+    // 'closed' history is recorded by the tabs.onRemoved listener for each tab
   }
 
   return closedCount;

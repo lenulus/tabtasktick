@@ -3005,6 +3005,15 @@
   "dashboard_overview_statTabsChange": {
     "message": "+0 hoje"
   },
+  "dashboard_overview_statTabsChangeToday": {
+    "message": "$change$ hoje",
+    "placeholders": {
+      "change": {
+        "content": "$1",
+        "example": "-12"
+      }
+    }
+  },
   "dashboard_overview_statTabGroups": {
     "message": "Grupos de abas"
   },

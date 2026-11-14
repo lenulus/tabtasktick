@@ -1107,6 +1107,10 @@
   "dashboard_overview_statTotalTabs": { "message": "Total Tabs" },
   "dashboard_overview_statTotalTabsTitle": { "message": "View all tabs" },
   "dashboard_overview_statTabsChange": { "message": "+0 today" },
+  "dashboard_overview_statTabsChangeToday": {
+    "message": "$change$ today",
+    "placeholders": { "change": { "content": "$1", "example": "-12" } }
+  },
   "dashboard_overview_statTabGroups": { "message": "Tab Groups" },
   "dashboard_overview_statTabGroupsTitle": { "message": "View tab groups" },
   "dashboard_overview_statGroupsInfo": { "message": "0 collapsed" },
